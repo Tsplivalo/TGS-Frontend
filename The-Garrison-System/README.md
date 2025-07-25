@@ -1,10 +1,6 @@
-# Frontend - The Garrison System
-
-Este repositorio contiene el frontend de The Garrison System, desarrollado con Angular para la interfaz de usuario.
-
 # TheGarrisonSystem
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.1.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.3.
 
 ## Development server
 
