@@ -1,17 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ZonaForm } from './zona-form';
 
-describe('ZonaForm', () => {
-  let component: ZonaForm;
-  let fixture: ComponentFixture<ZonaForm>;
+import { Zona } from './zona';
+
+describe('Zona', () => {
+  let component: Zona;
+  let fixture: ComponentFixture<Zona>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ZonaForm]
+      imports: [Zona]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ZonaForm);
+    fixture = TestBed.createComponent(Zona);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
