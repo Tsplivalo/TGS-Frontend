@@ -11,7 +11,7 @@ export class ZonaService {
 
   constructor(private http: HttpClient) {}
 
-  getZonas(): Observable<Zona[]> {
+  getAllZonas(): Observable<Zona[]> {
     return this.http.get<Zona[]>(this.apiUrl);
   }
 

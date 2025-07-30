@@ -22,7 +22,7 @@ export class ZonaComponent implements OnInit {
   }
 
   obtenerZonas(): void {
-    this.zonaService.getZonas().subscribe((data) => {
+    this.zonaService.getAllZonas().subscribe((data) => {
       this.zonas = data;
     });
   }
