@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgFor } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Cliente } from '../../models/cliente/cliente.model';
 import { ClienteService } from '../../services/cliente/cliente';
 
 @Component({
   selector: 'app-cliente',
   standalone: true,
-  imports: [CommonModule, NgFor],
-  templateUrl: './cliente.component.html',
+  imports: [CommonModule],
+  templateUrl: './cliente.html',
   styleUrls: ['./cliente.scss']
 })
 export class ClienteComponent implements OnInit {

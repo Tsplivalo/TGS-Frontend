@@ -1,12 +1,18 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, HttpClientModule],
+  template: `
+    <h1>Mi App</h1>
+    <nav>
+      <a routerLink="/zona">Zona</a>
+      <a routerLink="/cliente">Cliente</a>
+    </nav>
+    <router-outlet></router-outlet>
+  `,
 })
-export class App {
-  protected readonly title = signal('The-Garrison-System');
-}
+export class AppComponent {}

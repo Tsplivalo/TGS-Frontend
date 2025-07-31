@@ -1,8 +1,10 @@
+// app.routes.ts
 import { Routes } from '@angular/router';
-import { ClienteComponent } from './components/cliente/cliente';
 import { ZonaComponent } from './components/zona/zona';
+import { ClienteComponent } from './components/cliente/cliente';
 
 export const appRoutes: Routes = [
-  { path: 'zonas', component: ZonaComponent },
-  { path: 'clientes', component: ClienteComponent },
+  { path: '', redirectTo: 'zona', pathMatch: 'full' },
+  { path: 'zona', component: ZonaComponent },
+  { path: 'cliente', component: ClienteComponent },
 ];
