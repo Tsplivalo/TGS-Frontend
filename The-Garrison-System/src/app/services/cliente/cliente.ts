@@ -7,14 +7,15 @@ import { Cliente } from '../../models/cliente/cliente.model';
   providedIn: 'root',
 })
 export class ClienteService {
-  private apiUrl = 'http://localhost:3000/clientes'; // URL de tu backend
+  private apiUrl = 'http://localhost:3000/api/clientes';
+;
 
   constructor(private http: HttpClient) {}
 
   // Obtener todos los clientes
-  getAllClientes(): Observable<Cliente[]> {
-    return this.http.get<Cliente[]>(this.apiUrl);
-  }
+  getAllClientes(): Observable<{ data: Cliente[] }> {
+  return this.http.get<{ data: Cliente[] }>('/api/clientes');
+}
 
   // Obtener un cliente por DNI
   getClienteByDni(dni: string): Observable<Cliente> {

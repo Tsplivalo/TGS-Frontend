@@ -1,1 +1,6 @@
-<p>cliente works!</p>
+<h2>Lista de Clientes</h2>
+<ul>
+  <li *ngFor="let cliente of clientes">
+    {{ cliente.nombre }} - {{ cliente.email }}
+  </li>
+</ul>
