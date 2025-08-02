@@ -1,0 +1,51 @@
+<h2>Gestión de Productos</h2>
+
+<!-- Formulario de creación -->
+<form [formGroup]="createForm" (ngSubmit)="onCreate()">
+  <input formControlName="nombre" placeholder="Nombre" required />
+  <input formControlName="descripcion" placeholder="Descripción" />
+  <input type="number" formControlName="precio" placeholder="Precio" required />
+  <input type="number" formControlName="stock" placeholder="Stock" required />
+  <button type="submit" [disabled]="createForm.invalid">Crear</button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Descripción</th>
+      <th>Precio</th>
+      <th>Stock</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of productos">
+      <ng-container *ngIf="editingId !== p.id; else editRow">
+        <td>{{ p.id }}</td>
+        <td>{{ p.nombre }}</td>
+        <td>{{ p.descripcion || '—' }}</td>
+        <td>{{ p.precio | currency }}</td>
+        <td>{{ p.stock }}</td>
+        <td>
+          <button (click)="startEdit(p)">✏️</button>
+          <button (click)="deleteProducto(p.id)">🗑️</button>
+        </td>
+      </ng-container>
+      <ng-template #editRow>
+        <td colspan="6">
+          <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
+            <input formControlName="id" [disabled]="true" />
+            <input formControlName="nombre" required />
+            <input formControlName="descripcion" />
+            <input type="number" formControlName="precio" required />
+            <input type="number" formControlName="stock" required />
+            <button type="submit" [disabled]="editForm.invalid">Guardar</button>
+            <button type="button" (click)="cancelEdit()">Cancelar</button>
+          </form>
+        </td>
+      </ng-template>
+    </tr>
+  </tbody>
+</table>

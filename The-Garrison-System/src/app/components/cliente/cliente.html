@@ -1,6 +1,61 @@
-<h2>Lista de Clientes</h2>
-<ul>
-  <li *ngFor="let cliente of clientes">
-    {{ cliente.nombre }} - {{ cliente.email }}
-  </li>
-</ul>
+<!-- src/app/components/cliente/cliente.component.html -->
+<h2>Clientes</h2>
+
+<!-- Formulario de creación -->
+<form [formGroup]="createForm" (ngSubmit)="onCreate()">
+  <input formControlName="dni" placeholder="DNI" required />
+  <input formControlName="nombre" placeholder="Nombre" required />
+  <input formControlName="email" placeholder="Email" />
+  <input formControlName="direccion" placeholder="Dirección" />
+  <input formControlName="telefono" placeholder="Teléfono" />
+  <button type="submit" [disabled]="createForm.invalid">
+    Crear
+  </button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>DNI</th>
+      <th>Nombre</th>
+      <th>Email</th>
+      <th>Dirección</th>
+      <th>Teléfono</th>
+      <th>Compras</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let c of clientes">
+      <ng-container *ngIf="editingDni !== c.dni; else editRow">
+        <td>{{ c.dni }}</td>
+        <td>{{ c.nombre }}</td>
+        <td>{{ c.email || '—' }}</td>
+        <td>{{ c.direccion || '—' }}</td>
+        <td>{{ c.telefono || '—' }}</td>
+        <td>{{ c.regCompras.length }}</td>
+        <td>
+          <button (click)="startEdit(c)">✏️</button>
+          <button (click)="deleteCliente(c.dni)">🗑️</button>
+        </td>
+      </ng-container>
+      <ng-template #editRow>
+        <td colspan="7">
+          <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
+            <input formControlName="dni" [disabled]="true" />
+            <input formControlName="nombre" required />
+            <input formControlName="email" />
+            <input formControlName="direccion" />
+            <input formControlName="telefono" />
+            <button type="submit" [disabled]="editForm.invalid">
+              Guardar
+            </button>
+            <button type="button" (click)="cancelEdit()">
+              Cancelar
+            </button>
+          </form>
+        </td>
+      </ng-template>
+    </tr>
+  </tbody>
+</table>

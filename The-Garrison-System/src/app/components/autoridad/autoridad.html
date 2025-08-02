@@ -1,0 +1,34 @@
+<h2>Gestión de Autoridades</h2>
+
+<form (ngSubmit)="crearAutoridad()">
+  <div>
+    <label>DNI</label>
+    <input [(ngModel)]="nueva.dni" name="dni" placeholder="DNI" required />
+  </div>
+  <div>
+    <label>Nombre</label>
+    <input [(ngModel)]="nueva.nombre" name="nombre" placeholder="Nombre" required />
+  </div>
+  <div>
+    <label>Rango (0–3)</label>
+    <input type="number" [(ngModel)]="nueva.rango" name="rango" min="0" max="3" required />
+  </div>
+  <div>
+    <label>ID de Zona</label>
+    <input type="number" [(ngModel)]="nueva.zonaId" name="zonaId" min="1" required />
+  </div>
+  <button type="submit">Crear Autoridad</button>
+</form>
+
+<hr />
+
+<ul>
+  <li *ngFor="let a of autoridades; trackBy: trackByDni">
+    <strong>{{ a.dni }}</strong> —
+    {{ a.nombre }} —
+    Rango: {{ a.rango }} —
+    Zona: {{ a.zona?.nombre || '—' }}
+    <button (click)="editarAutoridad(a)">✏️</button>
+    <button (click)="eliminarAutoridad(a.dni)">🗑️</button>
+  </li>
+</ul>

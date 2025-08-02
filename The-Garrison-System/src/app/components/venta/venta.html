@@ -1,0 +1,34 @@
+<!-- src/app/components/venta/venta.component.html -->
+<h2>Gestión de Ventas</h2>
+
+<form (ngSubmit)="crearVenta()">
+  <div>
+    <label for="cliente">DNI Cliente</label>
+    <input id="cliente" name="cliente" [(ngModel)]="nueva.cliente.dni" placeholder="Ingrese DNI del cliente" required />
+  </div>
+
+  <div>
+    <label for="productos">Productos (IDs separados por comas)</label>
+    <input id="productos" name="productos" [(ngModel)]="productosInput" placeholder="e.g. 1,2,3" required />
+  </div>
+
+  <div>
+    <label for="total">Total</label>
+    <input id="total" name="total" type="number" [(ngModel)]="nueva.total" placeholder="Monto total" required />
+  </div>
+
+  <button type="submit">Crear Venta</button>
+</form>
+
+<hr />
+
+<ul>
+  <li *ngFor="let v of ventas; trackBy: trackById">
+    <strong>#{{ v.id }}</strong> —
+    {{ v.fecha_hora | date: 'short' }} —
+    ${{ v.total }} —
+    Cliente: {{ v.cliente.dni }} — {{ v.cliente.nombre }}
+    <button (click)="editarVenta(v)">✏️</button>
+    <button (click)="eliminarVenta(v.id)">🗑️</button>
+  </li>
+</ul>

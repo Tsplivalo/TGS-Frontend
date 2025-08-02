@@ -1,43 +1,35 @@
+// src/app/services/cliente/cliente.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Cliente } from '../../models/cliente/cliente.model';
+import { ApiResponse, ClienteDTO } from '../../models/cliente/cliente.model';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ClienteService {
-  private apiUrl = 'http://localhost:3000/api/clientes';
-;
+  private readonly apiUrl = '/api/clientes';
 
   constructor(private http: HttpClient) {}
 
-  // Obtener todos los clientes
-  getAllClientes(): Observable<{ data: Cliente[] }> {
-  return this.http.get<{ data: Cliente[] }>('/api/clientes');
-}
-
-  // Obtener un cliente por DNI
-  getClienteByDni(dni: string): Observable<Cliente> {
-    return this.http.get<Cliente>(`${this.apiUrl}/${dni}`);
+  getAllClientes(): Observable<ApiResponse<ClienteDTO[]>> {
+    return this.http.get<ApiResponse<ClienteDTO[]>>(this.apiUrl);
   }
 
-  // Crear nuevo cliente
-  createCliente(cliente: Cliente): Observable<Cliente> {
-    return this.http.post<Cliente>(this.apiUrl, cliente);
+  getClienteByDni(dni: string): Observable<ApiResponse<ClienteDTO>> {
+    return this.http.get<ApiResponse<ClienteDTO>>(`${this.apiUrl}/${dni}`);
   }
 
-  // Actualizar cliente (PUT)
-  updateCliente(dni: string, cliente: Cliente): Observable<Cliente> {
-    return this.http.put<Cliente>(`${this.apiUrl}/${dni}`, cliente);
+  createCliente(c: ClienteDTO): Observable<ApiResponse<ClienteDTO>> {
+    return this.http.post<ApiResponse<ClienteDTO>>(this.apiUrl, c);
   }
 
-  // Actualizar parcialmente cliente (PATCH)
-  patchCliente(dni: string, cambios: Partial<Cliente>): Observable<Cliente> {
-    return this.http.patch<Cliente>(`${this.apiUrl}/${dni}`, cambios);
+  updateCliente(dni: string, c: Partial<ClienteDTO>): Observable<ApiResponse<ClienteDTO>> {
+    return this.http.put<ApiResponse<ClienteDTO>>(`${this.apiUrl}/${dni}`, c);
   }
 
-  // Eliminar cliente
+  patchCliente(dni: string, c: Partial<ClienteDTO>): Observable<ApiResponse<ClienteDTO>> {
+    return this.http.patch<ApiResponse<ClienteDTO>>(`${this.apiUrl}/${dni}`, c);
+  }
+
   deleteCliente(dni: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${dni}`);
   }

@@ -1,29 +1,41 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Zona } from '../../models/zona/zona.model';
 import { Observable } from 'rxjs';
+import {
+  ApiResponse,
+  ZonaDTO,
+  CreateZonaDTO,
+  UpdateZonaDTO,
+  PatchZonaDTO
+} from '../../models/zona/zona.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ZonaService {
-  private apiUrl = 'http://localhost:3000/zonas'; // cambiá el puerto si usás otro
+  private readonly apiUrl = '/api/zonas';
 
   constructor(private http: HttpClient) {}
 
-  getAllZonas(): Observable<Zona[]> {
-    return this.http.get<Zona[]>(this.apiUrl);
+  getAllZonas(): Observable<ApiResponse<ZonaDTO[]>> {
+    return this.http.get<ApiResponse<ZonaDTO[]>>(this.apiUrl);
   }
 
-  crearZona(zona: Zona): Observable<Zona> {
-    return this.http.post<Zona>(this.apiUrl, zona);
+  getZonaById(id: number): Observable<ApiResponse<ZonaDTO>> {
+    return this.http.get<ApiResponse<ZonaDTO>>(`${this.apiUrl}/${id}`);
   }
 
-  actualizarZona(zona: Zona): Observable<Zona> {
-    return this.http.put<Zona>(this.apiUrl, zona);
+  createZona(z: CreateZonaDTO): Observable<ApiResponse<ZonaDTO>> {
+    return this.http.post<ApiResponse<ZonaDTO>>(this.apiUrl, z);
   }
 
-  eliminarZona(id: number): Observable<void> {
+  updateZona(id: number, z: UpdateZonaDTO): Observable<ApiResponse<ZonaDTO>> {
+    return this.http.put<ApiResponse<ZonaDTO>>(`${this.apiUrl}/${id}`, z);
+  }
+
+  patchZona(id: number, z: PatchZonaDTO): Observable<ApiResponse<ZonaDTO>> {
+    return this.http.patch<ApiResponse<ZonaDTO>>(`${this.apiUrl}/${id}`, z);
+  }
+
+  deleteZona(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
