@@ -1,51 +1,113 @@
-<h2>Gestión de Productos</h2>
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Productos</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nuevo</button>
+      </div>
+    </div>
 
-<!-- Formulario de creación -->
-<form [formGroup]="createForm" (ngSubmit)="onCreate()">
-  <input formControlName="nombre" placeholder="Nombre" required />
-  <input formControlName="descripcion" placeholder="Descripción" />
-  <input type="number" formControlName="precio" placeholder="Precio" required />
-  <input type="number" formControlName="stock" placeholder="Stock" required />
-  <button type="submit" [disabled]="createForm.invalid">Crear</button>
-</form>
+    <!-- Filtros -->
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="Nombre o descripción..." [(ngModel)]="fTexto" />
+      </label>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre</th>
-      <th>Descripción</th>
-      <th>Precio</th>
-      <th>Stock</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let p of productos">
-      <ng-container *ngIf="editingId !== p.id; else editRow">
-        <td>{{ p.id }}</td>
-        <td>{{ p.nombre }}</td>
-        <td>{{ p.descripcion || '—' }}</td>
-        <td>{{ p.precio | currency }}</td>
-        <td>{{ p.stock }}</td>
-        <td>
-          <button (click)="startEdit(p)">✏️</button>
-          <button (click)="deleteProducto(p.id)">🗑️</button>
-        </td>
-      </ng-container>
-      <ng-template #editRow>
-        <td colspan="6">
-          <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
-            <input formControlName="id" [disabled]="true" />
-            <input formControlName="nombre" required />
-            <input formControlName="descripcion" />
-            <input type="number" formControlName="precio" required />
-            <input type="number" formControlName="stock" required />
-            <button type="submit" [disabled]="editForm.invalid">Guardar</button>
-            <button type="button" (click)="cancelEdit()">Cancelar</button>
-          </form>
-        </td>
-      </ng-template>
-    </tr>
-  </tbody>
-</table>
+      <label class="label">
+        Precio mín.
+        <input type="number" class="input" min="0" [(ngModel)]="fPrecioMin"
+          (ngModelChange)="fPrecioMin.set($event ? +$event : null)" />
+      </label>
+
+      <label class="label">
+        Precio máx.
+        <input type="number" class="input" min="0" [(ngModel)]="fPrecioMax"
+          (ngModelChange)="fPrecioMax.set($event ? +$event : null)" />
+      </label>
+
+      <label class="label">
+        Stock
+        <select class="select" [(ngModel)]="fStock" (ngModelChange)="fStock = $event">
+          <option value="todos">Todos</option>
+          <option value="con">Con stock</option>
+          <option value="sin">Sin stock</option>
+        </select>
+      </label>
+    </div>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()">Cargando...</div>
+
+    <div class="card table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th style="width: 32%;">Descripción</th>
+            <th style="text-align:right;">Precio</th>
+            <th style="text-align:right;">Stock</th>
+            <th style="width:160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of listaFiltrada()">
+            <td>{{ p.id }}</td>
+            <td>{{ p.nombre }}</td>
+            <td class="muted">{{ p.descripcion || '—' }}</td>
+            <td style="text-align:right;">{{ p.precio | currency:'ARS':'symbol':'1.0-0' }}</td>
+            <td style="text-align:right;">
+              <span [class.low]="p.stock === 0">{{ p.stock }}</span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="btn ghost" (click)="editar(p)">Editar</button>
+                <button class="btn danger" (click)="eliminar(p.id)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="listaFiltrada().length === 0">
+            <td colspan="6" class="muted center">Sin registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="card">
+    <h3>{{ editId() == null ? 'Nuevo producto' : 'Editar producto #' + editId() }}</h3>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <label class="label">
+        Nombre
+        <input class="input" formControlName="nombre" placeholder="Nombre del producto" />
+      </label>
+
+      <label class="label">
+        Precio
+        <input type="number" min="0" class="input" formControlName="precio" />
+      </label>
+
+      <label class="label">
+        Stock
+        <input type="number" min="0" class="input" formControlName="stock" />
+      </label>
+
+      <label class="label" style="grid-column: 1 / -1;">
+        Descripción
+        <textarea rows="3" class="textarea" formControlName="descripcion" placeholder="Opcional"></textarea>
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ editId() == null ? 'Crear' : 'Guardar' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>

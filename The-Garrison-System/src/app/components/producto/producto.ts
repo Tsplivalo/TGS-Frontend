@@ -1,97 +1,138 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ProductoService } from '../../services/producto/producto';
-import { ProductoDTO, CreateProductoDTO } from '../../models/producto/producto.model';
+import { ApiResponse, ProductoDTO, CreateProductoDTO, UpdateProductoDTO } from '../../models/producto/producto.model';
 
 @Component({
   selector: 'app-producto',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './producto.html',
-  styleUrls: ['./producto.scss'],
+  styleUrls: ['./producto.scss']
 })
 export class ProductoComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private productoService = inject(ProductoService);
+  private srv = inject(ProductoService);
 
-  productos: ProductoDTO[] = [];
-  createForm!: FormGroup;
-  editForm!: FormGroup;
-  editingId: number | null = null;
+  // estado
+  loading = signal(false);
+  error = signal<string | null>(null);
+  editId = signal<number | null>(null);
 
-  ngOnInit(): void {
-    this.buildForms();
-    this.loadProductos();
-  }
+  // datos
+  productos = signal<ProductoDTO[]>([]);
 
-  buildForms() {
-    this.createForm = this.fb.group({
-      nombre:    ['', Validators.required],
-      descripcion: [''],
-      precio:    [0, [Validators.required, Validators.min(0)]],
-      stock:     [0, [Validators.required, Validators.min(0)]],
+  // filtros
+  fTexto = signal('');
+  fPrecioMin = signal<number | null>(null);
+  fPrecioMax = signal<number | null>(null);
+  fStock = signal<'todos' | 'con' | 'sin'>('todos');
+
+  // vista filtrada
+  listaFiltrada = computed(() => {
+    const txt = this.fTexto().toLowerCase().trim();
+    const pmin = this.fPrecioMin();
+    const pmax = this.fPrecioMax();
+    const fstock = this.fStock();
+
+    return this.productos().filter(p => {
+      const matchTxt =
+        !txt ||
+        p.nombre.toLowerCase().includes(txt) ||
+        (p.descripcion ?? '').toLowerCase().includes(txt);
+
+      const matchMin = pmin == null || p.precio >= pmin;
+      const matchMax = pmax == null || p.precio <= pmax;
+
+      const matchStock =
+        fstock === 'todos' ||
+        (fstock === 'con' && p.stock > 0) ||
+        (fstock === 'sin' && p.stock === 0);
+
+      return matchTxt && matchMin && matchMax && matchStock;
     });
+  });
 
-    this.editForm = this.fb.group({
-      id:         [{ value: '', disabled: true }],
-      nombre:     ['', Validators.required],
-      descripcion:[''],
-      precio:     [0, [Validators.required, Validators.min(0)]],
-      stock:      [0, [Validators.required, Validators.min(0)]],
-    });
-  }
+  // formulario
+  form = this.fb.group({
+    nombre: ['', [Validators.required, Validators.minLength(2)]],
+    descripcion: [''],
+    precio: [0, [Validators.required, Validators.min(0)]],
+    stock: [0, [Validators.required, Validators.min(0)]],
+  });
 
-  loadProductos() {
-    this.productoService.getAllProductos().subscribe({
-      next: resp => this.productos = resp.data,
-      error: err => console.error('Error cargando productos', err)
-    });
-  }
+  ngOnInit() { this.cargar(); }
 
-  onCreate() {
-    if (this.createForm.invalid) return;
-    const nuevo: CreateProductoDTO = this.createForm.value;
-    this.productoService.createProducto(nuevo).subscribe({
-      next: () => {
-        this.createForm.reset({ nombre: '', descripcion: '', precio: 0, stock: 0 });
-        this.loadProductos();
+  cargar() {
+    this.loading.set(true);
+    this.error.set(null);
+    this.srv.getAllProductos().subscribe({
+      next: (r: ApiResponse<ProductoDTO[]>) => {
+        this.productos.set(r.data ?? []);
+        this.loading.set(false);
       },
-      error: err => console.error('Error creando producto', err)
+      error: () => {
+        this.error.set('No se pudieron cargar los productos.');
+        this.loading.set(false);
+      }
     });
   }
 
-  startEdit(p: ProductoDTO) {
-    this.editingId = p.id;
-    this.editForm.setValue({
-      id: p.id,
+  nuevo() {
+    this.editId.set(null);
+    this.form.reset({ nombre: '', descripcion: '', precio: 0, stock: 0 });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  editar(p: ProductoDTO) {
+    this.editId.set(p.id);
+    this.form.patchValue({
       nombre: p.nombre,
-      descripcion: p.descripcion || '',
+      descripcion: p.descripcion ?? '',
       precio: p.precio,
       stock: p.stock
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cancelEdit() {
-    this.editingId = null;
-  }
+  guardar() {
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
-  saveEdit() {
-    if (!this.editingId || this.editForm.invalid) return;
-    const cambios = this.editForm.getRawValue() as CreateProductoDTO;
-    this.productoService.updateProducto(this.editingId, cambios).subscribe({
-      next: () => {
-        this.cancelEdit();
-        this.loadProductos();
-      },
-      error: err => console.error('Error actualizando producto', err)
+    const v = this.form.value;
+    const dto: CreateProductoDTO = {
+      nombre: String(v.nombre),
+      descripcion: (v.descripcion ?? '').toString(),
+      precio: Number(v.precio),
+      stock: Number(v.stock),
+    };
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const id = this.editId();
+    const obs = id == null
+      ? this.srv.createProducto(dto)
+      : this.srv.updateProducto(id, {
+          nombre: String(v.nombre),
+          descripcion: (v.descripcion ?? '').toString(),
+          precio: Number(v.precio),
+          stock: Number(v.stock),
+        });
+
+    obs.subscribe({
+      next: () => { this.nuevo(); this.cargar(); },
+      error: () => { this.error.set('No se pudo guardar.'); this.loading.set(false); }
     });
   }
 
-  deleteProducto(id: number) {
-    this.productoService.deleteProducto(id).subscribe({
-      next: () => this.loadProductos(),
-      error: err => console.error('Error eliminando producto', err)
+  eliminar(id: number) {
+    if (!confirm('¿Eliminar producto?')) return;
+    this.loading.set(true);
+    this.error.set(null);
+    this.srv.deleteProducto(id).subscribe({
+      next: () => this.cargar(),
+      error: () => { this.error.set('No se pudo eliminar.'); this.loading.set(false); }
     });
   }
 }

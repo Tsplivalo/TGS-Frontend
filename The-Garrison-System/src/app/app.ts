@@ -1,28 +1,49 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { Component, signal } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  styleUrls: ['./app.scss'],
   template: `
-    <header style="background-color: #343a40; padding: 1rem;">
-      <h1 style="color: #fff; margin: 0; font-size: 1.8rem;">The Garrison System</h1>
+  <div class="layout">
+    <header class="appbar">
+      <div class="appbar__left">
+        <a class="brand" routerLink="/">
+          <img class="logo" src="/logo-garrison.png" alt="The Garrison System" />
+          <span class="brand__text">The Garrison System</span>
+        </a>
+        <nav class="tabs">
+          <a routerLink="/zona" routerLinkActive="active">Zonas</a>
+          <a routerLink="/cliente" routerLinkActive="active">Clientes</a>
+          <a routerLink="/producto" routerLinkActive="active">Productos</a>
+          <a routerLink="/venta" routerLinkActive="active">Ventas</a>
+          <a routerLink="/autoridad" routerLinkActive="active">Autoridades</a>
+          <a routerLink="/sobornos" routerLinkActive="active">Sobornos</a>
+        </nav>
+      </div>
     </header>
 
-    <nav style="display: flex; gap: 1rem; padding: 1rem; background-color: #f8f9fa; border-bottom: 1px solid #ccc;">
-      <a routerLink="/zona" style="text-decoration: none; color: #007bff;">Zona</a>
-      <a routerLink="/cliente" style="text-decoration: none; color: #007bff;">Cliente</a>
-      <a routerLink="/producto" style="text-decoration: none; color: #007bff;">Producto</a>
-      <a routerLink="/usuario" style="text-decoration: none; color: #007bff;">Usuario</a>
-      <a routerLink="/venta" style="text-decoration: none; color: #007bff;">Venta</a>
-      <a routerLink="/autoridad" style="text-decoration: none; color: #007bff;">Autoridad</a>
-    </nav>
-
-    <main style="padding: 2rem;">
+    <main class="content container">
       <router-outlet></router-outlet>
     </main>
-
-  `,
+  </div>
+  `
 })
-export class AppComponent {}
+export class AppComponent {
+  theme = signal<'dark' | 'light'>((localStorage.getItem('theme') as any) || 'dark');
+
+  constructor() {
+    if (this.theme() === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  }
+  toggleTheme() {
+    const next = this.theme() === 'dark' ? 'light' : 'dark';
+    this.theme.set(next);
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+}
+
+

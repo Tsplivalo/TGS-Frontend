@@ -1,61 +1,106 @@
-<!-- src/app/components/cliente/cliente.component.html -->
-<h2>Clientes</h2>
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Clientes</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nuevo</button>
+      </div>
+    </div>
 
-<!-- Formulario de creación -->
-<form [formGroup]="createForm" (ngSubmit)="onCreate()">
-  <input formControlName="dni" placeholder="DNI" required />
-  <input formControlName="nombre" placeholder="Nombre" required />
-  <input formControlName="email" placeholder="Email" />
-  <input formControlName="direccion" placeholder="Dirección" />
-  <input formControlName="telefono" placeholder="Teléfono" />
-  <button type="submit" [disabled]="createForm.invalid">
-    Crear
-  </button>
-</form>
+    <!-- Filtros -->
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="DNI, nombre, email..." [(ngModel)]="fTexto" />
+      </label>
 
-<table>
-  <thead>
-    <tr>
-      <th>DNI</th>
-      <th>Nombre</th>
-      <th>Email</th>
-      <th>Dirección</th>
-      <th>Teléfono</th>
-      <th>Compras</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let c of clientes">
-      <ng-container *ngIf="editingDni !== c.dni; else editRow">
-        <td>{{ c.dni }}</td>
-        <td>{{ c.nombre }}</td>
-        <td>{{ c.email || '—' }}</td>
-        <td>{{ c.direccion || '—' }}</td>
-        <td>{{ c.telefono || '—' }}</td>
-        <td>{{ c.regCompras.length }}</td>
-        <td>
-          <button (click)="startEdit(c)">✏️</button>
-          <button (click)="deleteCliente(c.dni)">🗑️</button>
-        </td>
-      </ng-container>
-      <ng-template #editRow>
-        <td colspan="7">
-          <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
-            <input formControlName="dni" [disabled]="true" />
-            <input formControlName="nombre" required />
-            <input formControlName="email" />
-            <input formControlName="direccion" />
-            <input formControlName="telefono" />
-            <button type="submit" [disabled]="editForm.invalid">
-              Guardar
-            </button>
-            <button type="button" (click)="cancelEdit()">
-              Cancelar
-            </button>
-          </form>
-        </td>
-      </ng-template>
-    </tr>
-  </tbody>
-</table>
+      <label class="label">
+        Con compras
+        <select class="select" [(ngModel)]="fConCompras">
+          <option value="todos">Todos</option>
+          <option value="si">Con compras</option>
+          <option value="no">Sin compras</option>
+        </select>
+      </label>
+    </div>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()">Cargando...</div>
+
+    <div class="card table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>DNI</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+            <th style="text-align:right;">Compras</th>
+            <th style="width:160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of listaFiltrada()">
+            <td>{{ c.dni }}</td>
+            <td>{{ c.nombre }}</td>
+            <td class="muted">{{ c.email || '—' }}</td>
+            <td class="muted">{{ c.telefono || '—' }}</td>
+            <td class="muted">{{ c.direccion || '—' }}</td>
+            <td style="text-align:right;">{{ c.regCompras.length || 0 }}</td>
+            <td>
+              <div class="actions">
+                <button class="btn ghost" (click)="editar(c)">Editar</button>
+                <button class="btn danger" (click)="eliminar(c.dni)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="listaFiltrada().length === 0">
+            <td colspan="7" class="muted center">Sin registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="card">
+    <h3>{{ editDni() == null ? 'Nuevo cliente' : 'Editar cliente ' + editDni() }}</h3>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <label class="label">
+        DNI
+        <input class="input" formControlName="dni" placeholder="Documento" [readonly]="editDni() != null" />
+      </label>
+
+      <label class="label">
+        Nombre
+        <input class="input" formControlName="nombre" placeholder="Nombre y apellido" />
+      </label>
+
+      <label class="label">
+        Email
+        <input class="input" formControlName="email" placeholder="correo@ejemplo.com" />
+      </label>
+
+      <label class="label">
+        Teléfono
+        <input class="input" formControlName="telefono" placeholder="+54 9 ..." />
+      </label>
+
+      <label class="label" style="grid-column: 1 / -1;">
+        Dirección
+        <input class="input" formControlName="direccion" placeholder="Calle 123, Ciudad" />
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ editDni() == null ? 'Crear' : 'Guardar' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>

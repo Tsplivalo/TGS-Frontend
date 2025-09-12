@@ -1,98 +1,159 @@
-// src/app/components/cliente/cliente.component.ts
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule }            from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ClienteService }          from '../../services/cliente/cliente';
-import { ClienteDTO }              from '../../models/cliente/cliente.model';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ClienteService } from '../../services/cliente/cliente';
+import { ApiResponse } from '../../models/cliente/cliente.model';
+
+// Si no tenés exportado el modelo, podés dejar estos aquí o importarlos:
+export interface ClienteDTO {
+  dni: string;
+  nombre: string;
+  email?: string;
+  direccion?: string;
+  telefono?: string;
+  regCompras: any[]; // VentaDTO[] si lo tenés tipado
+}
+export type CreateClienteDTO = Omit<ClienteDTO, 'regCompras'>;
+export type UpdateClienteDTO = Partial<CreateClienteDTO>;
 
 @Component({
   selector: 'app-cliente',
   standalone: true,
-  imports: [ CommonModule, FormsModule, ReactiveFormsModule ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './cliente.html',
-  styleUrls: ['./cliente.scss'],
+  styleUrls: ['./cliente.scss']
 })
 export class ClienteComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private clienteService = inject(ClienteService);
+  private srv = inject(ClienteService);
 
-  clientes: ClienteDTO[] = [];
-  createForm!: FormGroup;
-  editForm!: FormGroup;
-  editingDni: string | null = null;
+  // estado
+  loading = signal(false);
+  error = signal<string | null>(null);
+  editDni = signal<string | null>(null);
 
-  ngOnInit() {
-    this.buildForms();
-    this.loadClientes();
-  }
+  // datos
+  clientes = signal<ClienteDTO[]>([]);
 
-  buildForms() {
-    this.createForm = this.fb.group({
-      dni:       ['', Validators.required],
-      nombre:    ['', Validators.required],
-      email:     ['', [Validators.email]],
-      direccion: [''],
-      telefono:  ['']
+  // filtros
+  fTexto = signal('');
+  fConCompras = signal<'todos' | 'si' | 'no'>('todos');
+
+  // lista filtrada
+  listaFiltrada = computed(() => {
+    const txt = this.fTexto().toLowerCase().trim();
+    const filtroCompras = this.fConCompras();
+
+    return this.clientes().filter(c => {
+      const matchTxt =
+        !txt ||
+        c.dni.toLowerCase().includes(txt) ||
+        c.nombre.toLowerCase().includes(txt) ||
+        (c.email ?? '').toLowerCase().includes(txt) ||
+        (c.telefono ?? '').toLowerCase().includes(txt) ||
+        (c.direccion ?? '').toLowerCase().includes(txt);
+
+      const cant = c.regCompras?.length ?? 0;
+      const matchCompras =
+        filtroCompras === 'todos' ||
+        (filtroCompras === 'si' && cant > 0) ||
+        (filtroCompras === 'no' && cant === 0);
+
+      return matchTxt && matchCompras;
     });
-    this.editForm = this.fb.group({
-      dni:       [{ value: '', disabled: true }],
-      nombre:    ['', Validators.required],
-      email:     ['', [Validators.email]],
-      direccion: [''],
-      telefono:  ['']
-    });
-  }
+  });
 
-  loadClientes() {
-    this.clienteService.getAllClientes().subscribe({
-      next: resp => this.clientes = resp.data,
-      error: err => console.error('Error cargando clientes', err)
-    });
-  }
+  // formulario
+  form = this.fb.group({
+    dni: ['', [Validators.required, Validators.minLength(6)]],
+    nombre: ['', [Validators.required, Validators.minLength(2)]],
+    email: ['', [Validators.email]],
+    direccion: [''],
+    telefono: [''],
+  });
 
-  onCreate() {
-    if (this.createForm.invalid) return;
-    this.clienteService.createCliente(this.createForm.value).subscribe({
-      next: () => {
-        this.createForm.reset();
-        this.loadClientes();
+  ngOnInit() { this.cargar(); }
+
+  cargar() {
+    this.loading.set(true);
+    this.error.set(null);
+    this.srv.getAllClientes().subscribe({
+      next: (r: ApiResponse<ClienteDTO[]>) => {
+        this.clientes.set(r.data ?? []);
+        this.loading.set(false);
       },
-      error: err => console.error('Error creando cliente', err)
+      error: () => {
+        this.error.set('No se pudieron cargar los clientes.');
+        this.loading.set(false);
+      }
     });
   }
 
-  startEdit(c: ClienteDTO) {
-    this.editingDni = c.dni;
-    this.editForm.setValue({
+  nuevo() {
+    this.editDni.set(null);
+    this.form.reset({ dni: '', nombre: '', email: '', direccion: '', telefono: '' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  editar(c: ClienteDTO) {
+    this.editDni.set(c.dni);
+    this.form.patchValue({
       dni: c.dni,
       nombre: c.nombre,
-      email: c.email || '',
-      direccion: c.direccion || '',
-      telefono: c.telefono || ''
+      email: c.email ?? '',
+      direccion: c.direccion ?? '',
+      telefono: c.telefono ?? '',
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  guardar() {
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
+    const v = this.form.value;
+    const dto: CreateClienteDTO = {
+      dni: String(v.dni),
+      nombre: String(v.nombre),
+      email: (v.email ?? '').toString() || undefined,
+      direccion: (v.direccion ?? '').toString() || undefined,
+      telefono: (v.telefono ?? '').toString() || undefined,
+    };
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const dni = this.editDni();
+    const obs = dni == null
+      ? (this.srv as any).createCliente(dto)                 // ajustá nombre si difiere
+      : (this.srv as any).updateCliente(dni, dto as UpdateClienteDTO);
+
+    if (!obs || typeof (obs.subscribe) !== 'function') {
+      // Si aún no implementaste create/update en el service, evitamos romper:
+      this.error.set('Falta implementar create/update en ClienteService.');
+      this.loading.set(false);
+      return;
+    }
+
+    obs.subscribe({
+      next: () => { this.nuevo(); this.cargar(); },
+      error: () => { this.error.set('No se pudo guardar.'); this.loading.set(false); }
     });
   }
 
-  cancelEdit() {
-    this.editingDni = null;
-    this.editForm.reset();
-  }
+  eliminar(dni: string) {
+    if (!confirm('¿Eliminar cliente?')) return;
+    this.loading.set(true);
+    this.error.set(null);
 
-  saveEdit() {
-    if (!this.editingDni || this.editForm.invalid) return;
-    const cambios = this.editForm.getRawValue();
-    this.clienteService.patchCliente(this.editingDni, cambios).subscribe({
-      next: () => {
-        this.cancelEdit();
-        this.loadClientes();
-      },
-      error: err => console.error('Error actualizando cliente', err)
-    });
-  }
-
-  deleteCliente(dni: string) {
-    this.clienteService.deleteCliente(dni).subscribe({
-      next: () => this.loadClientes(),
-      error: err => console.error('Error eliminando cliente', err)
+    const obs = (this.srv as any).deleteCliente?.(dni);
+    if (!obs) {
+      this.error.set('Falta implementar delete en ClienteService.');
+      this.loading.set(false);
+      return;
+    }
+    obs.subscribe({
+      next: () => this.cargar(),
+      error: () => { this.error.set('No se pudo eliminar.'); this.loading.set(false); }
     });
   }
 }

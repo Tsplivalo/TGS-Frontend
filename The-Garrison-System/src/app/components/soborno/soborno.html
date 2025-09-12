@@ -1,0 +1,118 @@
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Sobornos pendientes</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nuevo</button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="ID, Autoridad o notas..." [(ngModel)]="fTexto" />
+      </label>
+
+      <label class="label">
+        Estado
+        <select class="select" [(ngModel)]="fEstado">
+          <option value="">Todos</option>
+          <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+        </select>
+      </label>
+
+      <label class="label">
+        Desde
+        <input type="date" class="input" [(ngModel)]="fDesde" />
+      </label>
+
+      <label class="label">
+        Hasta
+        <input type="date" class="input" [(ngModel)]="fHasta" />
+      </label>
+    </div>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()">Cargando...</div>
+
+    <div class="card table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Autoridad</th>
+            <th>Monto</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Obs.</th>
+            <th style="width:160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of listaFiltrada()">
+            <td>{{ s.id }}</td>
+            <td>{{ s.autoridadId }}</td>
+            <td>{{ s.monto | number:'1.0-0' }}</td>
+            <td>
+              <span class="badge" [class.badge-ok]="s.estado==='PAGADO'">{{ s.estado }}</span>
+            </td>
+            <td>{{ s.fecha | date:'yyyy-MM-dd' }}</td>
+            <td>{{ s.observaciones || '—' }}</td>
+            <td>
+              <div class="actions">
+                <button class="btn ghost" (click)="editar(s)">Editar</button>
+                <button class="btn danger" (click)="eliminar(s.id)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="listaFiltrada().length === 0">
+            <td colspan="7" class="muted">Sin registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="card">
+    <h3>{{ editId() == null ? 'Nuevo soborno' : 'Editar soborno #' + editId() }}</h3>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <label class="label">
+        Autoridad ID
+        <input type="number" class="input" formControlName="autoridadId" />
+      </label>
+
+      <label class="label">
+        Monto
+        <input type="number" class="input" formControlName="monto" />
+      </label>
+
+      <label class="label">
+        Estado
+        <select class="select" formControlName="estado">
+          <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+        </select>
+      </label>
+
+      <label class="label">
+        Fecha
+        <input type="date" class="input" formControlName="fecha" />
+      </label>
+
+      <label class="label" style="grid-column: 1 / -1;">
+        Observaciones
+        <textarea rows="3" class="textarea" formControlName="observaciones"></textarea>
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ editId() == null ? 'Crear' : 'Guardar' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>

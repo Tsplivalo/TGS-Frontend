@@ -1,31 +1,76 @@
-<h2>Gestión de Zonas</h2>
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Zonas</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nueva zona</button>
+      </div>
+    </div>
 
-<form [formGroup]="form" (ngSubmit)="submit()">
-  <input formControlName="nombre" placeholder="Nombre de la zona" required />
-  <button type="submit" [disabled]="form.invalid">
-    {{ editingId ? 'Guardar cambios' : 'Crear zona' }}
-  </button>
-  <button type="button" *ngIf="editingId !== null" (click)="cancel()">
-    Cancelar
-  </button>
-</form>
+    <!-- Filtros -->
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="Nombre o descripción..." [ngModel]="fTexto()"
+          (ngModelChange)="fTexto.set($event)" />
+      </label>
+    </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let z of zonas">
-      <td>{{ z.id }}</td>
-      <td>{{ z.nombre }}</td>
-      <td>
-        <button (click)="edit(z)">✏️</button>
-        <button (click)="delete(z.id)">🗑️</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()">Cargando...</div>
+
+    <div class="card table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th style="width:160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let z of listaFiltrada()">
+            <td>{{ z.id }}</td>
+            <td>{{ z.nombre }}</td>
+            <td class="muted">{{ z.descripcion || '—' }}</td>
+            <td>
+              <div class="actions">
+                <button class="btn ghost" (click)="editar(z)">Editar</button>
+                <button class="btn danger" (click)="eliminar(z.id)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="listaFiltrada().length === 0">
+            <td colspan="4" class="muted center">Sin registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="card">
+    <h3>{{ editId() == null ? 'Nueva zona' : 'Editar zona #' + editId() }}</h3>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <label class="label">
+        Nombre
+        <input class="input" formControlName="nombre" placeholder="Nombre de la zona" />
+      </label>
+
+      <label class="label" style="grid-column: 1 / -1;">
+        Descripción
+        <input class="input" formControlName="descripcion" placeholder="Opcional" />
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ editId() == null ? 'Crear' : 'Guardar' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>

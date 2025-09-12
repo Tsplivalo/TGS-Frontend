@@ -1,34 +1,92 @@
-<h2>Gestión de Autoridades</h2>
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Autoridades</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nueva autoridad</button>
+      </div>
+    </div>
 
-<form (ngSubmit)="crearAutoridad()">
-  <div>
-    <label>DNI</label>
-    <input [(ngModel)]="nueva.dni" name="dni" placeholder="DNI" required />
-  </div>
-  <div>
-    <label>Nombre</label>
-    <input [(ngModel)]="nueva.nombre" name="nombre" placeholder="Nombre" required />
-  </div>
-  <div>
-    <label>Rango (0–3)</label>
-    <input type="number" [(ngModel)]="nueva.rango" name="rango" min="0" max="3" required />
-  </div>
-  <div>
-    <label>ID de Zona</label>
-    <input type="number" [(ngModel)]="nueva.zonaId" name="zonaId" min="1" required />
-  </div>
-  <button type="submit">Crear Autoridad</button>
-</form>
+    <!-- Filtros -->
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="Nombre, DNI, email o zona..." [ngModel]="fTexto()"
+          (ngModelChange)="fTexto.set($event)" />
+      </label>
+      <label class="label">
+        Rango
+        <input class="input" placeholder="Inspector, Comisario, etc." [ngModel]="fRango()"
+          (ngModelChange)="fRango.set($event)" />
+      </label>
+    </div>
 
-<hr />
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()">Cargando...</div>
 
-<ul>
-  <li *ngFor="let a of autoridades; trackBy: trackByDni">
-    <strong>{{ a.dni }}</strong> —
-    {{ a.nombre }} —
-    Rango: {{ a.rango }} —
-    Zona: {{ a.zona?.nombre || '—' }}
-    <button (click)="editarAutoridad(a)">✏️</button>
-    <button (click)="eliminarAutoridad(a.dni)">🗑️</button>
-  </li>
-</ul>
+    <div class="card table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>DNI</th>
+            <th>Email</th>
+            <th>Zona</th>
+            <th>Rango</th>
+            <th style="width:160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of listaFiltrada()">
+            <td>{{ a.id }}</td>
+            <td>{{ a.usuario?.nombre || '—' }}</td>
+            <td>{{ a.usuario?.dni || '—' }}</td>
+            <td class="muted">{{ a.usuario?.email || '—' }}</td>
+            <td>{{ a.zona?.nombre || a.zona?.id || '—' }}</td>
+            <td><span class="badge">{{ a.rango || '—' }}</span></td>
+            <td>
+              <div class="actions">
+                <button class="btn ghost" (click)="editar(a)">Editar</button>
+                <button class="btn danger" (click)="eliminar(a.id!)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="listaFiltrada().length === 0">
+            <td colspan="7" class="muted center">Sin registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="card">
+    <h3>{{ editId() == null ? 'Nueva autoridad' : 'Editar autoridad #' + editId() }}</h3>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <label class="label">
+        DNI del usuario
+        <input class="input" formControlName="usuarioDni" placeholder="Documento" />
+      </label>
+
+      <label class="label">
+        Zona ID
+        <input type="number" class="input" formControlName="zonaId" placeholder="ID de la zona" />
+      </label>
+
+      <label class="label" style="grid-column: 1 / -1;">
+        Rango
+        <input class="input" formControlName="rango" placeholder="Inspector / Comisario / etc." />
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ editId() == null ? 'Crear' : 'Guardar' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>
