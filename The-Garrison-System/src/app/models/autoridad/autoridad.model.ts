@@ -1,12 +1,10 @@
 // src/app/models/autoridad/autoridad.model.ts
 
-// Genérico de respuestas del backend (igual al que usás en otros módulos)
 export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
 
-// Referencias mínimas para evitar dependencias cruzadas
 export interface UsuarioRef {
   dni: string;
   nombre?: string;
@@ -21,24 +19,23 @@ export interface ZonaRef {
   descripcion?: string;
 }
 
-// DTO principal que devuelve el backend.
-// Hacemos "id" opcional para ser tolerantes si en algún endpoint no viene.
+// Lo que devuelve el backend
 export interface AutoridadDTO {
-  id?: number;
+  id?: number;                    // opcional para tolerar endpoints que no lo envíen
   usuario?: UsuarioRef | null;
   zona?: ZonaRef | null;
   rango?: string;
 }
 
-// Crear autoridad (lo que envía el front)
+// Lo que envía el front para crear
 export interface CreateAutoridadDTO {
   usuarioDni: string;
   zonaId: number;
   rango: string;
 }
 
-// Update: usamos el DTO completo también para update (evita problemas de tipos con Partial)
+/** Update con PUT (campos completos) */
 export type UpdateAutoridadDTO = CreateAutoridadDTO;
 
-// Si preferís PATCH con campos opcionales, cambiá la línea de arriba por:
-// export type UpdateAutoridadDTO = Partial<CreateAutoridadDTO>;
+/** Update con PATCH (campos parciales) —> este es el que te falta y rompe la import */
+export type PartialUpdateAutoridadDTO = Partial<CreateAutoridadDTO>;

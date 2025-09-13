@@ -1,34 +1,110 @@
-<!-- src/app/components/venta/venta.component.html -->
-<h2>Gestión de Ventas</h2>
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Ventas</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nueva venta</button>
+      </div>
+    </div>
 
-<form (ngSubmit)="crearVenta()">
-  <div>
-    <label for="cliente">DNI Cliente</label>
-    <input id="cliente" name="cliente" [(ngModel)]="nueva.cliente.dni" placeholder="Ingrese DNI del cliente" required />
+    <!-- Filtros -->
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="Descripción, DNI cliente o ID autoridad..." [ngModel]="fTexto()"
+          (ngModelChange)="fTexto.set($event)" />
+      </label>
+
+      <label class="label">
+        Desde
+        <input type="date" class="input" [ngModel]="fDesde()" (ngModelChange)="fDesde.set($event)" />
+      </label>
+
+      <label class="label">
+        Hasta
+        <input type="date" class="input" [ngModel]="fHasta()" (ngModelChange)="fHasta.set($event)" />
+      </label>
+    </div>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()">Cargando...</div>
+
+    <div class="card table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>DNI Cliente</th>
+            <th>ID Autoridad</th>
+            <th style="text-align:right;">Monto</th>
+            <th>Descripción</th>
+            <th style="width:160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of listaFiltrada()">
+            <td>{{ v?.id || '—' }}</td>
+            <td>{{ v.fechaVenta | date:'yyyy-MM-dd' }}</td>
+            <td>{{ v.cliente?.dni || '—' }}</td>
+            <td>{{ v.autoridad?.id || '—' }}</td>
+            <td style="text-align:right;">
+              {{ v.montoVenta | currency:'ARS':'symbol':'1.0-0' }}
+            </td>
+            <td class="muted">{{ v.descripcion || '—' }}</td>
+            <td>
+              <div class="actions">
+                <button class="btn ghost" (click)="editar(v)">Editar</button>
+                <button class="btn danger" (click)="v?.id != null && eliminar(v.id!)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="listaFiltrada().length === 0">
+            <td colspan="7" class="muted center">Sin registros</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <div>
-    <label for="productos">Productos (IDs separados por comas)</label>
-    <input id="productos" name="productos" [(ngModel)]="productosInput" placeholder="e.g. 1,2,3" required />
+  <!-- FORMULARIO -->
+  <div class="card">
+    <h3>{{ editId() == null ? 'Nueva venta' : 'Editar venta #' + editId() }}</h3>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <label class="label">
+        DNI Cliente
+        <input class="input" formControlName="clienteDni" placeholder="Documento" />
+      </label>
+
+      <label class="label">
+        ID Autoridad
+        <input type="number" class="input" formControlName="autoridadId" placeholder="ID" />
+      </label>
+
+      <label class="label">
+        Fecha
+        <input type="date" class="input" formControlName="fechaVenta" />
+      </label>
+
+      <label class="label">
+        Monto
+        <input type="number" min="0" class="input" formControlName="montoVenta" />
+      </label>
+
+      <label class="label" style="grid-column: 1 / -1;">
+        Descripción
+        <textarea rows="3" class="textarea" formControlName="descripcion" placeholder="Opcional"></textarea>
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ editId() == null ? 'Crear' : 'Guardar' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
   </div>
-
-  <div>
-    <label for="total">Total</label>
-    <input id="total" name="total" type="number" [(ngModel)]="nueva.total" placeholder="Monto total" required />
-  </div>
-
-  <button type="submit">Crear Venta</button>
-</form>
-
-<hr />
-
-<ul>
-  <li *ngFor="let v of ventas; trackBy: trackById">
-    <strong>#{{ v.id }}</strong> —
-    {{ v.fecha_hora | date: 'short' }} —
-    ${{ v.total }} —
-    Cliente: {{ v.cliente.dni }} — {{ v.cliente.nombre }}
-    <button (click)="editarVenta(v)">✏️</button>
-    <button (click)="eliminarVenta(v.id)">🗑️</button>
-  </li>
-</ul>
+</section>

@@ -1,94 +1,152 @@
-// src/app/components/venta/venta.component.ts
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule }            from '@angular/common';
-import { FormsModule }             from '@angular/forms';
-import { VentaService }            from '../../services/venta/venta';
-import { VentaDTO, CreateVentaDTO } from '../../models/venta/venta.model';
-import { ClienteDTO }              from '../../models/cliente/cliente.model';
-import { ProductoDTO }             from '../../models/producto/producto.model';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { VentaService } from '../../services/venta/venta';
+
+// 👇 Usa TUS modelos para evitar conflictos de tipos
+import {
+  ApiResponse,
+  VentaDTO,
+  CreateVentaDTO,
+  // No importo Update para evitar desalineaciones: envío CreateVentaDTO también en update
+} from '../../models/venta/venta.model';
 
 @Component({
   selector: 'app-venta',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './venta.html',
-  styleUrls: ['./venta.scss'],
+  styleUrls: ['./venta.scss']
 })
 export class VentaComponent implements OnInit {
-  private ventaService = inject(VentaService);
+  private fb = inject(FormBuilder);
+  private srv = inject(VentaService);
 
-  ventas: VentaDTO[] = [];
+  // estado
+  loading = signal(false);
+  error   = signal<string | null>(null);
+  editId  = signal<number | null>(null);
 
-  // Para el formulario:
-  nueva: CreateVentaDTO = {
-    fecha_hora: new Date().toISOString(),
-    total: 0,
-    cliente: {} as ClienteDTO,
-    productos: []
-  };
+  // datos
+  ventas = signal<VentaDTO[]>([]);
 
-  // Aquí definimos la propiedad que faltaba:
-  productosInput: string = '';
+  // filtros
+  fTexto = signal('');
+  fDesde = signal<string>('');
+  fHasta = signal<string>('');
 
-  ngOnInit(): void {
-    this.obtenerVentas();
-  }
+  // lista filtrada (usa los campos del modelo: fechaVenta, montoVenta, cliente?.dni, autoridad?.id, descripcion)
+  listaFiltrada = computed(() => {
+    const txt = this.fTexto().toLowerCase().trim();
+    const d1  = this.fDesde();
+    const d2  = this.fHasta();
 
-  obtenerVentas(): void {
-    this.ventaService.getAllVentas().subscribe({
-      next: resp => this.ventas = resp.data,
-      error: err => console.error('Error cargando ventas', err)
+    return (this.ventas() ?? []).filter(v => {
+      const desc = (v.descripcion ?? '').toLowerCase();
+      const cli  = (v.cliente?.dni ?? '').toLowerCase();
+      const aut  = String(v.autoridad?.id ?? '');
+
+      const matchTxt = !txt || desc.includes(txt) || cli.includes(txt) || aut.includes(txt);
+
+      const fecha = v.fechaVenta ? new Date(v.fechaVenta) : null;
+      const okDesde = !d1 || (fecha && fecha >= new Date(d1));
+      const okHasta = !d2 || (fecha && fecha <= new Date(d2 + 'T23:59:59'));
+
+      return matchTxt && okDesde && okHasta;
     });
+  });
+
+  // formulario
+  form = this.fb.group({
+    clienteDni: ['', [Validators.required, Validators.minLength(6)]],
+    autoridadId: [0, [Validators.required, Validators.min(1)]],
+    fechaVenta: [this.hoyISO(), [Validators.required]],   // yyyy-mm-dd
+    montoVenta: [0, [Validators.required, Validators.min(0)]],
+    descripcion: [''],
+  });
+
+  ngOnInit() { this.cargar(); }
+
+  private hoyISO(): string {
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${m}-${day}`;
   }
 
-  crearVenta(): void {
-    // Convertimos la cadena de IDs en array de ProductoDTO
-    const ids = this.productosInput
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s !== '')
-      .map(id => ({ id: Number(id) } as ProductoDTO));
+  cargar() {
+    this.loading.set(true);
+    this.error.set(null);
 
-    this.nueva.productos = ids;
-    
-    // Validamos
-    if (!this.nueva.cliente || this.nueva.productos.length === 0) {
-      console.warn('Debes seleccionar un cliente y al menos un producto');
-      return;
-    }
-
-    this.ventaService.createVenta(this.nueva).subscribe({
-      next: () => {
-        // Reset formulario
-        this.productosInput = '';
-        this.nueva = {
-          fecha_hora: new Date().toISOString(),
-          total: 0,
-          cliente: {} as ClienteDTO,
-          productos: []
-        };
-        this.obtenerVentas();
+    this.srv.getAllVentas().subscribe({
+      next: (r: ApiResponse<VentaDTO[]>) => {
+        this.ventas.set(r?.data ?? []);
+        this.loading.set(false);
       },
-      error: err => console.error('Error creando venta', err)
+      error: () => {
+        this.error.set('No se pudieron cargar las ventas.');
+        this.loading.set(false);
+      }
     });
   }
 
-  editarVenta(v: VentaDTO): void {
-    const cambios: Partial<VentaDTO> = { total: v.total };
-    this.ventaService.patchVenta(v.id, cambios).subscribe({
-      next: () => this.obtenerVentas(),
-      error: err => console.error('Error actualizando venta', err)
+  nuevo() {
+    this.editId.set(null);
+    this.form.reset({
+      clienteDni: '',
+      autoridadId: 0,
+      fechaVenta: this.hoyISO(),
+      montoVenta: 0,
+      descripcion: ''
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  editar(v: VentaDTO) {
+    this.editId.set((v as any).id ?? null); // defensivo si id es opcional en el modelo
+    this.form.patchValue({
+      clienteDni: v.cliente?.dni ?? '',
+      autoridadId: v.autoridad?.id ?? 0,
+      fechaVenta: (v.fechaVenta ?? '').slice(0, 10),
+      montoVenta: v.montoVenta ?? 0,
+      descripcion: v.descripcion ?? ''
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  guardar() {
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
+    const x = this.form.value;
+    const dto: CreateVentaDTO = {
+      clienteDni: String(x.clienteDni),
+      autoridadId: Number(x.autoridadId),
+      fechaVenta: new Date(String(x.fechaVenta)).toISOString(), // guardo ISO completo
+      montoVenta: Number(x.montoVenta),
+      descripcion: (x.descripcion ?? '').toString() || undefined,
+    };
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const id = this.editId();
+    const obs = id == null
+      ? this.srv.createVenta(dto)
+      : this.srv.updateVenta(id, dto); // enviamos CreateVentaDTO también en update (sirve si el service espera PUT o PATCH)
+
+    obs.subscribe({
+      next: () => { this.nuevo(); this.cargar(); },
+      error: () => { this.error.set('No se pudo guardar.'); this.loading.set(false); }
     });
   }
 
-  eliminarVenta(id: number): void {
-    this.ventaService.deleteVenta(id).subscribe({
-      next: () => this.obtenerVentas(),
-      error: err => console.error('Error eliminando venta', err)
+  eliminar(id: number) {
+    if (!confirm('¿Eliminar venta?')) return;
+    this.loading.set(true);
+    this.error.set(null);
+    this.srv.deleteVenta(id).subscribe({
+      next: () => this.cargar(),
+      error: () => { this.error.set('No se pudo eliminar.'); this.loading.set(false); }
     });
-  }
-
-  trackById(_: number, v: VentaDTO): number {
-    return v.id;
   }
 }
