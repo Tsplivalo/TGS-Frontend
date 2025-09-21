@@ -11,8 +11,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
   animations: [
     trigger('fadeSlide', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('600ms ease-out', style({ opacity: 1, transform: 'none' }))
+        style({ opacity: 100, transform: 'translateY(20px)' }),
+        animate('600ms ease-out', style({ opacity: 100, transform: 'none' }))
       ])
     ])
   ]

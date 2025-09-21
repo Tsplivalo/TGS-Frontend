@@ -8,61 +8,80 @@
       </div>
     </div>
 
+    <!-- Recuadro de error (visible si hay mensaje) -->
+    <div *ngIf="error()" class="alert alert-error">
+      {{ error() }}
+    </div>
+
+    <!-- Resumen de sede central -->
+    <div class="sede-summary" *ngIf="sedeCentral() as sc">
+      <strong>Sede central:</strong> #{{ sc.id }} — {{ sc.nombre }}
+    </div>
+    <div class="muted" *ngIf="!sedeCentral()">No hay sede central definida todavía.</div>
+
     <!-- Filtros -->
     <div class="filters">
       <label class="label">
         Buscar
-        <input class="input" placeholder="Nombre o descripción..." [ngModel]="fTexto()"
+        <input class="input" placeholder="ID, nombre o descripción..." [ngModel]="fTexto()"
           (ngModelChange)="fTexto.set($event)" />
       </label>
     </div>
 
-    <div *ngIf="error()" class="error">{{ error() }}</div>
-    <div *ngIf="loading()">Cargando...</div>
+    <!-- Estado -->
+    <div *ngIf="loading()" class="info">Cargando...</div>
 
-    <div class="card table-wrap" *ngIf="!loading()">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th style="width:160px;">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let z of listaFiltrada()">
-            <td>{{ z.id }}</td>
-            <td>{{ z.nombre }}</td>
-            <td class="muted">{{ z.descripcion || '—' }}</td>
-            <td>
-              <div class="actions">
-                <button class="btn ghost" (click)="editar(z)">Editar</button>
-                <button class="btn danger" (click)="eliminar(z.id)">Eliminar</button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="listaFiltrada().length === 0">
-            <td colspan="4" class="muted center">Sin registros</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Tabla (sin columna 'Sede central' para evitar redundancia) -->
+    <table class="table" *ngIf="!loading() && listaFiltrada().length > 0">
+      <thead>
+        <tr>
+          <th style="width: 80px;">ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th style="width: 220px;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let z of listaFiltrada()">
+          <td>{{ z.id }}</td>
+          <td>{{ z.nombre }}</td>
+          <td>{{ z.descripcion || '-' }}</td>
+          <td>
+            <button class="btn" (click)="editar(z)">Editar</button>
+            <button class="btn danger" (click)="eliminar(z)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="muted" *ngIf="!loading() && listaFiltrada().length === 0">
+      No hay zonas para mostrar.
     </div>
   </div>
 
-  <!-- FORMULARIO -->
+  <!-- FORM -->
   <div class="card">
-    <h3>{{ editId() == null ? 'Nueva zona' : 'Editar zona #' + editId() }}</h3>
+    <div class="header">
+      <h3>{{ editId() == null ? 'Crear zona' : 'Editar zona #' + editId() }}</h3>
+    </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
       <label class="label">
-        Nombre
-        <input class="input" formControlName="nombre" placeholder="Nombre de la zona" />
+        Nombre <span class="req">*</span>
+        <input class="input" formControlName="nombre" placeholder="Ej: Zona Sur" />
+        <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">
+          El nombre es obligatorio (mín. 2).
+        </small>
       </label>
 
-      <label class="label" style="grid-column: 1 / -1;">
+      <label class="label">
         Descripción
         <input class="input" formControlName="descripcion" placeholder="Opcional" />
+      </label>
+
+      <label class="label switch">
+        <input type="checkbox" formControlName="esSedeCentral" />
+        <span>Marcar como sede central</span>
       </label>
 
       <div class="right" style="grid-column: 1 / -1;">

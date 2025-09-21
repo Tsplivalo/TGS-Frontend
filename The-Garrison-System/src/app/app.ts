@@ -16,10 +16,10 @@ import { CommonModule } from '@angular/common';
           <span class="brand__text">The Garrison System</span>
         </a>
         <nav class="tabs">
-          <a routerLink="/zona" routerLinkActive="active">Zonas</a>
-          <a routerLink="/cliente" routerLinkActive="active">Clientes</a>
           <a routerLink="/producto" routerLinkActive="active">Productos</a>
+          <a routerLink="/cliente" routerLinkActive="active">Clientes</a>
           <a routerLink="/venta" routerLinkActive="active">Ventas</a>
+          <a routerLink="/zona" routerLinkActive="active">Zonas</a>
           <a routerLink="/autoridad" routerLinkActive="active">Autoridades</a>
           <a routerLink="/sobornos" routerLinkActive="active">Sobornos</a>
         </nav>

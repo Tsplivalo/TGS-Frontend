@@ -1,52 +1,91 @@
+/* Layout general */
+section.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Encabezado dentro de cards */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--sp-4);
+  margin-bottom: 12px;
+}
 
-  h2 {
-    margin: 0;
-    font-size: var(--h2);
-  }
+.right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .filters {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-4);
-  margin-bottom: var(--sp-4);
-}
-
-.table-wrap {
-  padding: 0;
-}
-
-.actions {
-  display: flex;
   gap: 8px;
+  margin: 8px 0 12px;
 }
 
-.form-grid {
+/* Etiquetas y validación */
+.label {
   display: grid;
-  gap: var(--sp-4);
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 6px;
+  font-size: 14px;
 }
 
-@media (max-width: 900px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+.req {
+  color: var(--danger);
+}
+
+.err {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+/* Inputs */
+.input {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: inherit;
+  outline: none;
+  width: 100%;
+}
+
+/* Recuadro de error/alerta como otra card */
+.card-inline {
+  margin: 8px 0 12px;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+/* Tabla */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    font-weight: 600;
   }
 }
 
-.error {
-  color: #ff6b6b;
-  margin-bottom: var(--sp-3);
+/* Grid para el form */
+.form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
 }
 
-.muted {
-  color: var(--muted);
-}
-
-.center {
-  text-align: center;
+/* Switch (checkbox + label inline) */
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

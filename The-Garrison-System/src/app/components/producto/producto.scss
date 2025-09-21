@@ -1,69 +1,131 @@
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--sp-4);
-}
+/* ===== Productos: SOLO layout, 100% alineado con estilos globales ===== */
 
-.header h2 {
-  margin: 0;
-  font-size: var(--h2);
-}
-
-.filters {
+.producto-page {
   display: grid;
-  grid-template-columns: 1fr 140px 140px 160px;
-  gap: var(--sp-4);
-  margin-bottom: var(--sp-4);
-}
+  gap: 1rem;
 
-@media (max-width: 900px) {
-  .filters {
-    grid-template-columns: 1fr 1fr;
+  /* Toolbar: usá tu estilo global, acá solo espaciado */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: .25rem;
+
+    .spacer {
+      flex: 1 1 auto;
+    }
   }
-}
 
-@media (max-width: 600px) {
+  /* Card de filtros: grid fluido */
   .filters {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .75rem;
+
+    label {
+      display: grid;
+      gap: .25rem;
+
+      span {
+        font-size: .85rem;
+        opacity: .85;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 800px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 560px) {
+      grid-template-columns: 1fr;
+    }
   }
-}
 
-.table-wrap {
-  padding: 0;
-}
+  /* Tabla: solo minitweaks; el look lo da tu .table global */
+  .table-wrapper {
+    overflow: auto;
+  }
 
-.actions {
-  display: flex;
-  gap: 8px;
-}
+  .table {
+    width: 100%;
 
-.form-grid {
-  display: grid;
-  gap: var(--sp-4);
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
-}
+    th[style],
+    td[style] {
+      /* no tocar estilos inline */
+      white-space: nowrap;
+    }
 
-@media (max-width: 900px) {
+    .actions {
+      display: flex;
+      gap: .5rem;
+      justify-content: flex-start;
+      align-items: center;
+    }
+  }
+
+  /* Formulario: usa tus inputs/botones globales; acá solo la grilla */
   .form-grid {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+
+    .col-2 {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 800px) {
+      grid-template-columns: 1fr;
+
+      .col-2 {
+        grid-column: auto;
+      }
+    }
+  }
+
+  .label {
+    display: grid;
+    gap: .35rem;
+
+    .hint {
+      font-size: .8rem;
+      color: var(--danger-600, #b42318);
+      /* usa tu token si existe */
+    }
+  }
+
+  /* Switch simple sin romper estilos globales */
+  .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+
+    input[type="checkbox"] {
+      transform: translateY(1px);
+    }
+  }
+
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: .5rem;
+    justify-content: flex-end;
+  }
+
+  /* Badges: si ya tenés .badge global, no tocamos. 
+     Solo afinamos tamaños; los colores deben venir de tu global. */
+  .badge {
+    font-size: .8rem;
+    line-height: 1;
+    padding: .2rem .5rem;
   }
 }
 
-.muted {
-  color: var(--muted);
-}
-
-.low {
-  color: #ff6b6b;
-  font-weight: 700;
-}
-
-.error {
-  color: #ff6b6b;
-  margin-bottom: var(--sp-3);
-}
-
-.center {
-  text-align: center;
+/* Estados vacíos y alertas: confiamos en tus .card/.alert globales;
+   si querés, dejamos una leve opacidad para el empty */
+.empty {
+  opacity: .85;
 }

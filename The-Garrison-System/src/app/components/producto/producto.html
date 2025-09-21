@@ -1,113 +1,139 @@
-<section class="grid">
-  <!-- LISTA -->
-  <div class="card">
-    <div class="header">
-      <h2>Productos</h2>
-      <div class="right">
-        <button class="btn" (click)="nuevo()">Nuevo</button>
-      </div>
-    </div>
+<div class="page">
 
-    <!-- Filtros -->
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <h1 class="title">Productos</h1>
+    <div class="spacer"></div>
+    <button class="btn" type="button" (click)="nuevo()">Nuevo producto</button>
+  </div>
+
+  <!-- Mensajes -->
+  <div class="alert error" *ngIf="error() as err">
+    {{ err }}
+  </div>
+  <div class="alert info" *ngIf="loading()">Cargando...</div>
+
+  <!-- Filtros -->
+  <section class="card">
+    <h2 class="card-title">Filtros</h2>
     <div class="filters">
-      <label class="label">
-        Buscar
-        <input class="input" placeholder="Nombre o descripción..." [(ngModel)]="fTexto" />
+      <label>
+        <span>Buscar</span>
+        <input class="input" type="text" placeholder="Descripción o ID" [value]="fTexto()"
+          (input)="fTexto.set($any($event.target).value)" />
       </label>
 
-      <label class="label">
-        Precio mín.
-        <input type="number" class="input" min="0" [(ngModel)]="fPrecioMin"
-          (ngModelChange)="fPrecioMin.set($event ? +$event : null)" />
+      <label>
+        <span>Precio mín.</span>
+        <input class="input" type="number" min="0" [value]="fPrecioMin() ?? ''"
+          (input)="fPrecioMin.set($any($event.target).value === '' ? null : +$any($event.target).value)" />
       </label>
 
-      <label class="label">
-        Precio máx.
-        <input type="number" class="input" min="0" [(ngModel)]="fPrecioMax"
-          (ngModelChange)="fPrecioMax.set($event ? +$event : null)" />
+      <label>
+        <span>Precio máx.</span>
+        <input class="input" type="number" min="0" [value]="fPrecioMax() ?? ''"
+          (input)="fPrecioMax.set($any($event.target).value === '' ? null : +$any($event.target).value)" />
       </label>
 
-      <label class="label">
-        Stock
-        <select class="select" [(ngModel)]="fStock" (ngModelChange)="fStock = $event">
+      <label>
+        <span>Stock</span>
+        <select class="input" [value]="fStock()" (change)="fStock.set($any($event.target).value)">
           <option value="todos">Todos</option>
           <option value="con">Con stock</option>
           <option value="sin">Sin stock</option>
         </select>
       </label>
     </div>
+  </section>
 
-    <div *ngIf="error()" class="error">{{ error() }}</div>
-    <div *ngIf="loading()">Cargando...</div>
+  <!-- Tabla -->
+  <section class="card">
+    <h2 class="card-title">Listado</h2>
 
-    <div class="card table-wrap" *ngIf="!loading()">
+    <div class="table-wrapper" *ngIf="listaFiltrada().length; else emptyState">
       <table class="table">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Nombre</th>
-            <th style="width: 32%;">Descripción</th>
-            <th style="text-align:right;">Precio</th>
-            <th style="text-align:right;">Stock</th>
-            <th style="width:160px;">Acciones</th>
+            <th style="width:80px;">ID</th>
+            <th>Descripción</th>
+            <th style="width:140px;">Precio</th>
+            <th style="width:120px;">Stock</th>
+            <th style="width:120px;">Ilegal</th>
+            <th style="width:200px;">Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let p of listaFiltrada()">
-            <td>{{ p.id }}</td>
-            <td>{{ p.nombre }}</td>
-            <td class="muted">{{ p.descripcion || '—' }}</td>
-            <td style="text-align:right;">{{ p.precio | currency:'ARS':'symbol':'1.0-0' }}</td>
-            <td style="text-align:right;">
-              <span [class.low]="p.stock === 0">{{ p.stock }}</span>
+            <td>#{{ p.id }}</td>
+            <td>{{ p.descripcion }}</td>
+            <td>\${{ p.precio | number:'1.0-2' }}</td>
+            <td>
+              <span class="badge" [class.badge-warn]="p.stock === 0">{{ p.stock }}</span>
             </td>
             <td>
-              <div class="actions">
-                <button class="btn ghost" (click)="editar(p)">Editar</button>
-                <button class="btn danger" (click)="eliminar(p.id)">Eliminar</button>
-              </div>
+              <span class="badge" [class.badge-danger]="p.esIlegal" [class.badge-ok]="!p.esIlegal">
+                {{ p.esIlegal ? 'Sí' : 'No' }}
+              </span>
             </td>
-          </tr>
-
-          <tr *ngIf="listaFiltrada().length === 0">
-            <td colspan="6" class="muted center">Sin registros</td>
+            <td class="actions">
+              <button class="btn" type="button" (click)="editar(p)">Editar</button>
+              <button class="btn ghost" type="button" (click)="eliminar(p.id)" [disabled]="loading()">Eliminar</button>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
 
-  <!-- FORMULARIO -->
-  <div class="card">
-    <h3>{{ editId() == null ? 'Nuevo producto' : 'Editar producto #' + editId() }}</h3>
+    <ng-template #emptyState>
+      <div class="empty">
+        No hay productos para mostrar.
+      </div>
+    </ng-template>
+  </section>
+
+  <!-- Formulario -->
+  <section class="card">
+    <h2 class="card-title">
+      {{ editId() == null ? 'Crear producto' : ('Editar producto #' + editId()) }}
+    </h2>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
-      <label class="label">
-        Nombre
-        <input class="input" formControlName="nombre" placeholder="Nombre del producto" />
+
+      <label class="label col-2">
+        <span>Descripción</span>
+        <input class="input" formControlName="descripcion" placeholder="Descripción del producto" />
+        <small class="hint" *ngIf="form.controls.descripcion.invalid && form.controls.descripcion.touched">
+          Campo requerido.
+        </small>
       </label>
 
       <label class="label">
-        Precio
-        <input type="number" min="0" class="input" formControlName="precio" />
+        <span>Precio</span>
+        <input class="input" type="number" min="0" formControlName="precio" />
+        <small class="hint" *ngIf="form.controls.precio.invalid && form.controls.precio.touched">
+          Ingresá un precio válido.
+        </small>
       </label>
 
       <label class="label">
-        Stock
-        <input type="number" min="0" class="input" formControlName="stock" />
+        <span>Stock</span>
+        <input class="input" type="number" min="0" formControlName="stock" />
+        <small class="hint" *ngIf="form.controls.stock.invalid && form.controls.stock.touched">
+          Ingresá un stock válido.
+        </small>
       </label>
 
-      <label class="label" style="grid-column: 1 / -1;">
-        Descripción
-        <textarea rows="3" class="textarea" formControlName="descripcion" placeholder="Opcional"></textarea>
+      <label class="label switch">
+        <input type="checkbox" formControlName="esIlegal" />
+        <span>¿Es ilegal?</span>
       </label>
 
-      <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">
+      <div class="form-actions">
+        <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
           {{ editId() == null ? 'Crear' : 'Guardar' }}
         </button>
-        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+        <button class="btn ghost" type="button" (click)="nuevo()" [disabled]="loading()">Cancelar</button>
       </div>
     </form>
-  </div>
-</section>
+  </section>
+</div>

@@ -2,12 +2,11 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ZonaService } from '../../services/zona/zona';
-
-// DTOs locales (ajusta si ya tenés modelos)
-export interface ZonaDTO { id: number; nombre: string; descripcion?: string; }
-export interface ApiResponse<T> { data: T; message?: string; }
-export type CreateZonaDTO = Omit<ZonaDTO, 'id'>;
-export type UpdateZonaDTO = Partial<CreateZonaDTO>;
+import {
+  ApiResponse,
+  ZonaDTO,
+  CreateZonaDTO
+} from '../../models/zona/zona.model';
 
 @Component({
   selector: 'app-zona',
@@ -20,10 +19,12 @@ export class ZonaComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(ZonaService);
 
+  // estado UI
   loading = signal(false);
-  error   = signal<string | null>(null);
+  error   = signal<string | null>(null); // se usa como recuadro de error
   editId  = signal<number | null>(null);
 
+  // datos
   zonas = signal<ZonaDTO[]>([]);
 
   // filtros
@@ -40,12 +41,19 @@ export class ZonaComponent implements OnInit {
     });
   });
 
+  // sede central actual (para mostrar arriba)
+  sedeCentral = computed(() => this.zonas().find(z => z.esSedeCentral) ?? null);
+
+  // form
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.minLength(2)]],
     descripcion: [''],
+    esSedeCentral: [false],
   });
 
-  ngOnInit() { this.cargar(); }
+  ngOnInit() {
+    this.cargar();
+  }
 
   cargar() {
     this.loading.set(true);
@@ -58,14 +66,20 @@ export class ZonaComponent implements OnInit {
 
   nuevo() {
     this.editId.set(null);
-    this.form.reset({ nombre: '', descripcion: '' });
+    this.form.reset({ nombre: '', descripcion: '', esSedeCentral: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.error.set(null); // limpio errores visuales
   }
 
   editar(z: ZonaDTO) {
     this.editId.set(z.id);
-    this.form.patchValue({ nombre: z.nombre, descripcion: z.descripcion ?? '' });
+    this.form.patchValue({
+      nombre: z.nombre,
+      descripcion: z.descripcion ?? '',
+      esSedeCentral: !!z.esSedeCentral
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.error.set(null);
   }
 
   guardar() {
@@ -73,31 +87,48 @@ export class ZonaComponent implements OnInit {
 
     const v = this.form.value;
 
-    // DTO completo para ambos casos (create/update)
-    const createDto: CreateZonaDTO = {
-      nombre: String(v.nombre),                         // <-- siempre string
-      descripcion: (v.descripcion ?? '').toString() || undefined
+    const dto: CreateZonaDTO = {
+      nombre: String(v.nombre),
+      descripcion: (v.descripcion ?? '').toString() || undefined,
+      esSedeCentral: !!v.esSedeCentral
     };
 
     this.loading.set(true); this.error.set(null);
 
     const id = this.editId();
-    const obs = id == null
-      ? this.srv.createZona(createDto)
-      : this.srv.updateZona(id, createDto);            // <-- ya no pasamos Partial
+    const obs = id == null ? this.srv.createZona(dto) : this.srv.updateZona(id, dto);
 
     obs.subscribe({
       next: () => { this.nuevo(); this.cargar(); },
-      error: () => { this.error.set('No se pudo guardar.'); this.loading.set(false); }
+      error: (e) => {
+        console.error(e);
+        this.error.set('No se pudo guardar.');
+        this.loading.set(false);
+      }
     });
   }
 
-  eliminar(id: number) {
-    if (!confirm('¿Eliminar zona?')) return;
-    this.loading.set(true); this.error.set(null);
-    this.srv.deleteZona(id).subscribe({
-      next: () => this.cargar(),
-      error: () => { this.error.set('No se pudo eliminar.'); this.loading.set(false); }
+  eliminar(z: ZonaDTO) {
+    // Si es sede central, no eliminar y mostrar recuadro de error
+    if (z.esSedeCentral) {
+      this.error.set(
+        `No se puede eliminar la zona "${z.nombre}" porque es la sede central actual. ` +
+        `Para eliminarla, primero asigná otra zona como sede central.`
+      );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!confirm(`¿Eliminar zona "${z.nombre}"?`)) return;
+
+    this.loading.set(true);
+    this.srv.deleteZona(z.id).subscribe({
+      next: () => { this.error.set(null); this.cargar(); },
+      error: (e) => {
+        console.error(e);
+        this.error.set('No se pudo eliminar.');
+        this.loading.set(false);
+      }
     });
   }
 }
