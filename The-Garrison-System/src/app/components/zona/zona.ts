@@ -83,30 +83,77 @@ export class ZonaComponent implements OnInit {
   }
 
   guardar() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    this.error.set(null);
 
-    const v = this.form.value;
-
-    const dto: CreateZonaDTO = {
-      nombre: String(v.nombre),
-      descripcion: (v.descripcion ?? '').toString() || undefined,
-      esSedeCentral: !!v.esSedeCentral
-    };
-
-    this.loading.set(true); this.error.set(null);
-
+    const raw = this.form.getRawValue();
     const id = this.editId();
-    const obs = id == null ? this.srv.createZona(dto) : this.srv.updateZona(id, dto);
 
-    obs.subscribe({
-      next: () => { this.nuevo(); this.cargar(); },
-      error: (e) => {
-        console.error(e);
-        this.error.set('No se pudo guardar.');
-        this.loading.set(false);
+    // normalizo
+    const nombre = (raw.nombre ?? '').trim();
+    const payloadCreate = {
+      nombre,
+      descripcion: raw.descripcion?.toString().trim() ? raw.descripcion.toString().trim() : undefined,
+      esSedeCentral: !!raw.esSedeCentral,
+    };
+    const payloadUpdate = { ...payloadCreate };
+
+    // 👉 CREATE (igual que antes)
+    if (id == null) {
+      this.srv.createZona(payloadCreate).subscribe({
+        next: () => { this.nuevo(); this.cargar(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+        error: (e) => this.handleSaveError(e),
+      });
+      return;
+    }
+
+    this.srv.isNombreDisponible(nombre, id).subscribe(isFree => {
+      if (!isFree) {
+        // mismo comportamiento que en create
+        this.error.set('Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas).');
+        const ctrl = this.form.controls['nombre'];
+        ctrl.setErrors({ ...(ctrl.errors ?? {}), nombreDuplicado: true });
+        ctrl.markAsTouched();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
       }
+
+      // si está libre, actualizo
+      this.srv.updateZona(id, payloadUpdate).subscribe({
+        next: () => { this.nuevo(); this.cargar(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+        error: (e) => this.handleSaveError(e),
+      });
     });
   }
+
+  // helper de manejo de error (reusa tu lógica actual)
+  private handleSaveError(e: any) {
+    const backendMsg = e?.error?.mensaje?.toString();
+
+    if (e?.status === 409) {
+      const msg = backendMsg || 'Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas).';
+      this.error.set(msg);
+      const ctrl = this.form.controls['nombre'];
+      ctrl.setErrors({ ...(ctrl.errors ?? {}), nombreDuplicado: true });
+      ctrl.markAsTouched();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (e?.status === 400 && backendMsg) {
+      this.error.set(backendMsg);
+      if (/nombre/i.test(backendMsg)) {
+        const ctrl = this.form.controls['nombre'];
+        ctrl.setErrors({ ...(ctrl.errors ?? {}), required: true });
+        ctrl.markAsTouched();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    this.error.set(backendMsg || 'No se pudo guardar la zona.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
 
   eliminar(z: ZonaDTO) {
     // Si es sede central, no eliminar y mostrar recuadro de error

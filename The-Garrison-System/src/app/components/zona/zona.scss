@@ -89,3 +89,6 @@ section.grid {
   align-items: center;
   gap: 8px;
 }
+.input.ng-invalid.ng-touched {
+  border-color: var(--danger);
+}

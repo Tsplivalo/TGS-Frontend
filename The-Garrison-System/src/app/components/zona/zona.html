@@ -69,8 +69,12 @@
       <label class="label">
         Nombre <span class="req">*</span>
         <input class="input" formControlName="nombre" placeholder="Ej: Zona Sur" />
-        <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">
-          El nombre es obligatorio (mín. 2).
+
+        <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.hasError('required')">
+          El nombre es obligatorio.
+        </small>
+        <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.hasError('nombreDuplicado')">
+          Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas).
         </small>
       </label>
 

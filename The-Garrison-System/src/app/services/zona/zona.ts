@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';  
 import {
   ApiResponse,
   ZonaDTO,
@@ -37,5 +38,55 @@ export class ZonaService {
 
   deleteZona(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+  
+
+  isNombreDisponible(nombre: string, excludeId?: number): Observable<boolean> {
+    const lower = (nombre ?? '').trim().toLowerCase();
+    return this.getAllZonas().pipe(
+      map(resp => {
+        const data = resp?.data ?? [];
+        return !data.some(z =>
+          (z.nombre ?? '').trim().toLowerCase() === lower &&
+          (excludeId ? z.id !== excludeId : true)
+        );
+      }),
+      catchError(() => of(true)) 
+    );
+  }
+
+
+  createZonaValidated(z: CreateZonaDTO): Observable<ApiResponse<ZonaDTO>> {
+    const nombre = (z.nombre ?? '').trim();
+    if (!nombre) {
+      return throwError(() => new Error('El nombre es requerido.'));
+    }
+    return this.isNombreDisponible(nombre).pipe(
+      switchMap(isFree => {
+        if (!isFree) {
+          return throwError(() => new Error('Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas).'));
+        }
+        return this.createZona({ ...z, nombre });
+      })
+    );
+  }
+
+  updateZonaValidated(id: number, z: UpdateZonaDTO): Observable<ApiResponse<ZonaDTO>> {
+    const nombre = (z.nombre ?? '').trim();
+    // Solo valido si mandan nombre (update parcial puede no tocarlo)
+    if (!z.nombre) {
+      return this.updateZona(id, z);
+    }
+    if (!nombre) {
+      return throwError(() => new Error('El nombre no puede ser vacío.'));
+    }
+    return this.isNombreDisponible(nombre, id).pipe(
+      switchMap(isFree => {
+        if (!isFree) {
+          return throwError(() => new Error('Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas).'));
+        }
+        return this.updateZona(id, { ...z, nombre });
+      })
+    );
   }
 }
