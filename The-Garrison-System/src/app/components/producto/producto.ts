@@ -25,15 +25,12 @@ export class ProductoComponent implements OnInit {
 
   // filtros
   fTexto = signal('');
-  fPrecioMin = signal<number | null>(null);
-  fPrecioMax = signal<number | null>(null);
   fStock = signal<'todos' | 'con' | 'sin'>('todos');
 
   // vista filtrada
   listaFiltrada = computed(() => {
     const txt = this.fTexto().toLowerCase().trim();
-    const pmin = this.fPrecioMin();
-    const pmax = this.fPrecioMax();
+
     const fstock = this.fStock();
 
     return this.productos().filter(p => {
@@ -42,15 +39,13 @@ export class ProductoComponent implements OnInit {
         (p.descripcion ?? '').toLowerCase().includes(txt) ||
         String(p.id).includes(txt);
 
-      const matchMin = pmin == null || p.precio >= pmin;
-      const matchMax = pmax == null || p.precio <= pmax;
 
       const matchStock =
         fstock === 'todos' ||
         (fstock === 'con' && p.stock > 0) ||
         (fstock === 'sin' && p.stock === 0);
 
-      return matchTxt && matchMin && matchMax && matchStock;
+      return matchTxt && matchStock;
     });
   });
 
