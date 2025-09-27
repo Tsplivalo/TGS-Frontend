@@ -15,6 +15,8 @@ import {
 import { ProductoDTO, ApiResponse as ApiProdResp } from '../../models/producto/producto.model';
 import { ClienteDTO, ApiResponse as ApiCliResp } from '../../models/cliente/cliente.model';
 
+import { forkJoin } from 'rxjs';
+
 type VentaForm = {
   id: FormControl<number | null>;
   clienteDni: FormControl<string | null>;
@@ -72,11 +74,51 @@ export class VentaComponent implements OnInit {
   get cantidadControl() { return this.form.controls.cantidad; }
 
   ngOnInit(): void {
-    this.cargarVentas();
-    // Importante: cargo catálogo antes o en paralelo; cuando llega, recalcula vistas automáticamente
-    this.cargarProductos();
-    this.cargarClientes();
+    // Cargar catálogo primero (productos + clientes) y recién después ventas
+    this.loading.set(true);
+    this.error.set(null);
+
+    forkJoin({
+      prods: this.prodSrv.getAllProductos(),
+      clis: this.cliSrv.getAllClientes(),
+    }).subscribe({
+      next: (res: { prods: ApiProdResp<ProductoDTO[]> | any; clis: ApiCliResp<ClienteDTO[]> | any }) => {
+        const listaProd = (res.prods?.data ?? res.prods?.productos ?? []) as ProductoDTO[];
+        const listaCli  = (res.clis?.data  ?? res.clis?.clientes  ?? []) as ClienteDTO[];
+        this.productos.set(listaProd);
+        this.clientes.set(listaCli);
+        // ahora sí, ventas (ya tenemos catálogo para mostrar nombres de ítems)
+        this.cargarVentas();
+      },
+      error: (err) => {
+        console.warn('[VENTA] Error cargando catálogos:', err);
+        // Incluso si falla uno, intento cargar ventas para no dejar la pantalla en blanco
+        this.cargarVentas();
+      }
+    });
   }
+
+
+  getStock(id: number | null | undefined): number {
+  if (id == null) return 0;
+  const p = this.productos().find(x => x.id === id);
+  const raw = p?.stock;
+  const n = typeof raw === 'string' ? Number(raw) : (typeof raw === 'number' ? raw : 0);
+  return Number.isFinite(n) ? n : 0;
+  }
+
+
+  clampCantidad(idx: number) {
+  const arr = [...this.lineas()];
+  const l = arr[idx];
+  const max = this.getStock(l.productoId);
+  let val = Number(l.cantidad) || 1;
+  if (val < 1) val = 1;
+  if (max > 0 && val > max) val = max;
+  l.cantidad = val;
+  this.lineas.set(arr);
+  }
+
 
   // ===== filtros =====
   ventasFiltradas = computed(() => {
@@ -115,8 +157,6 @@ export class VentaComponent implements OnInit {
 
   // ===== cargas =====
   cargarVentas() {
-    this.loading.set(true);
-    this.error.set(null);
     this.ventaSrv.getAllVentas().subscribe({
       next: (res: ApiVentaResp<VentaDTO[]> | any) => {
         const lista = (res?.data ?? res?.ventas ?? []) as VentaDTO[];
@@ -130,6 +170,19 @@ export class VentaComponent implements OnInit {
     });
   }
 
+  sumarCantidades(v: VentaDTO): number {
+    const det = this.getDetalles(v) ?? [];
+    let total = 0;
+    for (let i = 0; i < det.length; i++) {
+      const cant = Number((det[i] as any)?.cantidad);
+      if (Number.isFinite(cant)) total += cant;
+    }
+    return total;
+  }
+
+
+
+  // (dejo estos helpers por si los usás en otro lado)
   cargarProductos() {
     this.prodSrv.getAllProductos().subscribe({
       next: (res: ApiProdResp<ProductoDTO[]> | any) => {
@@ -139,7 +192,6 @@ export class VentaComponent implements OnInit {
       error: (err) => console.warn('[VENTA] No pude cargar productos:', err)
     });
   }
-
   cargarClientes() {
     this.cliSrv.getAllClientes().subscribe({
       next: (res: ApiCliResp<ClienteDTO[]> | any) => {
@@ -150,7 +202,7 @@ export class VentaComponent implements OnInit {
     });
   }
 
-  // ===== CRUD =====
+  // ===== CRUD (solo crear, lista) =====
   nuevo() {
     this.form.reset({
       id: null,
@@ -161,43 +213,6 @@ export class VentaComponent implements OnInit {
     this.lineas.set([{ productoId: null, cantidad: 1, filtro: '' }]);
     this.submitted.set(false);
     this.error.set(null);
-  }
-
-  editar(v: VentaDTO) {
-    // tomo la primera línea (si tiene múltiples) para el editor simple
-    const pId = v.producto ? v.producto.id : (v.detalles && v.detalles.length ? v.detalles[0].productoId : null);
-    const cant = (typeof v.cantidad === 'number') ? v.cantidad :
-                 (v.detalles && v.detalles.length ? v.detalles[0].cantidad : 1);
-
-    this.form.setValue({
-      id: v.id,
-      clienteDni: v.cliente ? v.cliente.dni : null,
-      productoId: pId,
-      cantidad: cant,
-    });
-
-    // fuerza reevaluación de estado y pinta modo edición
-    this.form.updateValueAndValidity();
-    this.lineas.set([{ productoId: pId, cantidad: cant, filtro: '' }]);
-    this.submitted.set(false);
-    this.error.set(null);
-
-    // trae el form a la vista (por si estás arriba de la tabla)
-    queueMicrotask(() => {
-      document.querySelector('form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }
-
-  eliminar(id: number) {
-    this.loading.set(true);
-    this.error.set(null);
-    this.ventaSrv.deleteVenta(id).subscribe({
-      next: () => this.cargarVentas(),
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo eliminar.');
-        this.loading.set(false);
-      }
-    });
   }
 
   // líneas crear
@@ -213,21 +228,44 @@ export class VentaComponent implements OnInit {
     this.lineas.set(arr);
   }
 
-  // ===== helpers (lookup cuando no viene expandido) =====
+  // ===== helpers =====
   private getProdById(id: number | null | undefined): ProductoDTO | undefined {
     if (id == null) return undefined;
     return this.productos().find(p => p.id === id);
   }
 
   descDetalle(d: VentaDetalleDTO): string {
-    if (d.producto && d.producto.descripcion) return d.producto.descripcion;
-    const p = this.getProdById(d.productoId);
-    if (p && p.descripcion) return p.descripcion;
-    return `#${d.productoId}`;
+    // 1) si viene expandido y con descripción
+    if (d?.producto?.descripcion) return d.producto.descripcion;
+
+    // 2) resolvemos el id desde varias formas
+    const pid =
+      (d as any)?.productoId ??
+      (d as any)?.producto?.id ??
+      null;
+
+    if (pid != null) {
+      // 3) lookup en catálogo
+      const p = this.productos().find(x => x.id === Number(pid));
+      if (p?.descripcion) return p.descripcion;
+      // 4) al menos devolvemos el id
+      return `#${pid}`;
+    }
+
+    // 5) sin datos
+    return '—';
   }
 
+
   precioDetalle(d: VentaDetalleDTO): number {
+    // usar subtotal si viene
+    const sub = (d as any).subtotal;
+    if (typeof sub === 'number' && Number.isFinite(sub)) return sub / (Number(d.cantidad) || 1);
+
+    // si no, usar precio del producto expandido
     if (d.producto && typeof d.producto.precio === 'number') return d.producto.precio;
+
+    // último recurso: catálogo
     const p = this.getProdById(d.productoId);
     const raw = p && (p as any).precio;
     const num = typeof raw === 'string' ? Number(raw) : (typeof raw === 'number' ? raw : 0);
@@ -245,7 +283,6 @@ export class VentaComponent implements OnInit {
   }
   getProductoDesc(v: VentaDTO): string {
     if (v.producto && typeof v.producto.descripcion === 'string') return v.producto.descripcion;
-    // fallback si vino sólo id
     const p = v.producto?.id ? this.getProdById(v.producto.id) : undefined;
     return p?.descripcion ?? '—';
   }
@@ -269,21 +306,40 @@ export class VentaComponent implements OnInit {
     for (let i = 0; i < lineas.length; i++) {
       const l = lineas[i];
       if (l.productoId == null) return `Elegí un producto en la línea ${i + 1}.`;
-      if (!l.cantidad || l.cantidad < 1) return `Ingresá una cantidad válida en la línea ${i + 1}.`;
+      const cant = Number(l.cantidad);
+      if (!cant || cant < 1) return `Ingresá una cantidad válida en la línea ${i + 1}.`;
+      const stock = this.getStock(l.productoId);
+      if (cant > stock) return `No hay stock suficiente. Disponible: ${stock} unidades.`;
     }
     return null;
   }
 
+
   calcularTotal(v: VentaDTO): number {
-    if (typeof v.total === 'number') return v.total!;
+    // priorizar total del back
+    const candidatos = [(v as any).monto, (v as any).montoVenta, (v as any).total];
+    for (const x of candidatos) {
+      if (typeof x === 'number' && Number.isFinite(x)) return x;
+      if (typeof x === 'string' && x.trim() !== '' && Number.isFinite(Number(x))) return Number(x);
+    }
+
+    // sumar subtotales si vienen
     if (v.detalles && v.detalles.length) {
       let sum = 0;
       for (const d of v.detalles) {
-        sum += this.precioDetalle(d) * (d.cantidad || 0);
+        const sub = (d as any).subtotal;
+        if (typeof sub === 'number' && Number.isFinite(sub)) {
+          sum += sub;
+        } else {
+          const precio = this.precioDetalle(d);
+          const cant = Number(d.cantidad) || 0;
+          sum += precio * cant;
+        }
       }
       return sum;
     }
-    // legacy de 1 línea
+
+    // legacy 1 línea
     let precio = 0;
     if (v.producto && typeof v.producto.precio === 'number') {
       precio = v.producto.precio;
@@ -292,83 +348,38 @@ export class VentaComponent implements OnInit {
       const raw = p && (p as any).precio;
       precio = typeof raw === 'string' ? Number(raw) : (typeof raw === 'number' ? raw : 0);
     }
-    const cant = typeof v.cantidad === 'number' ? v.cantidad : 0;
+    const cant = typeof v.cantidad === 'number' ? v.cantidad : Number((v as any).cantidad) || 0;
     return (Number.isFinite(precio) ? precio : 0) * cant;
   }
 
-  sumarCantidades(v: VentaDTO): number {
-    const det = v.detalles ? v.detalles : [];
-    let total = 0;
-    for (let i = 0; i < det.length; i++) {
-      total += det[i] && typeof det[i].cantidad === 'number' ? det[i].cantidad : 0;
-    }
-    return total;
-  }
-
-  // ===== submit =====
+  // ===== submit (solo crear) =====
   guardar() {
     this.submitted.set(true);
-    const id = this.idValue;
-    const creando = !id;
-
     const dni = this.clienteControl.value;
+
     if (!this.clienteExiste(dni)) {
       this.error.set('El cliente no existe. Crealo primero desde la sección "Clientes".');
       this.clienteControl.markAsTouched();
       return;
     }
 
-    if (creando) {
-      const errLineas = this.validarLineas(this.lineas());
-      if (errLineas) {
-        this.error.set(errLineas);
-        return;
-      }
-
-      this.loading.set(true);
-      this.error.set(null);
-
-      const payload = this.buildCreatePayload();
-      this.ventaSrv.createVenta(payload).subscribe({
-        next: () => { this.nuevo(); this.cargarVentas(); },
-        error: (err) => {
-          const msg = err?.error?.message || 'No se pudo crear la venta.';
-          this.error.set(msg);
-          this.loading.set(false);
-          console.error('[VENTA] Error creando:', err);
-        }
-      });
-      return;
-    }
-
-    // Editar (una sola línea) + compat
-    if (this.productoControl.invalid || this.cantidadControl.invalid) {
-      this.form.markAllAsTouched();
-      this.error.set('Completá Producto y Cantidad.');
+    const errLineas = this.validarLineas(this.lineas());
+    if (errLineas) {
+      this.error.set(errLineas);
       return;
     }
 
     this.loading.set(true);
     this.error.set(null);
 
-    const patch: UpdateVentaDTO = {
-      clienteDni: String(dni),
-      detalles: [{
-        productoId: Number(this.productoControl.value),
-        cantidad: Number(this.cantidadControl.value),
-      }],
-      // compat opcional:
-      productoId: Number(this.productoControl.value),
-      cantidad: Number(this.cantidadControl.value),
-    };
-
-    this.ventaSrv.updateVenta(id!, patch).subscribe({
+    const payload = this.buildCreatePayload();
+    this.ventaSrv.createVenta(payload).subscribe({
       next: () => { this.nuevo(); this.cargarVentas(); },
       error: (err) => {
-        const msg = err?.error?.message || 'No se pudo guardar la venta.';
+        const msg = err?.error?.message || 'No se pudo crear la venta.';
         this.error.set(msg);
         this.loading.set(false);
-        console.error('[VENTA] Error actualizando:', err);
+        console.error('[VENTA] Error creando:', err);
       }
     });
   }

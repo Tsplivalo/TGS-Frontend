@@ -71,8 +71,11 @@
     <form [formGroup]="form" (ngSubmit)="guardar()" class="form">
       <label class="label">
         DNI
-        <input class="input" formControlName="dni" placeholder="12345678" [readonly]="editDni() !== null" />
+          <input class="input" type="text" formControlName="dni" maxlength="8" pattern="[0-9]*" placeholder="Ingrese DNI" required />
       </label>
+
+
+
 
       <label class="label">
         Nombre

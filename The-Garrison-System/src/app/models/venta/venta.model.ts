@@ -13,8 +13,10 @@ export interface VentaProductoDTO {
 export interface VentaDetalleDTO {
   productoId: number;
   cantidad: number;
-  // al leer, puede venir expandido
+  // expandido
   producto?: VentaProductoDTO;
+  // ⬇️ el back calcula esto
+  subtotal?: number;
 }
 
 export interface VentaDTO {
@@ -22,13 +24,18 @@ export interface VentaDTO {
   fecha?: string;
   cliente?: VentaClienteDTO | null;
 
-  // Soporte legacy (venta de 1 sola línea)
+  // legacy 1 línea
   producto?: VentaProductoDTO | null;
   cantidad?: number | null;
 
-  // Nuevo formato (multi ítems)
+  // multi ítems
   detalles?: VentaDetalleDTO[];
 
+  // ⬇️ totales posibles
+  monto?: number;        // si el toDTO del back lo llama "monto"
+  montoVenta?: number;   // si el toDTO lo deja como "montoVenta"
+
+  // compat vieja
   total?: number;
 }
 
@@ -39,9 +46,8 @@ export interface CreateVentaDTO {
 
 export interface UpdateVentaDTO {
   clienteDni?: string;
-  // edición moderna
   detalles?: VentaDetalleDTO[];
-  // compatibilidad (si el back todavía lo soporta):
+  // compat opcional
   productoId?: number;
   cantidad?: number;
 }

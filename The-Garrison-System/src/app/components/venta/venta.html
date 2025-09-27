@@ -16,7 +16,7 @@
       </label>
       <label class="label">
         DNI cliente
-        <input class="input" placeholder="e.g. 35123456" [(ngModel)]="fClienteDni" />
+        <input class="input" placeholder="" maxlength="8" [(ngModel)]="fClienteDni" />
       </label>
     </div>
 
@@ -30,7 +30,6 @@
             <th>Productos</th>
             <th>Cantidad</th>
             <th>Total</th>
-            <th class="right">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -46,7 +45,7 @@
               }
             </td>
 
-            <!-- Productos / Cantidad: soporta 1 línea legacy y múltiples detalles -->
+            <!-- Productos / descripción de ítems -->
             <td>
               @if (tieneDetalles(v)) {
               {{ getDetalles(v).length }} ítem(s)
@@ -61,6 +60,7 @@
               }
             </td>
 
+            <!-- Cantidad total (usa método del componente) -->
             <td>
               @if (tieneDetalles(v)) {
               {{ sumarCantidades(v) }}
@@ -69,17 +69,13 @@
               }
             </td>
 
+            <!-- Total -->
             <td>{{ calcularTotal(v) | currency:'ARS' }}</td>
-
-            <td class="right">
-              <button class="btn ghost" type="button" (click)="editar(v)">Editar</button>
-              <button class="btn danger" type="button" (click)="eliminar(v.id)">Eliminar</button>
-            </td>
           </tr>
           }
           @if (ventasFiltradas().length === 0) {
           <tr>
-            <td colspan="7" class="center muted">Sin ventas</td>
+            <td colspan="6" class="center muted">Sin ventas</td>
           </tr>
           }
         </tbody>
@@ -87,10 +83,10 @@
     </div>
   </div>
 
-  <!-- FORM -->
+  <!-- FORM CREAR -->
   <div class="card">
     <div class="header">
-      <h2>{{ isEditing ? ('Editar venta: ' + (idValue ?? '')) : 'Nueva venta' }}</h2>
+      <h2>Nueva venta</h2>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
@@ -101,21 +97,18 @@
       <!-- Cliente -->
       <label class="label">
         Cliente
-        <input class="input" placeholder="filtrar (dni o nombre)" [(ngModel)]="filtroCliente"
+        <input class="input" placeholder="filtrar (dni o nombre)" maxlength="8" [(ngModel)]="filtroCliente"
           [ngModelOptions]="{standalone: true}" name="fltCliente" />
         <select class="input" formControlName="clienteDni">
           <option [ngValue]="null" disabled>Elegí un cliente</option>
           @for (c of clientesFiltrados(); track c.dni) {
-          <option [ngValue]="c.dni">
-            {{ c.dni }} - {{ c.nombre }}
-          </option>
+          <option [ngValue]="c.dni">{{ c.dni }} - {{ c.nombre }}</option>
           }
         </select>
         <small class="muted">¿No figura? Crealo desde <strong>Clientes</strong>.</small>
       </label>
 
-      <!-- CREAR: múltiples líneas -->
-      @if (!isEditing) {
+      <!-- Productos múltiples -->
       <div class="subheader">Productos</div>
 
       @for (l of lineas(); track $index; let i = $index) {
@@ -137,7 +130,7 @@
                 <option [ngValue]="null" disabled>Elegí un producto</option>
                 @for (p of productosFiltradosPor(l.filtro || ''); track p.id) {
                 <option [ngValue]="p.id">
-                  {{ p.id }} - {{ p.descripcion }} ({{ p.stock }} ud) - {{ p.precio | currency:'ARS' }}
+                  {{ p.id }} - {{ p.descripcion }} ({{ p.stock }} unidades) - {{ p.precio | currency:'ARS' }}
                 </option>
                 }
               </select>
@@ -147,8 +140,9 @@
           <div class="linea__cell sm">
             <label class="label">
               Cantidad
-              <input class="input" type="number" min="1" step="1" [(ngModel)]="l.cantidad"
-                [ngModelOptions]="{standalone: true}" [name]="'cant' + i" />
+              <input class="input" type="number" min="1" step="1" [attr.max]="getStock(l.productoId) || null"
+                title="Stock disponible: {{ getStock(l.productoId) }}" [(ngModel)]="l.cantidad"
+                (blur)="clampCantidad(i)" [ngModelOptions]="{standalone: true}" [name]="'cant' + i" />
             </label>
           </div>
 
@@ -162,30 +156,9 @@
       <div class="right" style="grid-column: 1 / -1; margin-top: .5rem;">
         <button class="btn" type="button" (click)="agregarLinea()">+ Agregar producto</button>
       </div>
-      } @else {
-      <!-- EDITAR: una sola línea -->
-      <label class="label">
-        Producto
-        <select class="input" formControlName="productoId">
-          <option [ngValue]="null" disabled>Elegí un producto</option>
-          @for (p of productos(); track p.id) {
-          <option [ngValue]="p.id">
-            {{ p.id }} - {{ p.descripcion }} ({{ p.stock }} ud) - {{ p.precio | currency:'ARS' }}
-          </option>
-          }
-        </select>
-      </label>
-
-      <label class="label">
-        Cantidad
-        <input class="input" type="number" min="1" step="1" formControlName="cantidad" />
-      </label>
-      }
 
       <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">
-          {{ isEditing ? 'Guardar' : 'Crear' }}
-        </button>
+        <button class="btn success" type="submit" [disabled]="loading()">Crear</button>
         <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
       </div>
     </form>

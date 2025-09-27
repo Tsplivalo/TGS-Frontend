@@ -21,11 +21,7 @@ export class ProductoService {
     return this.http.post<ApiResponse<ProductoDTO>>(this.apiUrl, p);
   }
 
-  updateProducto(id: number, p: CreateProductoDTO): Observable<ApiResponse<ProductoDTO>> {
-    return this.http.put<ApiResponse<ProductoDTO>>(`${this.apiUrl}/${id}`, p);
-  }
-
-  patchProducto(id: number, p: UpdateProductoDTO): Observable<ApiResponse<ProductoDTO>> {
+  updateProducto(id: number, p: UpdateProductoDTO): Observable<ApiResponse<ProductoDTO>> {
     return this.http.patch<ApiResponse<ProductoDTO>>(`${this.apiUrl}/${id}`, p);
   }
 

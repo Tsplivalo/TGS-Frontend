@@ -23,12 +23,9 @@ export class ClienteService {
   }
 
   updateCliente(dni: string, c: Partial<ClienteDTO>): Observable<ApiResponse<ClienteDTO>> {
-    return this.http.put<ApiResponse<ClienteDTO>>(`${this.apiUrl}/${dni}`, c);
-  }
-
-  patchCliente(dni: string, c: Partial<ClienteDTO>): Observable<ApiResponse<ClienteDTO>> {
     return this.http.patch<ApiResponse<ClienteDTO>>(`${this.apiUrl}/${dni}`, c);
   }
+
 
   deleteCliente(dni: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${dni}`);

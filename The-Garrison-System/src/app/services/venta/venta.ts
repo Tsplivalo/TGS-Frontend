@@ -75,26 +75,6 @@ export class VentaService {
     );
   }
 
-  private deleteBase(url: string, id: number) {
-    return this.http.delete<{ message: string }>(`${url}/${id}`);
-  }
-  deleteVenta(id: number): Observable<{ message: string }> {
-    // Fallbacks: /:id → (404) → singular → (404) → ?id=
-    return this.deleteBase(this.apiPlural, id).pipe(
-      catchError((err1: HttpErrorResponse) => {
-        if (err1.status !== 404) return throwError(() => err1);
-        return this.deleteBase(this.apiSingular, id).pipe(
-          catchError((err2: HttpErrorResponse) => {
-            if (err2.status !== 404) return throwError(() => err2);
-            return this.http.delete<{ message: string }>(`${this.apiPlural}?id=${id}`).pipe(
-              catchError((err3: HttpErrorResponse) => {
-                if (err3.status !== 404) return throwError(() => err3);
-                return this.http.delete<{ message: string }>(`${this.apiSingular}?id=${id}`);
-              })
-            );
-          })
-        );
-      })
-    );
-  }
+
+  
 }

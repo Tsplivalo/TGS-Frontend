@@ -1,17 +1,14 @@
 <section class="grid">
-  <!-- LISTA -->
   <div class="card">
     <div class="header">
       <h2>Sobornos</h2>
-      <div class="right">
-        <button class="btn" type="button" (click)="nuevo()">Nuevo</button>
-      </div>
+      <!-- Sin botón "Nuevo" -->
     </div>
 
     <div class="filters">
       <label class="label">
         Buscar
-        <input class="input" placeholder="id, venta o autoridad" [(ngModel)]="filtroText" />
+        <input class="input" placeholder="id, id venta, id autoridad" [(ngModel)]="filtroText" />
       </label>
     </div>
 
@@ -20,10 +17,11 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Autoridad</th>
             <th>Venta</th>
+            <th>Autoridad</th>
             <th>Monto</th>
             <th>Pagado</th>
+            <th>Fecha</th>
             <th class="right">Acciones</th>
           </tr>
         </thead>
@@ -31,75 +29,26 @@
           @for (s of filtrados(); track s.id) {
           <tr>
             <td>{{ s.id }}</td>
-            <td>{{ s.autoridadDni }}</td>
             <td>{{ s.venta?.id ?? s.ventaId }}</td>
+            <td>{{ s.autoridad?.id ?? s.autoridadId }}</td>
             <td>{{ s.monto | currency:'ARS' }}</td>
             <td>{{ s.pagado ? 'Sí' : 'No' }}</td>
+            <td>{{ s.fechaCreacion | date:'short' }}</td>
             <td class="right">
-              <button class="btn ghost" type="button" (click)="editar(s)">Editar</button>
-              <button class="btn danger" type="button" (click)="eliminar(s.id)">Eliminar</button>
-              @if (!s.pagado) {
-              <button class="btn" type="button" (click)="marcarPagado(s)">Marcar pagado</button>
-              }
+              <!-- Quité "Editar" para evitar acciones sin formulario -->
+              <button class="btn success" type="button" (click)="marcarPagado(s)" [disabled]="s.pagado">
+                Marcar pagado
+              </button>
             </td>
           </tr>
           }
           @if (filtrados().length === 0) {
           <tr>
-            <td colspan="6" class="center muted">Sin sobornos</td>
+            <td colspan="7" class="center muted">Sin sobornos</td>
           </tr>
           }
         </tbody>
       </table>
     </div>
-  </div>
-
-  <!-- FORM -->
-  <div class="card">
-    <div class="header">
-      <h2>{{ isEditing ? ('Editar soborno: ' + (form.controls.id.value ?? '')) : 'Nuevo soborno' }}</h2>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
-      @if (error()) { <div class="error">{{ error() }}</div> }
-
-      <!-- Autoridad -->
-      <label class="label">
-        Autoridad
-        <select class="input" formControlName="autoridadDni">
-          <option [ngValue]="null" disabled>Elegí una autoridad</option>
-          @for (a of autoridades(); track a.dni) {
-          <option [ngValue]="a.dni">{{ a.dni }} - {{ a.nombre }} </option>
-          }
-        </select>
-      </label>
-
-      <!-- Venta -->
-      <label class="label">
-        Venta
-        <select class="input" formControlName="ventaId">
-          <option [ngValue]="null" disabled>Elegí una venta</option>
-          @for (v of ventas(); track v.id) {
-          <option [ngValue]="v.id">#{{ v.id }} - Cliente: {{ v.cliente?.nombre }} - Total: {{ v.total || '0' }}</option>
-          }
-        </select>
-      </label>
-
-      <!-- Monto -->
-      <label class="label">
-        Monto
-        <input class="input" type="number" formControlName="monto" min="1" />
-      </label>
-
-      <label class="checkbox">
-        <input type="checkbox" formControlName="pagado" />
-        <span>Pagado</span>
-      </label>
-
-      <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">{{ isEditing ? 'Guardar' : 'Crear' }}</button>
-        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
-      </div>
-    </form>
   </div>
 </section>

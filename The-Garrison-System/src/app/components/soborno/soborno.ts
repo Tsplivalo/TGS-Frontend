@@ -11,7 +11,7 @@ import { AutoridadDTO } from '../../models/autoridad/autoridad.model';
 
 type SobornoForm = {
   id: FormControl<number | null>;
-  autoridadDni: FormControl<string | null>;
+  autoridadId: FormControl<string | number | null>;
   ventaId: FormControl<number | null>;
   monto: FormControl<number | null>;
   pagado: FormControl<boolean>;
@@ -40,9 +40,9 @@ export class SobornoComponent implements OnInit {
 
   form: FormGroup<SobornoForm> = this.fb.group<SobornoForm>({
     id: this.fb.control<number | null>(null),
-    autoridadDni: this.fb.control<string | null>(null, { validators: [Validators.required] }),
+    autoridadId: this.fb.control<string | number | null>(null, { validators: [Validators.required] }),
     ventaId: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(1)] }),
-    monto: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(1)] }),
+    monto: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
     pagado: this.fb.nonNullable.control(false),
   });
 
@@ -52,6 +52,18 @@ export class SobornoComponent implements OnInit {
     this.cargarSobornos();
     this.cargarVentas();
     this.cargarAutoridades();
+    this.setEditMode(false);
+  }
+
+  private setEditMode(isEdit: boolean) {
+    const cfg = (ctrl: FormControl<any>, validators: any[]) => {
+      ctrl.clearValidators();
+      if (!isEdit) ctrl.setValidators(validators); // requeridos solo al crear
+      ctrl.updateValueAndValidity({ emitEvent: false });
+    };
+    cfg(this.form.controls.autoridadId, [Validators.required]);
+    cfg(this.form.controls.ventaId, [Validators.required, Validators.min(1)]);
+    cfg(this.form.controls.monto, [Validators.required, Validators.min(0)]);
   }
 
   cargarSobornos() {
@@ -96,66 +108,78 @@ export class SobornoComponent implements OnInit {
     return this.sobornos().filter(s =>
       String(s.id ?? '').includes(q) ||
       String((s.venta?.id ?? s.ventaId) ?? '').includes(q) ||
-      (s.autoridadDni ?? '').toLowerCase().includes(q)
+      String(s.autoridad?.id ?? s.autoridadId ?? '').includes(q)
     );
   });
 
   nuevo() {
-    this.form.reset({ id: null, autoridadDni: null, ventaId: null, monto: null, pagado: false });
+    this.form.reset({ id: null, autoridadId: null, ventaId: null, monto: null, pagado: false });
+    this.setEditMode(false);
+    this.form.markAsPristine();
     this.error.set(null);
   }
 
   editar(s: SobornoDTO) {
-    this.form.setValue({
+    this.form.reset();
+    this.form.patchValue({
       id: s.id ?? null,
-      autoridadDni: s.autoridadDni ?? null,
+      autoridadId: (s.autoridad?.id ?? s.autoridadId ?? null) as any,
       ventaId: (s.venta?.id ?? s.ventaId ?? null) as number | null,
       monto: (s.monto ?? null) as number | null,
       pagado: !!s.pagado,
     });
+    this.setEditMode(true);
+    this.form.markAsPristine();
     this.error.set(null);
-  }
-
-  eliminar(id?: number | null) {
-    if (!id) return;
-    this.loading.set(true);
-    this.error.set(null);
-    this.srv.delete(id).subscribe({
-      next: () => this.cargarSobornos(),
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo eliminar.');
-        this.loading.set(false);
-      }
-    });
   }
 
   guardar() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.error.set('Completá todos los campos.');
+    const id = this.form.controls.id.value;
+
+    if (!id) {
+      // === CREAR ===
+      if (this.form.invalid) {
+        this.form.markAllAsTouched();
+        this.error.set('Completá todos los campos.');
+        return;
+      }
+      const body: CreateSobornoDTO = {
+        monto: Number(this.form.controls.monto.value),
+        autoridadId: String(this.form.controls.autoridadId.value!),
+        ventaId: Number(this.form.controls.ventaId.value!),
+        pagado: !!this.form.controls.pagado.value,
+      };
+      this.loading.set(true);
+      this.error.set(null);
+      this.srv.create(body).subscribe({
+        next: () => { this.nuevo(); this.cargarSobornos(); },
+        error: (err) => {
+          this.error.set(err?.error?.message || 'No se pudo crear.');
+          this.loading.set(false);
+        }
+      });
       return;
     }
 
-    const id = this.form.controls.id.value;
+    // === EDITAR (PATCH parcial) ===
+    const c = this.form.controls;
+    const patch: UpdateSobornoDTO = {};
+    if (c.monto.dirty)      patch.monto = Number(c.monto.value);
+    if (c.autoridadId.dirty) patch.autoridadId = String(c.autoridadId.value!);
+    if (c.ventaId.dirty)    patch.ventaId = Number(c.ventaId.value!);
+    if (c.pagado.dirty)     patch.pagado = !!c.pagado.value;
 
-    const body = {
-      autoridadDni: String(this.form.controls.autoridadDni.value),
-      ventaId: Number(this.form.controls.ventaId.value),
-      monto: Number(this.form.controls.monto.value),
-      pagado: !!this.form.controls.pagado.value,
-    } as CreateSobornoDTO & UpdateSobornoDTO;
+    if (Object.keys(patch).length === 0) {
+      this.error.set('No hay cambios para guardar.');
+      return;
+    }
 
     this.loading.set(true);
     this.error.set(null);
-
-    const obs = id
-      ? this.srv.update(id, body)
-      : this.srv.create(body as CreateSobornoDTO);
-
-    obs.subscribe({
+    this.srv.update(id, patch).subscribe({
       next: () => { this.nuevo(); this.cargarSobornos(); },
       error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo guardar.');
+        this.error.set(err?.error?.message || 'No se pudo actualizar.');
         this.loading.set(false);
       }
     });

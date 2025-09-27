@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ProductoService } from '../../services/producto/producto';
-import { ApiResponse, ProductoDTO, CreateProductoDTO } from '../../models/producto/producto.model';
+import { ApiResponse, ProductoDTO, CreateProductoDTO, UpdateProductoDTO } from '../../models/producto/producto.model';
 
 @Component({
   selector: 'app-producto',
@@ -15,13 +15,11 @@ export class ProductoComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(ProductoService);
 
-  //todos los formularios son reactivos(se actualizan en tiempo real con el back, sin necesidad de hacerlo desde el html)
-
   // estado
   loading = signal(false);
   error = signal<string | null>(null);
   editId = signal<number | null>(null);
-  
+
   // datos
   productos = signal<ProductoDTO[]>([]);
 
@@ -42,7 +40,7 @@ export class ProductoComponent implements OnInit {
       const matchTxt =
         !txt ||
         (p.descripcion ?? '').toLowerCase().includes(txt) ||
-        String(p.id).includes(txt); // por si querés filtrar por id
+        String(p.id).includes(txt);
 
       const matchMin = pmin == null || p.precio >= pmin;
       const matchMax = pmax == null || p.precio <= pmax;
@@ -56,7 +54,7 @@ export class ProductoComponent implements OnInit {
     });
   });
 
-  // formulario 
+  // formulario
   form = this.fb.group({
     descripcion: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
     precio: this.fb.control<number>(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
@@ -64,7 +62,6 @@ export class ProductoComponent implements OnInit {
     esIlegal: this.fb.control<boolean>(false, { nonNullable: true }),
   });
 
-  // esto  hace que apenas se carga el front se muestren todos los productos ya cargados
   ngOnInit() {
     this.cargar();
   }
@@ -114,31 +111,45 @@ export class ProductoComponent implements OnInit {
   guardar() {
     if (this.form.invalid) return;
 
-    const dto: CreateProductoDTO = this.form.getRawValue();
-
     this.loading.set(true);
     this.error.set(null);
 
-    const obs = this.editId() == null
-      ? this.srv.createProducto(dto)
-      : this.srv.updateProducto(this.editId()!, dto);
+    if (this.editId() == null) {
+      // CREATE -> POST con CreateProductoDTO
+      const dtoCreate: CreateProductoDTO = this.form.getRawValue();
+      this.srv.createProducto(dtoCreate).subscribe({
+        next: _ => {
+          this.loading.set(false);
+          this.nuevo();
+          this.cargar();
+        },
+        error: err => {
+          this.loading.set(false);
+          this.error.set(err?.error?.message ?? 'No se pudo guardar');
+        }
+      });
+    } else {
+      // UPDATE -> PATCH con UpdateProductoDTO
+      const id = this.editId()!;
+      const raw = this.form.getRawValue();
+      const dtoUpdate: UpdateProductoDTO = { ...raw }; // parcial/total según tu modelo
 
-    obs.subscribe({
-      next: _ => {
-        this.loading.set(false);
-        this.nuevo();
-        this.cargar(); // 🔁 recarga lista
-      },
-      error: err => {
-        this.loading.set(false);
-        // mensajes comunes: 401/403 si no sos ADMIN, 400 si falta algún campo
-        this.error.set(err?.error?.message ?? 'No se pudo guardar');
-      }
-    });
+      this.srv.updateProducto(id, dtoUpdate).subscribe({
+        next: _ => {
+          this.loading.set(false);
+          this.nuevo();
+          this.cargar();
+        },
+        error: err => {
+          this.loading.set(false);
+          this.error.set(err?.error?.message ?? 'No se pudo guardar');
+        }
+      });
+    }
   }
 
   eliminar(id: number) {
-    if (!confirm('¿Eliminar producto?')) return; 
+    if (!confirm('¿Eliminar producto?')) return;
     this.loading.set(true);
     this.error.set(null);
     this.srv.deleteProducto(id).subscribe({

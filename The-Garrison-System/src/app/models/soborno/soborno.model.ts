@@ -1,30 +1,36 @@
-// API response genérica
-export interface ApiResponse<T> {
-  message?: string;
-  data?: T;
-  error?: string;
-}
-
-// DTO principal
 export interface SobornoDTO {
-  id?: number;
-  autoridadDni: string;
-  ventaId: number;
+  id: number;
   monto: number;
   pagado: boolean;
-  // opcional: si el backend expande la relación
-  venta?: { id: number };
+  fechaCreacion?: string;
+
+  // Relaciones (tu back popula autoridad y venta)
+  autoridad?: { id: string | number; dni?: string; nombre?: string } | null;
+  autoridadId?: string | number | null;
+  autoridadDni?: string | null; // lo mantenemos por compatibilidad UI
+
+  venta?: { id: number } | null;
+  ventaId?: number | null;
 }
 
-// Crear
-export type CreateSobornoDTO = Omit<SobornoDTO, 'id' | 'pagado' | 'venta'> & {
-  pagado?: boolean; // opcional en la creación
-};
+export interface CreateSobornoDTO {
+  // 👇 el back espera estos nombres
+  monto: number;
+  autoridadId: string | number; // ID de Autoridad, no DNI
+  ventaId: number;
+  pagado?: boolean;
+}
 
-// Actualizar
-export type UpdateSobornoDTO = Partial<Omit<SobornoDTO, 'id'>>;
+export interface UpdateSobornoDTO {
+  monto?: number;
+  autoridadId?: string | number;
+  ventaId?: number;
+  pagado?: boolean;
+  // si tu back permite tocar la fecha:
+  fechaCreacion?: string;
+}
 
-// Para endpoints de pagar (por lista de ids)
-export interface PagarSobornosBody {
-  ids: number | number[];
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
 }
