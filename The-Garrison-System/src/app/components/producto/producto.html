@@ -1,42 +1,30 @@
-<div class="page">
+<div class="page producto">
 
   <!-- Toolbar -->
-  <div class="toolbar">
+  <header class="toolbar card--elev">
     <h1 class="title">Productos</h1>
     <div class="spacer"></div>
-    <button class="btn" type="button" (click)="nuevo()">Nuevo producto</button>
-  </div>
+    <button class="btn" type="button" (click)="nuevo()">+ Nuevo producto</button>
+  </header>
 
   <!-- Mensajes -->
   <div class="alert error" *ngIf="error() as err">
-    {{ err }}
+    <strong>Error:</strong> {{ err }}
   </div>
-  <div class="alert info" *ngIf="loading()">Cargando...</div>
+  <div class="alert info" *ngIf="loading()">Cargando productos...</div>
 
   <!-- Filtros -->
-  <section class="card">
+  <section class="card filtros">
     <h2 class="card-title">Filtros</h2>
     <div class="filters">
       <label>
-        <span>Buscar</span>
-        <input class="input" type="text" placeholder="Descripción o ID" [value]="fTexto()"
+        <span class="label-text">Buscar</span>
+        <input class="input" type="text" placeholder="Nombre o categoría" [value]="fTexto()"
           (input)="fTexto.set($any($event.target).value)" />
       </label>
 
       <label>
-        <span>Precio mín.</span>
-        <input class="input" type="number" min="0" [value]="fPrecioMin() ?? ''"
-          (input)="fPrecioMin.set($any($event.target).value === '' ? null : +$any($event.target).value)" />
-      </label>
-
-      <label>
-        <span>Precio máx.</span>
-        <input class="input" type="number" min="0" [value]="fPrecioMax() ?? ''"
-          (input)="fPrecioMax.set($any($event.target).value === '' ? null : +$any($event.target).value)" />
-      </label>
-
-      <label>
-        <span>Stock</span>
+        <span class="label-text">Stock</span>
         <select class="input" [value]="fStock()" (change)="fStock.set($any($event.target).value)">
           <option value="todos">Todos</option>
           <option value="con">Con stock</option>
@@ -47,11 +35,11 @@
   </section>
 
   <!-- Tabla -->
-  <section class="card">
+  <section class="card listado">
     <h2 class="card-title">Listado</h2>
 
     <div class="table-wrapper" *ngIf="listaFiltrada().length; else emptyState">
-      <table class="table">
+      <table class="table table-hover">
         <thead>
           <tr>
             <th style="width:80px;">ID</th>
@@ -66,7 +54,7 @@
           <tr *ngFor="let p of listaFiltrada()">
             <td>#{{ p.id }}</td>
             <td>{{ p.descripcion }}</td>
-            <td>\${{ p.precio | number:'1.0-2' }}</td>
+            <td>{{ p.precio | currency:'ARS':'symbol':'1.0-2' }}</td>
             <td>
               <span class="badge" [class.badge-warn]="p.stock === 0">{{ p.stock }}</span>
             </td>
@@ -76,23 +64,26 @@
               </span>
             </td>
             <td class="actions">
-              <button class="btn" type="button" (click)="editar(p)">Editar</button>
-              <button class="btn ghost" type="button" (click)="eliminar(p.id)" [disabled]="loading()">Eliminar</button>
+              <button class="btn ghost" type="button" (click)="editar(p)">Editar</button>
+              <button class="btn danger" type="button" (click)="eliminar(p.id)" [disabled]="loading()">Eliminar</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
+    <!-- Empty state -->
     <ng-template #emptyState>
       <div class="empty">
-        No hay productos para mostrar.
+        <h3>No hay productos</h3>
+        <p>Probá ajustar los filtros o creá un producto nuevo.</p>
+        <button class="btn" type="button" (click)="nuevo()">+ Crear producto</button>
       </div>
     </ng-template>
   </section>
 
   <!-- Formulario -->
-  <section class="card">
+  <section class="card formulario">
     <h2 class="card-title">
       {{ editId() == null ? 'Crear producto' : ('Editar producto #' + editId()) }}
     </h2>

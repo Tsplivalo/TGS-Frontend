@@ -4,86 +4,112 @@
     <div class="header">
       <h2>Autoridades</h2>
       <div class="right">
-        <button class="btn" (click)="nuevo()">Nueva autoridad</button>
+        <button class="btn" (click)="nuevo()">Nueva</button>
       </div>
     </div>
 
-    <!-- Filtros -->
+    <!-- Filtros simples en UI -->
     <div class="filters">
       <label class="label">
         Buscar
-        <input class="input" placeholder="Nombre, DNI, email o zona..." [ngModel]="fTexto()"
-          (ngModelChange)="fTexto.set($event)" />
+        <input class="input" placeholder="dni / nombre / rango" [(ngModel)]="fTexto" />
       </label>
+
       <label class="label">
-        Rango
-        <input class="input" placeholder="Inspector, Comisario, etc." [ngModel]="fRango()"
-          (ngModelChange)="fRango.set($event)" />
+        Zona ID
+        <input class="input" placeholder="1" [(ngModel)]="fZonaId" />
       </label>
     </div>
 
-    <div *ngIf="error()" class="error">{{ error() }}</div>
-    <div *ngIf="loading()">Cargando...</div>
-
-    <div class="card table-wrap" *ngIf="!loading()">
+    <div class="table-wrapper">
       <table class="table">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Nombre</th>
             <th>DNI</th>
-            <th>Email</th>
-            <th>Zona</th>
+            <th>Nombre</th>
             <th>Rango</th>
-            <th style="width:160px;">Acciones</th>
+            <th>Zona</th>
+            <th class="right">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let a of listaFiltrada()">
-            <td>{{ a.id }}</td>
-            <td>{{ a.usuario?.nombre || '—' }}</td>
-            <td>{{ a.usuario?.dni || '—' }}</td>
-            <td class="muted">{{ a.usuario?.email || '—' }}</td>
-            <td>{{ a.zona?.nombre || a.zona?.id || '—' }}</td>
-            <td><span class="badge">{{ a.rango || '—' }}</span></td>
-            <td>
-              <div class="actions">
-                <button class="btn ghost" (click)="editar(a)">Editar</button>
-                <button class="btn danger" (click)="eliminar(a.id!)">Eliminar</button>
-              </div>
+          <tr *ngFor="let a of autoridadesFiltradas()">
+            <td>{{ a.dni }}</td>
+            <td>{{ a.nombre }}</td>
+            <td>{{ a.rango }}</td>
+            <td>{{ getZonaTexto(a) }}</td>
+            <td class="right">
+              <button class="btn ghost" (click)="editar(a)">Editar</button>
+              <button class="btn danger" (click)="eliminar(a.dni)">Eliminar</button>
             </td>
           </tr>
-          <tr *ngIf="listaFiltrada().length === 0">
-            <td colspan="7" class="muted center">Sin registros</td>
+          <tr *ngIf="autoridadesFiltradas().length === 0">
+            <td colspan="5" class="center muted">Sin autoridades</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- FORMULARIO -->
+  <!-- FORM -->
   <div class="card">
-    <h3>{{ editId() == null ? 'Nueva autoridad' : 'Editar autoridad #' + editId() }}</h3>
+    <div class="header">
+      <h2>{{ editDni() == null ? 'Nueva autoridad' : ('Editar autoridad: ' + editDni()) }}</h2>
+    </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <!-- error del backend -->
+      <div class="error" *ngIf="error()">{{ error() }}</div>
+      <!-- error de validación local -->
+      <div class="error" *ngIf="submitted() && form.invalid">
+        {{ editDni() == null
+        ? 'Completá DNI, Nombre, Email, Rango y Zona.'
+        : 'Completá Nombre, Rango y Zona (email no es requerido en edición).' }}
+      </div>
+
       <label class="label">
-        DNI del usuario
-        <input class="input" formControlName="usuarioDni" placeholder="Documento" />
+        DNI
+        <input class="input" formControlName="dni" placeholder="30111222" [readonly]="editDni() !== null" />
+      </label>
+
+      <label class="label">
+        Nombre
+        <input class="input" formControlName="nombre" placeholder="Juan Pérez" />
+      </label>
+
+      <label class="label">
+        Email
+        <input class="input" type="email" formControlName="email" placeholder="juan@mail.com" />
+      </label>
+
+      <label class="label">
+        Teléfono
+        <input class="input" formControlName="telefono" placeholder="+54..." />
+      </label>
+
+      <label class="label">
+        Dirección
+        <input class="input" formControlName="direccion" placeholder="Calle 123" />
+      </label>
+
+      <label class="label">
+        Rango
+        <select class="input" formControlName="rango">
+          <option value="0">0 - Rango 0</option>
+          <option value="1">1 - Rango 1</option>
+          <option value="2">2 - Rango 2</option>
+          <option value="3">3 - Rango 3</option>
+        </select>
       </label>
 
       <label class="label">
         Zona ID
-        <input type="number" class="input" formControlName="zonaId" placeholder="ID de la zona" />
-      </label>
-
-      <label class="label" style="grid-column: 1 / -1;">
-        Rango
-        <input class="input" formControlName="rango" placeholder="Inspector / Comisario / etc." />
+        <input class="input" formControlName="zonaId" placeholder="1" />
       </label>
 
       <div class="right" style="grid-column: 1 / -1;">
         <button class="btn success" type="submit" [disabled]="loading()">
-          {{ editId() == null ? 'Crear' : 'Guardar' }}
+          {{ editDni() == null ? 'Crear' : 'Guardar' }}
         </button>
         <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
       </div>

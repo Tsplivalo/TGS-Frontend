@@ -1,37 +1,100 @@
-// src/app/services/venta/venta.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { ApiResponse, VentaDTO, CreateVentaDTO } from '../../models/venta/venta.model';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import {
+  ApiResponse,
+  VentaDTO,
+  CreateVentaDTO,
+  UpdateVentaDTO,
+  VentaDetalleDTO,
+} from '../../models/venta/venta.model';
 
 @Injectable({ providedIn: 'root' })
 export class VentaService {
-  private readonly apiUrl = '/api/ventas';
+  private readonly apiPlural = '/api/ventas';
+  private readonly apiSingular = '/api/venta';
 
   constructor(private http: HttpClient) {}
 
+  // ===== Helpers con fallback plural⇄singular =====
+  private getAllBase(url: string) {
+    return this.http.get<ApiResponse<VentaDTO[]>>(url);
+  }
   getAllVentas(): Observable<ApiResponse<VentaDTO[]>> {
-    return this.http.get<ApiResponse<VentaDTO[]>>(this.apiUrl);
+    return this.getAllBase(this.apiPlural).pipe(
+      catchError((err: HttpErrorResponse) =>
+        err.status === 404 ? this.getAllBase(this.apiSingular) : throwError(() => err)
+      )
+    );
   }
 
-  getVentaById(id: number): Observable<ApiResponse<VentaDTO>> {
-    return this.http.get<ApiResponse<VentaDTO>>(`${this.apiUrl}/${id}`);
+  private postBase(url: string, body: any) {
+    return this.http.post<ApiResponse<VentaDTO>>(url, body);
+  }
+  createVenta(body: CreateVentaDTO): Observable<ApiResponse<VentaDTO>> {
+    // Normalizo tipos
+    const detalles = (body.detalles || []).map((d: VentaDetalleDTO) => ({
+      productoId: Number(d.productoId),
+      cantidad: Number(d.cantidad),
+    }));
+
+    const payload: CreateVentaDTO = {
+      clienteDni: String(body.clienteDni).trim(),
+      detalles,
+    };
+
+    return this.postBase(this.apiPlural, payload).pipe(
+      catchError((err: HttpErrorResponse) =>
+        err.status === 404 ? this.postBase(this.apiSingular, payload) : throwError(() => err)
+      )
+    );
   }
 
-  // <-- aquí cambiamos VentaDTO por CreateVentaDTO
-  createVenta(v: CreateVentaDTO): Observable<ApiResponse<VentaDTO>> {
-    return this.http.post<ApiResponse<VentaDTO>>(this.apiUrl, v);
+  private patchBase(url: string, id: number, body: any) {
+    return this.http.patch<ApiResponse<VentaDTO>>(`${url}/${id}`, body);
+  }
+  updateVenta(id: number, body: UpdateVentaDTO): Observable<ApiResponse<VentaDTO>> {
+    const payload: UpdateVentaDTO = {};
+    if (body.clienteDni != null) payload.clienteDni = String(body.clienteDni).trim();
+
+    if (body.detalles != null) {
+      payload.detalles = body.detalles.map(d => ({
+        productoId: Number(d.productoId),
+        cantidad: Number(d.cantidad),
+      }));
+    }
+    // Compat: si tu back aún acepta productoId/cantidad en PATCH
+    if (body.productoId != null) payload.productoId = Number(body.productoId);
+    if (body.cantidad != null) payload.cantidad = Number(body.cantidad);
+
+    return this.patchBase(this.apiPlural, id, payload).pipe(
+      catchError((err: HttpErrorResponse) =>
+        err.status === 404 ? this.patchBase(this.apiSingular, id, payload) : throwError(() => err)
+      )
+    );
   }
 
-  updateVenta(id: number, v: Partial<VentaDTO>): Observable<ApiResponse<VentaDTO>> {
-    return this.http.put<ApiResponse<VentaDTO>>(`${this.apiUrl}/${id}`, v);
+  private deleteBase(url: string, id: number) {
+    return this.http.delete<{ message: string }>(`${url}/${id}`);
   }
-
-  patchVenta(id: number, v: Partial<VentaDTO>): Observable<ApiResponse<VentaDTO>> {
-    return this.http.patch<ApiResponse<VentaDTO>>(`${this.apiUrl}/${id}`, v);
-  }
-
-  deleteVenta(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  deleteVenta(id: number): Observable<{ message: string }> {
+    // Fallbacks: /:id → (404) → singular → (404) → ?id=
+    return this.deleteBase(this.apiPlural, id).pipe(
+      catchError((err1: HttpErrorResponse) => {
+        if (err1.status !== 404) return throwError(() => err1);
+        return this.deleteBase(this.apiSingular, id).pipe(
+          catchError((err2: HttpErrorResponse) => {
+            if (err2.status !== 404) return throwError(() => err2);
+            return this.http.delete<{ message: string }>(`${this.apiPlural}?id=${id}`).pipe(
+              catchError((err3: HttpErrorResponse) => {
+                if (err3.status !== 404) return throwError(() => err3);
+                return this.http.delete<{ message: string }>(`${this.apiSingular}?id=${id}`);
+              })
+            );
+          })
+        );
+      })
+    );
   }
 }

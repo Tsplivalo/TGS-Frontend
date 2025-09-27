@@ -1,15 +1,27 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { AutoridadService } from '../../services/autoridad/autoridad';
-
-// 👇 Usa TUS modelos (no declares interfaces locales)
 import {
-  AutoridadDTO,            // del modelo
-  CreateAutoridadDTO,      // del modelo
-  UpdateAutoridadDTO,      // del modelo (si no existe, podés usar CreateAutoridadDTO)
-  ApiResponse
+  FormsModule, ReactiveFormsModule,
+  FormArray, FormBuilder, Validators, FormControl, FormGroup, AbstractControl
+} from '@angular/forms';
+import { AutoridadService } from '../../services/autoridad/autoridad';
+import {
+  ApiResponse,
+  AutoridadDTO,
+  CreateAutoridadDTO,
+  UpdateAutoridadDTO,
+  PatchAutoridadDTO,
 } from '../../models/autoridad/autoridad.model';
+
+type AutoridadForm = {
+  dni: FormControl<string>;
+  nombre: FormControl<string>;
+  email: FormControl<string>;
+  telefono: FormControl<string | null>;
+  direccion: FormControl<string | null>;
+  rango: FormControl<'0' | '1' | '2' | '3'>;
+  zonaId: FormControl<string>;
+};
 
 @Component({
   selector: 'app-autoridad',
@@ -22,113 +34,260 @@ export class AutoridadComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(AutoridadService);
 
-  // estado
-  loading = signal(false);
-  error   = signal<string | null>(null);
-  editId  = signal<number | null>(null);
-
-  // datos
   autoridades = signal<AutoridadDTO[]>([]);
+  loading = signal(false);
+  error = signal<string | null>(null);
+  submitted = signal(false);
 
-  // filtros
-  fTexto = signal('');
-  fRango = signal('');
+  // Modo edición usa el DNI como id
+  editDni = signal<string | null>(null);
 
-  // lista filtrada (solo uso props que existen en tu modelo)
-  listaFiltrada = computed(() => {
-    const txt = this.fTexto().toLowerCase().trim();
-    const rng = this.fRango().toLowerCase().trim();
+  // Snapshot para detectar cambios
+  private original: Partial<UpdateAutoridadDTO & { dni: string }> | null = null;
 
-    return (this.autoridades() ?? []).filter(a => {
-      const nombre = a.usuario?.nombre?.toLowerCase() ?? '';
-      const dni    = a.usuario?.dni?.toLowerCase() ?? '';
-      const email  = a.usuario?.email?.toLowerCase() ?? '';
-      const zona   = a.zona?.nombre?.toLowerCase() ?? String(a.zona?.id ?? '');
-      const rango  = (a.rango ?? '').toLowerCase();
+  // Filtros
+  fZonaId: string | null = null;
+  fTexto = '';
 
-      const matchTxt = !txt || nombre.includes(txt) || dni.includes(txt) || email.includes(txt) || zona.includes(txt);
-      const matchRng = !rng || rango.includes(rng);
-      return matchTxt && matchRng;
+  form: FormGroup<AutoridadForm> = this.fb.group<AutoridadForm>({
+    dni: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(6)] }),
+    nombre: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(2)] }),
+    email: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.email] }),
+    telefono: this.fb.control<string | null>(null),
+    direccion: this.fb.control<string | null>(null),
+    rango: this.fb.nonNullable.control('0', { validators: [Validators.required] }),
+    zonaId: this.fb.nonNullable.control('', { validators: [Validators.required] }),
+  });
+
+  ngOnInit(): void {
+    this.cargar();
+  }
+
+  // ===== Helpers para template (evitar "as any" en HTML) =====
+  getZonaTexto(a: AutoridadDTO): string {
+    const id = a?.zona?.id ?? '';
+    const nombre = a?.zona?.nombre ?? 'Zona';
+    return id ? `${id} - ${nombre}` : '—';
+  }
+
+  // ===== Listado (con filtros UI) =====
+  private incluyeTxt(v: AutoridadDTO, q: string): boolean {
+    const txt = q.toLowerCase();
+    return (
+      (v.dni ?? '').toLowerCase().includes(txt) ||
+      (v.nombre ?? '').toLowerCase().includes(txt) ||
+      String(v.rango ?? '').includes(txt)
+    );
+  }
+
+  autoridadesFiltradas = computed(() => {
+    const arr = this.autoridades();
+    const q = (this.fTexto || '').trim();
+    const z = (this.fZonaId || '').trim();
+
+    return arr.filter(a => {
+      const matchQ = !q || this.incluyeTxt(a, q);
+      const zonaIdFromDto = a?.zona?.id != null ? String(a.zona.id) : '';
+      const matchZ = !z || zonaIdFromDto === z;
+      return matchQ && matchZ;
     });
   });
 
-  // formulario
-  form = this.fb.group({
-    usuarioDni: ['', [Validators.required, Validators.minLength(6)]],
-    zonaId:     [0,   [Validators.required, Validators.min(1)]],
-    rango:      ['',  [Validators.required, Validators.minLength(2)]],
-  });
-
-  ngOnInit() { this.cargar(); }
-
+  // ===== CRUD =====
   cargar() {
     this.loading.set(true);
     this.error.set(null);
-
-    // 👇 El tipo del observable queda coherente con tu service/modelo
     this.srv.getAllAutoridades().subscribe({
-      next: (r: ApiResponse<AutoridadDTO[]>) => {
-        this.autoridades.set(r?.data ?? []);
+      next: (res: ApiResponse<AutoridadDTO[]>) => {
+        this.autoridades.set(res.data ?? []);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('No se pudieron cargar las autoridades.');
+      error: (err) => {
+        this.error.set(err?.error?.message || 'No se pudieron cargar las autoridades.');
         this.loading.set(false);
       }
     });
   }
 
+  private setEmailRequired(isRequired: boolean) {
+    const emailCtrl = this.form.controls.email;
+    if (isRequired) {
+      emailCtrl.setValidators([Validators.required, Validators.email]);
+    } else {
+      emailCtrl.setValidators([Validators.email]); // opcional en edición
+    }
+    emailCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
   nuevo() {
-    this.editId.set(null);
-    this.form.reset({ usuarioDni: '', zonaId: 0, rango: '' });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.editDni.set(null);
+    this.original = null;
+    // En crear: email requerido
+    this.setEmailRequired(true);
+
+    this.form.reset({
+      dni: '',
+      nombre: '',
+      email: '',
+      telefono: null,
+      direccion: null,
+      rango: '0',
+      zonaId: ''
+    } as any);
+    this.submitted.set(false);
   }
 
   editar(a: AutoridadDTO) {
-    // id puede ser opcional en tu modelo → casteo defensivo
-    this.editId.set((a as any).id ?? null);
-    this.form.patchValue({
-      usuarioDni: a.usuario?.dni ?? '',
-      zonaId: a.zona?.id ?? 0,
-      rango: a.rango ?? ''
+    // En edición: email NO requerido por el backend
+    this.setEmailRequired(false);
+
+    const zonaId = a?.zona?.id != null ? String(a.zona.id) : '';
+    this.editDni.set(a.dni);
+
+    // Relleno lo que trae el back; email/telefono/direccion pueden no venir
+    this.form.setValue({
+      dni: a.dni ?? '',
+      nombre: a.nombre ?? '',
+      email: '',                 // editable, no requerido en edición
+      telefono: null,
+      direccion: null,
+      rango: String(a.rango ?? '0') as '0'|'1'|'2'|'3',
+      zonaId: zonaId,
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Snapshot para detectar cambios (sobre campos del PUT)
+    this.original = {
+      dni: a.dni ?? '',
+      nombre: a.nombre ?? '',
+      rango: String(a.rango ?? '0') as '0'|'1'|'2'|'3',
+      zonaId: zonaId,
+    };
+  }
+
+  eliminar(dni: string) {
+    this.loading.set(true);
+    this.error.set(null);
+    this.srv.deleteAutoridad(dni).subscribe({
+      next: () => this.cargar(),
+      error: (err) => {
+        this.error.set(err?.error?.message || 'No se pudo eliminar.');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private buildCreatePayload(): CreateAutoridadDTO {
+    const v = this.form.getRawValue();
+    return {
+      dni: String(v.dni).trim(),
+      nombre: String(v.nombre).trim(),
+      email: String(v.email).trim(),
+      telefono: v.telefono?.trim() || undefined,
+      direccion: v.direccion?.trim() || undefined,
+      rango: v.rango,                  // '0'|'1'|'2'|'3'
+      zonaId: String(v.zonaId).trim()  // string (back lo transforma a number)
+    };
+  }
+
+  private buildUpdatePayload(): UpdateAutoridadDTO {
+    const v = this.form.getRawValue();
+    return {
+      nombre: String(v.nombre).trim(),
+      rango: v.rango,
+      zonaId: String(v.zonaId).trim()
+    };
+  }
+
+  private buildPatchPayload(): PatchAutoridadDTO {
+    const v = this.form.getRawValue();
+    const body: PatchAutoridadDTO = {};
+    // Solo mandamos lo que cambió respecto al snapshot
+    if (!this.original) return body;
+    if (String(v.nombre).trim() !== (this.original.nombre ?? '')) body.nombre = String(v.nombre).trim();
+    if (String(v.rango) !== String(this.original.rango)) body.rango = v.rango;
+    if (String(v.zonaId).trim() !== (this.original.zonaId ?? '')) body.zonaId = String(v.zonaId).trim();
+    return body;
+  }
+
+  private zonaIdValida(): boolean {
+    const z = this.form.controls.zonaId.value;
+    const n = Number(z);
+    return Number.isFinite(n) && n > 0;
   }
 
   guardar() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    this.submitted.set(true);
 
-    const v = this.form.value;
+    // Validaciones base
+    if (!this.zonaIdValida()) {
+      this.form.controls.zonaId.markAsTouched();
+      this.error.set('Zona ID debe ser un número válido mayor a 0.');
+      return;
+    }
 
-    // Si no tenés UpdateAutoridadDTO en el modelo, podés usar CreateAutoridadDTO también para update.
-    const dto: CreateAutoridadDTO = {
-      usuarioDni: String(v.usuarioDni),
-      zonaId: Number(v.zonaId),
-      rango: String(v.rango),
-    };
+    const enEdicion = !!this.editDni();
+
+    // En crear, email es requerido; en edición no
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error.set(enEdicion
+        ? 'Completá Nombre, Rango y Zona (email no es requerido en edición).'
+        : 'Completá DNI, Nombre, Email, Rango y Zona.'
+      );
+      console.warn('[AUTORIDAD] Form inválido:', {
+        status: this.form.status,
+        errors: this.form.errors,
+      });
+      return;
+    }
 
     this.loading.set(true);
     this.error.set(null);
 
-    const id = this.editId();
-    const obs = id == null
-      ? this.srv.createAutoridad(dto)
-      : this.srv.updateAutoridad(String(id), dto as unknown as UpdateAutoridadDTO);
+    if (!enEdicion) {
+      // CREATE (POST)
+      const payload = this.buildCreatePayload();
+      console.log('[AUTORIDAD] POST payload:', payload);
+      this.srv.createAutoridad(payload).subscribe({
+        next: () => { this.nuevo(); this.cargar(); },
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo crear.';
+          this.error.set(msg);
+          this.loading.set(false);
+          console.error('[AUTORIDAD] Error creando:', err);
+        }
+      });
+      return;
+    }
 
-    obs.subscribe({
-      next: () => { this.nuevo(); this.cargar(); },
-      error: () => { this.error.set('No se pudo guardar.'); this.loading.set(false); }
-    });
-  }
+    // EDICIÓN: preferimos PATCH si sólo cambió zona (o pocos campos)
+    const patchBody = this.buildPatchPayload();
+    const soloZona = patchBody && Object.keys(patchBody).length === 1 && patchBody.zonaId != null;
 
-  eliminar(id: number) {
-    if (!confirm('¿Eliminar autoridad?')) return;
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.srv.deleteAutoridad(String(id)).subscribe({
-      next: () => this.cargar(),
-      error: () => { this.error.set('No se pudo eliminar.'); this.loading.set(false); }
-    });
+    if (soloZona) {
+      console.log('[AUTORIDAD] PATCH payload:', patchBody);
+      this.srv.patchAutoridad(this.editDni()!, patchBody).subscribe({
+        next: () => { this.nuevo(); this.cargar(); },
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo guardar (PATCH).';
+          this.error.set(msg);
+          this.loading.set(false);
+          console.error('[AUTORIDAD] Error actualizando (PATCH):', err);
+        }
+      });
+    } else {
+      // PUT completo
+      const putBody = this.buildUpdatePayload();
+      console.log('[AUTORIDAD] PUT payload:', putBody);
+      this.srv.updateAutoridad(this.editDni()!, putBody).subscribe({
+        next: () => { this.nuevo(); this.cargar(); },
+        error: (err) => {
+          const msg = err?.error?.message || 'No se pudo guardar (PUT).';
+          this.error.set(msg);
+          this.loading.set(false);
+          console.error('[AUTORIDAD] Error actualizando (PUT):', err);
+        }
+      });
+    }
   }
 }

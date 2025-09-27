@@ -1,0 +1,30 @@
+<nav class="nav">
+  <div class="nav__content">
+    <!-- Brand con logo + texto -->
+    <a class="brand" routerLink="/">
+      <span class="brand-text">GarrSYS</span>
+    </a>
+
+    <!-- Menú -->
+    <ul class="menu" role="menubar" aria-label="Principal">
+      <li class="menu__item" role="none">
+        <a role="menuitem" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          INICIO <span class="underline"></span>
+        </a>
+      </li>
+
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
+        <button class="dropdown__toggle" type="button" aria-haspopup="true" aria-expanded="false">
+          NEGOCIO <span class="chevron">▾</span>
+        </button>
+        <ul class="dropdown" role="menu" aria-label="Negocio">
+          <li *ngFor="let item of negocioItems" class="dropdown__item" role="none">
+            <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
+              {{ item.label }} <span class="underline"></span>
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>

@@ -1,20 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
-  animations: [
-    trigger('fadeSlide', [
-      transition(':enter', [
-        style({ opacity: 100, transform: 'translateY(20px)' }),
-        animate('600ms ease-out', style({ opacity: 100, transform: 'none' }))
-      ])
-    ])
-  ]
 })
-export class HomeComponent {}
+export class HomeComponent implements OnInit, OnDestroy {
+  ngOnInit() {
+    document.documentElement.classList.add('no-scroll'); // <html>
+    document.body.classList.add('no-scroll');            // <body>
+  }
+  ngOnDestroy() {
+    document.documentElement.classList.remove('no-scroll');
+    document.body.classList.remove('no-scroll');
+  }
+}

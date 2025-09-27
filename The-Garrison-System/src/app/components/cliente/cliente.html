@@ -16,8 +16,8 @@
       </label>
 
       <label class="label">
-        Con compras
-        <select class="select" [(ngModel)]="fConCompras">
+        Compras
+        <select class="input" [(ngModel)]="fCompras">
           <option value="todos">Todos</option>
           <option value="si">Con compras</option>
           <option value="no">Sin compras</option>
@@ -35,59 +35,58 @@
             <th>DNI</th>
             <th>Nombre</th>
             <th>Email</th>
-            <th>Teléfono</th>
             <th>Dirección</th>
-            <th style="text-align:right;">Compras</th>
-            <th style="width:160px;">Acciones</th>
+            <th>Teléfono</th>
+            <th class="center">Compras</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let c of listaFiltrada()">
+          <tr *ngFor="let c of clientesFiltrados()">
             <td>{{ c.dni }}</td>
             <td>{{ c.nombre }}</td>
-            <td class="muted">{{ c.email || '—' }}</td>
-            <td class="muted">{{ c.telefono || '—' }}</td>
-            <td class="muted">{{ c.direccion || '—' }}</td>
-            <td style="text-align:right;">{{ c.regCompras.length || 0 }}</td>
-            <td>
-              <div class="actions">
-                <button class="btn ghost" (click)="editar(c)">Editar</button>
-                <button class="btn danger" (click)="eliminar(c.dni)">Eliminar</button>
-              </div>
+            <td>{{ c.email || '-' }}</td>
+            <td>{{ c.direccion || '-' }}</td>
+            <td>{{ c.telefono || '-' }}</td>
+            <td class="center">{{ c.regCompras.length || 0 }}</td>
+            <td class="right">
+              <button class="btn ghost" (click)="editar(c)">Editar</button>
+              <button class="btn danger" (click)="eliminar(c.dni)">Eliminar</button>
             </td>
           </tr>
-
-          <tr *ngIf="listaFiltrada().length === 0">
-            <td colspan="7" class="muted center">Sin registros</td>
+          <tr *ngIf="clientesFiltrados().length === 0">
+            <td colspan="7" class="muted center">No hay resultados</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- FORMULARIO -->
+  <!-- FORM -->
   <div class="card">
-    <h3>{{ editDni() == null ? 'Nuevo cliente' : 'Editar cliente ' + editDni() }}</h3>
+    <div class="header">
+      <h2>{{ editDni() == null ? 'Nuevo cliente' : 'Editar cliente' }}</h2>
+    </div>
 
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form">
       <label class="label">
         DNI
-        <input class="input" formControlName="dni" placeholder="Documento" [readonly]="editDni() != null" />
+        <input class="input" formControlName="dni" placeholder="12345678" [readonly]="editDni() !== null" />
       </label>
 
       <label class="label">
         Nombre
-        <input class="input" formControlName="nombre" placeholder="Nombre y apellido" />
+        <input class="input" formControlName="nombre" placeholder="Juan Pérez" />
       </label>
 
       <label class="label">
         Email
-        <input class="input" formControlName="email" placeholder="correo@ejemplo.com" />
+        <input class="input" formControlName="email" type="email" placeholder="juan@mail.com" />
       </label>
 
       <label class="label">
         Teléfono
-        <input class="input" formControlName="telefono" placeholder="+54 9 ..." />
+        <input class="input" formControlName="telefono" placeholder="+54 9 341 ..." />
       </label>
 
       <label class="label" style="grid-column: 1 / -1;">

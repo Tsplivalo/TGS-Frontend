@@ -72,6 +72,7 @@ body::before {
   opacity: .8;
 }
 
+
 /* Tipografía */
 h1,
 h2,
@@ -265,3 +266,79 @@ h3 {
     radial-gradient(circle at center, rgba(195, 164, 98, .6) 0 2px, transparent 3px) center/14px 10px no-repeat;
   opacity: .9;
 }
+
+/* ========== Helpers de layout fullscreen ========== */
+app-root,
+app {
+  display: block;
+  width: 100%;
+  min-height: 100%;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1 1 auto;
+}
+
+/* Sección fullscreen */
+.section--fullscreen {
+  inline-size: 100vw;
+  block-size: 100svh;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* Edge-to-edge (rompe container) */
+.edge-to-edge {
+  margin-inline: calc(50% - 50vw);
+  inline-size: 100vw;
+}
+
+.container--bleed {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: 0;
+}
+
+/* Evita barras laterales */
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+/* Medios fluidos */
+img,
+svg,
+video,
+canvas {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+/* Padding lateral */
+.pad-edge {
+  padding-inline: clamp(12px, 3vw, 32px);
+}
+
+
+/* bloquea el scroll cuando estés en Home */
+.no-scroll {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+/* altura de navbar configurable */
+:root {
+  --nav-h: 72px;
+}
+
+/* ajustá si tu navbar es más alto/bajo */

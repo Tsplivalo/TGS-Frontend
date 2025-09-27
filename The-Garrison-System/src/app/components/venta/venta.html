@@ -4,7 +4,7 @@
     <div class="header">
       <h2>Ventas</h2>
       <div class="right">
-        <button class="btn" (click)="nuevo()">Nueva venta</button>
+        <button class="btn" type="button" (click)="nuevo()">Nueva</button>
       </div>
     </div>
 
@@ -12,96 +12,179 @@
     <div class="filters">
       <label class="label">
         Buscar
-        <input class="input" placeholder="Descripción, DNI cliente o ID autoridad..." [ngModel]="fTexto()"
-          (ngModelChange)="fTexto.set($event)" />
+        <input class="input" placeholder="id, descripción de producto o cliente" [(ngModel)]="fTexto" />
       </label>
-
       <label class="label">
-        Desde
-        <input type="date" class="input" [ngModel]="fDesde()" (ngModelChange)="fDesde.set($event)" />
-      </label>
-
-      <label class="label">
-        Hasta
-        <input type="date" class="input" [ngModel]="fHasta()" (ngModelChange)="fHasta.set($event)" />
+        DNI cliente
+        <input class="input" placeholder="e.g. 35123456" [(ngModel)]="fClienteDni" />
       </label>
     </div>
 
-    <div *ngIf="error()" class="error">{{ error() }}</div>
-    <div *ngIf="loading()">Cargando...</div>
-
-    <div class="card table-wrap" *ngIf="!loading()">
+    <div class="table-wrapper">
       <table class="table">
         <thead>
           <tr>
-            <th>#</th>
+            <th>ID</th>
             <th>Fecha</th>
-            <th>DNI Cliente</th>
-            <th>ID Autoridad</th>
-            <th style="text-align:right;">Monto</th>
-            <th>Descripción</th>
-            <th style="width:160px;">Acciones</th>
+            <th>Cliente</th>
+            <th>Productos</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+            <th class="right">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let v of listaFiltrada()">
-            <td>{{ v?.id || '—' }}</td>
-            <td>{{ v.fechaVenta | date:'yyyy-MM-dd' }}</td>
-            <td>{{ v.cliente?.dni || '—' }}</td>
-            <td>{{ v.autoridad?.id || '—' }}</td>
-            <td style="text-align:right;">
-              {{ v.montoVenta | currency:'ARS':'symbol':'1.0-0' }}
-            </td>
-            <td class="muted">{{ v.descripcion || '—' }}</td>
+          @for (v of ventasFiltradas(); track v.id) {
+          <tr>
+            <td>{{ v.id }}</td>
+            <td>{{ v.fecha | date:'short' }}</td>
             <td>
-              <div class="actions">
-                <button class="btn ghost" (click)="editar(v)">Editar</button>
-                <button class="btn danger" (click)="v?.id != null && eliminar(v.id!)">Eliminar</button>
+              @if (getCliente(v); as cli) {
+              {{ cli.dni }} - {{ cli.nombre || 'Cliente' }}
+              } @else {
+              —
+              }
+            </td>
+
+            <!-- Productos / Cantidad: soporta 1 línea legacy y múltiples detalles -->
+            <td>
+              @if (tieneDetalles(v)) {
+              {{ getDetalles(v).length }} ítem(s)
+              <div class="muted">
+                @for (d of getDetalles(v); track d.productoId; let last = $last) {
+                {{ descDetalle(d) }}
+                @if (!last) {, }
+                }
               </div>
+              } @else {
+              {{ getProductoDesc(v) }}
+              }
+            </td>
+
+            <td>
+              @if (tieneDetalles(v)) {
+              {{ sumarCantidades(v) }}
+              } @else {
+              {{ (typeof v.cantidad === 'number') ? v.cantidad : 0 }}
+              }
+            </td>
+
+            <td>{{ calcularTotal(v) | currency:'ARS' }}</td>
+
+            <td class="right">
+              <button class="btn ghost" type="button" (click)="editar(v)">Editar</button>
+              <button class="btn danger" type="button" (click)="eliminar(v.id)">Eliminar</button>
             </td>
           </tr>
-
-          <tr *ngIf="listaFiltrada().length === 0">
-            <td colspan="7" class="muted center">Sin registros</td>
+          }
+          @if (ventasFiltradas().length === 0) {
+          <tr>
+            <td colspan="7" class="center muted">Sin ventas</td>
           </tr>
+          }
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- FORMULARIO -->
+  <!-- FORM -->
   <div class="card">
-    <h3>{{ editId() == null ? 'Nueva venta' : 'Editar venta #' + editId() }}</h3>
+    <div class="header">
+      <h2>{{ isEditing ? ('Editar venta: ' + (idValue ?? '')) : 'Nueva venta' }}</h2>
+    </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      @if (error()) {
+      <div class="error">{{ error() }}</div>
+      }
+
+      <!-- Cliente -->
       <label class="label">
-        DNI Cliente
-        <input class="input" formControlName="clienteDni" placeholder="Documento" />
+        Cliente
+        <input class="input" placeholder="filtrar (dni o nombre)" [(ngModel)]="filtroCliente"
+          [ngModelOptions]="{standalone: true}" name="fltCliente" />
+        <select class="input" formControlName="clienteDni">
+          <option [ngValue]="null" disabled>Elegí un cliente</option>
+          @for (c of clientesFiltrados(); track c.dni) {
+          <option [ngValue]="c.dni">
+            {{ c.dni }} - {{ c.nombre }}
+          </option>
+          }
+        </select>
+        <small class="muted">¿No figura? Crealo desde <strong>Clientes</strong>.</small>
+      </label>
+
+      <!-- CREAR: múltiples líneas -->
+      @if (!isEditing) {
+      <div class="subheader">Productos</div>
+
+      @for (l of lineas(); track $index; let i = $index) {
+      <div class="linea">
+        <div class="linea__row">
+          <div class="linea__cell">
+            <label class="label">
+              Buscar producto
+              <input class="input" placeholder="id o descripción" [(ngModel)]="l.filtro"
+                [ngModelOptions]="{standalone: true}" [name]="'fltProd' + i" />
+            </label>
+          </div>
+
+          <div class="linea__cell">
+            <label class="label">
+              Producto
+              <select class="input" [(ngModel)]="l.productoId" [ngModelOptions]="{standalone: true}"
+                [name]="'prod' + i">
+                <option [ngValue]="null" disabled>Elegí un producto</option>
+                @for (p of productosFiltradosPor(l.filtro || ''); track p.id) {
+                <option [ngValue]="p.id">
+                  {{ p.id }} - {{ p.descripcion }} ({{ p.stock }} ud) - {{ p.precio | currency:'ARS' }}
+                </option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="linea__cell sm">
+            <label class="label">
+              Cantidad
+              <input class="input" type="number" min="1" step="1" [(ngModel)]="l.cantidad"
+                [ngModelOptions]="{standalone: true}" [name]="'cant' + i" />
+            </label>
+          </div>
+
+          <div class="linea__cell actions">
+            <button class="btn danger" type="button" (click)="quitarLinea(i)">Quitar</button>
+          </div>
+        </div>
+      </div>
+      }
+
+      <div class="right" style="grid-column: 1 / -1; margin-top: .5rem;">
+        <button class="btn" type="button" (click)="agregarLinea()">+ Agregar producto</button>
+      </div>
+      } @else {
+      <!-- EDITAR: una sola línea -->
+      <label class="label">
+        Producto
+        <select class="input" formControlName="productoId">
+          <option [ngValue]="null" disabled>Elegí un producto</option>
+          @for (p of productos(); track p.id) {
+          <option [ngValue]="p.id">
+            {{ p.id }} - {{ p.descripcion }} ({{ p.stock }} ud) - {{ p.precio | currency:'ARS' }}
+          </option>
+          }
+        </select>
       </label>
 
       <label class="label">
-        ID Autoridad
-        <input type="number" class="input" formControlName="autoridadId" placeholder="ID" />
+        Cantidad
+        <input class="input" type="number" min="1" step="1" formControlName="cantidad" />
       </label>
-
-      <label class="label">
-        Fecha
-        <input type="date" class="input" formControlName="fechaVenta" />
-      </label>
-
-      <label class="label">
-        Monto
-        <input type="number" min="0" class="input" formControlName="montoVenta" />
-      </label>
-
-      <label class="label" style="grid-column: 1 / -1;">
-        Descripción
-        <textarea rows="3" class="textarea" formControlName="descripcion" placeholder="Opcional"></textarea>
-      </label>
+      }
 
       <div class="right" style="grid-column: 1 / -1;">
         <button class="btn success" type="submit" [disabled]="loading()">
-          {{ editId() == null ? 'Crear' : 'Guardar' }}
+          {{ isEditing ? 'Guardar' : 'Crear' }}
         </button>
         <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
       </div>

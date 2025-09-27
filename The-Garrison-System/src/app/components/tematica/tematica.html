@@ -1,0 +1,66 @@
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Temáticas</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nueva</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="texto o id" [(ngModel)]="fTexto" />
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Descripción</th>
+            <th class="right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of tematicasFiltradas()">
+            <td>{{ t.id }}</td>
+            <td>{{ t.descripcion }}</td>
+            <td class="right">
+              <button class="btn ghost" (click)="editar(t)">Editar</button>
+              <button class="btn danger" (click)="eliminar(t.id)">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="tematicasFiltradas().length === 0">
+            <td colspan="3" class="center muted">Sin temáticas</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="card">
+    <div class="header">
+      <h2>{{ isEdit() ? ('Editar temática: ' + form.controls.id.value) : 'Nueva temática' }}</h2>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <div class="error" *ngIf="error()">{{ error() }}</div>
+
+      <label class="label">
+        Descripción
+        <input class="input" formControlName="descripcion" placeholder="p.ej. Corrupción, Contrabando..." />
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ isEdit() ? 'Guardar' : 'Crear' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>

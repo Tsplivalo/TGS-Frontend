@@ -2,115 +2,102 @@
   <!-- LISTA -->
   <div class="card">
     <div class="header">
-      <h2>Sobornos pendientes</h2>
+      <h2>Sobornos</h2>
       <div class="right">
-        <button class="btn" (click)="nuevo()">Nuevo</button>
+        <button class="btn" type="button" (click)="nuevo()">Nuevo</button>
       </div>
     </div>
 
-    <!-- Filtros -->
     <div class="filters">
       <label class="label">
         Buscar
-        <input class="input" placeholder="ID, Autoridad o notas..." [(ngModel)]="fTexto" />
-      </label>
-
-      <label class="label">
-        Estado
-        <select class="select" [(ngModel)]="fEstado">
-          <option value="">Todos</option>
-          <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
-        </select>
-      </label>
-
-      <label class="label">
-        Desde
-        <input type="date" class="input" [(ngModel)]="fDesde" />
-      </label>
-
-      <label class="label">
-        Hasta
-        <input type="date" class="input" [(ngModel)]="fHasta" />
+        <input class="input" placeholder="id, venta o autoridad" [(ngModel)]="filtroText" />
       </label>
     </div>
 
-    <div *ngIf="error()" class="error">{{ error() }}</div>
-    <div *ngIf="loading()">Cargando...</div>
-
-    <div class="card table-wrap" *ngIf="!loading()">
+    <div class="table-wrapper">
       <table class="table">
         <thead>
           <tr>
-            <th>#</th>
+            <th>ID</th>
             <th>Autoridad</th>
+            <th>Venta</th>
             <th>Monto</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th>Obs.</th>
-            <th style="width:160px;">Acciones</th>
+            <th>Pagado</th>
+            <th class="right">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of listaFiltrada()">
+          @for (s of filtrados(); track s.id) {
+          <tr>
             <td>{{ s.id }}</td>
-            <td>{{ s.autoridadId }}</td>
-            <td>{{ s.monto | number:'1.0-0' }}</td>
-            <td>
-              <span class="badge" [class.badge-ok]="s.estado==='PAGADO'">{{ s.estado }}</span>
-            </td>
-            <td>{{ s.fecha | date:'yyyy-MM-dd' }}</td>
-            <td>{{ s.observaciones || '—' }}</td>
-            <td>
-              <div class="actions">
-                <button class="btn ghost" (click)="editar(s)">Editar</button>
-                <button class="btn danger" (click)="eliminar(s.id)">Eliminar</button>
-              </div>
+            <td>{{ s.autoridadDni }}</td>
+            <td>{{ s.venta?.id ?? s.ventaId }}</td>
+            <td>{{ s.monto | currency:'ARS' }}</td>
+            <td>{{ s.pagado ? 'Sí' : 'No' }}</td>
+            <td class="right">
+              <button class="btn ghost" type="button" (click)="editar(s)">Editar</button>
+              <button class="btn danger" type="button" (click)="eliminar(s.id)">Eliminar</button>
+              @if (!s.pagado) {
+              <button class="btn" type="button" (click)="marcarPagado(s)">Marcar pagado</button>
+              }
             </td>
           </tr>
-          <tr *ngIf="listaFiltrada().length === 0">
-            <td colspan="7" class="muted">Sin registros</td>
+          }
+          @if (filtrados().length === 0) {
+          <tr>
+            <td colspan="6" class="center muted">Sin sobornos</td>
           </tr>
+          }
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- FORMULARIO -->
+  <!-- FORM -->
   <div class="card">
-    <h3>{{ editId() == null ? 'Nuevo soborno' : 'Editar soborno #' + editId() }}</h3>
+    <div class="header">
+      <h2>{{ isEditing ? ('Editar soborno: ' + (form.controls.id.value ?? '')) : 'Nuevo soborno' }}</h2>
+    </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
-      <label class="label">
-        Autoridad ID
-        <input type="number" class="input" formControlName="autoridadId" />
-      </label>
+      @if (error()) { <div class="error">{{ error() }}</div> }
 
+      <!-- Autoridad -->
       <label class="label">
-        Monto
-        <input type="number" class="input" formControlName="monto" />
-      </label>
-
-      <label class="label">
-        Estado
-        <select class="select" formControlName="estado">
-          <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+        Autoridad
+        <select class="input" formControlName="autoridadDni">
+          <option [ngValue]="null" disabled>Elegí una autoridad</option>
+          @for (a of autoridades(); track a.dni) {
+          <option [ngValue]="a.dni">{{ a.dni }} - {{ a.nombre }} </option>
+          }
         </select>
       </label>
 
+      <!-- Venta -->
       <label class="label">
-        Fecha
-        <input type="date" class="input" formControlName="fecha" />
+        Venta
+        <select class="input" formControlName="ventaId">
+          <option [ngValue]="null" disabled>Elegí una venta</option>
+          @for (v of ventas(); track v.id) {
+          <option [ngValue]="v.id">#{{ v.id }} - Cliente: {{ v.cliente?.nombre }} - Total: {{ v.total || '0' }}</option>
+          }
+        </select>
       </label>
 
-      <label class="label" style="grid-column: 1 / -1;">
-        Observaciones
-        <textarea rows="3" class="textarea" formControlName="observaciones"></textarea>
+      <!-- Monto -->
+      <label class="label">
+        Monto
+        <input class="input" type="number" formControlName="monto" min="1" />
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" formControlName="pagado" />
+        <span>Pagado</span>
       </label>
 
       <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">
-          {{ editId() == null ? 'Crear' : 'Guardar' }}
-        </button>
+        <button class="btn success" type="submit" [disabled]="loading()">{{ isEditing ? 'Guardar' : 'Crear' }}</button>
         <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
       </div>
     </form>

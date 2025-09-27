@@ -1,20 +1,8 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ClienteService } from '../../services/cliente/cliente';
-import { ApiResponse } from '../../models/cliente/cliente.model';
-
-// Si no tenés exportado el modelo, podés dejar estos aquí o importarlos:
-export interface ClienteDTO {
-  dni: string;
-  nombre: string;
-  email?: string;
-  direccion?: string;
-  telefono?: string;
-  regCompras: any[]; // VentaDTO[] si lo tenés tipado
-}
-export type CreateClienteDTO = Omit<ClienteDTO, 'regCompras'>;
-export type UpdateClienteDTO = Partial<CreateClienteDTO>;
+import { ApiResponse, ClienteDTO } from '../../models/cliente/cliente.model';
 
 @Component({
   selector: 'app-cliente',
@@ -27,52 +15,47 @@ export class ClienteComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(ClienteService);
 
-  // estado
   loading = signal(false);
-  error = signal<string | null>(null);
-  editDni = signal<string | null>(null);
+  error   = signal<string | null>(null);
 
-  // datos
   clientes = signal<ClienteDTO[]>([]);
+  editDni  = signal<string | null>(null);
 
-  // filtros
-  fTexto = signal('');
-  fConCompras = signal<'todos' | 'si' | 'no'>('todos');
+  fTexto = '';
+  fCompras: 'todos' | 'si' | 'no' = 'todos';
 
-  // lista filtrada
-  listaFiltrada = computed(() => {
-    const txt = this.fTexto().toLowerCase().trim();
-    const filtroCompras = this.fConCompras();
+  clientesFiltrados = computed(() => {
+    const txt = (this.fTexto || '').toLowerCase().trim();
+    const filtro = this.fCompras;
 
     return this.clientes().filter(c => {
-      const matchTxt =
-        !txt ||
-        c.dni.toLowerCase().includes(txt) ||
-        c.nombre.toLowerCase().includes(txt) ||
-        (c.email ?? '').toLowerCase().includes(txt) ||
-        (c.telefono ?? '').toLowerCase().includes(txt) ||
-        (c.direccion ?? '').toLowerCase().includes(txt);
+      const matchTxt = !txt
+        || c.dni.toLowerCase().includes(txt)
+        || c.nombre.toLowerCase().includes(txt)
+        || (c.email ?? '').toLowerCase().includes(txt)
+        || (c.direccion ?? '').toLowerCase().includes(txt)
+        || (c.telefono ?? '').toLowerCase().includes(txt);
 
       const cant = c.regCompras?.length ?? 0;
-      const matchCompras =
-        filtroCompras === 'todos' ||
-        (filtroCompras === 'si' && cant > 0) ||
-        (filtroCompras === 'no' && cant === 0);
+      const matchCompras = filtro === 'todos'
+        || (filtro === 'si' && cant > 0)
+        || (filtro === 'no' && cant === 0);
 
       return matchTxt && matchCompras;
     });
   });
 
-  // formulario
   form = this.fb.group({
-    dni: ['', [Validators.required, Validators.minLength(6)]],
-    nombre: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.email]],
-    direccion: [''],
-    telefono: [''],
+    dni:        ['', [Validators.required, Validators.minLength(6)]],
+    nombre:     ['', [Validators.required, Validators.minLength(2)]],
+    email:      ['', [Validators.email]],
+    direccion:  [''],
+    telefono:   [''],
   });
 
-  ngOnInit() { this.cargar(); }
+  ngOnInit(): void {
+    this.cargar();
+  }
 
   cargar() {
     this.loading.set(true);
@@ -102,58 +85,57 @@ export class ClienteComponent implements OnInit {
       nombre: c.nombre,
       email: c.email ?? '',
       direccion: c.direccion ?? '',
-      telefono: c.telefono ?? '',
+      telefono: c.telefono ?? ''
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  guardar() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+  eliminar(dni: string) {
+    if (!confirm('¿Eliminar este cliente?')) return;
+    this.loading.set(true);
+    this.error.set(null);
+    this.srv.deleteCliente(dni).subscribe({
+      next: () => this.cargar(),
+      error: () => { this.error.set('No se pudo eliminar.'); this.loading.set(false); }
+    });
+  }
 
-    const v = this.form.value;
-    const dto: CreateClienteDTO = {
-      dni: String(v.dni),
-      nombre: String(v.nombre),
-      email: (v.email ?? '').toString() || undefined,
-      direccion: (v.direccion ?? '').toString() || undefined,
-      telefono: (v.telefono ?? '').toString() || undefined,
+  guardar() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const value = this.form.getRawValue();
+    const body: ClienteDTO = {
+      dni: value.dni!.trim(),
+      nombre: value.nombre!.trim(),
+      email: (value.email ?? '').trim() || undefined,
+      direccion: (value.direccion ?? '').trim() || undefined,
+      telefono: (value.telefono ?? '').trim() || undefined,
+      regCompras: []
     };
 
     this.loading.set(true);
     this.error.set(null);
 
-    const dni = this.editDni();
-    const obs = dni == null
-      ? (this.srv as any).createCliente(dto)                 // ajustá nombre si difiere
-      : (this.srv as any).updateCliente(dni, dto as UpdateClienteDTO);
+    const isEdit = this.editDni() !== null;
+    const req$ = isEdit
+      ? this.srv.updateCliente(this.editDni()!, body)
+      : this.srv.createCliente(body);
 
-    if (!obs || typeof (obs.subscribe) !== 'function') {
-      // Si aún no implementaste create/update en el service, evitamos romper:
-      this.error.set('Falta implementar create/update en ClienteService.');
-      this.loading.set(false);
-      return;
-    }
-
-    obs.subscribe({
-      next: () => { this.nuevo(); this.cargar(); },
-      error: () => { this.error.set('No se pudo guardar.'); this.loading.set(false); }
-    });
-  }
-
-  eliminar(dni: string) {
-    if (!confirm('¿Eliminar cliente?')) return;
-    this.loading.set(true);
-    this.error.set(null);
-
-    const obs = (this.srv as any).deleteCliente?.(dni);
-    if (!obs) {
-      this.error.set('Falta implementar delete en ClienteService.');
-      this.loading.set(false);
-      return;
-    }
-    obs.subscribe({
-      next: () => this.cargar(),
-      error: () => { this.error.set('No se pudo eliminar.'); this.loading.set(false); }
+    req$.subscribe({
+      next: () => {
+        this.nuevo();
+        this.cargar();
+      },
+      error: (err) => {
+        const msg = err?.error?.message || (isEdit
+          ? 'No se pudo guardar.'
+          : 'No se pudo crear.');
+        this.error.set(msg);
+        this.loading.set(false);
+      }
     });
   }
 }

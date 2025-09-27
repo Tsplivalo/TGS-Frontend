@@ -1,0 +1,103 @@
+<section class="grid">
+  <!-- LISTA -->
+  <div class="card">
+    <div class="header">
+      <h2>Decisiones estratégicas</h2>
+      <div class="right">
+        <button class="btn" (click)="nuevo()">Nueva</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <label class="label">
+        Buscar
+        <input class="input" placeholder="texto o id" [(ngModel)]="fTexto" />
+      </label>
+
+      <label class="label">
+        Temática (ID)
+        <input class="input" placeholder="filtrar por id de temática" [(ngModel)]="filtroTematica" />
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Temática</th>
+            <th>Descripción</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th class="right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of decisionesFiltradas()">
+            <td>{{ d.id }}</td>
+            <td>
+              <ng-container *ngIf="d.tematica?.id != null; else sinTem">
+                {{ d.tematica?.id }} - {{ d.tematica?.descripcion || 'Temática' }}
+              </ng-container>
+              <ng-template #sinTem>—</ng-template>
+            </td>
+            <td>{{ d.descripcion }}</td>
+            <td>{{ d.fechaInicio | date:'shortDate' }}</td>
+            <td>{{ d.fechaFin | date:'shortDate' }}</td>
+            <td class="right">
+              <button class="btn ghost" (click)="editar(d)">Editar</button>
+              <button class="btn danger" (click)="eliminar(d.id)">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="decisionesFiltradas().length === 0">
+            <td colspan="6" class="center muted">Sin decisiones</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="card">
+    <div class="header">
+      <h2>{{ isEdit() ? ('Editar decisión: ' + form.controls.id.value) : 'Nueva decisión' }}</h2>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <div class="error" *ngIf="error()">{{ error() }}</div>
+
+      <label class="label">
+        Temática
+        <input class="input" placeholder="filtrar (id o descripción)" [(ngModel)]="filtroTematica" name="fltTematica" />
+        <select class="input" formControlName="tematicaId">
+          <option [ngValue]="null" disabled>Elegí una temática</option>
+          <option *ngFor="let t of tematicasFiltradas()" [ngValue]="t.id">
+            {{ t.id }} - {{ t.descripcion }}
+          </option>
+        </select>
+      </label>
+
+      <label class="label">
+        Descripción
+        <input class="input" formControlName="descripcion" placeholder="Descripción de la decisión estratégica" />
+      </label>
+
+      <label class="label">
+        Fecha inicio
+        <input class="input" type="date" formControlName="fechaInicio" [min]="today" />
+      </label>
+
+      <label class="label">
+        Fecha fin
+        <input class="input" type="date" formControlName="fechaFin" [min]="form.controls.fechaInicio.value || today" />
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ isEdit() ? 'Guardar' : 'Crear' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>
