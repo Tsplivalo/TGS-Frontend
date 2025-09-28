@@ -1,99 +1,113 @@
-<section class="grid">
+<section class="stack-lg">
   <!-- LISTA -->
-  <div class="card">
+  <div class="glass-dark card stack-md">
     <div class="header">
       <h2>Zonas</h2>
       <div class="right">
-        <button class="btn" (click)="nuevo()">Nueva zona</button>
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="formAbierto">
+          {{ formAbierto ? 'Cerrar' : 'Nueva zona' }}
+        </button>
       </div>
     </div>
 
-    <!-- Recuadro de error (visible si hay mensaje) -->
-    <div *ngIf="error()" class="alert alert-error">
-      {{ error() }}
-    </div>
+    <!-- Error -->
+    <div *ngIf="error()" class="error">{{ error() }}</div>
 
-    <!-- Resumen de sede central -->
-    <div class="sede-summary" *ngIf="sedeCentral() as sc">
+    <!-- Sede central -->
+    <div *ngIf="sedeCentral() as sc; else noSede" class="sede-summary">
       <strong>Sede central:</strong> #{{ sc.id }} — {{ sc.nombre }}
     </div>
-    <div class="muted" *ngIf="!sedeCentral()">No hay sede central definida todavía.</div>
+    <ng-template #noSede>
+      <div class="muted">No hay sede central definida todavía.</div>
+    </ng-template>
 
     <!-- Filtros -->
     <div class="filters">
       <label class="label">
-        Buscar
+        <span>Buscar</span>
         <input class="input" placeholder="ID, nombre o descripción..." [ngModel]="fTexto()"
           (ngModelChange)="fTexto.set($event)" />
       </label>
     </div>
 
     <!-- Estado -->
-    <div *ngIf="loading()" class="info">Cargando...</div>
+    <div *ngIf="loading()" class="muted">Cargando...</div>
 
-    <!-- Tabla (sin columna 'Sede central' para evitar redundancia) -->
-    <table class="table" *ngIf="!loading() && listaFiltrada().length > 0">
-      <thead>
-        <tr>
-          <th style="width: 80px;">ID</th>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th style="width: 220px;">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let z of listaFiltrada()">
-          <td>{{ z.id }}</td>
-          <td>{{ z.nombre }}</td>
-          <td>{{ z.descripcion || '-' }}</td>
-          <td>
-            <button class="btn" (click)="editar(z)">Editar</button>
-            <button class="btn danger" (click)="eliminar(z)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Tabla -->
+    <div class="table-wrap" *ngIf="!loading()">
+      <table class="table" *ngIf="listaFiltrada().length > 0; else empty">
+        <!-- 👇 Fija anchos para alinear thead/tbody -->
+        <colgroup>
+          <col style="width:80px" /> <!-- ID -->
+          <col /> <!-- Nombre -->
+          <col /> <!-- Descripción -->
+          <col style="width:220px" /> <!-- Acciones -->
+        </colgroup>
 
-    <div class="muted" *ngIf="!loading() && listaFiltrada().length === 0">
-      No hay zonas para mostrar.
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th class="right">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let z of listaFiltrada()">
+            <td>#{{ z.id }}</td>
+            <td><span class="truncate">{{ z.nombre }}</span></td>
+            <td><span class="truncate">{{ z.descripcion || '-' }}</span></td>
+            <td class="right">
+              <button class="btn" (click)="editar(z); formAbierto = true">Editar</button>
+              <button class="btn danger" (click)="eliminar(z)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #empty>
+        <div class="center muted">No hay zonas para mostrar.</div>
+      </ng-template>
     </div>
   </div>
 
-  <!-- FORM -->
-  <div class="card">
-    <div class="header">
-      <h3>{{ editId() == null ? 'Crear zona' : 'Editar zona #' + editId() }}</h3>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
-      <label class="label">
-        Nombre <span class="req">*</span>
-        <input class="input" formControlName="nombre" placeholder="Ej: Zona Sur" />
-
-        <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.hasError('required')">
-          El nombre es obligatorio.
-        </small>
-        <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.hasError('nombreDuplicado')">
-          Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas).
-        </small>
-      </label>
-
-      <label class="label">
-        Descripción
-        <input class="input" formControlName="descripcion" placeholder="Opcional" />
-      </label>
-
-      <label class="label switch">
-        <input type="checkbox" formControlName="esSedeCentral" />
-        <span>Marcar como sede central</span>
-      </label>
-
-      <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">
-          {{ editId() == null ? 'Crear' : 'Guardar' }}
-        </button>
-        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+  <!-- FORM (PLEGABLE) -->
+  <div class="collapsible" [class.open]="formAbierto">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ editId() == null ? 'Crear zona' : ('Editar zona #' + editId()) }}</h2>
       </div>
-    </form>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+        <label class="label">
+          <span>Nombre <span class="req">*</span></span>
+          <input class="input" formControlName="nombre" placeholder="Ej: Zona Sur" />
+          <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.hasError('required')">
+            El nombre es obligatorio.
+          </small>
+          <small class="err" *ngIf="form.controls.nombre.touched && form.controls.nombre.hasError('nombreDuplicado')">
+            Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas).
+          </small>
+        </label>
+
+        <label class="label">
+          <span>Descripción</span>
+          <input class="input" formControlName="descripcion" placeholder="Opcional" />
+        </label>
+
+        <label class="label switch">
+          <input type="checkbox" formControlName="esSedeCentral" />
+          <span>Marcar como sede central</span>
+        </label>
+
+        <div class="right form-actions">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ editId() == null ? 'Crear' : 'Guardar' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="nuevo(); formAbierto = false">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
 </section>

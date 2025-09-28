@@ -8,6 +8,7 @@ import { VentaService } from '../../services/venta/venta';
 import { AutoridadService } from '../../services/autoridad/autoridad';
 import { VentaDTO } from '../../models/venta/venta.model';
 import { AutoridadDTO } from '../../models/autoridad/autoridad.model';
+import { GlassPanelComponent } from '../../shared/ui/glass-panel/glass-panel.component.js';
 
 type SobornoForm = {
   id: FormControl<number | null>;
@@ -20,7 +21,7 @@ type SobornoForm = {
 @Component({
   selector: 'app-soborno',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, GlassPanelComponent],
   templateUrl: './soborno.html',
   styleUrls: ['./soborno.scss'],
 })

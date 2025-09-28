@@ -63,6 +63,10 @@ export class AutoridadComponent implements OnInit {
     this.cargar();
   }
 
+  formAbierto = false;
+  toggleForm(){ this.formAbierto = !this.formAbierto; }
+
+
   // ===== Helpers para template (evitar "as any" en HTML) =====
   getZonaTexto(a: AutoridadDTO): string {
     const id = a?.zona?.id ?? '';

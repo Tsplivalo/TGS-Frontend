@@ -1,31 +1,36 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { SocioService } from '../../services/socio.service';
-import { Socio, SocioStatus } from '../../models/socio.model';
+import { SocioService } from '../../services/socio/socio.js';
+import { SocioDTO, SocioStatus } from '../../models/socio/socio.model.js';
 
 @Component({
   standalone: true,
   selector: 'app-socios',
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './socios.component.html',
+  templateUrl: './socio.html',
+  styleUrls: ['./socio.scss'],
 })
-export class SociosComponent {
+export class SocioComponent {
   private fb = inject(FormBuilder);
   private srv = inject(SocioService);
 
-  socios: Socio[] = [];
+  nuevoAbierto = false;
+  toggleNuevo(){ this.nuevoAbierto = !this.nuevoAbierto; }
+
+
+  socios: SocioDTO[] = [];
   query = '';
 
   // para crear/editar
-  selected: Socio | null = null;
+  selected: SocioDTO | null = null;
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: [''],
     phone: [''],
     status: this.fb.nonNullable.control<SocioStatus>('active'),
   });
-
+/*
   constructor() { this.load(); }
 
   async load() {
@@ -75,4 +80,5 @@ export class SociosComponent {
   cancel() { this.selected = null; }
 }
 
-TS
+*/}
+

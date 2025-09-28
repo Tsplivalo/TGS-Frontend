@@ -61,6 +61,9 @@ export class ProductoComponent implements OnInit {
     this.cargar();
   }
 
+  nuevoAbierto = false;
+  toggleNuevo(){ this.nuevoAbierto = !this.nuevoAbierto; }
+
   private cargar() {
     this.loading.set(true);
     this.error.set(null);

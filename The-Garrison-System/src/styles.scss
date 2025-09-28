@@ -12,12 +12,14 @@ body {
 
 body {
   margin: 0;
-  font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: 'Google Sans Code', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--app-bg);
+  color: #fefefe;
+  /*color: var(--text);*/
   line-height: 1.5;
   font-size: 16px;
 }
+
 
 /* ========== Tema Peaky Blinders (Garrison) ========== */
 :root {
@@ -57,6 +59,17 @@ body {
   --sp-7: 48px;
 
   --container-max: 1200px;
+
+--app-bg:
+    radial-gradient(1200px 600px at 20% 80%,
+      rgba(160, 170, 209, 0.8) 0%,
+      rgba(160, 170, 209, 0.4) 40%,
+      transparent 80%),
+    radial-gradient(900px 500px at 90% 50%,
+      rgba(254, 202, 202, 0.8) 0%,
+      rgba(254, 202, 202, 0.4) 40%,
+      transparent 80%),
+    linear-gradient(120deg, #0f172a 0%, #111827 60%, #0b1220 100%);
 }
 
 /* Grano + viñeta cinematográfica */

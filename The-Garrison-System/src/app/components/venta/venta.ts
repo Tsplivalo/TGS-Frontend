@@ -65,6 +65,10 @@ export class VentaComponent implements OnInit {
     productoId: this.fb.control<number | null>(null, { validators: [Validators.min(1)] }),
     cantidad: this.fb.nonNullable.control(1, { validators: [Validators.min(1)] }),
   });
+  
+  nuevoAbierto = false;
+  toggleNuevo(){ this.nuevoAbierto = !this.nuevoAbierto; }
+
 
   // ==== getters para template ====
   get isEditing(): boolean { return !!this.form.controls.id.value; }

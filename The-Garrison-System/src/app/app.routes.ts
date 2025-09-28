@@ -6,6 +6,7 @@ export const routes: Routes = [
 
   { path: 'producto',  loadComponent: () => import('./components/producto/producto').then(m => m.ProductoComponent) },
   { path: 'cliente',   loadComponent: () => import('./components/cliente/cliente').then(m => m.ClienteComponent) },
+  { path: 'socio',     loadComponent: () => import('./components/socio/socio').then(m => m.SocioComponent) }, 
   { path: 'venta',     loadComponent: () => import('./components/venta/venta').then(m => m.VentaComponent) },
   { path: 'zona',      loadComponent: () => import('./components/zona/zona').then(m => m.ZonaComponent) },
   { path: 'autoridad', loadComponent: () => import('./components/autoridad/autoridad').then(m => m.AutoridadComponent) },

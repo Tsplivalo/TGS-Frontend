@@ -82,6 +82,15 @@ export class ZonaComponent implements OnInit {
     this.error.set(null);
   }
 
+  // dentro del componente Zonas
+formAbierto = false;
+
+toggleForm() {
+  // si estabas editando, opcionalmente podrías resetear:
+  //if (!this.formAbierto) this.nuevo();
+  this.formAbierto = !this.formAbierto;
+}
+
   guardar() {
     this.error.set(null);
 

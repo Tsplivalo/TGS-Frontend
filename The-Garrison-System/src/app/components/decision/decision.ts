@@ -55,6 +55,10 @@ export class DecisionComponent implements OnInit {
     fechaFin: this.fb.nonNullable.control(this.today, { validators: [Validators.required] }),
   });
 
+  formAbierto = false;
+  toggleForm(){ this.formAbierto = !this.formAbierto; }
+
+
   ngOnInit(): void {
     // Si el <select> de temáticas llegara a emitir string, lo convierto a number
     this.form.controls.tematicaId.valueChanges.subscribe((v) => {

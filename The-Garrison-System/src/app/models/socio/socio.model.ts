@@ -1,6 +1,6 @@
 export type SocioStatus = 'active' | 'inactive';
 
-export interface Socio {
+export interface SocioDTO {
   id?: number;
   name: string;
   email?: string;

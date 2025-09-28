@@ -1,27 +1,41 @@
-<section class="grid">
+<section class="stack-lg">
   <!-- LISTA -->
-  <div class="card">
+  <div class="glass-dark card stack-md">
     <div class="header">
       <h2>Decisiones estratégicas</h2>
       <div class="right">
-        <button class="btn" (click)="nuevo()">Nueva</button>
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="formAbierto">
+          {{ formAbierto ? 'Cerrar' : 'Nueva' }}
+        </button>
       </div>
     </div>
 
+    <!-- Filtros -->
     <div class="filters">
       <label class="label">
-        Buscar
+        <span>Buscar</span>
         <input class="input" placeholder="texto o id" [(ngModel)]="fTexto" />
       </label>
 
       <label class="label">
-        Temática (ID)
+        <span>Temática (ID)</span>
         <input class="input" placeholder="filtrar por id de temática" [(ngModel)]="filtroTematica" />
       </label>
     </div>
 
-    <div class="table-wrapper">
-      <table class="table">
+    <!-- Tabla -->
+    <div class="table-wrap">
+      <table class="table" *ngIf="decisionesFiltradas().length; else empty">
+        <!-- anchos fijos para alinear thead/tbody -->
+        <colgroup>
+          <col style="width:90px" /> <!-- ID -->
+          <col style="width:220px" /> <!-- Temática -->
+          <col /> <!-- Descripción (flex) -->
+          <col style="width:140px" /> <!-- Inicio -->
+          <col style="width:140px" /> <!-- Fin -->
+          <col style="width:220px" /> <!-- Acciones -->
+        </colgroup>
+
         <thead>
           <tr>
             <th>ID</th>
@@ -32,72 +46,78 @@
             <th class="right">Acciones</th>
           </tr>
         </thead>
+
         <tbody>
           <tr *ngFor="let d of decisionesFiltradas()">
-            <td>{{ d.id }}</td>
+            <td>#{{ d.id }}</td>
             <td>
               <ng-container *ngIf="d.tematica?.id != null; else sinTem">
-                {{ d.tematica?.id }} - {{ d.tematica?.descripcion || 'Temática' }}
+                <span class="truncate">{{ d.tematica?.id }} - {{ d.tematica?.descripcion || 'Temática' }}</span>
               </ng-container>
               <ng-template #sinTem>—</ng-template>
             </td>
-            <td>{{ d.descripcion }}</td>
+            <td><span class="truncate">{{ d.descripcion }}</span></td>
             <td>{{ d.fechaInicio | date:'shortDate' }}</td>
             <td>{{ d.fechaFin | date:'shortDate' }}</td>
             <td class="right">
-              <button class="btn ghost" (click)="editar(d)">Editar</button>
+              <button class="btn ghost" (click)="editar(d); formAbierto = true">Editar</button>
               <button class="btn danger" (click)="eliminar(d.id)">Eliminar</button>
             </td>
           </tr>
-          <tr *ngIf="decisionesFiltradas().length === 0">
-            <td colspan="6" class="center muted">Sin decisiones</td>
-          </tr>
         </tbody>
       </table>
+
+      <ng-template #empty>
+        <div class="center muted">Sin decisiones</div>
+      </ng-template>
     </div>
   </div>
 
-  <!-- FORM -->
-  <div class="card">
-    <div class="header">
-      <h2>{{ isEdit() ? ('Editar decisión: ' + form.controls.id.value) : 'Nueva decisión' }}</h2>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
-      <div class="error" *ngIf="error()">{{ error() }}</div>
-
-      <label class="label">
-        Temática
-        <input class="input" placeholder="filtrar (id o descripción)" [(ngModel)]="filtroTematica" name="fltTematica" />
-        <select class="input" formControlName="tematicaId">
-          <option [ngValue]="null" disabled>Elegí una temática</option>
-          <option *ngFor="let t of tematicasFiltradas()" [ngValue]="t.id">
-            {{ t.id }} - {{ t.descripcion }}
-          </option>
-        </select>
-      </label>
-
-      <label class="label">
-        Descripción
-        <input class="input" formControlName="descripcion" placeholder="Descripción de la decisión estratégica" />
-      </label>
-
-      <label class="label">
-        Fecha inicio
-        <input class="input" type="date" formControlName="fechaInicio" [min]="today" />
-      </label>
-
-      <label class="label">
-        Fecha fin
-        <input class="input" type="date" formControlName="fechaFin" [min]="form.controls.fechaInicio.value || today" />
-      </label>
-
-      <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">
-          {{ isEdit() ? 'Guardar' : 'Crear' }}
-        </button>
-        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+  <!-- FORM (PLEGABLE) -->
+  <div class="collapsible" [class.open]="formAbierto">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ isEdit() ? ('Editar decisión: ' + form.controls.id.value) : 'Nueva decisión' }}</h2>
       </div>
-    </form>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+        <div class="error" *ngIf="error()">{{ error() }}</div>
+
+        <label class="label">
+          <span>Temática</span>
+          <input class="input" placeholder="filtrar (id o descripción)" [(ngModel)]="filtroTematica"
+            name="fltTematica" />
+          <select class="input" formControlName="tematicaId">
+            <option [ngValue]="null" disabled>Elegí una temática</option>
+            <option *ngFor="let t of tematicasFiltradas()" [ngValue]="t.id">
+              {{ t.id }} - {{ t.descripcion }}
+            </option>
+          </select>
+        </label>
+
+        <label class="label">
+          <span>Descripción</span>
+          <input class="input" formControlName="descripcion" placeholder="Descripción de la decisión estratégica" />
+        </label>
+
+        <label class="label">
+          <span>Fecha inicio</span>
+          <input class="input" type="date" formControlName="fechaInicio" [min]="today" />
+        </label>
+
+        <label class="label">
+          <span>Fecha fin</span>
+          <input class="input" type="date" formControlName="fechaFin"
+            [min]="form.controls.fechaInicio.value || today" />
+        </label>
+
+        <div class="right form-actions">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ isEdit() ? 'Guardar' : 'Crear' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="nuevo(); formAbierto = false">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
 </section>

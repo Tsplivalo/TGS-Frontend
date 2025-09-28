@@ -1,22 +1,32 @@
-<section class="grid">
+<section class="stack-lg">
+
   <!-- LISTA -->
-  <div class="card">
+  <div class="glass-dark card stack-md">
     <div class="header">
       <h2>Temáticas</h2>
       <div class="right">
-        <button class="btn" (click)="nuevo()">Nueva</button>
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="formAbierto">
+          {{ formAbierto ? 'Cerrar' : 'Nueva' }}
+        </button>
       </div>
     </div>
 
     <div class="filters">
       <label class="label">
-        Buscar
+        <span>Buscar</span>
         <input class="input" placeholder="texto o id" [(ngModel)]="fTexto" />
       </label>
     </div>
 
-    <div class="table-wrapper">
-      <table class="table">
+    <div class="table-wrap">
+      <table class="table" *ngIf="tematicasFiltradas().length; else empty">
+        <!-- anchos fijos para alinear thead/tbody -->
+        <colgroup>
+          <col style="width:100px" /> <!-- ID -->
+          <col /> <!-- Descripción -->
+          <col style="width:220px" /> <!-- Acciones -->
+        </colgroup>
+
         <thead>
           <tr>
             <th>ID</th>
@@ -24,43 +34,48 @@
             <th class="right">Acciones</th>
           </tr>
         </thead>
+
         <tbody>
           <tr *ngFor="let t of tematicasFiltradas()">
-            <td>{{ t.id }}</td>
-            <td>{{ t.descripcion }}</td>
+            <td>#{{ t.id }}</td>
+            <td><span class="truncate">{{ t.descripcion }}</span></td>
             <td class="right">
-              <button class="btn ghost" (click)="editar(t)">Editar</button>
+              <button class="btn ghost" (click)="editar(t); formAbierto = true">Editar</button>
               <button class="btn danger" (click)="eliminar(t.id)">Eliminar</button>
             </td>
           </tr>
-          <tr *ngIf="tematicasFiltradas().length === 0">
-            <td colspan="3" class="center muted">Sin temáticas</td>
-          </tr>
         </tbody>
       </table>
+
+      <ng-template #empty>
+        <div class="center muted">Sin temáticas</div>
+      </ng-template>
     </div>
   </div>
 
-  <!-- FORM -->
-  <div class="card">
-    <div class="header">
-      <h2>{{ isEdit() ? ('Editar temática: ' + form.controls.id.value) : 'Nueva temática' }}</h2>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
-      <div class="error" *ngIf="error()">{{ error() }}</div>
-
-      <label class="label">
-        Descripción
-        <input class="input" formControlName="descripcion" placeholder="p.ej. Corrupción, Contrabando..." />
-      </label>
-
-      <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">
-          {{ isEdit() ? 'Guardar' : 'Crear' }}
-        </button>
-        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+  <!-- FORM (PLEGABLE, MISMO ESTILO) -->
+  <div class="collapsible" [class.open]="formAbierto">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ isEdit() ? ('Editar temática: ' + form.controls.id.value) : 'Nueva temática' }}</h2>
       </div>
-    </form>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+        <div class="error" *ngIf="error()">{{ error() }}</div>
+
+        <label class="label">
+          <span>Descripción</span>
+          <input class="input" formControlName="descripcion" placeholder="p.ej. Corrupción, Contrabando..." />
+        </label>
+
+        <div class="right form-actions">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ isEdit() ? 'Guardar' : 'Crear' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="nuevo(); formAbierto = false">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
+
 </section>

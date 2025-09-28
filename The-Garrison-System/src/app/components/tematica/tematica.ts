@@ -71,6 +71,9 @@ export class TematicaComponent implements OnInit {
     });
   }
 
+  formAbierto = false;
+  toggleForm(){ this.formAbierto = !this.formAbierto; }
+
   nuevo() {
     this.isEdit.set(false);
     this.form.reset({ id: null, descripcion: '' });

@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ClienteService } from '../../services/cliente/cliente';
 import { ApiResponse, ClienteDTO } from '../../models/cliente/cliente.model';
+import { NgFor } from '@angular/common';
+
 
 @Component({
   selector: 'app-cliente',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgFor],
   templateUrl: './cliente.html',
   styleUrls: ['./cliente.scss']
 })
@@ -77,6 +79,10 @@ export class ClienteComponent implements OnInit {
     this.form.reset({ dni: '', nombre: '', email: '', direccion: '', telefono: '' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+
+  nuevoAbierto = false;
+  toggleNuevo(){ this.nuevoAbierto = !this.nuevoAbierto; }
 
   editar(c: ClienteDTO) {
     this.editDni.set(c.dni);

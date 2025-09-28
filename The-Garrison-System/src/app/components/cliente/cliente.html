@@ -1,10 +1,12 @@
-<section class="grid">
+<section class="stack-lg">
   <!-- LISTA -->
-  <div class="card">
+  <div class="glass-dark card stack-md">
     <div class="header">
       <h2>Clientes</h2>
       <div class="right">
-        <button class="btn" (click)="nuevo()">Nuevo</button>
+        <button class="btn" (click)="toggleNuevo()" [attr.aria-expanded]="nuevoAbierto">
+          {{ nuevoAbierto ? 'Cerrar' : 'Nuevo' }}
+        </button>
       </div>
     </div>
 
@@ -28,7 +30,8 @@
     <div *ngIf="error()" class="error">{{ error() }}</div>
     <div *ngIf="loading()">Cargando...</div>
 
-    <div class="card table-wrap" *ngIf="!loading()">
+    <!-- Tabla (SIN card interna para evitar bordes dobles) -->
+    <div class="table-wrap" *ngIf="!loading()">
       <table class="table">
         <thead>
           <tr>
@@ -62,47 +65,47 @@
     </div>
   </div>
 
-  <!-- FORM -->
-  <div class="card">
-    <div class="header">
-      <h2>{{ editDni() == null ? 'Nuevo cliente' : 'Editar cliente' }}</h2>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="form">
-      <label class="label">
-        DNI
-          <input class="input" type="text" formControlName="dni" maxlength="8" pattern="[0-9]*" placeholder="Ingrese DNI" required />
-      </label>
-
-
-
-
-      <label class="label">
-        Nombre
-        <input class="input" formControlName="nombre" placeholder="Juan Pérez" />
-      </label>
-
-      <label class="label">
-        Email
-        <input class="input" formControlName="email" type="email" placeholder="juan@mail.com" />
-      </label>
-
-      <label class="label">
-        Teléfono
-        <input class="input" formControlName="telefono" placeholder="+54 9 341 ..." />
-      </label>
-
-      <label class="label" style="grid-column: 1 / -1;">
-        Dirección
-        <input class="input" formControlName="direccion" placeholder="Calle 123, Ciudad" />
-      </label>
-
-      <div class="right" style="grid-column: 1 / -1;">
-        <button class="btn success" type="submit" [disabled]="loading()">
-          {{ editDni() == null ? 'Crear' : 'Guardar' }}
-        </button>
-        <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+  <!-- NUEVO / EDITAR (PLEGABLE) -->
+  <div class="collapsible" [class.open]="nuevoAbierto">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ editDni() == null ? 'Nuevo cliente' : 'Editar cliente' }}</h2>
       </div>
-    </form>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+        <label class="label">
+          DNI
+          <input class="input" type="text" formControlName="dni" maxlength="8" pattern="[0-9]*"
+            placeholder="Ingrese DNI" required />
+        </label>
+
+        <label class="label">
+          Nombre
+          <input class="input" formControlName="nombre" placeholder="Juan Pérez" />
+        </label>
+
+        <label class="label">
+          Email
+          <input class="input" formControlName="email" type="email" placeholder="juan@mail.com" />
+        </label>
+
+        <label class="label">
+          Teléfono
+          <input class="input" formControlName="telefono" placeholder="+54 9 341 ..." />
+        </label>
+
+        <label class="label" style="grid-column: 1 / -1;">
+          Dirección
+          <input class="input" formControlName="direccion" placeholder="Calle 123, Ciudad" />
+        </label>
+
+        <div class="right" style="grid-column: 1 / -1;">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ editDni() == null ? 'Crear' : 'Guardar' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="nuevo()">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
 </section>

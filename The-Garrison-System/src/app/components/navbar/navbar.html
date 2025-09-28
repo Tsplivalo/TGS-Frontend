@@ -1,24 +1,37 @@
 <nav class="nav">
   <div class="nav__content">
-    <!-- Brand con logo + texto -->
+    <!-- Brand -->
     <a class="brand" routerLink="/">
-      <span class="brand-text">GarrSYS</span>
+      <span class="brand-text">Garr<span class="brand-accent">SYS</span></span>
     </a>
 
     <!-- Menú -->
-    <ul class="menu" role="menubar" aria-label="Principal">
+    <ul #menu class="menu" role="menubar" aria-label="Principal">
+      <!-- Indicador de vidrio deslizante (se posiciona vía ngStyle) -->
+      <div class="glass-indicator" [class.visible]="indicator.visible" [ngStyle]="{
+          transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
+          width: indicator.w + 'px',
+          height: indicator.h + 'px'
+        }" aria-hidden="true"></div>
+
+      <!-- INICIO -->
       <li class="menu__item" role="none">
-        <a role="menuitem" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <a #mainBtn role="menuitem" routerLink="/" routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }">
           INICIO <span class="underline"></span>
         </a>
       </li>
 
+      <!-- GESTIÓN -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
-        <button class="dropdown__toggle" type="button" aria-haspopup="true" aria-expanded="false">
-          NEGOCIO <span class="chevron">▾</span>
+        <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
+          [class.active]="isGestionActive()">
+          GESTIÓN <span class="chevron">▾</span>
+          <span class="underline"></span>
         </button>
-        <ul class="dropdown" role="menu" aria-label="Negocio">
-          <li *ngFor="let item of negocioItems" class="dropdown__item" role="none">
+
+        <ul class="dropdown" role="menu" aria-label="Gestión">
+          <li *ngFor="let item of gestionItems" class="dropdown__item" role="none">
             <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
               {{ item.label }} <span class="underline"></span>
             </a>
