@@ -1,43 +1,73 @@
 <nav class="nav">
   <div class="nav__content">
-    <!-- Brand -->
+    <!-- Brand (izquierda) -->
     <a class="brand" routerLink="/">
       <span class="brand-text">Garr<span class="brand-accent">SYS</span></span>
     </a>
 
-    <!-- Menú -->
+    <!-- Centro: saludo (solo logueado) -->
+    <div class="nav__center" *ngIf="isLoggedIn()">
+      <span class="user-pill">Hola, {{ user()?.username }}</span>
+    </div>
+
+    <!-- Menú (derecha) -->
     <ul #menu class="menu" role="menubar" aria-label="Principal">
-      <!-- Indicador de vidrio deslizante (se posiciona vía ngStyle) -->
+      <!-- Indicador de vidrio deslizante (sólo si hay activo) -->
       <div class="glass-indicator" [class.visible]="indicator.visible" [ngStyle]="{
-          transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
-          width: indicator.w + 'px',
-          height: indicator.h + 'px'
-        }" aria-hidden="true"></div>
+             transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
+             width: indicator.w + 'px',
+             height: indicator.h + 'px'
+           }" aria-hidden="true"></div>
 
-      <!-- INICIO -->
-      <li class="menu__item" role="none">
-        <a #mainBtn role="menuitem" routerLink="/" routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }">
-          INICIO <span class="underline"></span>
-        </a>
-      </li>
+      <!-- Estado DESLOGUEADO: acciones estéticas + login (SIN routerLinkActive para evitar recuadro en Home) -->
+      <ng-container *ngIf="!isLoggedIn(); else loggedMenu">
+        <li class="menu__item" role="none">
+          <a role="menuitem" routerLink="/login">
+            INICIAR SESIÓN <span class="underline"></span>
+          </a>
+        </li>
+        <li class="menu__item" role="none">
+          <a role="menuitem" href="#" (click)="$event.preventDefault()">
+            SOBRE NOSOTROS <span class="underline"></span>
+          </a>
+        </li>
+        <li class="menu__item" role="none">
+          <a role="menuitem" href="#" (click)="$event.preventDefault()">
+            FAQs <span class="underline"></span>
+          </a>
+        </li>
+        <li class="menu__item" role="none">
+          <a role="menuitem" href="#" (click)="$event.preventDefault()">
+            CONTACTANOS <span class="underline"></span>
+          </a>
+        </li>
+      </ng-container>
 
-      <!-- GESTIÓN -->
-      <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
-        <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
-          [class.active]="isGestionActive()">
-          GESTIÓN <span class="chevron">▾</span>
-          <span class="underline"></span>
-        </button>
+      <!-- Estado LOGUEADO: dropdown Gestión + Salir -->
+      <ng-template #loggedMenu>
+        <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
+          <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true"
+            aria-expanded="false" [class.active]="isGestionActive()">
+            GESTIÓN <span class="chevron">▾</span>
+            <span class="underline"></span>
+          </button>
 
-        <ul class="dropdown" role="menu" aria-label="Gestión">
-          <li *ngFor="let item of gestionItems" class="dropdown__item" role="none">
-            <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
-              {{ item.label }} <span class="underline"></span>
-            </a>
-          </li>
-        </ul>
-      </li>
+          <ul class="dropdown" role="menu" aria-label="Gestión">
+            <li *ngFor="let item of gestionItems" class="dropdown__item" role="none">
+              <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
+                {{ item.label }} <span class="underline"></span>
+              </a>
+            </li>
+
+            <li class="dropdown__divider" role="separator"></li>
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" href="#" (click)="$event.preventDefault(); logout()">
+                Salir <span class="underline"></span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ng-template>
     </ul>
   </div>
 </nav>

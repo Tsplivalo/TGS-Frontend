@@ -1,0 +1,38 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+  <h1>Crear cuenta</h1>
+
+  <label>
+    Usuario
+    <input formControlName="username" type="text" autocomplete="username" placeholder="tu usuario" />
+  </label>
+
+  <label>
+    Email
+    <input formControlName="email" type="email" autocomplete="email" placeholder="tu@email.com" />
+  </label>
+
+  <label class="password-row">
+    Contraseña
+    <div class="password-field">
+      <input [type]="showPassword ? 'text' : 'password'" formControlName="password" autocomplete="new-password"
+        placeholder="••••••••" />
+      <button type="button" class="toggle" (click)="toggleShowPassword()" aria-label="Mostrar u ocultar contraseña">
+        {{ showPassword ? 'Ocultar' : 'Mostrar' }}
+      </button>
+    </div>
+    <small class="rules">
+      Min. 8 caracteres, con mayúscula, minúscula, número y símbolo (ej.: punto .).
+    </small>
+  </label>
+
+  <button type="submit" [disabled]="form.invalid || loading">
+    {{ loading ? 'Creando…' : 'Crear cuenta' }}
+  </button>
+
+  <p class="hint">
+    ¿Ya tenés cuenta?
+    <a routerLink="/login">Iniciar sesión</a>
+  </p>
+
+  <p class="error" *ngIf="errorMsg">{{ errorMsg }}</p>
+</form>

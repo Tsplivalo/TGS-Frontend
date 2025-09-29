@@ -1,0 +1,40 @@
+.auth-card {
+  max-width: 420px;
+  margin: 4rem auto;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+label {
+  display: block;
+  margin: .75rem 0;
+}
+
+input {
+  width: 100%;
+  padding: .6rem .8rem;
+  border-radius: .6rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+}
+
+button {
+  width: 100%;
+  margin-top: 1rem;
+  padding: .8rem;
+  border-radius: .8rem;
+}
+
+.muted {
+  opacity: .8;
+  margin-top: .75rem;
+}
+
+.error {
+  color: #ff8080;
+  margin-top: .5rem;
+}
