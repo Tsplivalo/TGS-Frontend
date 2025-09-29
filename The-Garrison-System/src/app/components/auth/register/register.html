@@ -1,0 +1,29 @@
+<div class="auth-card">
+  <h1>Crear cuenta</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Usuario
+      <input type="text" formControlName="username" placeholder="Tu nombre" />
+    </label>
+
+    <label>
+      Email
+      <input type="email" formControlName="email" placeholder="tu@email.com" />
+    </label>
+
+    <label>
+      Contraseña
+      <input type="password" formControlName="password" placeholder="••••••••" />
+    </label>
+
+    <button type="submit" [disabled]="loading || form.invalid">Crear cuenta</button>
+
+    <p class="muted">
+      ¿Ya tenés cuenta?
+      <a routerLink="/login">Iniciar sesión</a>
+    </p>
+
+    <p *ngIf="errorMsg" class="error">{{ errorMsg }}</p>
+  </form>
+</div>

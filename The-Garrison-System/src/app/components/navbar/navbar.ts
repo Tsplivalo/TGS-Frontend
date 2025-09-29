@@ -1,7 +1,8 @@
-import { AfterViewInit, Component, ElementRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { AuthService } from '../../services/auth/auth';
 
 interface MenuItem { label: string; path: string; }
 
@@ -13,16 +14,22 @@ interface MenuItem { label: string; path: string; }
   styleUrls: ['./navbar.scss'],
 })
 export class NavbarComponent implements AfterViewInit {
+  // Sesión
+  private auth = inject(AuthService);
+  readonly isLoggedIn = this.auth.isLoggedIn; // signal<boolean>
+  readonly user       = this.auth.user;       // signal<{ username: string } | null>
+
+  // Ítems de Gestión (tus nombres y rutas)
   readonly gestionItems: MenuItem[] = [
-    { label: 'Productos', path: '/producto' },
-    { label: 'Clientes', path: '/cliente' },
-    { label: 'Ventas', path: '/venta' },
-    { label: 'Zonas', path: '/zona' },
+    { label: 'Productos',   path: '/producto' },
+    { label: 'Clientes',    path: '/cliente' },
+    { label: 'Ventas',      path: '/venta' },
+    { label: 'Zonas',       path: '/zona' },
     { label: 'Autoridades', path: '/autoridad' },
-    { label: 'Socios',      path: '/socio'      },
-    { label: 'Sobornos', path: '/sobornos' },
-    { label: 'Decisiones', path: '/decision' },
-    { label: 'Temáticas', path: '/tematica' },
+    { label: 'Socios',      path: '/socio' },
+    { label: 'Sobornos',    path: '/sobornos' },
+    { label: 'Decisiones',  path: '/decision' },
+    { label: 'Temáticas',   path: '/tematica' },
   ];
 
   @ViewChild('menu', { static: true }) menuRef!: ElementRef<HTMLElement>;
@@ -36,9 +43,8 @@ export class NavbarComponent implements AfterViewInit {
     const update = () => this.updateIndicator();
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(update);
 
-    // Primer cálculo y en próximo tick por seguridad
+    // Primer cálculo (próximo tick) y en resize
     setTimeout(update);
-    // Recalcular en resize (layout responsive)
     window.addEventListener('resize', update, { passive: true });
   }
 
@@ -59,32 +65,34 @@ export class NavbarComponent implements AfterViewInit {
     return u === '/' ? '' : u;
   }
 
-  /** Usa getBoundingClientRect relativo al <ul.menu> para evitar desfases por padding/márgenes */
+  logout(): void {
+    this.auth.logout();
+  }
+
+  /** Posiciona el “glass” relativo al <ul.menu> (soporta cuando no hay Gestión) */
   private updateIndicator(): void {
     const menuEl = this.menuRef?.nativeElement;
-    if (!menuEl || !this.mainBtns || this.mainBtns.length < 2) return;
+    if (!menuEl || !this.mainBtns) return;
 
-    const [inicioEl, gestionEl] = this.mainBtns.toArray().map(r => r.nativeElement);
-    const activeEl = this.isGestionActive()
-      ? gestionEl
-      : this.isInicioActive()
-        ? inicioEl
-        : null;
+    const btnEls = this.mainBtns.toArray().map(r => r.nativeElement);
+    const inicioEl = btnEls[0];           // siempre está
+    const gestionEl = btnEls[1] ?? null;  // puede NO estar si no hay login
 
-    if (!activeEl) {
-      this.indicator.visible = false;
-      return;
-    }
+    let activeEl: HTMLElement | null = null;
+    if (gestionEl && this.isGestionActive()) activeEl = gestionEl;
+    else if (this.isInicioActive()) activeEl = inicioEl;
+    else activeEl = inicioEl; // fallback
+
+    if (!activeEl) { this.indicator.visible = false; return; }
 
     const menuRect = menuEl.getBoundingClientRect();
     const btnRect  = activeEl.getBoundingClientRect();
 
-    const x = btnRect.left - menuRect.left;   // posición horizontal dentro de .menu
-    const y = btnRect.top  - menuRect.top;    // posición vertical dentro de .menu
+    const x = btnRect.left - menuRect.left;
+    const y = btnRect.top  - menuRect.top;
     const w = btnRect.width;
     const h = btnRect.height;
 
-    // Actualizamos en un solo paso para animaciones suaves
     this.indicator = { x, y, w, h, visible: true };
   }
 }

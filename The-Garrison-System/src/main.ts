@@ -1,17 +1,11 @@
+// src/main.ts
 import { bootstrapApplication } from '@angular/platform-browser';
-import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
-
 import { AppComponent } from './app/app';
-import { routes } from './app/app.routes';
+import { appConfig } from './app/app.config';
+import { AuthService } from './app/services/auth/auth';
 
-const appConfig: ApplicationConfig = {
-  providers: [
-    provideRouter(routes),
-    provideHttpClient(),
-  ],
-};
-
-bootstrapApplication(AppComponent, appConfig)
-  .catch(err => console.error(err));
+bootstrapApplication(AppComponent, appConfig).then(ref => {
+  const injector = ref.injector;
+  const auth = injector.get(AuthService);
+  auth.fetchMe(); // intenta hidratar sesión desde cookie
+});

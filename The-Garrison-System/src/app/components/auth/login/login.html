@@ -1,0 +1,25 @@
+<!-- src/app/components/auth/login/login.html -->
+<div class="auth-card">
+  <h1>Iniciar sesión</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Email
+      <input type="email" formControlName="email" placeholder="tu@email.com" />
+    </label>
+
+    <label>
+      Contraseña
+      <input type="password" formControlName="password" placeholder="••••••••" />
+    </label>
+
+    <button type="submit" [disabled]="loading || form.invalid">Ingresar</button>
+
+    <p class="muted">
+      ¿No tenés cuenta?
+      <a routerLink="/register">Crear cuenta</a>
+    </p>
+
+    <p *ngIf="errorMsg" class="error">{{ errorMsg }}</p>
+  </form>
+</div>

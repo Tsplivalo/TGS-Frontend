@@ -1,13 +1,18 @@
 <nav class="nav">
   <div class="nav__content">
-    <!-- Brand -->
+    <!-- Brand (izquierda) -->
     <a class="brand" routerLink="/">
       <span class="brand-text">Garr<span class="brand-accent">SYS</span></span>
     </a>
 
-    <!-- Menú -->
+    <!-- Centro: saludo (solo logueado) -->
+    <div class="nav__center" *ngIf="isLoggedIn()">
+      <span class="user-pill">Hola, {{ user()?.username }}</span>
+    </div>
+
+    <!-- Menú (derecha, como estaba) -->
     <ul #menu class="menu" role="menubar" aria-label="Principal">
-      <!-- Indicador de vidrio deslizante (se posiciona vía ngStyle) -->
+      <!-- Indicador de vidrio deslizante -->
       <div class="glass-indicator" [class.visible]="indicator.visible" [ngStyle]="{
           transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
           width: indicator.w + 'px',
@@ -22,8 +27,8 @@
         </a>
       </li>
 
-      <!-- GESTIÓN -->
-      <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
+      <!-- GESTIÓN (solo si hay sesión) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isLoggedIn()">
         <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
           [class.active]="isGestionActive()">
           GESTIÓN <span class="chevron">▾</span>
@@ -34,6 +39,14 @@
           <li *ngFor="let item of gestionItems" class="dropdown__item" role="none">
             <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
               {{ item.label }} <span class="underline"></span>
+            </a>
+          </li>
+
+          <!-- Separador + Logout -->
+          <li class="dropdown__divider" role="separator"></li>
+          <li class="dropdown__item" role="none">
+            <a role="menuitem" href="#" (click)="$event.preventDefault(); logout()">
+              Salir <span class="underline"></span>
             </a>
           </li>
         </ul>
