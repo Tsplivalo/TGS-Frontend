@@ -28,5 +28,6 @@
 
 ## 🔜 Pendientes
 - Corregir y completar el **funcionamiento de Zonas**.  
-- Refinar el módulo de **Socios** para ajustar funcionamiento y diseño, logrando coherencia total con el resto de componentes.  
+- Refinar el módulo de **Socios** para ajustar funcionamiento y diseño, logrando coherencia total con el resto de componentes.
+- Implementar las paginas de "sobre nosotros", "FAQs", "Contactanos"
 
