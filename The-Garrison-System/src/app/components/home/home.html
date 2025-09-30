@@ -1,12 +1,80 @@
-<section class="section--fullscreen edge-to-edge home">
-  <div class="home__content">
-    <img src="/logo-garrison.png" alt="TGS Logo" class="logo" />
+<div class="home">
+  <div class="layout" [class.logged-in]="isLoggedIn() && !showAuthPanel">
+    <!-- IZQUIERDA: Panel Auth -->
+    <section *ngIf="showAuthPanel" class="auth-panel glass" [class.mode-login]="mode==='login'"
+      [class.mode-register]="mode==='register'" [class.hiding]="hiding" [class.enter]="entering"
+      [style.--split]="mode==='login' ? '64%' : '36%'">
+      <div class="auth-body">
+        <!-- LOGIN -->
+        <div class="auth-half left" [class.active]="mode==='login'" (click)="setMode('login')" role="button"
+          tabindex="0">
+          <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" (click)="$event.stopPropagation()">
+            <h2>Iniciar sesión</h2>
 
-    <h1 class="title">
-      Bienvenido a <span class="highlight">GarrSYS</span>
-    </h1>
+            <label>
+              <span>Email</span>
+              <input type="email" formControlName="email" placeholder="tu@email.com" autocomplete="email" required />
+            </label>
 
-    <p class="subtitle">La plataforma que lleva tu negocio al siguiente nivel</p>
+            <label>
+              <span>Contraseña</span>
+              <input type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password"
+                required />
+            </label>
 
+            <button type="submit" [disabled]="loadingLogin">Entrar</button>
+            <p class="auth-error" *ngIf="errorLogin">{{ errorLogin }}</p>
+          </form>
+        </div>
+
+        <!-- División -->
+        <div class="auth-divider" aria-hidden="true"></div>
+
+        <!-- REGISTRO -->
+        <div class="auth-half right" [class.active]="mode==='register'" (click)="setMode('register')" role="button"
+          tabindex="0">
+          <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()"
+            (click)="$event.stopPropagation()">
+            <h2>Crear cuenta</h2>
+
+            <label>
+              <span>Usuario</span>
+              <input type="text" formControlName="username" placeholder="Tu nombre" autocomplete="username" required />
+            </label>
+
+            <label>
+              <span>Email</span>
+              <input type="email" formControlName="email" placeholder="tu@email.com" autocomplete="email" required />
+            </label>
+
+            <label>
+              <span>Contraseña</span>
+              <input type="password" formControlName="password" placeholder="••••••••" autocomplete="new-password"
+                required />
+            </label>
+
+            <button type="submit" [disabled]="loadingRegister">Crear cuenta</button>
+            <p class="auth-error" *ngIf="errorRegister">{{ errorRegister }}</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- DERECHA: Branding -->
+    <section class="brand-plain" [class.is-logged]="isLoggedIn() && !showAuthPanel">
+      <div class="welcome-badge" *ngIf="isLoggedIn() && !showAuthPanel">
+        <span class="wave" aria-hidden="true">👋</span>
+        <span>Bienvenido/a, <strong>{{ user()?.username || 'usuario' }}</strong></span>
+      </div>
+
+      <div class="brand-head">
+        <h1 class="wordmark">GarrSYS</h1>
+
+        <img *ngIf="logoOk" class="logo" src="/logo-dark.svg" alt="GarrSYS" (error)="onLogoError()" />
+        <span *ngIf="!logoOk" class="logo-fallback" aria-hidden="true">GS</span>
+      </div>
+
+      <p class="tagline">La plataforma que lleva tu negocio al siguiente nivel</p>
+    </section>
   </div>
-</section>
+</div>

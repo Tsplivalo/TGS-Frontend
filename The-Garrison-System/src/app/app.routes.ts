@@ -15,9 +15,6 @@ export const routes: Routes = [
   { path: 'decision',  loadComponent: () => import('./components/decision/decision').then(m => m.DecisionComponent) },
   { path: 'tematica',  loadComponent: () => import('./components/tematica/tematica').then(m => m.TematicaComponent) },
 
-  // === Auth (nuevo) ===
-  { path: 'login',    loadComponent: () => import('./components/auth/login/login').then(m => m.LoginComponent) },
-  { path: 'register', loadComponent: () => import('./components/auth/register/register').then(m => m.RegisterComponent) },
 
   { path: '**', redirectTo: '' },
 ];
