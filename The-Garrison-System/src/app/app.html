@@ -1,5 +1,10 @@
-<app-navbar></app-navbar>
+<nav class="navbar p-4 bg-gray-100 flex gap-4">
+  <a routerLink="/" routerLinkActive="font-bold" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+  <a routerLink="/sobre-nosotros" routerLinkActive="font-bold">Sobre nosotros</a>
+  <a routerLink="/contactanos" routerLinkActive="font-bold">Contáctanos</a>
+  <a routerLink="/faqs" routerLinkActive="font-bold">FAQs</a>
+</nav>
 
-<main class="app-main">
+<main class="app-main p-4">
   <router-outlet></router-outlet>
 </main>
