@@ -77,45 +77,4 @@
       <p class="tagline">La plataforma que lleva tu negocio al siguiente nivel</p>
     </section>
   </div>
-
-  <!-- INTRODUCCIÓN con CARDS EXPANDIBLES (cuadrado azul + chevron) -->
-  <section class="intro-v2" aria-labelledby="intro-title">
-    <div class="intro-shell">
-      <div class="intro-header">
-        <span class="pill">GarrSYS en pocas palabras</span>
-        <h3 id="intro-title">Todo en un mismo lugar</h3>
-        <p class="lead">
-          Centralizá productos, clientes, ventas y zonas con una interfaz clara. Menos pasos, menos fricción y más foco
-          en lo importante: tu negocio.
-        </p>
-      </div>
-
-      <div class="intro-grid">
-        <button class="intro-card" type="button" *ngFor="let it of introItems; let i = index"
-          (click)="toggleFlip(i, $event)" (keydown)="onCardKey(i, $event)" [class.expanded]="flipped.has(i)"
-          [attr.aria-expanded]="flipped.has(i) ? 'true' : 'false'" [attr.aria-label]="it.title">
-          <div class="card-surface">
-            <header class="card-head">
-              <span class="tiny-logo" aria-hidden="true"></span>
-              <h4 class="card-title">{{ it.title }}</h4>
-              <span class="chev" aria-hidden="true"></span>
-            </header>
-
-            <div class="card-detail">
-              <p class="detail">{{ it.detail }}</p>
-            </div>
-          </div>
-        </button>
-      </div>
-
-      <div class="intro-steps" aria-labelledby="steps-title">
-        <h5 id="steps-title">Cómo empezar</h5>
-        <ol>
-          <li>Creá tu cuenta o iniciá sesión.</li>
-          <li>Cargá productos y clientes.</li>
-          <li>Activá tus flujos de venta y gestión.</li>
-        </ol>
-      </div>
-    </div>
-  </section>
 </div>
