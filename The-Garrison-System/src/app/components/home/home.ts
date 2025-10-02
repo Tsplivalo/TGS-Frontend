@@ -1,10 +1,12 @@
-import { Component, OnDestroy, OnInit, inject, effect } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { Router } from '@angular/router';
+
+// Ajustá estos imports al AuthService que ya tenés en tu proyecto:
 import { AuthService } from '../../services/auth/auth';
-import { Subscription, of } from 'rxjs';
-import { switchMap, catchError, filter } from 'rxjs/operators';
+
+type IntroItem = { title: string; detail: string };
 
 @Component({
   standalone: true,
@@ -13,134 +15,155 @@ import { switchMap, catchError, filter } from 'rxjs/operators';
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  readonly isLoggedIn = this.auth.isLoggedIn;
-  readonly user       = this.auth.user;
+  // Signals de auth (misma interfaz que el navbar)
+  readonly isLoggedIn = this.auth.isLoggedIn;   // signal<boolean>
+  readonly user       = this.auth.user;         // signal<{ username?: string }|null>
 
+  // Estado visual del panel auth
   showAuthPanel = true;
-  hiding  = false;
   entering = false;
+  hiding   = false;
 
-  loginForm = this.fb.nonNullable.group({
+  // Modo del panel
+  mode = signal<'login' | 'register'>('login');
+  setMode(m: 'login' | 'register') { this.mode.set(m); }
+
+  // Logo
+  logoOk = true;
+  onLogoError() { this.logoOk = false; }
+
+  // Forms
+  loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
   });
-  registerForm = this.fb.nonNullable.group({
+
+  registerForm = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  loadingLogin = false;
+  // Estados de envío / errores
+  loadingLogin    = false;
   loadingRegister = false;
   errorLogin: string | null = null;
   errorRegister: string | null = null;
 
-  mode: 'login' | 'register' = 'login';
+  // 🔹 Intro: ahora 6 tarjetas
+  introItems: IntroItem[] = [
+    {
+      title: 'Gestión simplificada',
+      detail: 'Unificá productos, clientes y ventas en una sola interfaz, con flujos claros y métricas accionables.',
+    },
+    {
+      title: 'Rendimiento y claridad',
+      detail: 'Pantallas ágiles, estados bien definidos y filtros que ayudan a decidir más rápido y mejor.',
+    },
+    {
+      title: 'Listo para escalar',
+      detail: 'Organizá zonas, autoridades y decisiones con controles que crecen con tu operación.',
+    },
+    {
+      title: 'Reportes en tiempo real',
+      detail: 'Visualizá KPIs y tendencias al instante para detectar oportunidades y anticipar desvíos.',
+    },
+    {
+      title: 'Seguridad y roles',
+      detail: 'Definí permisos por área o función para cuidar la información y ordenar el trabajo.',
+    },
+    {
+      title: 'Integraciones y API',
+      detail: 'Conectá tus sistemas, importá datos y automatizá procesos sin fricción.',
+    },
+  ];
 
-  // Logo (desde assets/Sets)
-  logoOk = true;
-  onLogoError() { this.logoOk = false; }
+  // Control expand/collapse en las cards
+  flipped = new Set<number>();
+  toggleFlip(i: number, ev?: Event) {
+    ev?.preventDefault();
+    if (this.flipped.has(i)) this.flipped.delete(i);
+    else this.flipped.add(i);
+  }
+  onCardKey(i: number, ev: KeyboardEvent) {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      this.toggleFlip(i);
+    }
+  }
 
-  qpSub?: Subscription;
-  navSub?: Subscription;
+  // Mostrar/ocultar panel según auth
+  private _shouldShowAuth = computed(() => !this.isLoggedIn());
 
-  ngOnInit(): void {
-    this.showAuthPanel = !this.isLoggedIn();
-
-    this.qpSub = this.route.queryParamMap.subscribe(params => {
-      const q = params.get('auth');
-      if (q === 'login' || q === 'register') this.setMode(q);
-    });
-
-    this.navSub = this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => {
-        const atHome = this.router.url.split('?')[0].replace(/\/+$/, '') === '' || this.router.url === '/';
-        if (atHome && !this.isLoggedIn() && !this.showAuthPanel) this.fadeInAuthPanel(true);
-      });
-
+  constructor() {
+    // Reaccionar a cambios de login con pequeñas animaciones
     effect(() => {
       const logged = this.isLoggedIn();
-      if (logged) this.fadeOutAuthPanel();
-      else this.fadeInAuthPanel();
+      const mustShow = !logged;
+
+      if (mustShow && !this.showAuthPanel) {
+        this.entering = true;
+        this.showAuthPanel = true;
+        queueMicrotask(() => setTimeout(() => (this.entering = false), 200));
+      } else if (!mustShow && this.showAuthPanel) {
+        this.hiding = true;
+        setTimeout(() => {
+          this.showAuthPanel = false;
+          this.hiding = false;
+        }, 220);
+      }
     });
   }
 
-  ngOnDestroy(): void {
-    this.qpSub?.unsubscribe();
-    this.navSub?.unsubscribe();
+  // LOGIN
+  async submitLogin() {
+    this.errorLogin = null;
+    this.loadingLogin = true;
+
+    try {
+      const { email, password } = this.loginForm.getRawValue();
+      if (!email || !password) throw new Error('Completá email y contraseña.');
+
+      await this.auth.login({ email, password });
+
+      this.hiding = true;
+      setTimeout(() => {
+        this.showAuthPanel = false;
+        this.hiding = false;
+      }, 180);
+    } catch (e: any) {
+      this.errorLogin = e?.message || 'No se pudo iniciar sesión.';
+    } finally {
+      this.loadingLogin = false;
+    }
   }
 
-  setMode(m: 'login' | 'register') {
-    if (this.mode === m) return;
-    this.mode = m;
-    this.router.navigate([], { queryParams: { auth: this.mode }, replaceUrl: true });
-  }
+  // REGISTER (+ auto-login)
+  async submitRegister() {
+    this.errorRegister = null;
+    this.loadingRegister = true;
 
-  private fadeOutAuthPanel() {
-    if (!this.showAuthPanel || this.hiding) return;
-    this.hiding = true;
-    setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 300);
-  }
+    try {
+      const { username, email, password } = this.registerForm.getRawValue();
+      if (!username || !email || !password) throw new Error('Completá todos los campos.');
 
-  private fadeInAuthPanel(force = false) {
-    if (this.showAuthPanel && !force) return;
-    this.entering = true;
-    this.showAuthPanel = true;
-    setTimeout(() => { this.entering = false; }, 30);
-  }
+      await this.auth.register({ username, email, password });
+      await this.auth.login({ email, password });
 
-  submitLogin() {
-    if (this.loadingLogin) return;
-    this.loadingLogin = true; this.errorLogin = null;
-
-    const email = this.loginForm.controls.email.value!.trim();
-    const password = this.loginForm.controls.password.value!;
-
-    this.auth.login({ email, password }).subscribe({
-      next: () => {
-        this.router.navigate([], { queryParams: {}, replaceUrl: true });
-        this.fadeOutAuthPanel();
-      },
-      error: (e) => {
-        const m = e?.error?.message || e?.error?.mensaje || e?.error?.error ||
-                  (Array.isArray(e?.error?.errores) && e.error.errores[0]?.message) || e?.message;
-        this.errorLogin = m ? String(m) : 'No se pudo iniciar sesión.';
-      }
-    }).add(() => this.loadingLogin = false);
-  }
-
-  submitRegister() {
-    if (this.loadingRegister) return;
-    this.loadingRegister = true; this.errorRegister = null;
-
-    const username = this.registerForm.controls.username.value!.trim();
-    const email    = this.registerForm.controls.email.value!.trim();
-    const password = this.registerForm.controls.password.value!;
-
-    this.auth.register({ username, email, password }).pipe(
-      switchMap(() => this.auth.login({ email, password })), // auto-login tras registro
-      catchError(err => {
-        const m = err?.error?.message || err?.error?.mensaje || err?.error?.error ||
-                  (Array.isArray(err?.error?.errores) && err.error.errores[0]?.message) || err?.message;
-        this.errorRegister = m ? String(m) : null;
-        this.setMode('login');
-        this.loginForm.patchValue({ email });
-        return of(null);
-      })
-    ).subscribe({
-      next: (u) => {
-        if (u) {
-          this.router.navigate([], { queryParams: {}, replaceUrl: true });
-          this.fadeOutAuthPanel();
-        }
-      }
-    }).add(() => this.loadingRegister = false);
+      this.hiding = true;
+      setTimeout(() => {
+        this.showAuthPanel = false;
+        this.hiding = false;
+      }, 180);
+    } catch (e: any) {
+      this.errorRegister = e?.message || 'No se pudo registrar.';
+    } finally {
+      this.loadingRegister = false;
+    }
   }
 }

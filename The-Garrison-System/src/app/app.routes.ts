@@ -17,9 +17,9 @@ export const routes: Routes = [
   { path: 'tematica',   loadComponent: () => import('./components/tematica/tematica').then(m => m.TematicaComponent) },
 
   // === Páginas estáticas (nuevas) ===
-  { path: 'sobre-nosotros', loadComponent: () => import('./pages/about/about').then(m    => m.AboutComponent) },
-  { path: 'contactanos',    loadComponent: () => import('./pages/contact/contact').then(m => m.ContactComponent) },
-  { path: 'faqs',           loadComponent: () => import('./pages/faqs/faqs').then(m       => m.FaqsComponent) },
+  { path: 'sobre-nosotros', loadComponent: () => import('./components/pages/about/about').then(m    => m.AboutComponent) },
+  { path: 'contactanos',    loadComponent: () => import('./components/pages/contact/contact').then(m => m.ContactComponent) },
+  { path: 'faqs',           loadComponent: () => import('./components/pages/faqs/faqs').then(m       => m.FaqsComponent) },
 
   // === Wildcard ===
   { path: '**', redirectTo: '' },

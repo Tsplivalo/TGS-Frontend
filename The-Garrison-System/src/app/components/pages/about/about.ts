@@ -1,27 +1,41 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+type ValueItem = { title: string; desc: string };
+type TeamItem  = { name: string; role: string };
+
 @Component({
-  selector: 'tgs-about',
   standalone: true,
+  selector: 'app-about',
   imports: [CommonModule],
-  templateUrl: './about.component.html',
-  styleUrls: ['./about.component.scss'],
+  templateUrl: './about.html',
+  styleUrls: ['./about.scss'],
 })
 export class AboutComponent {
-  mission = 'Construimos herramientas para digitalizar procesos complejos con foco en seguridad, UX y rendimiento.';
-  values = [
-    { title: 'Transparencia', desc: 'Comunicación clara y decisiones auditables.' },
-    { title: 'Calidad', desc: 'Pruebas automatizadas y buenas prácticas.' },
-    { title: 'Seguridad', desc: 'Protección de datos, autenticación robusta.' },
-    { title: 'Accesibilidad', desc: 'Interfaces usables por todas las personas.' },
+  // Usá tus datos reales; dejo @Input por si ya los inyectás desde afuera.
+  @Input() mission = 'Impulsamos a equipos a trabajar con claridad, foco y simplicidad.';
+  @Input() values: ValueItem[] = [
+    { title: 'Transparencia', desc: 'Comunicación clara y decisiones a la vista.' },
+    { title: 'Calidad',       desc: 'Cuidamos el detalle en cada entrega.' },
+    { title: 'Velocidad',     desc: 'Iteramos rápido sin perder solidez.' },
+    { title: 'Cercanía',      desc: 'Escuchamos y acompañamos al cliente.' },
+    { title: 'Aprendizaje',   desc: 'Mejora continua como cultura.' },
+    { title: 'Propósito',     desc: 'Construimos productos que importan.' },
   ];
-  team = [
-    { name: 'Luca Delprato', role: 'Full-stack Dev', avatar: 'https://i.pravatar.cc/120?img=5' },
-    { name: 'Colaborador/a', role: 'UX/UI', avatar: 'https://i.pravatar.cc/120?img=15' },
+  @Input() team: TeamItem[] = [
+    { name: 'Lautaro Peralta',  role: 'Backend/Frontend' },
+    { name: 'Tomas Splivalo',  role: 'Frontend' },
+    { name: 'Luca Delprato',  role: 'Frontend'  },
+ 
   ];
-  timeline = [
-    { year: 2024, text: 'Primer commit del proyecto TGS.' },
-    { year: 2025, text: 'Módulos clave y primeras métricas en producción.' },
-  ];
+
+  // Iniciales para avatar fallback
+  initials(name: string) {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(n => n[0]?.toUpperCase())
+      .join('');
+  }
 }

@@ -1,44 +1,44 @@
-<section class="stack-lg">
-  <header class="header glass-dark">
-    <h2>Sobre nosotros</h2>
-    <div class="right muted">Inicio / Sobre nosotros</div>
+<div class="page">
+  <!-- Encabezado / breadcrumb -->
+  <header class="hero glass">
+    <div class="hero__head">
+      <h1>Sobre nosotros</h1>
+      <p class="lead">Conectamos procesos y equipos con una plataforma clara y eficiente.</p>
+    </div>
+    <div class="crumb">Inicio <span aria-hidden="true">/</span> <strong>Sobre nosotros</strong></div>
   </header>
 
-  <article class="card">
-    <h3 class="muted">Nuestra misión</h3>
-    <p>{{ mission }}</p>
-  </article>
+  <!-- Misión -->
+  <section class="glass block">
+    <h2 class="section-title">Nuestra misión</h2>
+    <p class="section-text">{{ mission }}</p>
+  </section>
 
-  <article class="stack-md">
-    <h3 class="muted">Valores</h3>
-    <div class="values-grid">
-      <div class="card" *ngFor="let v of values">
-        <strong>{{ v.title }}</strong>
+  <!-- Valores -->
+  <section class="block">
+    <h2 class="section-title">Valores</h2>
+    <div class="grid">
+      <article class="card" *ngFor="let v of values">
+        <header class="card-head">
+          <span class="dot" aria-hidden="true"></span>
+          <h3>{{ v.title }}</h3>
+        </header>
         <p class="muted">{{ v.desc }}</p>
-      </div>
+      </article>
     </div>
-  </article>
+  </section>
 
-  <article class="stack-md">
-    <h3 class="muted">Equipo</h3>
+  <!-- Equipo -->
+  <section class="block">
+    <h2 class="section-title">Equipo</h2>
     <div class="team-grid">
-      <div class="card team-card" *ngFor="let t of team">
-        <img [src]="t.avatar" [alt]="'Foto de ' + t.name" />
-        <div class="stack-md">
-          <strong>{{ t.name }}</strong>
-          <span class="muted">{{ t.role }}</span>
+      <article class="team-card" *ngFor="let t of team">
+        <div class="avatar" aria-hidden="true">{{ initials(t.name) }}</div>
+        <div class="who">
+          <strong class="name">{{ t.name }}</strong>
+          <span class="role muted">{{ t.role }}</span>
         </div>
-      </div>
+      </article>
     </div>
-  </article>
-
-  <article class="stack-md">
-    <h3 class="muted">Hitos</h3>
-    <ol class="timeline">
-      <li class="card" *ngFor="let e of timeline">
-        <strong>{{ e.year }}</strong>
-        <span class="muted">{{ e.text }}</span>
-      </li>
-    </ol>
-  </article>
-</section>
+  </section>
+</div>

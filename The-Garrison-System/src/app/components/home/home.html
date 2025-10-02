@@ -1,12 +1,12 @@
 <div class="home">
   <div class="layout" [class.logged-in]="isLoggedIn() && !showAuthPanel">
     <!-- IZQUIERDA: Panel Auth -->
-    <section *ngIf="showAuthPanel" class="auth-panel glass" [class.mode-login]="mode==='login'"
-      [class.mode-register]="mode==='register'" [class.hiding]="hiding" [class.enter]="entering"
-      [style.--split]="mode==='login' ? '64%' : '36%'">
+    <section *ngIf="showAuthPanel" class="auth-panel glass" [class.mode-login]="mode()==='login'"
+      [class.mode-register]="mode()==='register'" [class.hiding]="hiding" [class.enter]="entering"
+      [style.--split]="mode()==='login' ? '64%' : '36%'">
       <div class="auth-body">
         <!-- LOGIN -->
-        <div class="auth-half left" [class.active]="mode==='login'" (click)="setMode('login')" role="button"
+        <div class="auth-half left" [class.active]="mode()==='login'" (click)="setMode('login')" role="button"
           tabindex="0">
           <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" (click)="$event.stopPropagation()">
             <h2>Iniciar sesión</h2>
@@ -31,7 +31,7 @@
         <div class="auth-divider" aria-hidden="true"></div>
 
         <!-- REGISTRO -->
-        <div class="auth-half right" [class.active]="mode==='register'" (click)="setMode('register')" role="button"
+        <div class="auth-half right" [class.active]="mode()==='register'" (click)="setMode('register')" role="button"
           tabindex="0">
           <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()"
             (click)="$event.stopPropagation()">
@@ -77,4 +77,45 @@
       <p class="tagline">La plataforma que lleva tu negocio al siguiente nivel</p>
     </section>
   </div>
+
+  <!-- INTRODUCCIÓN con CARDS EXPANDIBLES (cuadrado azul + chevron) -->
+  <section class="intro-v2" aria-labelledby="intro-title">
+    <div class="intro-shell">
+      <div class="intro-header">
+        <span class="pill">GarrSYS en pocas palabras</span>
+        <h3 id="intro-title">Todo en un mismo lugar</h3>
+        <p class="lead">
+          Centralizá productos, clientes, ventas y zonas con una interfaz clara. Menos pasos, menos fricción y más foco
+          en lo importante: tu negocio.
+        </p>
+      </div>
+
+      <div class="intro-grid">
+        <button class="intro-card" type="button" *ngFor="let it of introItems; let i = index"
+          (click)="toggleFlip(i, $event)" (keydown)="onCardKey(i, $event)" [class.expanded]="flipped.has(i)"
+          [attr.aria-expanded]="flipped.has(i) ? 'true' : 'false'" [attr.aria-label]="it.title">
+          <div class="card-surface">
+            <header class="card-head">
+              <span class="tiny-logo" aria-hidden="true"></span>
+              <h4 class="card-title">{{ it.title }}</h4>
+              <span class="chev" aria-hidden="true"></span>
+            </header>
+
+            <div class="card-detail">
+              <p class="detail">{{ it.detail }}</p>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="intro-steps" aria-labelledby="steps-title">
+        <h5 id="steps-title">Cómo empezar</h5>
+        <ol>
+          <li>Creá tu cuenta o iniciá sesión.</li>
+          <li>Cargá productos y clientes.</li>
+          <li>Activá tus flujos de venta y gestión.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
 </div>
