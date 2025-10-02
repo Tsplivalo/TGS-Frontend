@@ -6,6 +6,13 @@ import { AuthService } from '../../services/auth/auth';
 import { Subscription, of } from 'rxjs';
 import { switchMap, catchError, filter } from 'rxjs/operators';
 
+interface introItems {
+  title: string;
+  summary: string;
+  detail: string;
+  icon?: string; // ← opcional
+}
+
 @Component({
   standalone: true,
   selector: 'app-home',
@@ -46,6 +53,55 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Logo (desde assets/Sets)
   logoOk = true;
   onLogoError() { this.logoOk = false; }
+
+  // -------- Intro: flip-cards --------
+  introItems: introItems[] = [
+    {
+      title: 'Gestión clara',
+      summary: 'Vistas consistentes y accesos rápidos.',
+      detail: 'Organizá productos, clientes, ventas y zonas con estructuras previsibles. Menos clicks, más control y foco en lo importante.'
+    },
+    {
+      title: 'Flujos ágiles',
+      summary: 'Todo a mano en pocos pasos.',
+      detail: 'Navegá sin perder el contexto: acciones frecuentes siempre visibles y atajos donde los necesitás.'
+    },
+    {
+      title: 'Listo para crecer',
+      summary: 'Escalá sin dolores.',
+      detail: 'Mantené orden a medida que el equipo y los datos crecen. La plataforma acompaña tu operación.'
+    },
+    {
+      title: 'Reportes',
+      summary: 'Decisiones con datos.',
+      detail: 'Seguimiento claro de la operación: tendencias, rendimientos y desvíos para decidir con evidencia.'
+    },
+    {
+      title: 'Permisos',
+      summary: 'Control de acceso por roles.',
+      detail: 'Definí quién ve y quién edita cada módulo. Seguridad y responsabilidad repartidas.'
+    },
+    {
+      title: 'Soporte',
+      summary: 'Acompañamiento constante.',
+      detail: 'Te ayudamos en la puesta en marcha y evolución del sistema para que aproveches todo su potencial.'
+    }
+  ];
+  flipped = new Set<number>();
+  toggleFlip(i: number, ev?: Event) {
+    ev?.preventDefault();
+    ev?.stopPropagation();
+    if (this.flipped.has(i)) this.flipped.delete(i);
+    else this.flipped.add(i);
+  }
+  onCardKey(i: number, ev: KeyboardEvent) {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      this.toggleFlip(i, ev);
+    } else if (ev.key === 'Escape') {
+      this.flipped.delete(i);
+    }
+  }
 
   qpSub?: Subscription;
   navSub?: Subscription;
