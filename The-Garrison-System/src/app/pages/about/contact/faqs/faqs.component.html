@@ -1,0 +1,16 @@
+<tgs-page-header title="Preguntas frecuentes" subtitle="Respondemos las dudas más comunes">
+<span breadcrumbs>Inicio / FAQs</span>
+</tgs-page-header>
+
+
+<section class="max-w-3xl mx-auto p-4">
+<div class="bg-white rounded-2xl border divide-y">
+<div *ngFor="let item of faqs; let i = index" class="p-4">
+<button class="w-full text-left flex justify-between items-center" (click)="toggle(i)" aria-expanded="{{openIndex()===i}}">
+<span class="font-medium">{{ item.q }}</span>
+<span aria-hidden="true">{{ openIndex()===i ? '–' : '+' }}</span>
+</button>
+<div *ngIf="openIndex()===i" class="mt-2 text-gray-700">{{ item.a }}</div>
+</div>
+</div>
+</section>

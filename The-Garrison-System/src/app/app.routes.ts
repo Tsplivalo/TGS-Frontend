@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './components/home/home';
 
 export const routes: Routes = [
+  // === Home ===
   { path: '', component: HomeComponent },
 
   // === Gestión (ya existentes) ===
@@ -15,6 +16,11 @@ export const routes: Routes = [
   { path: 'decision',  loadComponent: () => import('./components/decision/decision').then(m => m.DecisionComponent) },
   { path: 'tematica',  loadComponent: () => import('./components/tematica/tematica').then(m => m.TematicaComponent) },
 
+  // === Páginas estáticas (nuevas) ===
+  { path: 'sobre-nosotros', loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent) },
+  { path: 'contactanos',    loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent) },
+  { path: 'faqs',           loadComponent: () => import('./pages/faqs/faqs.component').then(m => m.FaqsComponent) },
 
+  // === Wildcard ===
   { path: '**', redirectTo: '' },
 ];
