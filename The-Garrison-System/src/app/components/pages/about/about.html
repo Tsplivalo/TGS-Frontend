@@ -1,0 +1,44 @@
+<section class="stack-lg">
+  <header class="header glass-dark">
+    <h2>Sobre nosotros</h2>
+    <div class="right muted">Inicio / Sobre nosotros</div>
+  </header>
+
+  <article class="card">
+    <h3 class="muted">Nuestra misión</h3>
+    <p>{{ mission }}</p>
+  </article>
+
+  <article class="stack-md">
+    <h3 class="muted">Valores</h3>
+    <div class="values-grid">
+      <div class="card" *ngFor="let v of values">
+        <strong>{{ v.title }}</strong>
+        <p class="muted">{{ v.desc }}</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="stack-md">
+    <h3 class="muted">Equipo</h3>
+    <div class="team-grid">
+      <div class="card team-card" *ngFor="let t of team">
+        <img [src]="t.avatar" [alt]="'Foto de ' + t.name" />
+        <div class="stack-md">
+          <strong>{{ t.name }}</strong>
+          <span class="muted">{{ t.role }}</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="stack-md">
+    <h3 class="muted">Hitos</h3>
+    <ol class="timeline">
+      <li class="card" *ngFor="let e of timeline">
+        <strong>{{ e.year }}</strong>
+        <span class="muted">{{ e.text }}</span>
+      </li>
+    </ol>
+  </article>
+</section>
