@@ -1,0 +1,510 @@
+/* ===========================================
+   Distribuidor — estilos consistentes globales
+   (mismo look & feel que Producto/Clientes)
+=========================================== */
+
+/* ===== Fallbacks locales para barras (thead/header) ===== */
+:host {
+  --bar-bg: var(--bg-elev);
+  --bar-bg-soft: transparent;
+  --bar-text: var(--muted);
+}
+
+/* En tema claro, barra un toque más clara */
+:root[data-theme='light'] :host {
+  --bar-bg: color-mix(in srgb, #ffffff 85%, var(--bg-elev));
+  --bar-bg-soft: color-mix(in srgb, #ffffff 90%, transparent);
+  --bar-text: #273548;
+}
+
+/* ===== Spacing utilities ===== */
+.stack-md {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.stack-lg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+/* ===== Collapsible (form plegable) ===== */
+.collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .28s ease, opacity .2s ease;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.collapsible.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.collapsible__content {
+  min-height: 0;
+}
+
+/* ===========================================
+   PANEL BASE (alias .panel/.card)
+=========================================== */
+.card,
+.panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, 0)),
+    var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--sp-5);
+  position: relative;
+}
+
+.card::before,
+.card::after,
+.panel::before,
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(195, 164, 98, .22);
+  pointer-events: none;
+  border-radius: calc(var(--radius) - 8px);
+}
+
+/* Vidrio theme-aware (panel--glass) */
+.panel--glass {
+  --_glass-bg: rgba(0, 0, 0, 0.408);
+  --_glass-bd: rgba(255, 255, 255, 0.247);
+  background: var(--_glass-bg);
+  border: 1px solid var(--_glass-bd);
+  border-radius: 12px;
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  padding: 0.75rem 1rem;
+  color: var(--text-strong);
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.371),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.4),
+    0 10px 28px rgba(0, 0, 0, 0.645);
+}
+
+:root[data-theme='light'] .panel.panel--glass {
+  --_glass-bg: rgba(255, 255, 255, .86);
+  --_glass-bd: rgba(3, 7, 18, .12);
+  background: var(--_glass-bg);
+  border-color: var(--_glass-bd);
+  color: var(--text);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .35),
+    0 12px 28px rgba(15, 23, 42, .15);
+}
+
+/* ===========================================
+   Encabezado de panel
+=========================================== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 0 0 var(--sp-4);
+  margin: 0 0 var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  font-family: 'Google Sans Code';
+  background: var(--bar-bg-soft);
+  border-radius: calc(var(--radius) - 8px) calc(var(--radius) - 8px) 0 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--h3);
+  font-weight: 700;
+  font-family: 'Google Sans Code';
+}
+
+/* ===========================================
+   Mensajes
+=========================================== */
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, #a94545, transparent 40%);
+  background: color-mix(in srgb, #a94545, transparent 88%);
+  color: #ffeaea;
+  border-radius: 10px;
+}
+
+/* ===========================================
+   Filtros
+=========================================== */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-5);
+  padding: 0 0 var(--sp-4);
+}
+
+.label {
+  display: grid;
+  gap: 4px;
+}
+
+/* menos gap */
+.label-text {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  background: var(--bg-panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(195, 164, 98, .12);
+}
+
+.input[multiple],
+.select[multiple] {
+  padding-block: 8px;
+  background-clip: padding-box;
+}
+
+.input option,
+.select option {
+  background: transparent;
+  color: var(--text);
+}
+
+/* ===========================================
+   Sub-secciones dentro del panel
+=========================================== */
+.subsection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.subsection+.subsection {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+}
+
+.sub-title {
+  margin: 0;
+  font-size: var(--h3);
+}
+
+/* ===========================================
+   Tabla
+=========================================== */
+.table-wrap {
+  padding: 0;
+  overflow: auto;
+  margin: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .015), transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.table thead th {
+  background: var(--bar-bg);
+  color: var(--bar-text);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .5px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover td {
+  background: rgba(255, 255, 255, .03);
+}
+
+:root[data-theme='light'] .table tbody tr:hover td {
+  background: rgba(0, 0, 0, .04);
+}
+
+.right {
+  text-align: right;
+}
+
+.truncate {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===========================================
+   Badges
+=========================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.badge-warn {
+  background: rgba(195, 164, 98, .15);
+  border-color: rgba(195, 164, 98, .5);
+}
+
+.badge-danger {
+  background: rgba(139, 46, 46, .15);
+  border-color: rgba(139, 46, 46, .5);
+}
+
+.badge-ok {
+  background: rgba(63, 125, 99, .15);
+  border-color: rgba(63, 125, 99, .5);
+}
+
+/* ===========================================
+   Empty state
+=========================================== */
+.empty {
+  text-align: center;
+  padding: var(--sp-6);
+  display: grid;
+  gap: var(--sp-3);
+  place-items: center;
+}
+
+.empty h3 {
+  margin: 0;
+  font-size: var(--h3);
+}
+
+.empty p {
+  color: var(--muted);
+}
+
+/* ===========================================
+   Formulario (más compacto y 4 columnas)
+=========================================== */
+.form-grid {
+  display: grid;
+  /* 4 cols en desktop, compactas */
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  column-gap: 20px;
+  row-gap: 14px;
+  /* ← antes era var(--sp-5) */
+}
+
+@media (max-width: 1200px) {
+  .form-grid {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* span de columnas utilitario */
+.form-grid .col-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 900px) {
+  .form-grid .col-2 {
+    grid-column: span 1;
+  }
+}
+
+.form-grid .hint {
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+}
+
+/* ===========================================
+   Botones
+=========================================== */
+.btn {
+  display: inline-flex;
+  font-family: 'Google Sans Code';
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-weight: 700;
+  text-decoration: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(0, 0, 0, .18)),
+    linear-gradient(180deg, var(--accent), var(--accent-700));
+  color: #1a1308;
+  box-shadow: 0 6px 16px rgba(195, 164, 98, .22);
+  transition: transform .06s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(195, 164, 98, .28);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn.success {
+  background: linear-gradient(180deg, #4a8d72, #3f7d63);
+  color: #fff;
+}
+
+.btn.danger {
+  background: linear-gradient(180deg, #a94545, #8b2e2e);
+  color: #fff;
+}
+
+/* =========================================================
+   Campos específicos (Dirección, Zona, Productos)
+   - Altura: Dirección/Zona = como DNI (~42px)
+   - Productos: altura cómoda + contenedor redimensionable
+========================================================= */
+
+/* Igualar ancho al base */
+.input[formcontrolname="address"],
+.input[formcontrolname="zoneId"],
+select.input[formcontrolname="zoneId"],
+.input[formcontrolname="productsIds"],
+select.input[formcontrolname="productsIds"] {
+  min-width: 220px;
+  max-width: none;
+  width: 100%;
+}
+
+/* Altura consistente (como DNI) */
+.input[formcontrolname="address"] {
+  height: 42px;
+  min-height: 0 !important;
+  padding-block: 10px;
+}
+
+/* Select de Zona: misma altura que DNI */
+select.input[formcontrolname="zoneId"] {
+  height: 42px;
+  min-height: 0 !important;
+  padding-block: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, currentColor 70%, transparent 71%),
+    linear-gradient(315deg, currentColor 70%, transparent 71%);
+  background-size: 6px 6px, 6px 6px;
+  background-position: right 14px center, right 8px center;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+
+/* Contenedor redimensionable para Productos */
+.multi-resize {
+  resize: vertical;
+  /* podés arrastrar la esquina */
+  overflow: auto;
+  min-height: 140px;
+  /* cómodo pero más chico que antes */
+  max-height: 360px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+/* El select ocupa el alto del contenedor y no dibuja bordes dobles */
+.multi-resize>select.input {
+  height: 100% !important;
+  min-height: 100% !important;
+  border: 0 !important;
+  background: transparent;
+  padding: 8px 10px;
+}
+
+/* Que Productos ocupe 2 columnas en desktop para equilibrar */
+label[for="productsIds"],
+label:has(select[formcontrolname="productsIds"]) {
+  grid-column: span 2;
+}
+
+@media (max-width: 900px) {
+
+  label[for="productsIds"],
+  label:has(select[formcontrolname="productsIds"]) {
+    grid-column: span 1;
+  }
+}

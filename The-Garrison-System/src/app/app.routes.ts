@@ -54,10 +54,33 @@ export const routes: Routes = [
       import('./components/topic/topic').then((m) => m.TopicComponent),
   },
 
+  // === Nuevo: Distribuidor ===
+  {
+    path: 'distribuidor',
+    loadComponent: () =>
+      import('./components/distributor/distributor').then(
+        (m) => m.DistributorComponent
+      ),
+  },
+
   // === Static pages (new) ===
-  { path: 'sobre-nosotros', loadComponent: () => import('./components/pages/about/about').then(m    => m.AboutComponent) },
-  { path: 'contactanos',    loadComponent: () => import('./components/pages/contact/contact').then(m => m.ContactComponent) },
-  { path: 'faqs',           loadComponent: () => import('./components/pages/faqs/faqs').then(m       => m.FaqsComponent) },
+  {
+    path: 'sobre-nosotros',
+    loadComponent: () =>
+      import('./components/pages/about/about').then((m) => m.AboutComponent),
+  },
+  {
+    path: 'contactanos',
+    loadComponent: () =>
+      import('./components/pages/contact/contact').then(
+        (m) => m.ContactComponent
+      ),
+  },
+  {
+    path: 'faqs',
+    loadComponent: () =>
+      import('./components/pages/faqs/faqs').then((m) => m.FaqsComponent),
+  },
 
   // === Wildcard ===
   { path: '**', redirectTo: '' },

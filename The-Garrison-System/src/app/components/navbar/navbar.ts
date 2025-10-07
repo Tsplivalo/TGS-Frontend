@@ -42,7 +42,8 @@ export class NavbarComponent implements AfterViewInit {
     { label: 'Autoridad',  path: '/autoridad' },
     { label: 'Sobornos',   path: '/sobornos' },
     { label: 'Decisiones', path: '/decision' },
-    { label: 'Temática',   path: '/tematica' }, // alias a /topic
+    { label: 'Temática',   path: '/tematica' },
+    { label: 'Distribuidor', path: '/distribuidor' },
   ];
 
   // Ítems públicos (podés mostrarlos a la izquierda o en un dropdown aparte)

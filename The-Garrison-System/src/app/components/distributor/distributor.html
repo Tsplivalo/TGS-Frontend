@@ -1,0 +1,139 @@
+<section class="stack-lg">
+  <!-- LISTADO -->
+  <div class="panel panel--glass stack-md">
+    <header class="header">
+      <h2 class="title">Distribuidores</h2>
+      <div class="right">
+        <button class="btn" type="button" (click)="new()">
+          + Nuevo distribuidor
+        </button>
+      </div>
+    </header>
+
+    <div class="error" *ngIf="error() as err">
+      <strong>Error:</strong> {{ err }}
+    </div>
+    <div class="muted" *ngIf="loading()">Cargando distribuidores...</div>
+
+    <section class="filters">
+      <label class="label">
+        <span class="label-text">Buscar</span>
+        <input class="input" type="text" placeholder="DNI, nombre, email, zona" [(ngModel)]="fText" />
+      </label>
+    </section>
+
+    <section class="subsection">
+      <h3 class="sub-title">Listado</h3>
+
+      <div class="table-wrap" *ngIf="filtered().length; else empty">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:140px">DNI</th>
+              <th>Nombre</th>
+              <th style="width:140px">Teléfono</th>
+              <th style="width:220px">Email</th>
+              <th style="width:160px">Zona</th>
+              <th style="width:120px" class="right">Productos</th>
+              <th style="width:220px" class="right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of filtered()">
+              <td>{{ d.dni }}</td>
+              <td>{{ d.name }}</td>
+              <td>{{ d.phone }}</td>
+              <td>{{ d.email }}</td>
+              <td>{{ d.zone?.name || ('#' + (d.zone?.id ?? d.zoneId ?? '')) }}</td>
+              <td class="right">{{ d.products?.length || 0 }}</td>
+              <td class="right">
+                <button class="btn ghost" type="button" (click)="edit(d)">Editar</button>
+                <button class="btn danger" type="button" (click)="delete(d.dni)"
+                  [disabled]="loading()">Eliminar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #empty>
+        <div class="empty">
+          <h3>No hay distribuidores</h3>
+          <p>Creá el primero con “+ Nuevo distribuidor”.</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <!-- FORM (COLLAPSIBLE) -->
+  <div class="collapsible" [class.open]="isFormOpen">
+    <div class="collapsible__content panel panel--glass">
+      <div class="header">
+        <h2 class="title">
+          {{ isEdit() ? ('Editar distribuidor ' + form.controls.dni.value) : 'Nuevo distribuidor' }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid form-grid--compact">
+        <div class="error" *ngIf="error()">{{ error() }}</div>
+
+        <label class="label">
+          <span>DNI</span>
+          <input class="input" formControlName="dni" [readonly]="isEdit()" placeholder="Documento" />
+          <small class="hint" *ngIf="submitted() && form.controls.dni.invalid">DNI requerido.</small>
+        </label>
+
+        <label class="label">
+          <span>Nombre</span>
+          <input class="input" formControlName="name" placeholder="Nombre y apellido" />
+          <small class="hint" *ngIf="submitted() && form.controls.name.invalid">Nombre requerido.</small>
+        </label>
+
+        <label class="label">
+          <span>Teléfono</span>
+          <input class="input" formControlName="phone" placeholder="Ej. +54 9 ..." />
+          <small class="hint" *ngIf="submitted() && form.controls.phone.invalid">Teléfono requerido.</small>
+        </label>
+
+        <label class="label">
+          <span>Email</span>
+          <input class="input" type="email" formControlName="email" placeholder="correo@dominio.com" />
+          <small class="hint" *ngIf="submitted() && form.controls.email.invalid">Email válido requerido.</small>
+        </label>
+
+        <label class="label">
+          <span>Dirección</span>
+          <input class="input" formControlName="address" placeholder="Calle y número" />
+        </label>
+
+        <label class="label">
+          <span>Zona</span>
+          <select class="input" formControlName="zoneId">
+            <option [ngValue]="null">Seleccioná zona</option>
+            <option *ngFor="let z of zones()" [ngValue]="z.id">{{ z.name }}</option>
+          </select>
+          <small class="hint" *ngIf="submitted() && form.controls.zoneId.invalid">Zona requerida.</small>
+        </label>
+
+        <label class="label col-2">
+          <span>Productos</span>
+          <div class="multi-resize">
+            <select class="input" formControlName="productsIds" multiple>
+              <option *ngFor="let p of products()" [ngValue]="p.id">
+                #{{ p.id }} — {{ p.description }}
+              </option>
+            </select>
+          </div>
+          <small class="hint">Mantené Ctrl/Cmd para selección múltiple</small>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+            {{ isEdit() ? 'Guardar' : 'Crear' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="cancel()" [disabled]="loading()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
