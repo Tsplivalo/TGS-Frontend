@@ -2,9 +2,10 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './components/home/home';
 
 export const routes: Routes = [
+  // === Home ===
   { path: '', component: HomeComponent },
 
-  // === Gestión (ya existentes) ===
+  // === Management (existing) ===
   {
     path: 'producto',
     loadComponent: () =>
@@ -53,5 +54,11 @@ export const routes: Routes = [
       import('./components/topic/topic').then((m) => m.TematicaComponent),
   },
 
+  // === Static pages (new) ===
+  { path: 'sobre-nosotros', loadComponent: () => import('./components/pages/about/about').then(m    => m.AboutComponent) },
+  { path: 'contactanos',    loadComponent: () => import('./components/pages/contact/contact').then(m => m.ContactComponent) },
+  { path: 'faqs',           loadComponent: () => import('./components/pages/faqs/faqs').then(m       => m.FaqsComponent) },
+
+  // === Wildcard ===
   { path: '**', redirectTo: '' },
 ];

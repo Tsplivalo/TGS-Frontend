@@ -15,46 +15,55 @@ interface MenuItem { label: string; path: string; }
 })
 export class NavbarComponent implements AfterViewInit {
   private auth = inject(AuthService);
-  private router = inject(Router);
+  readonly isLoggedIn = this.auth.isLoggedIn;  // signal<boolean>
+  readonly user = this.auth.user;              // signal<{username?:string}|null>
 
-  readonly isLoggedIn = this.auth.isLoggedIn;
-  readonly user = this.auth.user;
-
+  // Menú Gestión (se mantiene igual)
   readonly gestionItems: MenuItem[] = [
-    { label: 'Productos',   path: '/producto' },
-    { label: 'Clientes',    path: '/cliente' },
-    { label: 'Ventas',      path: '/venta' },
-    { label: 'Zonas',       path: '/zona' },
-    { label: 'Autoridades', path: '/autoridad' },
-    { label: 'Socios',      path: '/socio' },
-    { label: 'Sobornos',    path: '/sobornos' },
-    { label: 'Decisiones',  path: '/decision' },
-    { label: 'Temáticas',   path: '/tematica' },
+    { label: 'Producto',   path: '/producto' },
+    { label: 'Cliente',    path: '/cliente' },
+    { label: 'Socio',      path: '/socio' },
+    { label: 'Venta',      path: '/venta' },
+    { label: 'Zona',       path: '/zona' },
+    { label: 'Autoridad',  path: '/autoridad' },
+    { label: 'Sobornos',   path: '/sobornos' },
+    { label: 'Decisiones', path: '/decision' },
+    { label: 'Temática',   path: '/tematica' },
+  ];
+
+  // Ítems públicos (solo cuando NO estás logueado)
+  readonly publicItems: MenuItem[] = [
+    { label: 'Sobre nosotros', path: '/sobre-nosotros' },
+    { label: 'FAQs',           path: '/faqs' },
+    { label: 'Contactanos',    path: '/contactanos' },
   ];
 
   indicator = { x: 0, y: 0, w: 0, h: 0, visible: false };
 
-  @ViewChild('menu', { static: true }) menuRef!: ElementRef<HTMLElement>;
-  @ViewChildren('mainBtn') mainBtns!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('menu', { static: true }) menuRef!: ElementRef<HTMLUListElement>;
+  @ViewChildren('mainBtn') buttons!: QueryList<ElementRef<HTMLAnchorElement | HTMLButtonElement>>;
 
-  constructor() {
-    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => setTimeout(() => this.updateIndicator(), 0));
+  constructor(private router: Router) {
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(() => setTimeout(() => this.updateIndicator(), 0));
   }
 
-  ngAfterViewInit(): void { setTimeout(() => this.updateIndicator(), 0); }
+  ngAfterViewInit() { this.updateIndicator(); }
 
+  // Activa "Gestión" si estás en alguna de sus rutas
   isGestionActive(): boolean {
-    const u = this.cleanUrl(this.router.url);
-    return this.gestionItems.some(({ path }) => {
-      const base = path.replace(/\/+$/, '');
-      return u === base || u.startsWith(base + '/');
-    });
+    const url = this.router.url;
+    return url.startsWith('/producto')
+      || url.startsWith('/cliente')
+      || url.startsWith('/socio')
+      || url.startsWith('/venta')
+      || url.startsWith('/zona')
+      || url.startsWith('/autoridad')
+      || url.startsWith('/sobornos')
+      || url.startsWith('/decision')
+      || url.startsWith('/tematica');
   }
-
-  private cleanUrl(url: string): string {
-    const u = url.split('?')[0].split('#')[0].replace(/\/+$/, '');
-    return u === '/' ? '' : u;
-    }
 
   logout() { this.auth.logout(); }
 
@@ -63,8 +72,13 @@ export class NavbarComponent implements AfterViewInit {
     const activeEl = menuEl?.querySelector('.menu__item a.active, .menu__item--dropdown > .has-underline.active') as HTMLElement | null;
     if (!menuEl || !activeEl) { this.indicator.visible = false; return; }
 
-    const m = menuEl.getBoundingClientRect();
-    const b = activeEl.getBoundingClientRect();
-    this.indicator = { x: b.left - m.left, y: b.top - m.top, w: b.width, h: b.height, visible: true };
+    const menuRect = menuEl.getBoundingClientRect();
+    const btnRect  = activeEl.getBoundingClientRect();
+    const x = btnRect.left - menuRect.left;
+    const y = btnRect.top  - menuRect.top;
+    const w = btnRect.width;
+    const h = btnRect.height;
+
+    this.indicator = { x, y, w, h, visible: true };
   }
 }
