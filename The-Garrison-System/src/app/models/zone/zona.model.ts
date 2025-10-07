@@ -1,8 +1,8 @@
-export interface ZonaDTO {
+export interface ZoneDTO {
   id: number;
-  nombre: string;
-  descripcion?: string;
-  esSedeCentral: boolean;
+  name: string;
+  description?: string;
+  isHeadquarters: boolean;
 }
 
 export interface ApiResponse<T> {
@@ -11,10 +11,10 @@ export interface ApiResponse<T> {
 }
 
 // Para creación (sin id)
-export type CreateZonaDTO = Omit<ZonaDTO, 'id'>;
+export type CreateZoneDTO = Omit<ZoneDTO, 'id'>;
 
 // Para reemplazo completo (PUT)
-export type UpdateZonaDTO = CreateZonaDTO;
+export type UpdateZonaDTO = CreateZoneDTO;
 
 // Para parches (PATCH)
-export type PatchZonaDTO = Partial<CreateZonaDTO>;
+export type PatchZonaDTO = Partial<CreateZoneDTO>;

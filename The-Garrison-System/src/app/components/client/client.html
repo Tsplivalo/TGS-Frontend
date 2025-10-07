@@ -51,7 +51,7 @@
             <td>{{ c.email || '-' }}</td>
             <td>{{ c.address || '-' }}</td>
             <td>{{ c.phone || '-' }}</td>
-            <td class="center">{{ c.purchaseRecords.length || 0 }}</td>
+            <td class="center">{{ c.purchaseHistory.length || 0 }}</td>
             <td class="right">
               <button class="btn ghost" (click)="edit(c)">Edit</button>
               <button class="btn danger" (click)="delete(c.dni)">Delete</button>

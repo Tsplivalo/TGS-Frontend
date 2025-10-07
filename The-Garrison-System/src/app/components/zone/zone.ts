@@ -6,7 +6,7 @@ import {
   ApiResponse,
   ZoneDTO,
   CreateZoneDTO
-} from '../../models/zone/zone.model';
+} from '../../models/zone/zona.model';
 
 @Component({
   selector: 'app-zone',
@@ -35,14 +35,14 @@ export class ZoneComponent implements OnInit {
     return this.zones().filter(z => {
       const matchText = !txt
         || String(z.id).includes(txt)
-        || z.nombre.toLowerCase().includes(txt)
-        || (z.descripcion ?? '').toLowerCase().includes(txt);
+        || z.name.toLowerCase().includes(txt)
+        || (z.description ?? '').toLowerCase().includes(txt);
       return matchText;
     });
   });
 
   // current headquarters (to show above)
-  headquarters = computed(() => this.zones().find(z => z.esSedeCentral) ?? null);
+  headquarters = computed(() => this.zones().find(z => z.isHeadquarters) ?? null);
 
   // form
   form = this.fb.group({
@@ -74,9 +74,9 @@ export class ZoneComponent implements OnInit {
   edit(z: ZoneDTO) {
     this.editId.set(z.id);
     this.form.patchValue({
-      name: z.nombre,
-      description: z.descripcion ?? '',
-      isHeadquarters: !!z.esSedeCentral
+      name: z.name,
+      description: z.description ?? '',
+      isHeadquarters: !!z.isHeadquarters
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.error.set(null);
@@ -166,16 +166,16 @@ toggleForm() {
 
   delete(z: ZoneDTO) {
     // If it is headquarters, do not delete and show error box
-    if (z.esSedeCentral) {
+    if (z.isHeadquarters) {
       this.error.set(
-        `Cannot delete zone "${z.nombre}" because it is the current headquarters. ` +
+        `Cannot delete zone "${z.name}" because it is the current headquarters. ` +
         `To delete it, first assign another zone as headquarters.`
       );
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    if (!confirm(`Delete zone "${z.nombre}"?`)) return;
+    if (!confirm(`Delete zone "${z.name}"?`)) return;
 
     this.loading.set(true);
     this.srv.deleteZone(z.id).subscribe({

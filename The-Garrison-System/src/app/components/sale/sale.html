@@ -40,10 +40,10 @@
           @for (v of filteredSales(); track v.id) {
           <tr>
             <td>{{ v.id }}</td>
-            <td>{{ v.fecha | date:'short' }}</td>
+            <td>{{ v.date | date:'short' }}</td>
             <td>
               @if (getClient(v); as cli) {
-              {{ cli.dni }} - {{ cli.nombre || 'Client' }}
+              {{ cli.dni }} - {{ cli.name || 'Client' }}
               } @else {
               —
               }
@@ -54,7 +54,7 @@
               @if (hasDetails(v)) {
               {{ getDetails(v).length }} item(s)
               <div class="muted">
-                @for (d of getDetails(v); track d.productoId; let last = $last) {
+                @for (d of getDetails(v); track d.productId; let last = $last) {
                 {{ detailDescription(d) }}@if (!last) {, }
                 }
               </div>
@@ -103,7 +103,7 @@
           <select class="input" formControlName="clientDni">
             <option [ngValue]="null" disabled>Choose a client</option>
             @for (c of filteredClients(); track c.dni) {
-            <option [ngValue]="c.dni">{{ c.dni }} - {{ c.nombre }}</option>
+            <option [ngValue]="c.dni">{{ c.dni }} - {{ c.name }}</option>
             }
           </select>
           <small class="muted">Not listed? Create it from <strong>Clients</strong>.</small>
@@ -130,7 +130,7 @@
                   <option [ngValue]="null" disabled>Choose a product</option>
                   @for (p of filteredProductsBy(l.filter || ''); track p.id) {
                   <option [ngValue]="p.id">
-                    {{ p.id }} - {{ p.descripcion }} ({{ p.stock }} u.) - {{ p.precio | currency:'ARS' }}
+                    {{ p.id }} - {{ p.description }} ({{ p.stock }} u.) - {{ p.price | currency:'ARS' }}
                   </option>
                   }
                 </select>

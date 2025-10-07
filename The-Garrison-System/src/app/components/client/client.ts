@@ -38,7 +38,7 @@ export class ClientComponent implements OnInit {
         || (c.address ?? '').toLowerCase().includes(txt)
         || (c.phone ?? '').toLowerCase().includes(txt);
 
-      const quantity = c.purchaseRecords?.length ?? 0;
+      const quantity = c.purchaseHistory?.length ?? 0;
       const matchPurchases = filter === 'all'
         || (filter === 'yes' && quantity > 0)
         || (filter === 'no' && quantity === 0);

@@ -64,6 +64,16 @@ export class ProductComponent implements OnInit {
   isNewOpen = false;
   toggleNew(){ this.isNewOpen = !this.isNewOpen; }
 
+  coerceNumber(key: 'price' | 'stock', ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const val = input.value === '' ? 0 : Number(input.value);
+    this.form.controls[key].setValue(val);              
+    this.form.controls[key].markAsDirty();
+    this.form.controls[key].updateValueAndValidity();
+  }
+
+
+
   private load() {
     this.loading.set(true);
     this.error.set(null);

@@ -196,3 +196,66 @@
   outline: 2px solid #93c5fd;
   outline-offset: 3px;
 }
+
+/* ====== Extras para botón Salir (dropdown) ====== */
+/* Dropdown a la derecha cuando está en el menú derecho */
+.menu--right .menu__item--dropdown .dropdown {
+  right: 0;
+  left: auto;
+}
+
+/* Unificar estilo de <a> y <button> dentro del dropdown */
+.dropdown__item a,
+.dropdown__item button {
+  width: 100%;
+  padding: .6rem .7rem;
+  border-radius: .6rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+
+.dropdown__item a:hover,
+.dropdown__item button:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Divider opcional */
+.dropdown__divider {
+  height: 1px;
+  margin: .35rem .35rem;
+  background: rgba(255, 255, 255, .12);
+  border: 0;
+  list-style: none;
+}
+
+/* Acento sutil para Salir (sin cosas raras) */
+:root {
+  --danger: #ef4444;
+  /* red-500 */
+  --danger-text: #fca5a5;
+  /* red-300 */
+}
+
+.dropdown__item .btn-logout {
+  color: var(--danger-text);
+}
+
+.dropdown__item .btn-logout:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  /* red-200 */
+}
+
+/* Accesibilidad consistente */
+.dropdown__item a:focus-visible,
+.dropdown__item button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 3px;
+}

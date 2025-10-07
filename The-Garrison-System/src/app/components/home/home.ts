@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs'; // ⬅️ IMPORTANTE
 
 // Ajustá estos imports al AuthService que ya tenés en tu proyecto:
 import { AuthService } from '../../services/auth/auth';
@@ -129,7 +130,8 @@ export class HomeComponent {
       const { email, password } = this.loginForm.getRawValue();
       if (!email || !password) throw new Error('Completá email y contraseña.');
 
-      await this.auth.login({ email, password });
+      // ⬇️ disparar Observable como Promise
+      await firstValueFrom(this.auth.login({ email, password }));
 
       this.hiding = true;
       setTimeout(() => {
@@ -152,8 +154,9 @@ export class HomeComponent {
       const { username, email, password } = this.registerForm.getRawValue();
       if (!username || !email || !password) throw new Error('Completá todos los campos.');
 
-      await this.auth.register({ username, email, password });
-      await this.auth.login({ email, password });
+      // ⬇️ idem: Observables → Promise
+      await firstValueFrom(this.auth.register({ username, email, password }));
+      await firstValueFrom(this.auth.login({ email, password }));
 
       this.hiding = true;
       setTimeout(() => {

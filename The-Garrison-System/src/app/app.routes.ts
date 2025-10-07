@@ -9,39 +9,39 @@ export const routes: Routes = [
   {
     path: 'producto',
     loadComponent: () =>
-      import('./components/product/producto').then((m) => m.ProductoComponent),
+      import('./components/product/product').then((m) => m.ProductComponent),
   },
   {
     path: 'cliente',
     loadComponent: () =>
-      import('./components/client/cliente').then((m) => m.ClienteComponent),
+      import('./components/client/client').then((m) => m.ClientComponent),
   },
   {
     path: 'socio',
     loadComponent: () =>
-      import('./components/partner/socio').then((m) => m.SocioComponent),
+      import('./components/partner/partner').then((m) => m.PartnerComponent),
   },
   {
     path: 'venta',
     loadComponent: () =>
-      import('./components/sale/venta').then((m) => m.VentaComponent),
+      import('./components/sale/sale').then((m) => m.SaleComponent),
   },
   {
     path: 'zona',
     loadComponent: () =>
-      import('./components/zone/zona').then((m) => m.ZonaComponent),
+      import('./components/zone/zone').then((m) => m.ZoneComponent),
   },
   {
     path: 'autoridad',
     loadComponent: () =>
-      import('./components/authority/autoridad').then(
-        (m) => m.AutoridadComponent
+      import('./components/authority/authority').then(
+        (m) => m.AuthorityComponent
       ),
   },
   {
     path: 'sobornos',
     loadComponent: () =>
-      import('./components/bribe/soborno').then((m) => m.SobornoComponent),
+      import('./components/bribe/bribe').then((m) => m.BribeComponent),
   },
   {
     path: 'decision',
@@ -49,9 +49,9 @@ export const routes: Routes = [
       import('./components/decision/decision').then((m) => m.DecisionComponent),
   },
   {
-    path: 'topic',
+    path: 'tematica',
     loadComponent: () =>
-      import('./components/topic/topic').then((m) => m.TematicaComponent),
+      import('./components/topic/topic').then((m) => m.TopicComponent),
   },
 
   // === Static pages (new) ===

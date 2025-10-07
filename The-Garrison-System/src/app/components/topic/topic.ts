@@ -1,18 +1,9 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormsModule, ReactiveFormsModule,
-  FormBuilder, Validators, FormGroup, FormControl
-} from '@angular/forms';
-import {
-  TopicService
-} from '../../services/topic/topic';
-import {
-  TopicDTO,
-  CreateTopicDTO,
-  UpdateTopicDTO,
-  ApiResponse
-} from '../../models/topic/topic.model';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
+
+import { TopicService } from '../../services/topic/topic';
+import { TopicDTO, CreateTopicDTO, UpdateTopicDTO } from '../../models/topic/topic.model';
 
 type TopicForm = {
   id: FormControl<number | null>;
@@ -33,13 +24,9 @@ export class TopicComponent implements OnInit {
   topics = signal<TopicDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
-  submitted = signal(false);
 
-  // edit
+  filterText = '';
   isEdit = signal(false);
-
-  // simple filter
-  fText = '';
 
   form: FormGroup<TopicForm> = this.fb.group<TopicForm>({
     id: this.fb.control<number | null>(null),
@@ -50,40 +37,44 @@ export class TopicComponent implements OnInit {
     this.load();
   }
 
-  filteredTopics = computed(() => {
-    const q = (this.fText || '').toLowerCase().trim();
+  filtered = computed(() => {
+    const q = (this.filterText || '').toLowerCase().trim();
     if (!q) return this.topics();
-    return this.topics().filter(t => (t.description || '').toLowerCase().includes(q) || String(t.id).includes(q));
+    return this.topics().filter(t =>
+      (t.description || '').toLowerCase().includes(q) ||
+      String(t.id ?? '').includes(q)
+    );
   });
 
   load() {
     this.loading.set(true);
     this.error.set(null);
+    // ⬇️ getAll(): Observable<TopicDTO[]>
     this.srv.getAll().subscribe({
-      next: (res: ApiResponse<TopicDTO[]>) => {
-        this.topics.set(res?.data || []);
+      next: (list: TopicDTO[]) => {
+        this.topics.set(list);
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Could not load topics.');
+        this.error.set(err?.error?.message || 'No se pudieron cargar las temáticas.');
         this.loading.set(false);
       }
     });
   }
 
-  isFormOpen = false;
-  toggleForm(){ this.isFormOpen = !this.isFormOpen; }
-
   new() {
     this.isEdit.set(false);
     this.form.reset({ id: null, description: '' });
-    this.submitted.set(false);
+    this.error.set(null);
   }
 
   edit(t: TopicDTO) {
     this.isEdit.set(true);
-    this.form.setValue({ id: t.id, description: t.description || '' });
-    this.submitted.set(false);
+    this.form.setValue({
+      id: t.id ?? null,
+      description: t.description ?? '',
+    });
+    this.error.set(null);
   }
 
   delete(id: number) {
@@ -92,48 +83,53 @@ export class TopicComponent implements OnInit {
     this.srv.delete(id).subscribe({
       next: () => this.load(),
       error: (err) => {
-        this.error.set(err?.error?.message || 'Could not delete.');
+        this.error.set(err?.error?.message || 'No se pudo eliminar.');
         this.loading.set(false);
       }
     });
   }
 
   private buildCreate(): CreateTopicDTO {
-    return { description: String(this.form.controls.description.value || '').trim() };
+    const v = this.form.getRawValue();
+    return { description: String(v.description).trim() };
   }
 
   private buildUpdate(): UpdateTopicDTO {
-    return { description: String(this.form.controls.description.value || '').trim() || undefined };
+    const v = this.form.getRawValue();
+    return { description: String(v.description).trim() };
   }
 
   save() {
-    this.submitted.set(true);
-
-    if (this.form.controls.description.invalid) {
-      this.form.controls.description.markAsTouched();
-      this.error.set('Complete the description.');
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error.set('Completá la descripción.');
       return;
     }
 
     this.loading.set(true);
     this.error.set(null);
 
-    if (!this.isEdit()) {
-      this.srv.create(this.buildCreate()).subscribe({
-        next: () => { this.new(); this.load(); },
+    const id = this.form.controls.id.value;
+
+    if (!id) {
+      // CREATE => Observable<TopicDTO>
+      const payload = this.buildCreate();
+      this.srv.create(payload).subscribe({
+        next: (_created: TopicDTO) => { this.new(); this.load(); },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Could not create.');
+          this.error.set(err?.error?.message || 'No se pudo crear.');
           this.loading.set(false);
         }
       });
       return;
     }
 
-    const id = this.form.controls.id.value!;
-    this.srv.update(id, this.buildUpdate()).subscribe({
-      next: () => { this.new(); this.load(); },
+    // UPDATE (PATCH) => Observable<TopicDTO>
+    const payload = this.buildUpdate();
+    this.srv.update(id, payload).subscribe({
+      next: (_updated: TopicDTO) => { this.new(); this.load(); },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Could not save.');
+        this.error.set(err?.error?.message || 'No se pudo guardar.');
         this.loading.set(false);
       }
     });

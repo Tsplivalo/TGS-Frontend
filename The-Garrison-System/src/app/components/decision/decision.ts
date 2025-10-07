@@ -7,11 +7,11 @@ import {
 
 import { DecisionService } from '../../services/decision/decision';
 import {
-  DecisionDTO, CreateDecisionDTO, PatchDecisionDTO, ApiResponse as ApiDecisionResp
+  DecisionDTO, CreateDecisionDTO, PatchDecisionDTO
 } from '../../models/decision/decision.model';
 
 import { TopicService } from '../../services/topic/topic';
-import { TopicDTO, ApiResponse as ApiTopicResp } from '../../models/topic/topic.model';
+import { TopicDTO } from '../../models/topic/topic.model';
 
 type DecisionForm = {
   id: FormControl<number | null>;
@@ -58,7 +58,6 @@ export class DecisionComponent implements OnInit {
   isFormOpen = false;
   toggleForm(){ this.isFormOpen = !this.isFormOpen; }
 
-
   ngOnInit(): void {
     // If the <select> for topics emits a string, convert it to a number
     this.form.controls.topicId.valueChanges.subscribe((v) => {
@@ -98,10 +97,10 @@ export class DecisionComponent implements OnInit {
     const q = (this.fText || '').toLowerCase().trim();
     const tFilter = (this.topicFilter || '').trim();
     return this.decisions().filter(d => {
-  const matchText = !q || (d.description || '').toLowerCase().includes(q) || String(d.id).includes(q);
-  const topicId = d.topic?.id != null ? String(d.topic.id) : '';
-  const matchTopic = !tFilter || topicId === tFilter;
-  return matchText && matchTopic;
+      const matchText = !q || (d.description || '').toLowerCase().includes(q) || String(d.id).includes(q);
+      const topicId = d.topic?.id != null ? String(d.topic.id) : '';
+      const matchTopic = !tFilter || topicId === tFilter;
+      return matchText && matchTopic;
     });
   });
 
@@ -119,8 +118,8 @@ export class DecisionComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAll().subscribe({
-      next: (res: ApiDecisionResp<DecisionDTO[]>) => {
-        this.decisions.set(res?.data || []);
+      next: (list: DecisionDTO[]) => {
+        this.decisions.set(list);
         this.loading.set(false);
       },
       error: (err) => {
@@ -131,9 +130,10 @@ export class DecisionComponent implements OnInit {
   }
 
   loadTopics() {
+    // getAll() de TopicService devuelve Observable<TopicDTO[]>
     this.topicSrv.getAll().subscribe({
-      next: (res: ApiTopicResp<TopicDTO[]>) => {
-        this.topics.set(res?.data || []);
+      next: (list: TopicDTO[]) => {
+        this.topics.set(list);
       },
       error: (err) => console.warn('[DECISION] Could not load topics:', err)
     });

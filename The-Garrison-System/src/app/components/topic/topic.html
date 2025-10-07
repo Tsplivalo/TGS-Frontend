@@ -5,26 +5,28 @@
     <div class="header">
       <h2>Topics</h2>
       <div class="right">
-        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
-          {{ isFormOpen ? 'Close' : 'New' }}
+        <button class="btn" type="button" (click)="new()">
+          New
         </button>
       </div>
     </div>
 
-    <div class="filters">
+    <div class="filters" role="search">
       <label class="label">
         <span>Search</span>
-        <input class="input" placeholder="text or id" [(ngModel)]="fText" />
+        <!-- usa filterText del component -->
+        <input class="input" placeholder="text or id" [(ngModel)]="filterText" [ngModelOptions]="{ standalone: true }"
+          (keydown.enter)="$event.preventDefault()" aria-label="Search topics by text or id" />
       </label>
     </div>
 
     <div class="table-wrap">
-      <table class="table" *ngIf="filteredTopics().length; else empty">
-        <!-- fixed widths to align thead/tbody -->
+      <!-- usa filtered() del component -->
+      <table class="table" *ngIf="filtered().length; else empty">
         <colgroup>
-          <col style="width:100px" /> <!-- ID -->
-          <col /> <!-- Description -->
-          <col style="width:220px" /> <!-- Actions -->
+          <col style="width:100px" />
+          <col />
+          <col style="width:220px" />
         </colgroup>
 
         <thead>
@@ -36,12 +38,12 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let t of filteredTopics()">
+          <tr *ngFor="let t of filtered()">
             <td>#{{ t.id }}</td>
             <td><span class="truncate">{{ t.description }}</span></td>
             <td class="right">
-              <button class="btn ghost" (click)="edit(t); isFormOpen = true">Edit</button>
-              <button class="btn danger" (click)="delete(t.id)">Delete</button>
+              <button class="btn ghost" type="button" (click)="edit(t)">Edit</button>
+              <button class="btn danger" type="button" (click)="delete(t.id)">Delete</button>
             </td>
           </tr>
         </tbody>
@@ -53,29 +55,33 @@
     </div>
   </div>
 
-  <!-- FORM (COLLAPSIBLE, SAME STYLE) -->
-  <div class="collapsible" [class.open]="isFormOpen">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
-        <h2>{{ isEdit() ? ('Edit topic: ' + form.controls.id.value) : 'New topic' }}</h2>
-      </div>
-
-      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-        <div class="error" *ngIf="error()">{{ error() }}</div>
-
-        <label class="label">
-          <span>Description</span>
-          <input class="input" formControlName="description" placeholder="e.g. Corruption, Smuggling..." />
-        </label>
-
-        <div class="right form-actions">
-          <button class="btn success" type="submit" [disabled]="loading()">
-            {{ isEdit() ? 'Save' : 'Create' }}
-          </button>
-          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">Cancel</button>
-        </div>
-      </form>
+  <!-- FORM (simple, siempre visible) -->
+  <div class="glass-dark card">
+    <div class="header">
+      <h2>
+        {{ isEdit() ? ('Edit topic: ' + (form.controls.id.value ?? '')) : 'New topic' }}
+      </h2>
     </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-grid" novalidate>
+      <div class="error" *ngIf="error()">{{ error() }}</div>
+
+      <label class="label">
+        <span>Description</span>
+        <input class="input" formControlName="description" placeholder="e.g. Corruption, Smuggling..."
+          [attr.aria-invalid]="form.controls.description.invalid && form.controls.description.touched" />
+        <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
+          Description is required.
+        </small>
+      </label>
+
+      <div class="right form-actions">
+        <button class="btn success" type="submit" [disabled]="form.invalid || loading()" [attr.aria-busy]="loading()">
+          {{ isEdit() ? 'Save' : 'Create' }}
+        </button>
+        <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">Cancel</button>
+      </div>
+    </form>
   </div>
 
 </section>
