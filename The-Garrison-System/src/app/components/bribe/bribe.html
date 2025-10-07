@@ -1,0 +1,69 @@
+<section class="stack-lg">
+  <!-- LIST -->
+  <div class="glass-dark card stack-md">
+    <div class="header">
+      <h2>Bribes</h2>
+      <div class="right">
+        <!-- (No "New" button) -->
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <label class="label">
+        <span>Search</span>
+        <input class="input" placeholder="id, sale id, authority id" [(ngModel)]="filterText" />
+      </label>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="table" *ngIf="filtered().length; else empty">
+        <!-- fixed widths to align thead/tbody -->
+        <colgroup>
+          <col style="width:90px" /> <!-- ID -->
+          <col style="width:110px" /> <!-- Sale -->
+          <col style="width:130px" /> <!-- Authority -->
+          <col style="width:140px" /> <!-- Amount -->
+          <col style="width:110px" /> <!-- Paid -->
+          <col style="width:160px" /> <!-- Date -->
+          <col style="width:220px" /> <!-- Actions -->
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Sale</th>
+            <th>Authority</th>
+            <th>Amount</th>
+            <th>Paid</th>
+            <th>Date</th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (s of filtered(); track s.id) {
+          <tr>
+            <td>#{{ s.id }}</td>
+            <td>{{ s.sale?.id ?? s.saleId }}</td>
+            <td>{{ s.authority?.id ?? s.authorityId }}</td>
+            <td>{{ s.amount | currency:'ARS' }}</td>
+            <td>{{ s.paid ? 'Yes' : 'No' }}</td>
+            <td>{{ s.creationDate | date:'short' }}</td>
+            <td class="right">
+              <button class="btn success btn-glass" type="button" (click)="markAsPaid(s)" [disabled]="s.paid">
+                Mark as paid
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+
+      <ng-template #empty>
+        <div class="center muted">No bribes</div>
+      </ng-template>
+    </div>
+  </div>
+</section>

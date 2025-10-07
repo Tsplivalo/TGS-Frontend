@@ -1,7 +1,6 @@
 /* ====== Base ====== */
 :root {
   --text: #e5e7eb;
-  /* slate-200 */
   --text-strong: #ffffff;
   --border: rgba(255, 255, 255, .22);
   --glass-bg: rgba(255, 255, 255, .12);
@@ -16,10 +15,8 @@
   backdrop-filter: blur(8px);
 }
 
-/* Grid 3 columnas: brand izq, saludo centro, menú der */
 .nav__content {
-  display: grid;
-  grid-template-columns: 200px 1fr auto;
+  display: flex;
   align-items: center;
   gap: 1rem;
   padding: .75rem 1rem;
@@ -51,37 +48,26 @@
   opacity: 1;
 }
 
-/* ====== Centro (saludo) ====== */
-.nav__center {
-  display: flex;
-  justify-content: center;
-}
-
-.user-pill {
-  padding: .4rem .65rem;
-  border-radius: .6rem;
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid rgba(255, 255, 255, .1);
-  color: var(--text-strong);
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-/* ====== Menú (derecha) ====== */
+/* ====== Menú ====== */
 .menu {
   position: relative;
-  /* necesario para el indicador */
   display: flex;
   gap: .5rem;
   align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
-  justify-self: end;
 }
 
-/* Botones del menú / toggle */
+.menu--right {
+  margin-left: auto;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* Botones */
 .menu__item a,
 .dropdown__toggle {
   position: relative;
@@ -127,42 +113,31 @@
   transform: scaleX(1);
 }
 
-/* Indicador de vidrio */
+/* Píldora de vidrio deslizante (INICIO ⇆ GESTIÓN) */
 .glass-indicator {
   position: absolute;
-  transform: translate(0, 0);
-  /* movido por ngStyle */
   border-radius: .9rem;
   pointer-events: none;
   z-index: 0;
-
   background: var(--glass-bg);
   border: 1px solid var(--border);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .14),
-    0 8px 22px rgba(0, 0, 0, .18);
-
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 8px 22px rgba(0, 0, 0, .18);
   opacity: 0;
-  transition:
-    transform .28s cubic-bezier(.22, .61, .36, 1),
-    width .28s cubic-bezier(.22, .61, .36, 1),
-    height .28s cubic-bezier(.22, .61, .36, 1),
-    opacity .2s ease;
+  transition: transform .28s cubic-bezier(.22, .61, .36, 1), width .28s cubic-bezier(.22, .61, .36, 1), height .28s cubic-bezier(.22, .61, .36, 1), opacity .2s ease;
 }
 
 .glass-indicator.visible {
   opacity: 1;
 }
 
-/* Activos / hover */
+/* Vidrio activo/hover */
 .dropdown__toggle.active,
-.menu__item a.active,
-.dropdown__item a.active {
+.menu__item a.active {
   background: var(--glass-bg);
   border-color: var(--border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 2px 10px rgba(0, 0, 0, .15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 6px 18px rgba(0, 0, 0, .20);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: var(--text-strong);
@@ -172,21 +147,15 @@
   background: var(--glass-bg-hover);
 }
 
-/* ====== Dropdown Gestión ====== */
+/* ====== Dropdown ====== */
 .menu__item--dropdown {
   position: relative;
-}
-
-.dropdown__toggle .chevron {
-  font-size: .85em;
-  opacity: .9;
 }
 
 .dropdown {
   position: absolute;
   top: calc(100% + .45rem);
   left: 0;
-  width: auto;
   white-space: nowrap;
   padding: .35rem .5rem;
   margin: 0;
@@ -214,27 +183,79 @@
   width: 100%;
   padding: .6rem .7rem;
   border-radius: .6rem;
-  color: var(--text);
-  text-decoration: none;
 }
 
 .dropdown__item a:hover {
   background: rgba(255, 255, 255, 0.07);
 }
 
-.dropdown__divider {
-  height: 1px;
-  margin: .35rem .4rem;
-  background: rgba(255, 255, 255, .12);
+/* Accesibilidad */
+.menu__item a:focus-visible,
+.dropdown__toggle:focus-visible,
+.dropdown__item a:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 3px;
 }
 
-/* ====== Responsive ====== */
-@media (max-width: 980px) {
-  .nav__content {
-    grid-template-columns: 1fr auto;
-  }
+/* ====== Extras para botón Salir (dropdown) ====== */
+/* Dropdown a la derecha cuando está en el menú derecho */
+.menu--right .menu__item--dropdown .dropdown {
+  right: 0;
+  left: auto;
+}
 
-  .nav__center {
-    display: none;
-  }
+/* Unificar estilo de <a> y <button> dentro del dropdown */
+.dropdown__item a,
+.dropdown__item button {
+  width: 100%;
+  padding: .6rem .7rem;
+  border-radius: .6rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+
+.dropdown__item a:hover,
+.dropdown__item button:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Divider opcional */
+.dropdown__divider {
+  height: 1px;
+  margin: .35rem .35rem;
+  background: rgba(255, 255, 255, .12);
+  border: 0;
+  list-style: none;
+}
+
+/* Acento sutil para Salir (sin cosas raras) */
+:root {
+  --danger: #ef4444;
+  /* red-500 */
+  --danger-text: #fca5a5;
+  /* red-300 */
+}
+
+.dropdown__item .btn-logout {
+  color: var(--danger-text);
+}
+
+.dropdown__item .btn-logout:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  /* red-200 */
+}
+
+/* Accesibilidad consistente */
+.dropdown__item a:focus-visible,
+.dropdown__item button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 3px;
 }

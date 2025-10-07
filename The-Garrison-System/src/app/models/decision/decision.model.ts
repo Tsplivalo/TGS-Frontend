@@ -1,23 +1,26 @@
+
 export interface DecisionDTO {
   id: number;
-  descripcion: string;
-  fechaInicio: string; // ISO
-  fechaFin: string;    // ISO
-  tematica?: { id: number; descripcion: string } | null;
+  description: string;
+  startDate: string; // ISO
+  endDate: string;    // ISO
+  topic?: { id: number; description: string } | null;
 }
+
 
 export interface CreateDecisionDTO {
-  tematicaId: number;
-  descripcion: string;
-  fechaInicio: string; // yyyy-MM-dd
-  fechaFin: string;    // yyyy-MM-dd
+  topicId: number;
+  description: string;
+  startDate: string; // yyyy-MM-dd
+  endDate: string;    // yyyy-MM-dd
 }
 
+
 export interface PatchDecisionDTO {
-  tematicaId?: number;
-  descripcion?: string;
-  fechaInicio?: string;
-  fechaFin?: string;
+  topicId?: number;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface ApiResponse<T> {

@@ -1,0 +1,31 @@
+<section class="page">
+  <!-- Encabezado con look glass -->
+  <header class="hero glass">
+    <div class="hero__head">
+      <h1>Preguntas frecuentes</h1>
+      <p class="lead">Respuestas rápidas para empezar con buen pie.</p>
+    </div>
+    <div class="crumb">Inicio <span aria-hidden="true">/</span> <strong>FAQs</strong></div>
+  </header>
+
+  <!-- Lista de FAQs -->
+  <section class="glass block">
+    <div class="card">
+      <div class="faq-item" *ngFor="let item of faqs; let i = index">
+        <button class="faq-btn" type="button" (click)="toggle(i)" (keydown)="keyToggle(i, $event)"
+          [attr.aria-expanded]="item.open ? 'true' : 'false'" [attr.aria-controls]="'faq_'+i">
+          <span class="q">{{ item.q }}</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+
+        <!-- Contenedor colapsable -->
+        <div class="collapsible" [class.open]="item.open" [id]="'faq_'+i" role="region"
+          [attr.aria-hidden]="item.open ? 'false' : 'true'">
+          <div class="collapsible__content">
+            <p class="a muted">{{ item.a }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>

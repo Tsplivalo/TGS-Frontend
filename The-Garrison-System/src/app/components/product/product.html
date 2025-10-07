@@ -1,0 +1,142 @@
+<section class="stack-lg">
+
+  <!-- LISTADO / PANEL PRINCIPAL -->
+  <div class="glass-dark card stack-md">
+    <!-- Toolbar -->
+    <header class="header">
+      <h2 class="title">Productos</h2>
+      <div class="right">
+        <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
+          {{ isNewOpen ? 'Cerrar' : '+ Nuevo producto' }}
+        </button>
+      </div>
+    </header>
+
+    <!-- Mensajes -->
+    <div class="error" *ngIf="error() as err">
+      <strong>Error:</strong> {{ err }}
+    </div>
+    <div class="muted" *ngIf="loading()">Cargando productos...</div>
+
+    <!-- Filtros -->
+    <section class="filters">
+      <label class="label">
+        <span class="label-text">Buscar</span>
+        <input class="input" type="text" placeholder="Nombre o categoría" [value]="fText()"
+          (input)="fText.set($any($event.target).value)" />
+      </label>
+
+      <label class="label">
+        <span class="label-text">Stock</span>
+        <!-- Valores alineados con el TS: 'all' | 'with' | 'without' -->
+        <select class="input" [value]="fStock()" (change)="fStock.set($any($event.target).value)">
+          <option value="all">Todos</option>
+          <option value="with">Con stock</option>
+          <option value="without">Sin stock</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- TABLA: Listado principal -->
+    <section class="subsection">
+      <h3 class="sub-title">Listado</h3>
+
+      <div class="table-wrap" *ngIf="filteredList().length; else emptyState">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th>Descripción</th>
+              <th style="width:140px;">Precio</th>
+              <th style="width:120px;">Stock</th>
+              <th style="width:120px;">Ilegal</th>
+              <th style="width:200px;" class="right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of filteredList()">
+              <td>#{{ p.id }}</td>
+              <td>{{ p.description }}</td>
+              <td>{{ p.price | currency:'ARS':'symbol':'1.0-2' }}</td>
+              <td>
+                <span class="badge" [class.badge-warn]="p.stock === 0">{{ p.stock }}</span>
+              </td>
+              <td>
+                <span class="badge" [class.badge-danger]="p.isIllegal" [class.badge-ok]="!p.isIllegal">
+                  {{ p.isIllegal ? 'Sí' : 'No' }}
+                </span>
+              </td>
+              <td class="right">
+                <button class="btn ghost" type="button" (click)="edit(p)">Editar</button>
+                <button class="btn danger" type="button" (click)="delete(p.id)" [disabled]="loading()">Eliminar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <ng-template #emptyState>
+        <div class="empty">
+          <h3>No hay productos</h3>
+          <p>Probá ajustar los filtros o creá un producto nuevo.</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <!-- FORMULARIO (PLEGABLE) -->
+  <div class="collapsible" [class.open]="isNewOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2 class="title">
+          {{ editId() == null ? 'Crear producto' : ('Editar producto #' + editId()) }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+        <label class="label col-2">
+          <span>Descripción</span>
+          <!-- ✅ nombre del control correcto -->
+          <input class="input" formControlName="description" placeholder="Descripción del producto" />
+          <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
+            Campo requerido.
+          </small>
+        </label>
+
+        <label class="label">
+          <span>Precio</span>
+          <!-- ✅ nombre del control correcto + coerción numérica -->
+          <input class="input" type="number" min="0" step="0.01" formControlName="price"
+            (input)="coerceNumber('price', $event)" />
+          <small class="hint" *ngIf="form.controls.price.invalid && form.controls.price.touched">
+            Ingresá un precio válido.
+          </small>
+        </label>
+
+        <label class="label">
+          <span>Stock</span>
+          <!-- ✅ nombre del control correcto + coerción numérica -->
+          <input class="input" type="number" min="0" formControlName="stock" (input)="coerceNumber('stock', $event)" />
+          <small class="hint" *ngIf="form.controls.stock.invalid && form.controls.stock.touched">
+            Ingresá un stock válido.
+          </small>
+        </label>
+
+        <label class="label switch">
+          <!-- ✅ nombre del control correcto -->
+          <input type="checkbox" formControlName="isIllegal" />
+          <span>¿Es ilegal?</span>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+            {{ editId() == null ? 'Crear' : 'Guardar' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>

@@ -1,14 +1,11 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap, switchMap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { tap, switchMap, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 type UserDTO = { id: string; username: string; email: string; roles?: string[] };
-type ApiResponse<T = any> = { success: boolean; message: string; data?: T };
-
-type LoginDTO = { email: string; password: string };
-type RegisterDTO = { username: string; email: string; password: string };
+type ApiResponse<T = any> = { success?: boolean; message?: string; data?: T } | T;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -18,52 +15,58 @@ export class AuthService {
   readonly isLoggedIn = signal<boolean>(false);
   readonly user       = signal<UserDTO | null>(null);
 
-  /** Inicia sesión y luego hidrata el perfil */
-  login(payload: LoginDTO): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>('/api/auth/login', payload, { withCredentials: true }).pipe(
-      switchMap(() => this.me()),
-      tap(() => this.isLoggedIn.set(true))
-    );
+  /** POST /api/auth/register */
+  register(data: { username: string; email: string; password: string }) {
+    return this.http.post<ApiResponse>('/api/auth/register', data, { withCredentials: true });
   }
 
-  /** Registro de usuario */
-  register(payload: RegisterDTO): Observable<ApiResponse<UserDTO>> {
-    return this.http.post<ApiResponse<UserDTO>>('/api/auth/register', payload, { withCredentials: true });
-  }
-
-  /** Cierra sesión y se suscribe internamente (para que funcione aunque el caller no se suscriba) */
-  logout(): void {
-    this.http.post<ApiResponse>('/api/auth/logout', {}, { withCredentials: true })
-      .pipe(
-        tap(() => {
-          this.user.set(null);
-          this.isLoggedIn.set(false);
-          this.router.navigateByUrl('/login');
-        })
-      )
-      .subscribe({ error: () => {
-        // Aun si falla el endpoint, limpiamos estado local para evitar quedar "atrapados"
-        this.user.set(null);
-        this.isLoggedIn.set(false);
-        this.router.navigateByUrl('/login');
-      }});
-  }
-
-  /** Perfil actual */
-  me(): Observable<ApiResponse<UserDTO>> {
-    return this.http.get<ApiResponse<UserDTO>>('/api/usuarios/me', { withCredentials: true }).pipe(
-      tap((res) => {
-        if (res?.data) {
-          this.user.set(res.data);
+  /**
+   * POST /api/auth/login  ->  GET /api/users/me
+   * Así, aunque el POST no devuelva el usuario, traemos el perfil y actualizamos señales.
+   */
+  login(data: { email: string; password: string }): Observable<UserDTO> {
+    return this.http.post<ApiResponse>('/api/auth/login', data, { withCredentials: true }).pipe(
+      switchMap(() =>
+        this.http.get<ApiResponse<UserDTO>>('/api/users/me', { withCredentials: true })
+      ),
+      map((res: any) => ('data' in res ? res.data : res) as UserDTO),
+      tap((u) => {
+        if (u) {
+          this.user.set(u);
           this.isLoggedIn.set(true);
-        } else {
-          this.user.set(null);
-          this.isLoggedIn.set(false);
         }
       })
     );
   }
 
-  /** Alias */
+  /** POST /api/auth/logout */
+  logout() {
+    return this.http.post<ApiResponse>('/api/auth/logout', {}, { withCredentials: true })
+      .subscribe({
+        next: () => {
+          this.user.set(null);
+          this.isLoggedIn.set(false);
+          this.router.navigateByUrl('/');
+        },
+        error: () => {
+          this.user.set(null);
+          this.isLoggedIn.set(false);
+          this.router.navigateByUrl('/');
+        }
+      });
+  }
+
+  /** GET /api/users/me (intenta recuperar sesión) */
+  me(): Observable<UserDTO | null> {
+    return this.http.get<ApiResponse<UserDTO>>('/api/users/me', { withCredentials: true }).pipe(
+      map((res: any) => ('data' in res ? res.data : res) as UserDTO | null),
+      tap((u) => {
+        this.user.set(u ?? null);
+        this.isLoggedIn.set(!!u);
+      })
+    );
+  }
+
+  /** Alias por compatibilidad si en algún lado llaman fetchMe() */
   fetchMe() { return this.me(); }
 }
