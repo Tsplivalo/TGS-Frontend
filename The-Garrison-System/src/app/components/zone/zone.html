@@ -1,0 +1,113 @@
+<section class="stack-lg">
+  <!-- LIST -->
+  <div class="glass-dark card stack-md">
+    <div class="header">
+      <h2>Zones</h2>
+      <div class="right">
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
+          {{ isFormOpen ? 'Close' : 'New zone' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <!-- Headquarters -->
+    <div *ngIf="headquarters() as sc; else noHeadquarters" class="sede-summary">
+      <strong>Headquarters:</strong> #{{ sc.id }} — {{ sc.nombre }}
+    </div>
+    <ng-template #noHeadquarters>
+      <div class="muted">No headquarters defined yet.</div>
+    </ng-template>
+
+    <!-- Filters -->
+    <div class="filters">
+      <label class="label">
+        <span>Search</span>
+        <input class="input" placeholder="ID, name or description..." [ngModel]="fText()"
+          (ngModelChange)="fText.set($event)" />
+      </label>
+    </div>
+
+    <!-- Status -->
+    <div *ngIf="loading()" class="muted">Loading...</div>
+
+    <!-- Table -->
+    <div class="table-wrap" *ngIf="!loading()">
+      <table class="table" *ngIf="filteredList().length > 0; else empty">
+        <!-- 👇 Set fixed widths to align thead/tbody -->
+        <colgroup>
+          <col style="width:80px" /> <!-- ID -->
+          <col /> <!-- Name -->
+          <col /> <!-- Description -->
+          <col style="width:220px" /> <!-- Actions -->
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let z of filteredList()">
+            <td>#{{ z.id }}</td>
+            <td><span class="truncate">{{ z.nombre }}</span></td>
+            <td><span class="truncate">{{ z.descripcion || '-' }}</span></td>
+            <td class="right">
+              <button class="btn" (click)="edit(z); isFormOpen = true">Edit</button>
+              <button class="btn danger" (click)="delete(z)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #empty>
+        <div class="center muted">No zones to show.</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- FORM (COLLAPSIBLE) -->
+  <div class="collapsible" [class.open]="isFormOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ editId() == null ? 'Create zone' : ('Edit zone #' + editId()) }}</h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+        <label class="label">
+          <span>Name <span class="req">*</span></span>
+          <input class="input" formControlName="name" placeholder="e.g. South Zone" />
+          <small class="err" *ngIf="form.controls.name.touched && form.controls.name.hasError('required')">
+            The name is required.
+          </small>
+          <small class="err" *ngIf="form.controls.name.touched && form.controls.name.hasError('duplicateName')">
+            A zone with that name already exists (regardless of case).
+          </small>
+        </label>
+
+        <label class="label">
+          <span>Description</span>
+          <input class="input" formControlName="description" placeholder="Optional" />
+        </label>
+
+        <label class="label switch">
+          <input type="checkbox" formControlName="isHeadquarters" />
+          <span>Mark as headquarters</span>
+        </label>
+
+        <div class="right form-actions">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ editId() == null ? 'Create' : 'Save' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

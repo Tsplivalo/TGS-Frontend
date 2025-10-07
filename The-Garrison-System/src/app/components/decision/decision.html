@@ -1,121 +1,121 @@
 <section class="stack-lg">
-  <!-- LISTA -->
+  <!-- LIST -->
   <div class="glass-dark card stack-md">
     <div class="header">
-      <h2>Decisiones estratégicas</h2>
+      <h2>Strategic decisions</h2>
       <div class="right">
-        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="formAbierto">
-          {{ formAbierto ? 'Cerrar' : 'Nueva' }}
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
+          {{ isFormOpen ? 'Close' : 'New' }}
         </button>
       </div>
     </div>
 
-    <!-- Filtros -->
+    <!-- Filters -->
     <div class="filters">
       <label class="label">
-        <span>Buscar</span>
-        <input class="input" placeholder="texto o id" [(ngModel)]="fTexto" />
+        <span>Search</span>
+        <input class="input" placeholder="text or id" [(ngModel)]="fText" />
       </label>
 
       <label class="label">
-        <span>Temática (ID)</span>
-        <input class="input" placeholder="filtrar por id de temática" [(ngModel)]="filtroTematica" />
+        <span>Thematic (ID)</span>
+        <input class="input" placeholder="filter by thematic id" [(ngModel)]="thematicFilter" />
       </label>
     </div>
 
-    <!-- Tabla -->
+    <!-- Table -->
     <div class="table-wrap">
-      <table class="table" *ngIf="decisionesFiltradas().length; else empty">
+      <table class="table" *ngIf="filteredDecisions().length; else empty">
         <!-- anchos fijos para alinear thead/tbody -->
         <colgroup>
           <col style="width:90px" /> <!-- ID -->
-          <col style="width:220px" /> <!-- Temática -->
-          <col /> <!-- Descripción (flex) -->
-          <col style="width:140px" /> <!-- Inicio -->
-          <col style="width:140px" /> <!-- Fin -->
-          <col style="width:220px" /> <!-- Acciones -->
+          <col style="width:220px" /> <!-- Thematic -->
+          <col /> <!-- Description (flex) -->
+          <col style="width:140px" /> <!-- Start -->
+          <col style="width:140px" /> <!-- End -->
+          <col style="width:220px" /> <!-- Actions -->
         </colgroup>
 
         <thead>
           <tr>
             <th>ID</th>
-            <th>Temática</th>
-            <th>Descripción</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th class="right">Acciones</th>
+            <th>Thematic</th>
+            <th>Description</th>
+            <th>Start</th>
+            <th>End</th>
+            <th class="right">Actions</th>
           </tr>
         </thead>
 
         <tbody>
-          <tr *ngFor="let d of decisionesFiltradas()">
+          <tr *ngFor="let d of filteredDecisions()">
             <td>#{{ d.id }}</td>
             <td>
-              <ng-container *ngIf="d.tematica?.id != null; else sinTem">
-                <span class="truncate">{{ d.tematica?.id }} - {{ d.tematica?.descripcion || 'Temática' }}</span>
+              <ng-container *ngIf="d.tematica?.id != null; else noThematic">
+                <span class="truncate">{{ d.tematica?.id }} - {{ d.tematica?.descripcion || 'Thematic' }}</span>
               </ng-container>
-              <ng-template #sinTem>—</ng-template>
+              <ng-template #noThematic>—</ng-template>
             </td>
             <td><span class="truncate">{{ d.descripcion }}</span></td>
             <td>{{ d.fechaInicio | date:'shortDate' }}</td>
             <td>{{ d.fechaFin | date:'shortDate' }}</td>
             <td class="right">
-              <button class="btn ghost" (click)="editar(d); formAbierto = true">Editar</button>
-              <button class="btn danger" (click)="eliminar(d.id)">Eliminar</button>
+              <button class="btn ghost" (click)="edit(d); isFormOpen = true">Edit</button>
+              <button class="btn danger" (click)="delete(d.id)">Delete</button>
             </td>
           </tr>
         </tbody>
       </table>
 
       <ng-template #empty>
-        <div class="center muted">Sin decisiones</div>
+        <div class="center muted">No decisions</div>
       </ng-template>
     </div>
   </div>
 
-  <!-- FORM (PLEGABLE) -->
-  <div class="collapsible" [class.open]="formAbierto">
+  <!-- FORM (COLLAPSIBLE) -->
+  <div class="collapsible" [class.open]="isFormOpen">
     <div class="collapsible__content glass-dark card">
       <div class="header">
-        <h2>{{ isEdit() ? ('Editar decisión: ' + form.controls.id.value) : 'Nueva decisión' }}</h2>
+        <h2>{{ isEdit() ? ('Edit decision: ' + form.controls.id.value) : 'New decision' }}</h2>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="guardar()" class="form-grid">
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
         <div class="error" *ngIf="error()">{{ error() }}</div>
 
         <label class="label">
-          <span>Temática</span>
-          <input class="input" placeholder="filtrar (id o descripción)" [(ngModel)]="filtroTematica"
-            name="fltTematica" />
-          <select class="input" formControlName="tematicaId">
-            <option [ngValue]="null" disabled>Elegí una temática</option>
-            <option *ngFor="let t of tematicasFiltradas()" [ngValue]="t.id">
+          <span>Thematic</span>
+          <input class="input" placeholder="filter (id or description)" [(ngModel)]="thematicFilter"
+            name="fltThematic" />
+          <select class="input" formControlName="thematicId">
+            <option [ngValue]="null" disabled>Choose a thematic</option>
+            <option *ngFor="let t of filteredThematics()" [ngValue]="t.id">
               {{ t.id }} - {{ t.descripcion }}
             </option>
           </select>
         </label>
 
         <label class="label">
-          <span>Descripción</span>
-          <input class="input" formControlName="descripcion" placeholder="Descripción de la decisión estratégica" />
+          <span>Description</span>
+          <input class="input" formControlName="description" placeholder="Description of the strategic decision" />
         </label>
 
         <label class="label">
-          <span>Fecha inicio</span>
-          <input class="input" type="date" formControlName="fechaInicio" [min]="today" />
+          <span>Start date</span>
+          <input class="input" type="date" formControlName="startDate" [min]="today" />
         </label>
 
         <label class="label">
-          <span>Fecha fin</span>
-          <input class="input" type="date" formControlName="fechaFin"
-            [min]="form.controls.fechaInicio.value || today" />
+          <span>End date</span>
+          <input class="input" type="date" formControlName="endDate"
+            [min]="form.controls.startDate.value || today" />
         </label>
 
         <div class="right form-actions">
           <button class="btn success" type="submit" [disabled]="loading()">
-            {{ isEdit() ? 'Guardar' : 'Crear' }}
+            {{ isEdit() ? 'Save' : 'Create' }}
           </button>
-          <button class="btn ghost" type="button" (click)="nuevo(); formAbierto = false">Cancelar</button>
+          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">Cancel</button>
         </div>
       </form>
     </div>

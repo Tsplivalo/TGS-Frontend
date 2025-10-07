@@ -1,0 +1,81 @@
+<section class="stack-lg">
+
+  <!-- LIST -->
+  <div class="glass-dark card stack-md">
+    <div class="header">
+      <h2>Topics</h2>
+      <div class="right">
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
+          {{ isFormOpen ? 'Close' : 'New' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <label class="label">
+        <span>Search</span>
+        <input class="input" placeholder="text or id" [(ngModel)]="fText" />
+      </label>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table" *ngIf="filteredTopics().length; else empty">
+        <!-- fixed widths to align thead/tbody -->
+        <colgroup>
+          <col style="width:100px" /> <!-- ID -->
+          <col /> <!-- Description -->
+          <col style="width:220px" /> <!-- Actions -->
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Description</th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let t of filteredTopics()">
+            <td>#{{ t.id }}</td>
+            <td><span class="truncate">{{ t.description }}</span></td>
+            <td class="right">
+              <button class="btn ghost" (click)="edit(t); isFormOpen = true">Edit</button>
+              <button class="btn danger" (click)="delete(t.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #empty>
+        <div class="center muted">No topics</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- FORM (COLLAPSIBLE, SAME STYLE) -->
+  <div class="collapsible" [class.open]="isFormOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ isEdit() ? ('Edit topic: ' + form.controls.id.value) : 'New topic' }}</h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+        <div class="error" *ngIf="error()">{{ error() }}</div>
+
+        <label class="label">
+          <span>Description</span>
+          <input class="input" formControlName="description" placeholder="e.g. Corruption, Smuggling..." />
+        </label>
+
+        <div class="right form-actions">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ isEdit() ? 'Save' : 'Create' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>

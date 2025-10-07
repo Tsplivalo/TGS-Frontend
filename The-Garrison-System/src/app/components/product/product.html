@@ -1,0 +1,163 @@
+<section class="stack-lg">
+
+  <!-- LIST / MAIN PANEL -->
+  <div class="glass-dark card stack-md">
+    <!-- Toolbar -->
+    <header class="header">
+      <h2 class="title">Products</h2>
+      <div class="right">
+        <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
+          {{ isNewOpen ? 'Close' : '+ New product' }}
+        </button>
+      </div>
+    </header>
+
+    <!-- Messages -->
+    <div class="error" *ngIf="error() as err">
+      <strong>Error:</strong> {{ err }}
+    </div>
+    <div class="muted" *ngIf="loading()">Loading products...</div>
+
+    <!-- Filters -->
+    <section class="filters">
+      <label class="label">
+        <span class="label-text">Search</span>
+        <input class="input" type="text" placeholder="Name or category" [value]="fText()"
+          (input)="fText.set($any($event.target).value)" />
+      </label>
+
+      <label class="label">
+        <span class="label-text">Stock</span>
+        <select class="input" [value]="fStock()" (change)="fStock.set($any($event.target).value)">
+          <option value="all">All</option>
+          <option value="with">In stock</option>
+          <option value="without">Out of stock</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- TABLE: Main list -->
+    <section class="subsection">
+      <h3 class="sub-title">List</h3>
+
+      <div class="table-wrap" *ngIf="filteredList().length; else emptyState">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th>Description</th>
+              <th style="width:140px;">Price</th>
+              <th style="width:120px;">Stock</th>
+              <th style="width:120px;">Illegal</th>
+              <th style="width:200px;" class="right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of filteredList()">
+              <td>#{{ p.id }}</td>
+              <td>{{ p.descripcion }}</td>
+              <td>{{ p.precio | currency:'ARS':'symbol':'1.0-2' }}</td>
+              <td>
+                <span class="badge" [class.badge-warn]="p.stock === 0">{{ p.stock }}</span>
+              </td>
+              <td>
+                <span class="badge" [class.badge-danger]="p.esIlegal" [class.badge-ok]="!p.esIlegal">
+                  {{ p.esIlegal ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td class="right">
+                <button class="btn ghost" type="button" (click)="edit(p)">Edit</button>
+                <button class="btn danger" type="button" (click)="delete(p.id)"
+                  [disabled]="loading()">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <ng-template #emptyState>
+        <div class="empty">
+          <h3>No products</h3>
+          <p>Try adjusting the filters or create a new product.</p>
+          <button class="btn" type="button" (click)="toggleNew()">+ Create product</button>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- (OPTIONAL) Another table inside the same panel -->
+    <!--
+    <section class="subsection">
+      <h3 class="sub-title">Top sellers</h3>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="right">Units</th>
+              <th class="right">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of topSellers()">
+              <td>{{ t.description }}</td>
+              <td class="right">{{ t.units }}</td>
+              <td class="right">{{ t.revenue | currency:'ARS' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    -->
+  </div>
+
+  <!-- FORM (COLLAPSIBLE) -->
+  <div class="collapsible" [class.open]="isNewOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2 class="title">
+          {{ editId() == null ? 'Create product' : ('Edit product #' + editId()) }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+        <label class="label col-2">
+          <span>Description</span>
+          <input class="input" formControlName="description" placeholder="Product description" />
+          <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
+            Field required.
+          </small>
+        </label>
+
+        <label class="label">
+          <span>Price</span>
+          <input class="input" type="number" min="0" formControlName="price" />
+          <small class="hint" *ngIf="form.controls.price.invalid && form.controls.price.touched">
+            Enter a valid price.
+          </small>
+        </label>
+
+        <label class="label">
+          <span>Stock</span>
+          <input class="input" type="number" min="0" formControlName="stock" />
+          <small class="hint" *ngIf="form.controls.stock.invalid && form.controls.stock.touched">
+            Enter a valid stock.
+          </small>
+        </label>
+
+        <label class="label switch">
+          <input type="checkbox" formControlName="isIllegal" />
+          <span>Is it illegal?</span>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+            {{ editId() == null ? 'Create' : 'Save' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>

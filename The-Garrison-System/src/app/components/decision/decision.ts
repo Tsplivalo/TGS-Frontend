@@ -10,15 +10,15 @@ import {
   DecisionDTO, CreateDecisionDTO, PatchDecisionDTO, ApiResponse as ApiDecisionResp
 } from '../../models/decision/decision.model';
 
-import { TematicaService } from '../../services/tematica/tematica';
-import { TematicaDTO, ApiResponse as ApiTemResp } from '../../models/tematica/tematica.model';
+import { TopicService } from '../../services/topic/topic';
+import { TopicDTO, ApiResponse as ApiTopicResp } from '../../models/topic/topic.model';
 
 type DecisionForm = {
   id: FormControl<number | null>;
-  tematicaId: FormControl<number | null>;
-  descripcion: FormControl<string>;
-  fechaInicio: FormControl<string>; // yyyy-MM-dd
-  fechaFin: FormControl<string>;    // yyyy-MM-dd
+  topicId: FormControl<number | null>;
+  description: FormControl<string>;
+  startDate: FormControl<string>; // yyyy-MM-dd
+  endDate: FormControl<string>;    // yyyy-MM-dd
 };
 
 @Component({
@@ -31,58 +31,58 @@ type DecisionForm = {
 export class DecisionComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(DecisionService);
-  private temSrv = inject(TematicaService);
+  private topicSrv = inject(TopicService);
 
-  decisiones = signal<DecisionDTO[]>([]);
-  tematicas = signal<TematicaDTO[]>([]);
+  decisions = signal<DecisionDTO[]>([]);
+  topics = signal<TopicDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
   isEdit = signal(false);
 
-  // filtros
-  fTexto = '';
-  filtroTematica = '';
+  // filters
+  fText = '';
+  topicFilter = '';
 
-  // hoy en formato input date
+  // today in input date format
   today = this.todayLocalInput();
 
   form: FormGroup<DecisionForm> = this.fb.group<DecisionForm>({
     id: this.fb.control<number | null>(null),
-    tematicaId: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(1)] }),
-    descripcion: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(1)] }),
-    fechaInicio: this.fb.nonNullable.control(this.today, { validators: [Validators.required] }),
-    fechaFin: this.fb.nonNullable.control(this.today, { validators: [Validators.required] }),
+    topicId: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(1)] }),
+    description: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(1)] }),
+    startDate: this.fb.nonNullable.control(this.today, { validators: [Validators.required] }),
+    endDate: this.fb.nonNullable.control(this.today, { validators: [Validators.required] }),
   });
 
-  formAbierto = false;
-  toggleForm(){ this.formAbierto = !this.formAbierto; }
+  isFormOpen = false;
+  toggleForm(){ this.isFormOpen = !this.isFormOpen; }
 
 
   ngOnInit(): void {
-    // Si el <select> de temáticas llegara a emitir string, lo convierto a number
-    this.form.controls.tematicaId.valueChanges.subscribe((v) => {
+    // If the <select> for topics emits a string, convert it to a number
+    this.form.controls.topicId.valueChanges.subscribe((v) => {
       if (typeof v === 'string' && v !== '') {
         const n = Number(v);
-        if (!Number.isNaN(n)) this.form.controls.tematicaId.setValue(n, { emitEvent: false });
+        if (!Number.isNaN(n)) this.form.controls.topicId.setValue(n, { emitEvent: false });
       }
     });
 
-    // Enforce min hoy: si alguien pisa manualmente, lo corrijo
-    this.form.controls.fechaInicio.valueChanges.subscribe((v) => {
-      if (v && v < this.today) this.form.controls.fechaInicio.setValue(this.today, { emitEvent: false });
-      // si fechaFin quedó antes de inicio, la ajusto
-      if (this.form.controls.fechaFin.value && this.form.controls.fechaFin.value < (this.form.controls.fechaInicio.value || '')) {
-        this.form.controls.fechaFin.setValue(this.form.controls.fechaInicio.value!, { emitEvent: false });
+    // Enforce min today: if someone manually overrides, correct it
+    this.form.controls.startDate.valueChanges.subscribe((v) => {
+      if (v && v < this.today) this.form.controls.startDate.setValue(this.today, { emitEvent: false });
+      // if endDate is before startDate, adjust it
+      if (this.form.controls.endDate.value && this.form.controls.endDate.value < (this.form.controls.startDate.value || '')) {
+        this.form.controls.endDate.setValue(this.form.controls.startDate.value!, { emitEvent: false });
       }
     });
-    this.form.controls.fechaFin.valueChanges.subscribe((v) => {
-      const fi = this.form.controls.fechaInicio.value || this.today;
-      if (v && v < fi) this.form.controls.fechaFin.setValue(fi, { emitEvent: false });
+    this.form.controls.endDate.valueChanges.subscribe((v) => {
+      const fi = this.form.controls.startDate.value || this.today;
+      if (v && v < fi) this.form.controls.endDate.setValue(fi, { emitEvent: false });
     });
 
-    this.cargar();
-    this.cargarTematicas();
+    this.load();
+    this.loadTopics();
   }
 
   // ===== Utils =====
@@ -94,85 +94,85 @@ export class DecisionComponent implements OnInit {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  decisionesFiltradas = computed(() => {
-    const q = (this.fTexto || '').toLowerCase().trim();
-    const tFilter = (this.filtroTematica || '').trim();
-    return this.decisiones().filter(d => {
-      const matchTxt = !q || (d.descripcion || '').toLowerCase().includes(q) || String(d.id).includes(q);
-      const temId = d.tematica?.id != null ? String(d.tematica.id) : '';
-      const matchTem = !tFilter || temId === tFilter;
-      return matchTxt && matchTem;
+  filteredDecisions = computed(() => {
+    const q = (this.fText || '').toLowerCase().trim();
+    const tFilter = (this.topicFilter || '').trim();
+    return this.decisions().filter(d => {
+  const matchText = !q || (d.description || '').toLowerCase().includes(q) || String(d.id).includes(q);
+  const topicId = d.topic?.id != null ? String(d.topic.id) : '';
+  const matchTopic = !tFilter || topicId === tFilter;
+  return matchText && matchTopic;
     });
   });
 
-  tematicasFiltradas = computed(() => {
-    const q = (this.filtroTematica || '').toLowerCase().trim();
-    if (!q) return this.tematicas();
-    return this.tematicas().filter(t =>
-      (t.descripcion || '').toLowerCase().includes(q) ||
+  filteredTopics = computed(() => {
+    const q = (this.topicFilter || '').toLowerCase().trim();
+    if (!q) return this.topics();
+    return this.topics().filter(t =>
+      (t.description || '').toLowerCase().includes(q) ||
       String(t.id).includes(q)
     );
   });
 
   // ===== Data =====
-  cargar() {
+  load() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAll().subscribe({
       next: (res: ApiDecisionResp<DecisionDTO[]>) => {
-        this.decisiones.set(res?.data || []);
+        this.decisions.set(res?.data || []);
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudieron cargar las decisiones.');
+        this.error.set(err?.error?.message || 'Could not load decisions.');
         this.loading.set(false);
       }
     });
   }
 
-  cargarTematicas() {
-    this.temSrv.getAll().subscribe({
-      next: (res: ApiTemResp<TematicaDTO[]>) => {
-        this.tematicas.set(res?.data || []);
+  loadTopics() {
+    this.topicSrv.getAll().subscribe({
+      next: (res: ApiTopicResp<TopicDTO[]>) => {
+        this.topics.set(res?.data || []);
       },
-      error: (err) => console.warn('[DECISION] No pude cargar temáticas:', err)
+      error: (err) => console.warn('[DECISION] Could not load topics:', err)
     });
   }
 
   // ===== CRUD UI =====
-  nuevo() {
+  new() {
     this.isEdit.set(false);
     this.form.reset({
       id: null,
-      tematicaId: null,
-      descripcion: '',
-      fechaInicio: this.today,
-      fechaFin: this.today,
+      topicId: null,
+      description: '',
+      startDate: this.today,
+      endDate: this.today,
     });
     this.submitted.set(false);
     this.error.set(null);
   }
 
-  editar(d: DecisionDTO) {
+  edit(d: DecisionDTO) {
     this.isEdit.set(true);
     this.form.setValue({
       id: d.id,
-      tematicaId: d.tematica?.id ?? null,
-      descripcion: d.descripcion || '',
-      fechaInicio: (d.fechaInicio || '').slice(0, 10),
-      fechaFin: (d.fechaFin || '').slice(0, 10),
+      topicId: d.topic?.id ?? null,
+      description: d.description || '',
+      startDate: (d.startDate || '').slice(0, 10),
+      endDate: (d.endDate || '').slice(0, 10),
     });
     this.submitted.set(false);
     this.error.set(null);
   }
 
-  eliminar(id: number) {
+  delete(id: number) {
     this.loading.set(true);
     this.error.set(null);
     this.srv.delete(id).subscribe({
-      next: () => this.cargar(),
+      next: () => this.load(),
       error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo eliminar (revisá la ruta en el backend).');
+        this.error.set(err?.error?.message || 'Could not delete (check the route in the backend).');
         this.loading.set(false);
       }
     });
@@ -182,47 +182,47 @@ export class DecisionComponent implements OnInit {
   private buildCreate(): CreateDecisionDTO {
     const v = this.form.getRawValue();
     return {
-      tematicaId: Number(v.tematicaId),
-      descripcion: String(v.descripcion).trim(),
-      fechaInicio: String(v.fechaInicio),
-      fechaFin: String(v.fechaFin),
+      topicId: Number(v.topicId),
+      description: String(v.description).trim(),
+      startDate: String(v.startDate),
+      endDate: String(v.endDate),
     };
   }
 
   private buildPatch(): PatchDecisionDTO {
     const v = this.form.getRawValue();
     return {
-      tematicaId: v.tematicaId != null ? Number(v.tematicaId) : undefined,
-      descripcion: v.descripcion?.trim() || undefined,
-      fechaInicio: v.fechaInicio || undefined,
-      fechaFin: v.fechaFin || undefined,
+      topicId: v.topicId != null ? Number(v.topicId) : undefined,
+      description: v.description?.trim() || undefined,
+      startDate: v.startDate || undefined,
+      endDate: v.endDate || undefined,
     };
   }
 
-  private fechasValidas(): boolean {
-    const fi = this.form.controls.fechaInicio.value || '';
-    const ff = this.form.controls.fechaFin.value || '';
-    // ya están acotadas por min y subs, pero validamos igual
+  private areDatesValid(): boolean {
+    const fi = this.form.controls.startDate.value || '';
+    const ff = this.form.controls.endDate.value || '';
+    // already constrained by min and subs, but we validate anyway
     return !!fi && !!ff && ff >= fi && fi >= this.today;
   }
 
-  guardar() {
+  save() {
     this.submitted.set(true);
 
-    // Normalizo select vacío
-    const t = this.form.controls.tematicaId.value;
-    if ((t as any) === '') this.form.controls.tematicaId.setValue(null);
+    // Normalize empty select
+    const t = this.form.controls.topicId.value;
+    if ((t as any) === '') this.form.controls.topicId.setValue(null);
 
-    const invalidBase = this.form.invalid;
-    const invalidFechas = !this.fechasValidas();
+    const baseInvalid = this.form.invalid;
+    const datesInvalid = !this.areDatesValid();
 
-    if (invalidBase || invalidFechas) {
+    if (baseInvalid || datesInvalid) {
       this.form.markAllAsTouched();
       const msgs: string[] = [];
-      if (this.form.controls.tematicaId.invalid) msgs.push('Temática');
-      if (this.form.controls.descripcion.invalid) msgs.push('Descripción');
-      if (invalidFechas) msgs.push('Fechas (inicio ≥ hoy y fin ≥ inicio)');
-      this.error.set(`Completá correctamente: ${msgs.join(', ')}.`);
+      if (this.form.controls.topicId.invalid) msgs.push('Topic');
+      if (this.form.controls.description.invalid) msgs.push('Description');
+      if (datesInvalid) msgs.push('Dates (start ≥ today and end ≥ start)');
+      this.error.set(`Complete correctly: ${msgs.join(', ')}.`);
       return;
     }
 
@@ -230,13 +230,13 @@ export class DecisionComponent implements OnInit {
     this.error.set(null);
 
     if (!this.isEdit()) {
-      // CREAR
+      // CREATE
       const payload = this.buildCreate();
       this.srv.create(payload).subscribe({
-        next: () => { this.nuevo(); this.cargar(); },
+        next: () => { this.new(); this.load(); },
         error: (err) => {
           const raw = err?.error;
-          const msg = raw?.message || (typeof raw === 'string' ? raw : 'No se pudo crear.');
+          const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not create.');
           this.error.set(msg);
           this.loading.set(false);
         }
@@ -244,14 +244,14 @@ export class DecisionComponent implements OnInit {
       return;
     }
 
-    // EDITAR (PATCH)
+    // EDIT (PATCH)
     const id = this.form.controls.id.value!;
     const payload = this.buildPatch();
     this.srv.update(id, payload).subscribe({
-      next: () => { this.nuevo(); this.cargar(); },
+      next: () => { this.new(); this.load(); },
       error: (err) => {
         const raw = err?.error;
-        const msg = raw?.message || (typeof raw === 'string' ? raw : 'No se pudo guardar.');
+        const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not save.');
         this.error.set(msg);
         this.loading.set(false);
       }

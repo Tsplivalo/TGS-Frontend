@@ -1,0 +1,111 @@
+<section class="stack-lg">
+  <!-- LIST -->
+  <div class="glass-dark card stack-md">
+    <div class="header">
+      <h2>Clients</h2>
+      <div class="right">
+        <button class="btn" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
+          {{ isNewOpen ? 'Close' : 'New' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <label class="label">
+        Search
+        <input class="input" placeholder="DNI, name, email..." [(ngModel)]="fText" />
+      </label>
+
+      <label class="label">
+        Purchases
+        <select class="input" [(ngModel)]="fPurchases">
+          <option value="all">All</option>
+          <option value="yes">With purchases</option>
+          <option value="no">No purchases</option>
+        </select>
+      </label>
+    </div>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="loading()">Loading...</div>
+
+    <!-- Table (WITHOUT inner card to avoid double borders) -->
+    <div class="table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>DNI</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Phone</th>
+            <th class="center">Purchases</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of filteredClients()">
+            <td>{{ c.dni }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.email || '-' }}</td>
+            <td>{{ c.address || '-' }}</td>
+            <td>{{ c.phone || '-' }}</td>
+            <td class="center">{{ c.purchaseRecords.length || 0 }}</td>
+            <td class="right">
+              <button class="btn ghost" (click)="edit(c)">Edit</button>
+              <button class="btn danger" (click)="delete(c.dni)">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredClients().length === 0">
+            <td colspan="7" class="muted center">No results</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NEW / EDIT (COLLAPSIBLE) -->
+  <div class="collapsible" [class.open]="isNewOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ editDni() == null ? 'New client' : 'Edit client' }}</h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+        <label class="label">
+          DNI
+          <input class="input" type="text" formControlName="dni" maxlength="8" pattern="[0-9]*"
+            placeholder="Enter DNI" required />
+        </label>
+
+        <label class="label">
+          Name
+          <input class="input" formControlName="name" placeholder="John Doe" />
+        </label>
+
+        <label class="label">
+          Email
+          <input class="input" formControlName="email" type="email" placeholder="john@mail.com" />
+        </label>
+
+        <label class="label">
+          Phone
+          <input class="input" formControlName="phone" placeholder="+54 9 341 ..." />
+        </label>
+
+        <label class="label" style="grid-column: 1 / -1;">
+          Address
+          <input class="input" formControlName="address" placeholder="Street 123, City" />
+        </label>
+
+        <div class="right" style="grid-column: 1 / -1;">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ editDni() == null ? 'Create' : 'Save' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

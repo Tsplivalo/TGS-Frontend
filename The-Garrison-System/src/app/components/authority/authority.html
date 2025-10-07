@@ -1,0 +1,136 @@
+<section class="stack-lg">
+
+  <!-- LIST -->
+  <div class="glass-dark card stack-md">
+    <div class="header">
+      <h2>Authorities</h2>
+      <div class="right">
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
+          {{ isFormOpen ? 'Close' : 'New' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <label class="label">
+        <span>Search</span>
+        <input class="input" placeholder="dni / name / rank" [(ngModel)]="fText" />
+      </label>
+
+      <label class="label">
+        <span>Zone ID</span>
+        <input class="input" placeholder="1" [(ngModel)]="fZoneId" />
+      </label>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="table" *ngIf="filteredAuthorities().length; else empty">
+        <!-- Fijar anchos para alinear -->
+        <colgroup>
+          <col style="width:120px" /> <!-- DNI -->
+          <col /> <!-- Name -->
+          <col style="width:160px" /> <!-- Rank -->
+          <col style="width:160px" /> <!-- Zone -->
+          <col style="width:220px" /> <!-- Actions -->
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th>DNI</th>
+            <th>Name</th>
+            <th>Rank</th>
+            <th>Zone</th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of filteredAuthorities()">
+            <td>#{{ a.dni }}</td>
+            <td><span class="truncate">{{ a.name }}</span></td>
+            <td><span class="truncate">{{ a.rank }}</span></td>
+            <td><span class="truncate">{{ getZoneText(a) }}</span></td>
+            <td class="right">
+              <button class="btn ghost" (click)="edit(a); isFormOpen = true">Edit</button>
+              <button class="btn danger" (click)="delete(a.dni)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #empty>
+        <div class="center muted">No authorities</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- FORM (COLLAPSIBLE, SAME STYLE) -->
+  <div class="collapsible" [class.open]="isFormOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>{{ editDni() == null ? 'New authority' : ('Edit authority: ' + editDni()) }}</h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+
+        <!-- errors -->
+        <div class="error" *ngIf="error()">{{ error() }}</div>
+        <div class="error" *ngIf="submitted() && form.invalid">
+          {{ editDni() == null
+          ? 'Complete DNI, Name, Email, Rank and Zone.'
+          : 'Complete Name, Rank and Zone (email is not required when editing).' }}
+        </div>
+
+        <label class="label">
+          <span>DNI</span>
+          <input class="input" formControlName="dni" maxlength="8" placeholder="Enter DNI"
+            [readonly]="editDni() !== null" />
+        </label>
+
+        <label class="label">
+          <span>Name</span>
+          <input class="input" formControlName="name" placeholder="John Doe" />
+        </label>
+
+        <label class="label">
+          <span>Email</span>
+          <input class="input" type="email" formControlName="email" placeholder="john@mail.com" />
+        </label>
+
+        <label class="label">
+          <span>Phone</span>
+          <input class="input" formControlName="phone" placeholder="+54..." />
+        </label>
+
+        <label class="label">
+          <span>Address</span>
+          <input class="input" formControlName="address" placeholder="Street 123" />
+        </label>
+
+        <label class="label">
+          <span>Rank</span>
+          <select class="input" formControlName="rank">
+            <option value="0">0 - Rank 0</option>
+            <option value="1">1 - Rank 1</option>
+            <option value="2">2 - Rank 2</option>
+            <option value="3">3 - Rank 3</option>
+          </select>
+        </label>
+
+        <label class="label">
+          <span>Zone ID</span>
+          <input class="input" formControlName="zoneId" placeholder="1" />
+        </label>
+
+        <div class="right form-actions">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ editDni() == null ? 'Create' : 'Save' }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>

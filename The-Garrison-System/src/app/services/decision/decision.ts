@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+
 import {
   ApiResponse,
   DecisionDTO,
@@ -11,7 +12,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class DecisionService {
-  private readonly apiPlural = '/api/decisiones';
+  private readonly apiPlural = '/api/decisions';
   private readonly apiSingular = '/api/decision';
 
   constructor(private http: HttpClient) {}
@@ -45,10 +46,10 @@ export class DecisionService {
   }
   create(body: CreateDecisionDTO): Observable<ApiResponse<DecisionDTO>> {
     const payload = {
-      tematicaId: Number(body.tematicaId),
-      descripcion: String(body.descripcion).trim(),
-      fechaInicio: String(body.fechaInicio),
-      fechaFin: String(body.fechaFin),
+      topicId: Number(body.topicId),
+      description: String(body.description).trim(),
+      startDate: String(body.startDate),
+      endDate: String(body.endDate),
     };
     return this.postBase(this.apiPlural, payload).pipe(
       catchError((err: HttpErrorResponse) =>
@@ -63,10 +64,10 @@ export class DecisionService {
   }
   update(id: number, body: PatchDecisionDTO): Observable<ApiResponse<DecisionDTO>> {
     const payload: any = {};
-    if (body.tematicaId != null) payload.tematicaId = Number(body.tematicaId);
-    if (body.descripcion != null) payload.descripcion = String(body.descripcion).trim();
-    if (body.fechaInicio != null) payload.fechaInicio = String(body.fechaInicio);
-    if (body.fechaFin != null) payload.fechaFin = String(body.fechaFin);
+    if (body.topicId != null) payload.topicId = Number(body.topicId);
+    if (body.description != null) payload.description = String(body.description).trim();
+    if (body.startDate != null) payload.startDate = String(body.startDate);
+    if (body.endDate != null) payload.endDate = String(body.endDate);
 
     return this.patchBase(this.apiPlural, id, payload).pipe(
       catchError((err: HttpErrorResponse) =>
