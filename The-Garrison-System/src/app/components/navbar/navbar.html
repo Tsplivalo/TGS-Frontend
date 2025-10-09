@@ -1,12 +1,12 @@
 <nav class="nav">
   <div class="nav__content">
-    <!-- Brand -->
-    <a class="brand" routerLink="/">
+    <!-- Brand (separado con borde sutil) -->
+    <a class="brand brand--separated" routerLink="/">
       <span class="brand-text">Garr<span class="brand-accent">SYS</span></span>
     </a>
 
-    <!-- Menú IZQUIERDO (si querés agregar items fijos); mantiene el indicador -->
-    <ul #menu class="menu" role="menubar" aria-label="Principal">
+    <!-- Menú IZQUIERDO: ítems del cliente (si está logueado como cliente o admin) -->
+    <ul #menu class="menu menu--left" role="menubar" aria-label="Principal">
       <!-- Indicador de vidrio deslizante -->
       <div class="glass-indicator" [class.visible]="indicator.visible" [ngStyle]="{
           transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
@@ -14,55 +14,71 @@
           height: indicator.h + 'px'
         }" aria-hidden="true">
       </div>
-      <!-- (dejado vacío a propósito; podés agregar 'Inicio', etc.) -->
+
+      <ng-container *ngIf="isAuthenticated() && (isClient() || isAdmin())">
+        <li class="menu__item" [ngClass]="{ 'menu__item--store': it.path === '/tienda' }" role="none"
+          *ngFor="let it of clientItems; trackBy: trackByPath">
+          <a #mainBtn role="menuitem" [routerLink]="it.path" routerLinkActive="active">
+            {{ it.label }} <span class="underline"></span>
+          </a>
+        </li>
+      </ng-container>
     </ul>
 
-    <!-- Separador flexible empuja todo lo de la derecha -->
+    <!-- Separador flexible -->
     <div class="spacer"></div>
 
-    <!-- Menú DERECHO -->
-    <!-- Cuando NO está logueado: ítems públicos -->
-    <ul class="menu menu--right" *ngIf="!isLoggedIn(); else gestionRight" role="menubar" aria-label="Accesos">
-      <li class="menu__item" role="none" *ngFor="let p of publicItems">
+    <!-- Menú DERECHO: siempre muestra páginas públicas -->
+    <ul class="menu menu--right" role="menubar" aria-label="Páginas">
+      <!-- Páginas públicas (siempre visibles) -->
+      <li class="menu__item" role="none" *ngFor="let p of publicItems; trackBy: trackByPath">
         <a role="menuitem" [routerLink]="p.path" routerLinkActive="active">
           {{ p.label }} <span class="underline"></span>
         </a>
       </li>
+
+      <!-- Gestión (solo admin) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated() && isAdmin()">
+        <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
+          [class.active]="isGestionActive()">
+          Gestión <span class="chevron">▾</span>
+          <span class="underline"></span>
+        </button>
+
+        <ul class="dropdown" role="menu" aria-label="Gestión">
+          <li *ngFor="let item of gestionItems; trackBy: trackByPath" class="dropdown__item" role="none">
+            <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
+              {{ item.label }} <span class="underline"></span>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Usuario (logueado: siempre) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated()">
+        <button class="dropdown__toggle" type="button" aria-haspopup="true" aria-expanded="false">
+          {{ user()?.['username'] || user()?.['email'] || 'Usuario' }}
+          <span class="chevron">▾</span>
+        </button>
+
+        <ul class="dropdown" role="menu" aria-label="Usuario">
+          <!-- Mi cuenta -->
+          <li class="dropdown__item" role="none">
+            <a role="menuitem" routerLink="/mi-cuenta" routerLinkActive="active">
+              Mi cuenta
+            </a>
+          </li>
+
+          <li class="dropdown__divider" role="separator"></li>
+
+          <!-- Salir -->
+          <li class="dropdown__item" role="none">
+            <button type="button" class="btn-logout" (click)="logout()">
+              Salir
+            </button>
+          </li>
+        </ul>
+      </li>
     </ul>
-
-    <!-- Cuando SÍ está logueado: Gestión a la derecha -->
-    <ng-template #gestionRight>
-      <ul class="menu menu--right" role="menubar" aria-label="Gestión y usuario">
-        <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
-          <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true"
-            aria-expanded="false" [class.active]="isGestionActive()">
-            GESTIÓN <span class="chevron">▾</span>
-            <span class="underline"></span>
-          </button>
-
-          <ul class="dropdown" role="menu" aria-label="Gestión">
-            <li *ngFor="let item of gestionItems" class="dropdown__item" role="none">
-              <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
-                {{ item.label }} <span class="underline"></span>
-              </a>
-            </li>
-
-            <li class="dropdown__divider" role="separator"></li>
-
-            <!-- Usuario -->
-            <li class="dropdown__item muted" role="none" *ngIf="user() as u">
-              {{ u?.username || u?.email || 'Usuario' }}
-            </li>
-
-            <!-- Salir -->
-            <li class="dropdown__item" role="none">
-              <button type="button" class="btn-logout" (click)="logout()">
-                Salir
-              </button>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </ng-template>
   </div>
 </nav>

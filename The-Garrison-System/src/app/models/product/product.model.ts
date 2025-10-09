@@ -1,15 +1,27 @@
+// Tipado de respuestas API (acepta {data: T} o T directo)
+export type ApiResponse<T = any> = { data: T } | T;
+
 export interface ProductDTO {
   id: number;
+  description?: string | null;
+  price: number;
+  stock: number;
+  isIllegal: boolean;
+  imageUrl?: string | null; // ← NUEVO
+}
+
+export interface CreateProductDTO {
   description: string;
   price: number;
   stock: number;
-  isIllegal: boolean; // NEW
+  isIllegal: boolean;
+  imageUrl?: string | null; // ← NUEVO
 }
 
-export interface ApiResponse<T> { data: T; }
-
-
-export type CreateProductDTO = Omit<ProductDTO, 'id'>;
-
-
-export type UpdateProductDTO = Partial<CreateProductDTO>;
+export interface UpdateProductDTO {
+  description?: string;
+  price?: number;
+  stock?: number;
+  isIllegal?: boolean;
+  imageUrl?: string | null; // ← NUEVO
+}

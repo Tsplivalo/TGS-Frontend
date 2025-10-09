@@ -1,0 +1,94 @@
+<section class="store">
+  <header class="store__header">
+    <h2 class="store__title">Tienda</h2>
+
+    <div class="store__filters">
+      <label class="field">
+        <span class="label">Buscar</span>
+        <input class="input" type="text" placeholder="Producto o ID" [value]="q()"
+          (input)="q.set($any($event.target).value)" />
+      </label>
+    </div>
+  </header>
+
+  <div class="error" *ngIf="error() as e">{{ e }}</div>
+  <div class="muted" *ngIf="loading()">Cargando...</div>
+
+  <!-- Grid de productos -->
+  <div class="store__grid" *ngIf="!loading() && list().length > 0">
+    <article class="store-card" *ngFor="let p of list()" [class.flash]="flashId() === p.id">
+
+      <div class="store-card__media">
+        <ng-container *ngIf="p.imageUrl as url; else noimg">
+          <img [src]="url" [alt]="p.description || ('Producto ' + p.id)" loading="lazy" />
+        </ng-container>
+        <ng-template #noimg>
+          <div class="noimg">Sin imagen</div>
+        </ng-template>
+      </div>
+
+      <div class="store-card__body">
+        <h4 class="store-card__title">{{ p.description || ('Producto ' + p.id) }}</h4>
+      </div>
+
+      <div class="store-card__footer">
+        <div class="store-card__price">
+          <span class="currency">$</span>
+          <span class="amount">{{ p.price | number: '1.2-2' }}</span>
+        </div>
+
+        <!-- 🔁 Ya NO pasamos 'img' -->
+        <button class="btn btn--accent" type="button" (click)="onAddClick($event, p)">
+          Agregar
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div class="store__empty" *ngIf="!loading() && list().length === 0">
+    <h3>No hay productos</h3>
+    <p>Cuando se carguen productos, los vas a ver acá.</p>
+  </div>
+
+  <!-- FAB Carrito (flotante) -->
+  <button id="cartAnchor" class="cart-fab" type="button" (click)="toggleCartDrawer()" [class.bump]="bumpCart()"
+    aria-label="Abrir carrito">
+    <span class="cart-fab__icon">🛒</span>
+    <span class="cart-fab__count">{{ cart.count() }}</span>
+  </button>
+
+  <!-- Drawer del carrito -->
+  <div class="cart-drawer" [class.open]="showCart()">
+    <header class="cart-drawer__header">
+      <h4>Carrito ({{ cart.count() }})</h4>
+      <button class="btn btn--ghost" type="button" (click)="toggleCartDrawer()">Cerrar</button>
+    </header>
+
+    <ul class="cart-drawer__list">
+      <li class="cart-drawer__item" *ngFor="let it of cart.items()">
+        <img *ngIf="it.imageUrl as url" [src]="url" alt="" class="cart-drawer__thumb" loading="lazy" />
+        <div class="cart-drawer__meta">
+          <div class="cart-drawer__title">{{ it.description }}</div>
+          <div class="cart-drawer__price">$ {{ it.price | number:'1.2-2' }}</div>
+        </div>
+        <div class="cart-drawer__qty">
+          <button type="button" (click)="dec(it.id)">-</button>
+          <span>{{ it.qty }}</span>
+          <button type="button" (click)="inc(it.id)">+</button>
+        </div>
+        <button type="button" class="cart-drawer__remove" (click)="remove(it.id)">✕</button>
+      </li>
+    </ul>
+
+    <footer class="cart-drawer__footer">
+      <div class="cart-drawer__total">
+        <span>Total</span>
+        <strong>$ {{ cart.total() | number:'1.2-2' }}</strong>
+      </div>
+      <button class="btn btn--accent" type="button">Ir a pagar</button>
+    </footer>
+  </div>
+
+  <!-- Backdrop -->
+  <div class="cart-backdrop" *ngIf="showCart()" (click)="toggleCartDrawer()"></div>
+</section>

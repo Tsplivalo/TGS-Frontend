@@ -5,7 +5,7 @@ export const routes: Routes = [
   // === Home ===
   { path: '', component: HomeComponent },
 
-  // === Management (existing) ===
+  // === Gestión ===
   {
     path: 'producto',
     loadComponent: () =>
@@ -54,7 +54,7 @@ export const routes: Routes = [
       import('./components/topic/topic').then((m) => m.TopicComponent),
   },
 
-  // === Nuevo: Distribuidor ===
+  // === Distribuidor ===
   {
     path: 'distribuidor',
     loadComponent: () =>
@@ -63,7 +63,19 @@ export const routes: Routes = [
       ),
   },
 
-  // === Static pages (new) ===
+  // === Cliente: Tienda + Mi Cuenta ===
+  {
+    path: 'tienda',
+    loadComponent: () =>
+      import('./components/store/store.js').then((m) => m.StoreComponent),
+  },
+  {
+    path: 'mi-cuenta',
+    loadComponent: () =>
+      import('./components/account/account.js').then((m) => m.AccountComponent),
+  },
+
+  // === Páginas estáticas ===
   {
     path: 'sobre-nosotros',
     loadComponent: () =>

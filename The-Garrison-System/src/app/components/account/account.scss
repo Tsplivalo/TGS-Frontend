@@ -1,0 +1,181 @@
+/* ================================
+   Mi Cuenta — vidrio robusto
+   ================================ */
+
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.account>header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  font-family: 'Google Sans Code';
+}
+
+.account>header h2 {
+  margin: 0;
+  font-size: var(--h3);
+  font-weight: 700;
+  font-family: 'Google Sans Code';
+}
+
+/* ===== CARD VIDRIO ===== */
+.account form {
+  position: relative;
+  border-radius: 18px;
+  padding: var(--sp-5);
+  background: rgba(20, 22, 28, 0.35);
+  /* semitransparente = clave */
+  border: 1px solid rgba(255, 255, 255, .16);
+  /* vidrio real */
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  /* profundidad */
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+/* filete interior dorado (match con resto) */
+.account form::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(195, 164, 98, .22);
+  pointer-events: none;
+}
+
+/* Fallback si el navegador no soporta backdrop-filter */
+@supports not ((backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px))) {
+  .account form {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)),
+      rgba(20, 22, 28, .5);
+    /* “fake glass” */
+    border: 1px solid rgba(255, 255, 255, .12);
+  }
+}
+
+/* ===== GRID CAMPOS ===== */
+.account .grid {
+  display: grid;
+  gap: var(--sp-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 720px) {
+  .account .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.account .grid label {
+  display: grid;
+  gap: 8px;
+}
+
+.account .grid label>span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ===== INPUT VIDRIO ===== */
+.account .grid input {
+  width: 100%;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: rgba(24, 26, 32, 0.35);
+  border: 1px solid rgba(255, 255, 255, .12);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .06s ease, background .18s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .06),
+    0 0 0 0 rgba(195, 164, 98, 0);
+}
+
+.account .grid input:hover {
+  border-color: color-mix(in srgb, var(--border), var(--accent) 28%);
+}
+
+.account .grid input:focus-visible {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    0 0 0 3px rgba(195, 164, 98, .18);
+  transform: translateY(-1px);
+}
+
+.account .grid input:disabled {
+  opacity: .85;
+  color: color-mix(in srgb, var(--text), #ffffff 10%);
+  background: rgba(25, 25, 30, .28);
+  cursor: not-allowed;
+}
+
+.account .grid .wide {
+  grid-column: 1 / -1;
+}
+
+/* ===== ACCIONES ===== */
+.account .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.account .actions button {
+  display: inline-flex;
+  font-family: 'Google Sans Code';
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(195, 164, 98, .35);
+  font-weight: 700;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(0, 0, 0, .18)),
+    linear-gradient(180deg, var(--accent), var(--accent-700));
+  color: #1a1308;
+  box-shadow:
+    0 6px 16px rgba(195, 164, 98, .22),
+    inset 0 1px 0 rgba(255, 255, 255, .10);
+  transition: transform .06s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.account .actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(195, 164, 98, .30);
+}
+
+.account .actions button:active {
+  transform: translateY(0);
+}
+
+.account .actions button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* mensajes */
+.muted {
+  color: var(--muted);
+}
+
+.error,
+.ok {
+  border-radius: 12px;
+}

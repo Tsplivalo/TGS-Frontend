@@ -1,0 +1,49 @@
+<section class="account stack-lg">
+  <header>
+    <h2>Mi cuenta</h2>
+  </header>
+
+  <div class="muted" *ngIf="loading()">Cargando...</div>
+  <div class="error" *ngIf="error() as e">{{ e }}</div>
+  <div class="ok" *ngIf="ok() as m">{{ m }}</div>
+
+  <form #formEl *ngIf="!loading() && me()" (submit)="save(formEl); $event.preventDefault()">
+    <div class="grid">
+      <label>
+        <span>Usuario</span>
+        <input name="username" [value]="me()?.['username'] || ''" />
+      </label>
+
+      <label>
+        <span>Email</span>
+        <input [value]="me()?.['email'] || ''" disabled />
+      </label>
+
+      <label>
+        <span>Nombre</span>
+        <input name="firstName" [value]="me()?.['firstName'] || ''" />
+      </label>
+
+      <label>
+        <span>Apellido</span>
+        <input name="lastName" [value]="me()?.['lastName'] || ''" />
+      </label>
+
+      <label>
+        <span>Teléfono</span>
+        <input name="phone" [value]="me()?.['phone'] || ''" />
+      </label>
+
+      <label class="wide">
+        <span>Dirección</span>
+        <input name="address" [value]="me()?.['address'] || ''" />
+      </label>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="saving() || error()?.includes('no tiene PATCH/PUT')">
+        Guardar cambios
+      </button>
+    </div>
+  </form>
+</section>

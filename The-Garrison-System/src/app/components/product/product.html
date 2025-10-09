@@ -28,7 +28,6 @@
 
       <label class="label">
         <span class="label-text">Stock</span>
-        <!-- Valores alineados con el TS: 'all' | 'with' | 'without' -->
         <select class="input" [value]="fStock()" (change)="fStock.set($any($event.target).value)">
           <option value="all">Todos</option>
           <option value="with">Con stock</option>
@@ -47,6 +46,7 @@
             <tr>
               <th style="width:80px;">ID</th>
               <th>Descripción</th>
+              <th style="width:120px;">Imagen</th>
               <th style="width:140px;">Precio</th>
               <th style="width:120px;">Stock</th>
               <th style="width:120px;">Ilegal</th>
@@ -57,6 +57,11 @@
             <tr *ngFor="let p of filteredList()">
               <td>#{{ p.id }}</td>
               <td>{{ p.description }}</td>
+              <td>
+                <img *ngIf="p.imageUrl" [src]="p.imageUrl!" alt=""
+                  style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
+                <span *ngIf="!p.imageUrl" class="muted">—</span>
+              </td>
               <td>{{ p.price | currency:'ARS':'symbol':'1.0-2' }}</td>
               <td>
                 <span class="badge" [class.badge-warn]="p.stock === 0">{{ p.stock }}</span>
@@ -97,7 +102,6 @@
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
         <label class="label col-2">
           <span>Descripción</span>
-          <!-- ✅ nombre del control correcto -->
           <input class="input" formControlName="description" placeholder="Descripción del producto" />
           <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
             Campo requerido.
@@ -106,7 +110,6 @@
 
         <label class="label">
           <span>Precio</span>
-          <!-- ✅ nombre del control correcto + coerción numérica -->
           <input class="input" type="number" min="0" step="0.01" formControlName="price"
             (input)="coerceNumber('price', $event)" />
           <small class="hint" *ngIf="form.controls.price.invalid && form.controls.price.touched">
@@ -116,7 +119,6 @@
 
         <label class="label">
           <span>Stock</span>
-          <!-- ✅ nombre del control correcto + coerción numérica -->
           <input class="input" type="number" min="0" formControlName="stock" (input)="coerceNumber('stock', $event)" />
           <small class="hint" *ngIf="form.controls.stock.invalid && form.controls.stock.touched">
             Ingresá un stock válido.
@@ -124,10 +126,31 @@
         </label>
 
         <label class="label switch">
-          <!-- ✅ nombre del control correcto -->
           <input type="checkbox" formControlName="isIllegal" />
           <span>¿Es ilegal?</span>
         </label>
+
+        <!-- Imagen (URL) -->
+        <label class="label col-2">
+          <span>Imagen (URL)</span>
+          <input class="input" type="url" formControlName="imageUrl" placeholder="https://..."
+            (input)="onImageUrlInput($event)" />
+          <small class="muted">
+            Pegá un link a una imagen (JPG/PNG/WebP). Si preferís subir archivo, usá el campo de abajo.
+          </small>
+        </label>
+
+        <!-- Imagen (archivo) -->
+        <label class="label">
+          <span>Imagen (archivo)</span>
+          <input class="input" type="file" accept="image/*" (change)="onFileSelected($event)" />
+          <small class="muted">Si subís un archivo, primero se sube y luego se guarda su URL.</small>
+        </label>
+
+        <!-- Preview -->
+        <div *ngIf="imagePreview() as img" class="image-preview col-2">
+          <img [src]="img" alt="Vista previa" />
+        </div>
 
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
