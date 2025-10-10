@@ -1,29 +1,27 @@
 <section class="store">
   <header class="store__header">
-    <h2 class="store__title">Tienda</h2>
+    <h2 class="store__title">{{ 'store.title' | translate }}</h2>
 
     <div class="store__filters">
       <label class="field">
-        <span class="label">Buscar</span>
-        <input class="input" type="text" placeholder="Producto o ID" [value]="q()"
+        <span class="label">{{ 'store.search' | translate }}</span>
+        <input class="input" type="text" [placeholder]="'store.search' | translate" [value]="q()"
           (input)="q.set($any($event.target).value)" />
       </label>
     </div>
   </header>
 
   <div class="error" *ngIf="error() as e">{{ e }}</div>
-  <div class="muted" *ngIf="loading()">Cargando...</div>
+  <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
 
-  <!-- Grid de productos -->
   <div class="store__grid" *ngIf="!loading() && list().length > 0">
     <article class="store-card" *ngFor="let p of list()" [class.flash]="flashId() === p.id">
-
       <div class="store-card__media">
         <ng-container *ngIf="p.imageUrl as url; else noimg">
           <img [src]="url" [alt]="p.description || ('Producto ' + p.id)" loading="lazy" />
         </ng-container>
         <ng-template #noimg>
-          <div class="noimg">Sin imagen</div>
+          <div class="noimg">{{ 'store.noImage' | translate }}</div>
         </ng-template>
       </div>
 
@@ -37,31 +35,32 @@
           <span class="amount">{{ p.price | number: '1.2-2' }}</span>
         </div>
 
-        <!-- 🔁 Ya NO pasamos 'img' -->
         <button class="btn btn--accent" type="button" (click)="onAddClick($event, p)">
-          Agregar
+          {{ 'store.add' | translate }}
         </button>
       </div>
     </article>
   </div>
 
   <div class="store__empty" *ngIf="!loading() && list().length === 0">
-    <h3>No hay productos</h3>
-    <p>Cuando se carguen productos, los vas a ver acá.</p>
+    <h3>{{ 'store.noProducts.title' | translate }}</h3>
+    <p>{{ 'store.noProducts.desc' | translate }}</p>
   </div>
 
-  <!-- FAB Carrito (flotante) -->
+  <!-- FAB -->
   <button id="cartAnchor" class="cart-fab" type="button" (click)="toggleCartDrawer()" [class.bump]="bumpCart()"
-    aria-label="Abrir carrito">
+    [attr.aria-label]="'store.cart.open' | translate">
     <span class="cart-fab__icon">🛒</span>
     <span class="cart-fab__count">{{ cart.count() }}</span>
   </button>
 
-  <!-- Drawer del carrito -->
+  <!-- Drawer -->
   <div class="cart-drawer" [class.open]="showCart()">
     <header class="cart-drawer__header">
-      <h4>Carrito ({{ cart.count() }})</h4>
-      <button class="btn btn--ghost" type="button" (click)="toggleCartDrawer()">Cerrar</button>
+      <h4>{{ 'store.cart.items' | translate:{ count: cart.count() } }}</h4>
+      <button class="btn btn--ghost" type="button" (click)="toggleCartDrawer()">
+        {{ 'store.cart.close' | translate }}
+      </button>
     </header>
 
     <ul class="cart-drawer__list">
@@ -82,13 +81,14 @@
 
     <footer class="cart-drawer__footer">
       <div class="cart-drawer__total">
-        <span>Total</span>
+        <span>{{ 'store.cart.total' | translate }}</span>
         <strong>$ {{ cart.total() | number:'1.2-2' }}</strong>
       </div>
-      <button class="btn btn--accent" type="button">Ir a pagar</button>
+      <button class="btn btn--accent" type="button">
+        {{ 'store.cart.goToCheckout' | translate }}
+      </button>
     </footer>
   </div>
 
-  <!-- Backdrop -->
   <div class="cart-backdrop" *ngIf="showCart()" (click)="toggleCartDrawer()"></div>
 </section>

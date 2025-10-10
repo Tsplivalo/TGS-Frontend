@@ -1,48 +1,78 @@
+<!--
+  Account template
+
+  - Muestra perfil y permite editar campos no sensibles.
+  - Accesibilidad: labels asociadas a inputs (for/id), regiones con aria-live,
+    atributos autocomplete, inputmode y type adecuados.
+  - Mantiene el enfoque en el submit y deshabilita el botón mientras guarda.
+-->
 <section class="account stack-lg">
   <header>
-    <h2>Mi cuenta</h2>
+    <h2 id="account-title">{{ 'account.title' | translate }}</h2>
   </header>
 
-  <div class="muted" *ngIf="loading()">Cargando...</div>
-  <div class="error" *ngIf="error() as e">{{ e }}</div>
-  <div class="ok" *ngIf="ok() as m">{{ m }}</div>
+  <!-- Estado de carga (anunciado a lectores de pantalla) -->
+  <div class="muted" *ngIf="loading()" role="status" aria-live="polite">
+    {{ 'account.loading' | translate }}
+  </div>
 
-  <form #formEl *ngIf="!loading() && me()" (submit)="save(formEl); $event.preventDefault()">
+  <!-- Errores (anunciados inmediatamente) -->
+  <div class="error" *ngIf="error() as e" role="alert" aria-live="assertive">
+    {{ e }}
+  </div>
+
+  <!-- Mensajes OK (tono informativo) -->
+  <div class="ok" *ngIf="ok() as m" role="status" aria-live="polite">
+    {{ m }}
+  </div>
+
+  <!--
+    Usamos template-driven + FormData en TS. El form tiene #formEl para pasarlo a save().
+    Se definen name="…" coherentes con el backend y ids para asociar label/for.
+  -->
+  <form #formEl *ngIf="!loading() && me()" (submit)="save(formEl); $event.preventDefault()"
+    aria-labelledby="account-title" novalidate>
+
     <div class="grid">
-      <label>
-        <span>Usuario</span>
-        <input name="username" [value]="me()?.['username'] || ''" />
+      <label for="f-username">
+        <span>{{ 'account.fields.username' | translate }}</span>
+        <input id="f-username" name="username" [value]="me()?.['username'] || ''" autocomplete="username"
+          maxlength="64" />
       </label>
 
-      <label>
-        <span>Email</span>
-        <input [value]="me()?.['email'] || ''" disabled />
+      <label for="f-email">
+        <span>{{ 'account.fields.email' | translate }}</span>
+        <input id="f-email" type="email" [value]="me()?.['email'] || ''" autocomplete="email" disabled />
       </label>
 
-      <label>
-        <span>Nombre</span>
-        <input name="firstName" [value]="me()?.['firstName'] || ''" />
+      <label for="f-firstName">
+        <span>{{ 'account.fields.firstName' | translate }}</span>
+        <input id="f-firstName" name="firstName" [value]="me()?.['firstName'] || ''" autocomplete="given-name"
+          maxlength="64" />
       </label>
 
-      <label>
-        <span>Apellido</span>
-        <input name="lastName" [value]="me()?.['lastName'] || ''" />
+      <label for="f-lastName">
+        <span>{{ 'account.fields.lastName' | translate }}</span>
+        <input id="f-lastName" name="lastName" [value]="me()?.['lastName'] || ''" autocomplete="family-name"
+          maxlength="64" />
       </label>
 
-      <label>
-        <span>Teléfono</span>
-        <input name="phone" [value]="me()?.['phone'] || ''" />
+      <label for="f-phone">
+        <span>{{ 'account.fields.phone' | translate }}</span>
+        <input id="f-phone" name="phone" [value]="me()?.['phone'] || ''" type="tel" inputmode="tel" autocomplete="tel"
+          maxlength="24" />
       </label>
 
-      <label class="wide">
-        <span>Dirección</span>
-        <input name="address" [value]="me()?.['address'] || ''" />
+      <label class="wide" for="f-address">
+        <span>{{ 'account.fields.address' | translate }}</span>
+        <input id="f-address" name="address" [value]="me()?.['address'] || ''" autocomplete="street-address"
+          maxlength="140" />
       </label>
     </div>
 
     <div class="actions">
-      <button type="submit" [disabled]="saving() || error()?.includes('no tiene PATCH/PUT')">
-        Guardar cambios
+      <button type="submit" [disabled]="saving()" [attr.aria-busy]="saving() ? 'true' : null">
+        {{ 'account.save' | translate }}
       </button>
     </div>
   </form>

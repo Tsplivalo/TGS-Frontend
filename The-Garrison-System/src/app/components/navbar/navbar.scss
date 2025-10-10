@@ -327,3 +327,55 @@
     flex-wrap: wrap;
   }
 }
+
+/* ===== Selector de idioma con banderas SVG embebidas ===== */
+.flag {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+  background-size: cover;
+  background-position: center;
+  flex: 0 0 18px;
+  transform: translateY(1px);
+}
+
+/* 🇪🇸 España */
+.flag-es {
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'>\
+<rect width='3' height='2' fill='%23AA151B'/>\
+<rect y='0.5' width='3' height='1' fill='%23F1BF00'/>\
+</svg>");
+}
+
+/* 🇬🇧 United Kingdom (simplificado) */
+.flag-en {
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'>\
+<clipPath id='c'><rect width='3' height='2'/></clipPath>\
+<g clip-path='url(%23c)'>\
+<rect width='3' height='2' fill='%23012169'/>\
+<path d='M0 0l3 2M3 0L0 2' stroke='%23ffffff' stroke-width='0.3'/>\
+<path d='M0 0l3 2M3 0L0 2' stroke='%23C8102E' stroke-width='0.2' transform='translate(0,0.03)'/>\
+<path d='M1.5 0v2M0 1h3' stroke='%23ffffff' stroke-width='0.5'/>\
+<path d='M1.5 0v2M0 1h3' stroke='%23C8102E' stroke-width='0.3'/>\
+</g></svg>");
+}
+
+/* Ajustes visuales del toggle de idioma */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.lang-label {
+  font-weight: 600;
+}
+
+.lang-code {
+  opacity: .85;
+  letter-spacing: .5px;
+}

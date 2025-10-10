@@ -85,7 +85,7 @@
   box-shadow: 0 0 0 3px rgba(195, 164, 98, .18);
 }
 
-/* Grid de productos (cards) */
+/* Grid de productos */
 .store__grid {
   display: grid;
   gap: var(--sp-5);
@@ -110,7 +110,7 @@
   }
 }
 
-/* Card vidrio cuadrada */
+/* Card */
 .store-card {
   position: relative;
   isolation: isolate;
@@ -141,13 +141,14 @@
   border-color: color-mix(in srgb, rgba(255, 255, 255, .12), var(--accent) 18%);
 }
 
-/* Flash al agregar */
+/* Flash blanco */
 .store-card.flash::before {
   content: "";
   position: absolute;
   inset: 0;
   background: #fff;
   opacity: 0;
+  z-index: 2;
   animation: cardFlash .22s ease forwards;
 }
 
@@ -156,8 +157,8 @@
     opacity: 0
   }
 
-  30% {
-    opacity: .8
+  35% {
+    opacity: .9
   }
 
   100% {
@@ -165,7 +166,7 @@
   }
 }
 
-/* Media cuadrada estricta */
+/* Media */
 .store-card__media {
   position: relative;
   aspect-ratio: 1 / 1;
@@ -197,7 +198,6 @@
   font-size: .9rem;
 }
 
-/* Fallback sin aspect-ratio */
 @supports not (aspect-ratio: 1 / 1) {
   .store-card__media {
     position: relative;
@@ -327,7 +327,10 @@
   color: #1a1308;
   box-shadow: 0 10px 22px rgba(195, 164, 98, .28);
   cursor: pointer;
-  z-index: 60;
+  z-index: 1001;
+  /* ↑ más alto que drawer/backdrop cerrados */
+  pointer-events: auto;
+  /* asegura clickeable */
   transition: transform .12s ease, box-shadow .22s ease;
 }
 
@@ -381,9 +384,11 @@
   height: 100dvh;
   transform: translateX(100%);
   transition: transform .28s ease;
-  z-index: 70;
+  z-index: 1200;
 
-  /* 🔧 Cambiado a flex-col para anclar arriba */
+  /* cuando está cerrado, que NO capture eventos */
+  pointer-events: none;
+
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -399,6 +404,8 @@
 
 .cart-drawer.open {
   transform: translateX(0);
+  pointer-events: auto;
+  /* clickeable sólo cuando abre */
 }
 
 .cart-backdrop {
@@ -406,7 +413,8 @@
   inset: 0;
   background: rgba(0, 0, 0, .45);
   backdrop-filter: blur(2px);
-  z-index: 65;
+  z-index: 1190;
+  /* bajo el drawer, sobre el resto */
 }
 
 .cart-drawer__header {
@@ -417,34 +425,26 @@
   margin-bottom: var(--sp-3);
 }
 
-/* 🔧 Lista scrollable, pegada arriba, menor separación */
 .cart-drawer__list {
   flex: 1 1 auto;
   overflow: auto;
-
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-
   gap: 8px;
-  /* separación más chica */
   margin: 0;
   padding: 0;
   list-style: none;
-
   scrollbar-gutter: stable;
 }
 
-/* Ítems más compactos */
 .cart-drawer__item {
   display: grid;
   grid-template-columns: 56px 1fr auto auto;
   align-items: center;
   gap: 10px;
-  /* menos gap interno */
   padding: 8px;
-  /* más compacto */
   border-radius: 10px;
   border: 1px solid var(--border);
   background: #00000020;
@@ -497,7 +497,7 @@
   cursor: pointer;
 }
 
-/* Footer al final */
+/* Footer */
 .cart-drawer__footer {
   flex: 0 0 auto;
   display: flex;
@@ -517,13 +517,8 @@
   font-size: 1.05rem;
 }
 
-/* =========================
-   Elementos voladores (WAAPI)
-   ========================= */
-.fly-clone {
-  pointer-events: none;
-}
-
+/* Voladores */
+.fly-clone,
 .fly-bubble {
   pointer-events: none;
 }

@@ -4,32 +4,42 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angu
 import { ProductService } from '../../services/product/product';
 import { ApiResponse, ProductDTO, CreateProductDTO, UpdateProductDTO } from '../../models/product/product.model';
 import { ProductImageService } from '../../services/product-image/product-image';
+import { TranslateModule } from '@ngx-translate/core';
+
+/**
+ * ProductComponent
+ *
+ * ABM de productos con filtro por texto/stock, previsualización de imagen
+ * y persistencia de imagen solo en front (localStorage) vía ProductImageService.
+ * Decisiones: el backend NO recibe imageUrl; tras crear/editar se guarda localmente.
+ */
 
 @Component({
   selector: 'app-product',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './product.html',
   styleUrls: ['./product.scss']
 })
 export class ProductComponent implements OnInit {
+  // --- Inyección ---
   private fb  = inject(FormBuilder);
   private srv = inject(ProductService);
   private imgSvc = inject(ProductImageService);
 
-  // state
+  // --- Estado base ---
   loading = signal(false);
   error   = signal<string | null>(null);
-  editId  = signal<number | null>(null);
+  editId  = signal<number | null>(null); // null → creando, número → editando
 
-  // data
+  // --- Datos ---
   products = signal<ProductDTO[]>([]);
 
-  // filters
+  // --- Filtros de UI ---
   fText  = signal('');
   fStock = signal<'all' | 'with' | 'without'>('all');
 
-  // filtered view
+  // Vista filtrada reactiva
   filteredList = computed(() => {
     const txt = this.fText().toLowerCase().trim();
     const fstock = this.fStock();
@@ -49,24 +59,27 @@ export class ProductComponent implements OnInit {
     });
   });
 
-  // preview (solo front)
+  // --- Previsualización de imagen (solo front) ---
   selectedFile: File | null = null;
   imagePreview = signal<string | null>(null);
 
-  // form (incluye imageUrl solo para uso de front/localStorage)
+  // Form reactivo (imageUrl solo para UI; no se manda al backend)
   form = this.fb.group({
     description: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
     price:       this.fb.control<number>(0,   { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
     stock:       this.fb.control<number>(0,   { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
     isIllegal:   this.fb.control<boolean>(false, { nonNullable: true }),
-    imageUrl:    this.fb.control<string>('', { nonNullable: true }),
+    imageUrl:    this.fb.control<string>('', { nonNullable: true }), // usado solo en el front
   });
 
+  // --- Ciclo de vida ---
   ngOnInit() { this.load(); }
 
+  // --- UI: abrir/cerrar sección "nuevo" ---
   isNewOpen = false;
   toggleNew(){ this.isNewOpen = !this.isNewOpen; }
 
+  // Fuerza número en inputs de price/stock
   coerceNumber(key: 'price' | 'stock', ev: Event) {
     const input = ev.target as HTMLInputElement;
     const val = input.value === '' ? 0 : Number(input.value);
@@ -75,11 +88,13 @@ export class ProductComponent implements OnInit {
     this.form.controls[key].updateValueAndValidity();
   }
 
+  // Previsualiza cuando se pega una URL
   onImageUrlInput(ev: Event) {
     const val = (ev.target as HTMLInputElement).value?.trim();
     this.imagePreview.set(val || null);
   }
 
+  // Previsualiza cuando se selecciona un archivo local
   onFileSelected(ev: Event) {
     const input = ev.target as HTMLInputElement;
     const f = input.files?.[0] ?? null;
@@ -90,7 +105,7 @@ export class ProductComponent implements OnInit {
       reader.onload = () => {
         const dataUrl = String(reader.result || '');
         this.imagePreview.set(dataUrl);
-        // Si querés, también lo colocamos en el control para que se guarde como URL local
+        // Opcional: reflejar en el control para persistir en localStorage
         this.form.controls.imageUrl.setValue(dataUrl);
       };
       reader.readAsDataURL(f);
@@ -99,23 +114,25 @@ export class ProductComponent implements OnInit {
     }
   }
 
+  // --- Data fetching ---
   private load() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAllProducts().subscribe({
       next: (r: ApiResponse<ProductDTO[]> | ProductDTO[]) => {
         const data = Array.isArray(r) ? r : (r as any).data;
-        // superponemos las imágenes locales (solo front)
+        // Superpone imágenes locales (solo front) sobre las del backend
         this.products.set(this.imgSvc.overlay(data ?? []));
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'Could not load the list.');
+        this.error.set(err?.error?.message ?? 'products.errors.load');
         this.loading.set(false);
       }
     });
   }
 
+  // Carga un producto en el form para editar
   private loadInForm(p: ProductDTO) {
     this.form.setValue({
       description: p.description ?? '',
@@ -128,6 +145,7 @@ export class ProductComponent implements OnInit {
     this.imagePreview.set(p.imageUrl ?? null);
   }
 
+  // --- Crear / Editar ---
   new() {
     this.editId.set(null);
     this.form.reset({
@@ -148,6 +166,7 @@ export class ProductComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // --- Guardar ---
   save() {
     if (this.form.invalid) return;
 
@@ -157,54 +176,57 @@ export class ProductComponent implements OnInit {
     const raw = this.form.getRawValue();
     const img = raw.imageUrl?.trim() || null;
 
-    // NO enviamos imageUrl al backend (solo front)
+    // No enviar imageUrl al backend (solo front)
     const { imageUrl: _ignore, ...clean } = raw as any;
 
     if (this.editId() == null) {
+      // CREATE
       const dtoCreate: CreateProductDTO = clean;
       this.srv.createProduct(dtoCreate).subscribe({
         next: (res: any) => {
           const created = ('data' in res ? res.data : res) as ProductDTO | null;
-          if (created?.id) this.imgSvc.set(created.id, img); // guardamos imagen local por id creado
+          if (created?.id) this.imgSvc.set(created.id, img); // guarda preview en local
           this.loading.set(false);
           this.new();
           this.load();
         },
         error: err => {
           this.loading.set(false);
-          this.error.set(err?.error?.message ?? 'Could not save');
+          this.error.set(err?.error?.message ?? 'products.errors.save');
         }
       });
     } else {
+      // UPDATE
       const id = this.editId()!;
       const dtoUpdate: UpdateProductDTO = clean;
       this.srv.updateProduct(id, dtoUpdate).subscribe({
         next: _ => {
-          this.imgSvc.set(id, img); // actualizamos imagen local
+          this.imgSvc.set(id, img); // actualiza imagen local
           this.loading.set(false);
           this.new();
           this.load();
         },
         error: err => {
           this.loading.set(false);
-          this.error.set(err?.error?.message ?? 'Could not save');
+          this.error.set(err?.error?.message ?? 'products.errors.save');
         }
       });
     }
   }
 
+  // --- Borrado ---
   delete(id: number) {
-    if (!confirm('Delete product?')) return;
+    if (!confirm('products.confirmDelete')) return; // clave i18n sugerida
     this.loading.set(true);
     this.error.set(null);
     this.srv.deleteProduct(id).subscribe({
       next: () => {
-        this.imgSvc.remove(id); // limpiamos imagen local
+        this.imgSvc.remove(id); // limpia imagen local asociada
         this.loading.set(false);
         this.load();
       },
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'Could not delete.');
+        this.error.set(err?.error?.message ?? 'products.errors.delete');
         this.loading.set(false);
       }
     });

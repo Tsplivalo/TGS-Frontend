@@ -1,13 +1,13 @@
 <nav class="nav">
   <div class="nav__content">
-    <!-- Brand (separado con borde sutil) -->
+    <!-- Brand -->
     <a class="brand brand--separated" routerLink="/">
-      <span class="brand-text">Garr<span class="brand-accent">SYS</span></span>
+      <span class="brand-text">{{ 'brand.name' | translate }}</span>
     </a>
 
-    <!-- Menú IZQUIERDO: ítems del cliente (si está logueado como cliente o admin) -->
+    <!-- Menú IZQUIERDO: SIEMPRE visible -->
     <ul #menu class="menu menu--left" role="menubar" aria-label="Principal">
-      <!-- Indicador de vidrio deslizante -->
+      <!-- Indicador vidrio -->
       <div class="glass-indicator" [class.visible]="indicator.visible" [ngStyle]="{
           transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
           width: indicator.w + 'px',
@@ -15,25 +15,51 @@
         }" aria-hidden="true">
       </div>
 
+      <!-- Ítems cliente (si está autenticado) -->
       <ng-container *ngIf="isAuthenticated() && (isClient() || isAdmin())">
-        <li class="menu__item" [ngClass]="{ 'menu__item--store': it.path === '/tienda' }" role="none"
-          *ngFor="let it of clientItems; trackBy: trackByPath">
+        <li class="menu__item" role="none" *ngFor="let it of clientItems; trackBy: trackByPath">
           <a #mainBtn role="menuitem" [routerLink]="it.path" routerLinkActive="active">
-            {{ it.label }} <span class="underline"></span>
+            {{ it.label | translate }} <span class="underline"></span>
           </a>
         </li>
       </ng-container>
+
+      <!-- Selector de idioma: SIEMPRE visible y a la derecha del bloque cliente -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
+        <button class="dropdown__toggle has-underline lang-toggle" type="button" aria-haspopup="true"
+          aria-expanded="false">
+          <span [class]="flagClass()" aria-hidden="true"></span>
+          <span class="lang-code">{{ lang() | uppercase }}</span>
+          <span class="chevron">▾</span>
+          <span class="underline"></span>
+        </button>
+
+        <ul class="dropdown" role="menu" [attr.aria-label]="'nav.language' | translate">
+          <li class="dropdown__item" role="none">
+            <button type="button" role="menuitem" (click)="setLang('es')">
+              <span class="flag flag-es" aria-hidden="true"></span>
+              ES
+            </button>
+          </li>
+          <li class="dropdown__item" role="none">
+            <button type="button" role="menuitem" (click)="setLang('en')">
+              <span class="flag flag-en" aria-hidden="true"></span>
+              EN
+            </button>
+          </li>
+        </ul>
+      </li>
     </ul>
 
     <!-- Separador flexible -->
     <div class="spacer"></div>
 
-    <!-- Menú DERECHO: siempre muestra páginas públicas -->
+    <!-- Menú DERECHO: públicas + gestión + usuario -->
     <ul class="menu menu--right" role="menubar" aria-label="Páginas">
-      <!-- Páginas públicas (siempre visibles) -->
+      <!-- Páginas públicas -->
       <li class="menu__item" role="none" *ngFor="let p of publicItems; trackBy: trackByPath">
         <a role="menuitem" [routerLink]="p.path" routerLinkActive="active">
-          {{ p.label }} <span class="underline"></span>
+          {{ p.label | translate }} <span class="underline"></span>
         </a>
       </li>
 
@@ -41,40 +67,35 @@
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated() && isAdmin()">
         <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
           [class.active]="isGestionActive()">
-          Gestión <span class="chevron">▾</span>
+          {{ 'nav.management' | translate }} <span class="chevron">▾</span>
           <span class="underline"></span>
         </button>
 
         <ul class="dropdown" role="menu" aria-label="Gestión">
           <li *ngFor="let item of gestionItems; trackBy: trackByPath" class="dropdown__item" role="none">
             <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
-              {{ item.label }} <span class="underline"></span>
+              {{ item.label | translate }} <span class="underline"></span>
             </a>
           </li>
         </ul>
       </li>
 
-      <!-- Usuario (logueado: siempre) -->
+      <!-- Usuario (logueado) -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated()">
         <button class="dropdown__toggle" type="button" aria-haspopup="true" aria-expanded="false">
-          {{ user()?.['username'] || user()?.['email'] || 'Usuario' }}
+          {{ user()?.['username'] || user()?.['email'] || 'User' }}
           <span class="chevron">▾</span>
         </button>
-
         <ul class="dropdown" role="menu" aria-label="Usuario">
-          <!-- Mi cuenta -->
           <li class="dropdown__item" role="none">
             <a role="menuitem" routerLink="/mi-cuenta" routerLinkActive="active">
-              Mi cuenta
+              {{ 'nav.myAccount' | translate }}
             </a>
           </li>
-
           <li class="dropdown__divider" role="separator"></li>
-
-          <!-- Salir -->
           <li class="dropdown__item" role="none">
             <button type="button" class="btn-logout" (click)="logout()">
-              Salir
+              {{ 'nav.logout' | translate }}
             </button>
           </li>
         </ul>

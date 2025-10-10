@@ -1,0 +1,320 @@
+{
+  "brand": { "name": "GarrSYS" },
+  "nav": {
+    "store": "Store",
+    "myAccount": "My account",
+    "management": "Management",
+    "logout": "Sign out",
+    "about": "About us",
+    "faqs": "FAQs",
+    "contact": "Contact us",
+    "language": "Language"
+  },
+  "store": {
+    "title": "Store",
+    "search": "Search",
+    "noImage": "No image",
+    "noProducts": { "title": "No products", "desc": "When products are loaded, you'll see them here." },
+    "add": "Add",
+    "cart": {
+      "open": "Open cart",
+      "items": "Cart ({{count}})",
+      "empty": "Your cart is empty",
+      "close": "Close",
+      "clear": "Clear",
+      "goToCheckout": "Checkout",
+      "total": "Total"
+    }
+  },
+  "account": {
+    "title": "My account",
+    "loading": "Loading...",
+    "save": "Save changes",
+    "saved": "Saved!",
+    "couldNotSave": "Could not save.",
+    "fields": { "username": "Username", "email": "Email", "firstName": "First name", "lastName": "Last name", "phone": "Phone", "address": "Address" }
+  },
+  "product": {
+    "title": "Products",
+    "new": "New product",
+    "close": "Close",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "list": "List",
+    "loading": "Loading products...",
+    "filters": { "search": "Search", "stock": "Stock", "stock_all": "All", "stock_with": "With stock", "stock_without": "Out of stock" },
+    "fields": { "description": "Description", "price": "Price", "stock": "Stock", "illegal": "Illegal?", "imageUrl": "Image (URL)", "imageFile": "Image (file)" },
+    "preview": "Preview",
+    "emptyTitle": "No products",
+    "emptyHint": "Try adjusting the filters or create a new product.",
+    "editTitle": "Edit product #{{id}}",
+    "required": "Field is required.",
+    "priceInvalid": "Enter a valid price.",
+    "stockInvalid": "Enter a valid stock.",
+    "imageUrlHint": "Paste a link to an image (JPG/PNG/WebP). If you prefer to upload a file, use the field below.",
+    "imageFileHint": "If you upload a file, it will be uploaded first and then its URL will be saved.",
+    "errorLoad": "Could not load the list.",
+    "errorSave": "Could not save",
+    "errorDelete": "Could not delete."
+  },
+  "auth": {
+    "user": "user",
+    "login": { "title": "Sign in", "submit": "Sign in" },
+    "register": { "title": "Create account", "submit": "Create account" },
+    "fields": { "username": "Username", "email": "Email", "password": "Password" },
+    "placeholders": { "username": "Your name", "email": "you@email.com", "password": "••••••••" },
+    "errors": { "missingFields": "Please complete all fields.", "loginFailed": "Could not sign in.", "registerFailed": "Could not register." }
+  },
+  "home": {
+    "welcome": "Welcome,",
+    "tagline": "The platform that takes your business to the next level",
+    "cta": { "store": "Go to Store" },
+    "pill": "GarrSYS at a glance",
+    "intro": { "title": "Everything in one place", "lead": "Centralize products, customers, sales and zones with a clear interface." },
+    "steps": { "title": "How to start", "one": "Create your account or sign in.", "two": "Load products and customers.", "three": "Activate your sales and management flows." },
+    "features": {
+      "simplified": { "title": "Simplified management", "detail": "Unify products, customers and sales in a single interface." },
+      "performance": { "title": "Performance & clarity", "detail": "Fast screens, clear states and helpful filters." },
+      "scalable": { "title": "Ready to scale", "detail": "Organize zones, authorities and decisions at scale." },
+      "reports": { "title": "Real-time reports", "detail": "Visualize KPIs and trends instantly." },
+      "security": { "title": "Security & roles", "detail": "Define permissions per area or function." },
+      "integrations": { "title": "Integrations & API", "detail": "Connect systems and automate without friction." }
+    }
+  },
+  "common": { "close": "Close", "create": "Create", "save": "Save", "cancel": "Cancel", "edit": "Edit", "delete": "Delete" },
+  "clients": {
+    "title": "Clients",
+    "new": "New",
+    "newTitle": "New client",
+    "editTitle": "Edit client",
+    "loading": "Loading clients...",
+    "noResults": "No results",
+    "confirmDelete": "Delete this client?",
+    "errorLoad": "Could not load clients.",
+    "errorSave": "Could not save.",
+    "errorCreate": "Could not create.",
+    "errorDelete": "Could not delete.",
+    "filters": {
+      "search": "Search",
+      "searchPh": "DNI, name, email...",
+      "purchases": "Purchases",
+      "purchases_all": "All",
+      "purchases_yes": "With purchases",
+      "purchases_no": "No purchases"
+    },
+    "table": { "dni": "DNI", "name": "Name", "email": "Email", "address": "Address", "phone": "Phone", "purchases": "Purchases" },
+    "form": { "dni": "DNI", "dniPh": "Enter DNI", "name": "Name", "namePh": "John Doe", "email": "Email", "emailPh": "john@mail.com", "phone": "Phone", "phonePh": "+54 9 341 ...", "address": "Address", "addressPh": "Street 123, City" }
+  },
+  "sales": {
+    "title": "Sales",
+    "new": "New",
+    "newTitle": "New sale",
+    "noResults": "No sales",
+    "errorLoad": "Could not load sales.",
+    "client": "Client",
+    "itemsCount": "{{count}} item(s)",
+    "filters": { "search": "Search", "searchPh": "id, product or client description", "clientDni": "Client DNI" },
+    "table": { "id": "ID", "date": "Date", "client": "Client", "products": "Products", "quantity": "Quantity", "total": "Total" },
+    "form": {
+      "client": "Client",
+      "clientFilterPh": "filter (dni or name)",
+      "chooseClient": "Choose a client",
+      "clientHint": "Not listed? Create it from Clients.",
+      "products": "Products",
+      "searchProduct": "Search product",
+      "searchProductPh": "id or description",
+      "product": "Product",
+      "chooseProduct": "Choose a product",
+      "units": "u.",
+      "quantity": "Quantity",
+      "stockTitle": "Stock available: {{stock}}",
+      "remove": "Remove",
+      "addProduct": "+ Add product",
+      "create": "Create"
+    },
+    "err": {
+      "clientMissing": "The client does not exist. Create it first from the \"Clients\" section.",
+      "addOne": "Add at least one product.",
+      "chooseProductLine": "Choose a product in line {{n}}.",
+      "validQtyLine": "Enter a valid quantity in line {{n}}.",
+      "noStock": "Not enough stock. Available: {{stock}} units.",
+      "create": "Could not create the sale."
+    }
+  },
+  "zones": {
+    "title": "Zones",
+    "new": "New zone",
+    "close": "Close",
+    "loading": "Loading...",
+    "headquarters": "Headquarters",
+    "noHeadquarters": "No headquarters defined yet.",
+    "filters": { "search": "Search", "searchPh": "ID, name or description..." },
+    "table": { "id": "ID", "name": "Name", "description": "Description", "actions": "Actions" },
+    "empty": "No zones to show.",
+    "form": {
+      "createTitle": "Create zone",
+      "editTitle": "Edit zone #{{id}}",
+      "name": "Name",
+      "namePh": "e.g. South Zone",
+      "description": "Description",
+      "descriptionPh": "Optional",
+      "markHq": "Mark as headquarters",
+      "err": { "required": "The name is required.", "duplicate": "A zone with that name already exists (regardless of case)." }
+    },
+    "confirmDelete": "Delete zone \"{{name}}\"?",
+    "err": { "cannotDeleteHq": "Cannot delete zone \"{{name}}\" because it is the current headquarters. To delete it, first assign another zone as headquarters." },
+    "errorLoad": "Could not load zones.",
+    "errorSave": "Could not save the zone.",
+    "errorDelete": "Could not delete."
+  },
+  "authorities": {
+    "title": "Authorities",
+    "new": "New",
+    "empty": "No authorities",
+    "errorLoad": "Could not load authorities.",
+    "errorCreate": "Could not create.",
+    "errorSavePatch": "Could not save (PATCH).",
+    "errorSavePut": "Could not save (PUT).",
+    "errorDelete": "Could not delete.",
+    "filters": { "search": "Search", "searchPh": "dni / name / rank", "zoneId": "Zone ID", "zoneIdPh": "1" },
+    "table": { "dni": "DNI", "name": "Name", "rank": "Rank", "zone": "Zone", "actions": "Actions" },
+    "zone": "Zone",
+    "form": {
+      "newTitle": "New authority",
+      "editTitle": "Edit authority: {{dni}}",
+      "dni": "DNI",
+      "dniPh": "Enter DNI",
+      "name": "Name",
+      "namePh": "John Doe",
+      "email": "Email",
+      "emailPh": "john@mail.com",
+      "phone": "Phone",
+      "phonePh": "+54...",
+      "address": "Address",
+      "addressPh": "Street 123",
+      "rank": "Rank",
+      "rank0": "Rank 0",
+      "rank1": "Rank 1",
+      "rank2": "Rank 2",
+      "rank3": "Rank 3",
+      "zoneId": "Zone ID",
+      "zoneIdPh": "1",
+      "err": {
+        "create": "Complete DNI, Name, Email, Rank and Zone.",
+        "edit": "Complete Name, Rank and Zone (email is not required when editing)."
+      }
+    },
+    "err": { "zoneIdInvalid": "Zone ID must be a valid number greater than 0." }
+  },
+  "bribes": {
+    "title": "Bribes",
+    "empty": "No bribes",
+    "filters": { "search": "Search", "searchPh": "id, sale id, authority id" },
+    "table": { "id": "ID", "sale": "Sale", "authority": "Authority", "amount": "Amount", "paid": "Paid", "date": "Date", "actions": "Actions" },
+    "actions": { "markPaid": "Mark as paid" },
+    "yes": "Yes",
+    "no": "No",
+    "err": { "completeAll": "Complete all fields.", "noChanges": "There are no changes to save." },
+    "errorLoad": "Could not load bribes.",
+    "errorCreate": "Could not create.",
+    "errorUpdate": "Could not update.",
+    "errorMarkPaid": "Could not mark as paid."
+  },
+  "decisions": {
+    "title": "Strategic decisions",
+    "new": "New",
+    "empty": "No decisions",
+    "filters": { "search": "Search", "searchPh": "text or id", "topic": "Thematic (ID)", "topicPh": "filter by thematic id" },
+    "table": { "id": "ID", "topic": "Thematic", "description": "Description", "start": "Start", "end": "End", "actions": "Actions" },
+    "topic": "Thematic",
+    "form": {
+      "newTitle": "New decision",
+      "editTitle": "Edit decision: {{id}}",
+      "topic": "Thematic",
+      "topicFilterPh": "filter (id or description)",
+      "chooseTopic": "Choose a thematic",
+      "description": "Description",
+      "descriptionPh": "Description of the strategic decision",
+      "start": "Start date",
+      "end": "End date"
+    }
+  },
+  
+  "topics": {
+    "title": "Topics",
+    "new": "New",
+    "empty": "No topics",
+    "filters": { "search": "Search", "searchPh": "text or id" },
+    "a11y": { "searchLabel": "Search topics by text or id" },
+    "table": { "id": "ID", "description": "Description", "actions": "Actions" },
+    "form": {
+      "newTitle": "New topic",
+      "editTitle": "Edit topic: {{id}}",
+      "description": "Description",
+      "descriptionPh": "e.g. Corruption, Smuggling...",
+      "err": { "required": "Description is required.", "fill": "Please complete the description." }
+    },
+    "errorLoad": "Could not load topics.",
+    "errorCreate": "Could not create.",
+    "errorSave": "Could not save.",
+    "errorDelete": "Could not delete."
+  },
+  "distributors": {
+    "title": "Distributors",
+    "new": "+ New distributor",
+    "list": "List",
+    "loading": "Loading distributors...",
+    "filters": { "search": "Search", "searchPh": "DNI, name, email, zone" },
+    "table": { "dni": "DNI", "name": "Name", "phone": "Phone", "email": "Email", "zone": "Zone", "products": "Products", "actions": "Actions" },
+    "empty": { "title": "No distributors", "desc": "Create the first one with “+ New distributor”." },
+    "form": {
+      "newTitle": "New distributor",
+      "editTitle": "Edit distributor {{dni}}",
+      "dni": "DNI",
+      "dniPh": "Document",
+      "name": "Name",
+      "namePh": "Full name",
+      "phone": "Phone",
+      "phonePh": "e.g. +54 9 ...",
+      "email": "Email",
+      "emailPh": "mail@domain.com",
+      "address": "Address",
+      "addressPh": "Street and number",
+      "zone": "Zone",
+      "chooseZone": "Choose zone",
+      "products": "Products",
+      "multiHint": "Hold Ctrl/Cmd to multi-select",
+      "err": {
+        "dni": "DNI required.",
+        "name": "Name required.",
+        "phone": "Phone required.",
+        "email": "Valid email required.",
+        "zone": "Zone required.",
+        "fill": "Please complete the required fields."
+      }
+    },
+    "errorLoad": "Could not load.",
+    "errorCreate": "Could not create (check required data).",
+    "errorSave": "Could not save.",
+    "errorDelete": "Could not delete."
+  },
+  
+  "mgmt": {
+    "product": "Products",
+    "client": "Clients",
+    "partner": "Partners",
+    "sale": "Sales",
+    "zone": "Zones",
+    "authority": "Authorities",
+    "bribe": "Bribes",
+    "decision": "Decisions",
+    "topic": "Topics",
+    "distributor": "Distributors"
+  }
+}
+
+
+
+
+

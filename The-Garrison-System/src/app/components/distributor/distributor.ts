@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { DistributorService } from '../../services/distributor/distributor';
 import { ZoneService } from '../../services/zone/zone';
@@ -9,6 +10,16 @@ import { ProductService } from '../../services/product/product';
 import { ZoneDTO } from '../../models/zone/zona.model';
 import { ProductDTO } from '../../models/product/product.model';
 import { DistributorDTO, CreateDistributorDTO, PatchDistributorDTO } from '../../models/distributor/distributor.model';
+
+/**
+ * DistributorComponent
+ *
+ * CRUD de distribuidores con:
+ * - Listado + filtro por texto (dni/nombre/email/zona)
+ * - Form reactivo con validación y normalización de tipos (zoneId string→number)
+ * - Estrategia de guardado: POST para crear y PATCH con campos dirty para editar
+ * - Mensajes listos para i18n y manejo de carga/errores con signals
+ */
 
 type DistForm = {
   dni: FormControl<string>;
@@ -23,16 +34,19 @@ type DistForm = {
 @Component({
   selector: 'app-distributor',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './distributor.html',
   styleUrls: ['./distributor.scss'],
 })
 export class DistributorComponent implements OnInit {
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(DistributorService);
   private zoneSrv = inject(ZoneService);
   private prodSrv = inject(ProductService);
+  private t = inject(TranslateService);
 
+  // --- Estado base ---
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
@@ -42,9 +56,11 @@ export class DistributorComponent implements OnInit {
   products = signal<ProductDTO[]>([]);
   fText = '';
 
+  // --- UI ---
   isFormOpen = false;
-  isEdit = signal(false);
+  isEdit = signal(false); // true si estamos editando
 
+  // --- Form reactivo ---
   form: FormGroup<DistForm> = this.fb.group<DistForm>({
     dni: this.fb.nonNullable.control('', { validators: [Validators.required] }),
     name: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(2)] }),
@@ -55,12 +71,13 @@ export class DistributorComponent implements OnInit {
     productsIds: this.fb.nonNullable.control<number[]>([]),
   });
 
+  // --- Ciclo de vida ---
   ngOnInit(): void {
     this.load();
     this.loadZones();
     this.loadProducts();
 
-    // Coerción: si el <select> emite string, convertir a number
+    // Normaliza zoneId si viene como string desde el <select>
     this.form.controls.zoneId.valueChanges.subscribe(v => {
       if (typeof v === 'string' && v !== '') {
         const n = Number(v);
@@ -69,13 +86,13 @@ export class DistributorComponent implements OnInit {
     });
   }
 
-  // ===== Data =====
+  // --- Data ---
   load() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAll().subscribe({
       next: (res) => { this.list.set(res); this.loading.set(false); },
-      error: (err) => { this.error.set(err?.error?.message || 'No se pudo cargar.'); this.loading.set(false); }
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorLoad')); this.loading.set(false); }
     });
   }
 
@@ -93,7 +110,7 @@ export class DistributorComponent implements OnInit {
     });
   }
 
-  // ===== UI =====
+  // --- Listado filtrado ---
   filtered = computed(() => {
     const q = (this.fText || '').toLowerCase().trim();
     if (!q) return this.list();
@@ -105,19 +122,12 @@ export class DistributorComponent implements OnInit {
     );
   });
 
+  // --- UI helpers ---
   new() {
     this.isEdit.set(false);
     this.submitted.set(false);
     this.error.set(null);
-    this.form.reset({
-      dni: '',
-      name: '',
-      phone: '',
-      email: '',
-      address: '',
-      zoneId: null,
-      productsIds: [],
-    });
+    this.form.reset({ dni: '', name: '', phone: '', email: '', address: '', zoneId: null, productsIds: [] });
     this.isFormOpen = true;
   }
 
@@ -143,10 +153,9 @@ export class DistributorComponent implements OnInit {
     this.error.set(null);
   }
 
-  // ===== Save =====
+  // --- Builders ---
   private buildCreate(): CreateDistributorDTO {
     const v = this.form.getRawValue();
-    // Normalizar multi-select por si viniera como string[]
     const ids = Array.isArray(v.productsIds) ? v.productsIds.map(Number).filter(n => !Number.isNaN(n)) : [];
     return {
       dni: String(v.dni).trim(),
@@ -167,16 +176,15 @@ export class DistributorComponent implements OnInit {
     if (this.form.controls.email.dirty) patch.email = String(v.email).trim();
     if (this.form.controls.address.dirty) patch.address = String(v.address || '').trim();
     if (this.form.controls.zoneId.dirty && v.zoneId != null) patch.zoneId = Number(v.zoneId);
-    if (this.form.controls.productsIds.dirty) {
-      patch.productsIds = (v.productsIds || []).map(Number).filter(n => !Number.isNaN(n));
-    }
+    if (this.form.controls.productsIds.dirty) patch.productsIds = (v.productsIds || []).map(Number).filter(n => !Number.isNaN(n));
     return patch;
-    }
+  }
 
+  // --- Guardado ---
   save() {
     this.submitted.set(true);
     if (this.form.invalid) {
-      this.error.set('Completá los campos requeridos.');
+      this.error.set(this.t.instant('distributors.form.err.fill'));
       return;
     }
 
@@ -187,10 +195,7 @@ export class DistributorComponent implements OnInit {
       const payload = this.buildCreate();
       this.srv.create(payload).subscribe({
         next: () => { this.cancel(); this.load(); },
-        error: (err) => {
-          this.error.set(err?.error?.message || 'No se pudo crear (verificá datos requeridos).');
-          this.loading.set(false);
-        }
+        error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorCreate')); this.loading.set(false); }
       });
       return;
     }
@@ -199,22 +204,17 @@ export class DistributorComponent implements OnInit {
     const patch = this.buildUpdate();
     this.srv.update(dni, patch).subscribe({
       next: () => { this.cancel(); this.load(); },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo guardar.');
-        this.loading.set(false);
-      }
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorSave')); this.loading.set(false); }
     });
   }
 
+  // --- Borrado ---
   delete(dni: string | number) {
     this.loading.set(true);
     this.error.set(null);
     this.srv.delete(String(dni)).subscribe({
       next: () => this.load(),
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo eliminar.');
-        this.loading.set(false);
-      }
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorDelete')); this.loading.set(false); }
     });
   }
 }

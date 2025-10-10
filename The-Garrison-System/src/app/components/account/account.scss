@@ -1,7 +1,47 @@
 /* ================================
-   Mi Cuenta — vidrio robusto
+   Mi Cuenta — vidrio robusto (optimized)
+   - Unificaciones: mixins para glass, focus ring, botón, sombras
+   - Mantiene mismas clases y especificidad para no romper layout
    ================================ */
 
+/* ===== Utilidades SCSS (variables + mixins) ===== */
+$ff-brand: 'Google Sans Code';
+$radius-card: 18px;
+$radius-inner: 14px;
+$radius-input: 12px;
+$radius-btn: 12px;
+$glass-bg: rgba(20, 22, 28, 0.35);
+$glass-input-bg: rgba(24, 26, 32, 0.35);
+$glass-border: rgba(255, 255, 255, .12);
+$glass-border-strong: rgba(255, 255, 255, .16);
+$gold-stroke: rgba(195, 164, 98, .22);
+$gold-border: rgba(195, 164, 98, .35);
+$shadow-card: 0 10px 28px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .06);
+$shadow-input: inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 0 0 rgba(195, 164, 98, 0);
+$shadow-input-focus: inset 0 1px 0 rgba(255, 255, 255, .08), 0 0 0 3px rgba(195, 164, 98, .18);
+$shadow-btn: 0 6px 16px rgba(195, 164, 98, .22), inset 0 1px 0 rgba(255, 255, 255, .10);
+$shadow-btn-hover: 0 10px 22px rgba(195, 164, 98, .30);
+
+@mixin glass($bg, $border: $glass-border-strong, $blur: 16px, $sat: 120%) {
+  background: $bg;
+  border: 1px solid $border;
+  backdrop-filter: blur($blur) saturate($sat);
+  -webkit-backdrop-filter: blur($blur) saturate($sat);
+}
+
+@mixin focus-ring($shadow: $shadow-input-focus, $border-color: var(--accent)) {
+  border-color: $border-color;
+  box-shadow: $shadow;
+}
+
+@mixin button-grad {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(0, 0, 0, .18)),
+    linear-gradient(180deg, var(--accent), var(--accent-700));
+}
+
+/* ================================ */
+/* Layout base */
 .account {
   display: flex;
   flex-direction: column;
@@ -16,40 +56,32 @@
   padding-bottom: var(--sp-4);
   margin-bottom: var(--sp-4);
   border-bottom: 1px solid var(--border);
-  font-family: 'Google Sans Code';
+  font-family: $ff-brand;
 }
 
 .account>header h2 {
   margin: 0;
   font-size: var(--h3);
   font-weight: 700;
-  font-family: 'Google Sans Code';
+  font-family: $ff-brand;
 }
 
 /* ===== CARD VIDRIO ===== */
 .account form {
   position: relative;
-  border-radius: 18px;
+  border-radius: $radius-card;
   padding: var(--sp-5);
-  background: rgba(20, 22, 28, 0.35);
-  /* semitransparente = clave */
-  border: 1px solid rgba(255, 255, 255, .16);
-  /* vidrio real */
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  /* profundidad */
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, .45),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
+  @include glass($glass-bg, $glass-border-strong, 16px, 120%);
+  box-shadow: $shadow-card;
 }
 
-/* filete interior dorado (match con resto) */
+/* filete interior dorado */
 .account form::after {
   content: "";
   position: absolute;
   inset: 8px;
-  border-radius: 14px;
-  border: 1px solid rgba(195, 164, 98, .22);
+  border-radius: $radius-inner;
+  border: 1px solid $gold-stroke;
   pointer-events: none;
 }
 
@@ -59,7 +91,6 @@
     background:
       linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)),
       rgba(20, 22, 28, .5);
-    /* “fake glass” */
     border: 1px solid rgba(255, 255, 255, .12);
   }
 }
@@ -90,18 +121,13 @@
 /* ===== INPUT VIDRIO ===== */
 .account .grid input {
   width: 100%;
-  border-radius: 12px;
+  border-radius: $radius-input;
   padding: 10px 12px;
   color: var(--text);
-  background: rgba(24, 26, 32, 0.35);
-  border: 1px solid rgba(255, 255, 255, .12);
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  @include glass($glass-input-bg, $glass-border, 10px, 120%);
   outline: none;
   transition: border-color .18s ease, box-shadow .18s ease, transform .06s ease, background .18s ease;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .06),
-    0 0 0 0 rgba(195, 164, 98, 0);
+  box-shadow: $shadow-input;
 }
 
 .account .grid input:hover {
@@ -109,10 +135,7 @@
 }
 
 .account .grid input:focus-visible {
-  border-color: var(--accent);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .08),
-    0 0 0 3px rgba(195, 164, 98, .18);
+  @include focus-ring();
   transform: translateY(-1px);
 }
 
@@ -137,28 +160,24 @@
 
 .account .actions button {
   display: inline-flex;
-  font-family: 'Google Sans Code';
+  font-family: $ff-brand;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: $radius-btn;
   cursor: pointer;
-  border: 1px solid rgba(195, 164, 98, .35);
+  border: 1px solid $gold-border;
   font-weight: 700;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(0, 0, 0, .18)),
-    linear-gradient(180deg, var(--accent), var(--accent-700));
+  @include button-grad();
   color: #1a1308;
-  box-shadow:
-    0 6px 16px rgba(195, 164, 98, .22),
-    inset 0 1px 0 rgba(255, 255, 255, .10);
+  box-shadow: $shadow-btn;
   transition: transform .06s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
 
 .account .actions button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(195, 164, 98, .30);
+  box-shadow: $shadow-btn-hover;
 }
 
 .account .actions button:active {
@@ -170,12 +189,12 @@
   cursor: not-allowed;
 }
 
-/* mensajes */
+/* ===== mensajes ===== */
 .muted {
   color: var(--muted);
 }
 
 .error,
 .ok {
-  border-radius: 12px;
+  border-radius: $radius-input;
 }
