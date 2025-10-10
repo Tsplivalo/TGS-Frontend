@@ -1,17 +1,19 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormsModule, ReactiveFormsModule,
-  FormArray, FormBuilder, Validators, FormControl, FormGroup, AbstractControl
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormControl, FormGroup } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthorityService } from '../../services/authority/authority';
-import {
-  ApiResponse,
-  AuthorityDTO,
-  CreateAuthorityDTO,
-  UpdateAuthorityDTO,
-  PatchAuthorityDTO,
-} from '../../models/authority/authority.model';
+import { ApiResponse, AuthorityDTO, CreateAuthorityDTO, UpdateAuthorityDTO, PatchAuthorityDTO } from '../../models/authority/authority.model';
+
+/**
+ * AuthorityComponent
+ *
+ * CRUD de autoridades con:
+ * - Filtro por texto y zona (signals + computed)
+ * - Form reactivo con validaciones y toggles de requeridos
+ * - Estrategia de guardado: POST (create), PATCH (solo zona) o PUT (nombre/rango/zona)
+ * - Mensajes traducibles y estados de carga/errores
+ */
 
 type AuthorityForm = {
   dni: FormControl<string>;
@@ -26,29 +28,31 @@ type AuthorityForm = {
 @Component({
   selector: 'app-authority',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './authority.html',
   styleUrls: ['./authority.scss']
 })
 export class AuthorityComponent implements OnInit {
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(AuthorityService);
+  private t = inject(TranslateService);
 
+  // --- Estado base ---
   authorities = signal<AuthorityDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
 
-  // Edit mode uses DNI as id
+  // Detección de modo edición (por DNI) y snapshot original para difs
   editDni = signal<string | null>(null);
-
-  // Snapshot to detect changes
   private original: Partial<UpdateAuthorityDTO & { dni: string }> | null = null;
 
-  // Filters
-  fZoneId: string | null = null;
-  fText = '';
+  // --- Filtros de listado ---
+  fZoneId: string | null = null; // id de zona (string para binding)
+  fText = '';                    // texto libre (dni, nombre, rank)
 
+  // --- Form reactivo ---
   form: FormGroup<AuthorityForm> = this.fb.group<AuthorityForm>({
     dni: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(6)] }),
     name: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(2)] }),
@@ -59,22 +63,21 @@ export class AuthorityComponent implements OnInit {
     zoneId: this.fb.nonNullable.control('', { validators: [Validators.required] }),
   });
 
-  ngOnInit(): void {
-    this.load();
-  }
+  // --- Ciclo de vida ---
+  ngOnInit(): void { this.load(); }
 
+  // --- UI: abrir/cerrar formulario ---
   isFormOpen = false;
   toggleForm(){ this.isFormOpen = !this.isFormOpen; }
 
-
-  // ===== Template helpers (to avoid "as any" in HTML) =====
+  // Texto amigable para la zona (fallback traducible)
   getZoneText(a: AuthorityDTO): string {
     const id = a?.zone?.id ?? '';
-    const name = a?.zone?.name ?? 'Zone';
+    const name = a?.zone?.name ?? this.t.instant('authorities.zone');
     return id ? `${id} - ${name}` : '—';
   }
 
-  // ===== Listing (with UI filters) =====
+  // Coincidencia básica por texto libre (dni, nombre, rank)
   private includesTxt(v: AuthorityDTO, q: string): boolean {
     const txt = q.toLowerCase();
     return (
@@ -84,11 +87,11 @@ export class AuthorityComponent implements OnInit {
     );
   }
 
+  // Listado filtrado reactivo por texto y zona
   filteredAuthorities = computed(() => {
     const arr = this.authorities();
     const q = (this.fText || '').trim();
     const z = (this.fZoneId || '').trim();
-
     return arr.filter(a => {
       const matchQ = !q || this.includesTxt(a, q);
       const zoneIdFromDto = a?.zone?.id != null ? String(a.zone.id) : '';
@@ -97,89 +100,63 @@ export class AuthorityComponent implements OnInit {
     });
   });
 
-  // ===== CRUD =====
+  // --- Data fetching ---
   load() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAllAuthorities().subscribe({
-      next: (res: ApiResponse<AuthorityDTO[]>) => {
-        this.authorities.set(res.data ?? []);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Could not load authorities.');
-        this.loading.set(false);
-      }
+      next: (res: ApiResponse<AuthorityDTO[]>) => { this.authorities.set(res.data ?? []); this.loading.set(false); },
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('authorities.errorLoad')); this.loading.set(false); }
     });
   }
 
+  // Cambia dinámicamente si email es obligatorio (crear vs editar)
   private setEmailRequired(isRequired: boolean) {
     const emailCtrl = this.form.controls.email;
-    if (isRequired) {
-      emailCtrl.setValidators([Validators.required, Validators.email]);
-    } else {
-      emailCtrl.setValidators([Validators.email]); // optional in edit
-    }
+    if (isRequired) emailCtrl.setValidators([Validators.required, Validators.email]);
+    else emailCtrl.setValidators([Validators.email]);
     emailCtrl.updateValueAndValidity({ emitEvent: false });
   }
 
+  // --- Crear ---
   new() {
     this.editDni.set(null);
     this.original = null;
-    // email is required on create
     this.setEmailRequired(true);
-
     this.form.reset({
-      dni: '',
-      name: '',
-      email: '',
-      phone: null,
-      address: null,
-      rank: '0',
-      zoneId: ''
+      dni: '', name: '', email: '', phone: null, address: null, rank: '0', zoneId: ''
     } as any);
     this.submitted.set(false);
   }
 
+  // --- Editar (email opcional y prefill; guardamos snapshot para PATCH selectivo) ---
   edit(a: AuthorityDTO) {
-    // email is NOT required by the backend on edit
     this.setEmailRequired(false);
-
     const zoneId = a?.zone?.id != null ? String(a.zone.id) : '';
     this.editDni.set(a.dni);
-
-    // Fill with backend data; email/phone/address may not come
     this.form.setValue({
       dni: a.dni ?? '',
       name: a.name ?? '',
-      email: '',                 // editable, not required in edit
+      email: '',
       phone: null,
       address: null,
       rank: String(a.rank ?? '0') as '0'|'1'|'2'|'3',
       zoneId: zoneId,
     });
-
-    // Snapshot to detect changes (on PUT fields)
-    this.original = {
-      dni: a.dni ?? '',
-      name: a.name ?? '',
-      rank: String(a.rank ?? '0') as '0'|'1'|'2'|'3',
-      zoneId: zoneId,
-    };
+    this.original = { dni: a.dni ?? '', name: a.name ?? '', rank: String(a.rank ?? '0') as any, zoneId };
   }
 
+  // --- Eliminar ---
   delete(dni: string) {
     this.loading.set(true);
     this.error.set(null);
     this.srv.deleteAuthority(dni).subscribe({
       next: () => this.load(),
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Could not delete.');
-        this.loading.set(false);
-      }
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('authorities.errorDelete')); this.loading.set(false); }
     });
   }
 
+  // --- Builders de payload ---
   private buildCreatePayload(): CreateAuthorityDTO {
     const v = this.form.getRawValue();
     return {
@@ -188,109 +165,81 @@ export class AuthorityComponent implements OnInit {
       email: String(v.email).trim(),
       phone: v.phone?.trim() || undefined,
       address: v.address?.trim() || undefined,
-      rank: v.rank,                  // '0'|'1'|'2'|'3'
-      zoneId: String(v.zoneId).trim()  // string (back transforms to number)
-    };
-  }
-
-  private buildUpdatePayload(): UpdateAuthorityDTO {
-    const v = this.form.getRawValue();
-    return {
-      name: String(v.name).trim(),
       rank: v.rank,
       zoneId: String(v.zoneId).trim()
     };
   }
 
+  private buildUpdatePayload(): UpdateAuthorityDTO {
+    const v = this.form.getRawValue();
+    return { name: String(v.name).trim(), rank: v.rank, zoneId: String(v.zoneId).trim() };
+  }
+
+  // PATCH solo envía campos realmente cambiados (respecto al snapshot original)
   private buildPatchPayload(): PatchAuthorityDTO {
     const v = this.form.getRawValue();
     const body: PatchAuthorityDTO = {};
-    // Only send what changed from the snapshot
-  if (!this.original) return body;
-  if (String(v.name).trim() !== (this.original.name ?? '')) body.name = String(v.name).trim();
-  if (String(v.rank) !== String(this.original.rank)) body.rank = v.rank;
-  if (String(v.zoneId).trim() !== (this.original.zoneId ?? '')) body.zoneId = String(v.zoneId).trim();
-  return body;
+    if (!this.original) return body;
+    if (String(v.name).trim() !== (this.original.name ?? '')) body.name = String(v.name).trim();
+    if (String(v.rank) !== String(this.original.rank)) body.rank = v.rank;
+    if (String(v.zoneId).trim() !== (this.original.zoneId ?? '')) body.zoneId = String(v.zoneId).trim();
+    return body;
   }
 
+  // Validación ligera para zoneId numérico positivo (el backend valida definitivamente)
   private isZoneIdValid(): boolean {
-  const z = this.form.controls.zoneId.value;
-  const n = Number(z);
-  return Number.isFinite(n) && n > 0;
+    const z = this.form.controls.zoneId.value;
+    const n = Number(z);
+    return Number.isFinite(n) && n > 0;
   }
 
+  // --- Guardar ---
   save() {
     this.submitted.set(true);
 
-    // Base validations
+    // Validación simple de zona antes de tocar el backend
     if (!this.isZoneIdValid()) {
-  this.form.controls.zoneId.markAsTouched();
-      this.error.set('Zone ID must be a valid number greater than 0.');
+      this.form.controls.zoneId.markAsTouched();
+      this.error.set(this.t.instant('authorities.err.zoneIdInvalid'));
       return;
     }
 
     const isEditing = !!this.editDni();
-
-    // On create, email is required; not on edit
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.error.set(isEditing
-        ? 'Complete Name, Rank and Zone (email is not required when editing).'
-        : 'Complete DNI, Name, Email, Rank and Zone.'
-      );
-      console.warn('[AUTHORITY] Invalid form:', {
-        status: this.form.status,
-        errors: this.form.errors,
-      });
+      this.error.set(isEditing ? this.t.instant('authorities.form.err.edit') : this.t.instant('authorities.form.err.create'));
       return;
     }
 
     this.loading.set(true);
     this.error.set(null);
 
+    // CREATE
     if (!isEditing) {
-      // CREATE (POST)
       const payload = this.buildCreatePayload();
-      console.log('[AUTHORITY] POST payload:', payload);
       this.srv.createAuthority(payload).subscribe({
         next: () => { this.new(); this.load(); },
-        error: (err) => {
-          const msg = err?.error?.message || 'Could not create.';
-          this.error.set(msg);
-          this.loading.set(false);
-          console.error('[AUTHORITY] Error creating:', err);
-        }
+        error: (err) => { this.error.set(err?.error?.message || this.t.instant('authorities.errorCreate')); this.loading.set(false); }
       });
       return;
     }
 
-    // EDIT: we prefer PATCH if only zone (or few fields) changed
+    // EDIT: decidir PATCH vs PUT
     const patchBody = this.buildPatchPayload();
     const onlyZone = patchBody && Object.keys(patchBody).length === 1 && patchBody.zoneId != null;
 
     if (onlyZone) {
-      console.log('[AUTHORITY] PATCH payload:', patchBody);
+      // PATCH: solo cambio de zona
       this.srv.patchAuthority(this.editDni()!, patchBody).subscribe({
         next: () => { this.new(); this.load(); },
-        error: (err) => {
-          const msg = err?.error?.message || 'Could not save (PATCH).';
-          this.error.set(msg);
-          this.loading.set(false);
-          console.error('[AUTHORITY] Error updating (PATCH):', err);
-        }
+        error: (err) => { this.error.set(err?.error?.message || this.t.instant('authorities.errorSavePatch')); this.loading.set(false); }
       });
     } else {
-      // Full PUT
+      // PUT: cambios de nombre/rango/zona
       const putBody = this.buildUpdatePayload();
-      console.log('[AUTHORITY] PUT payload:', putBody);
       this.srv.updateAuthority(this.editDni()!, putBody).subscribe({
         next: () => { this.new(); this.load(); },
-        error: (err) => {
-          const msg = err?.error?.message || 'Could not save (PUT).';
-          this.error.set(msg);
-          this.loading.set(false);
-          console.error('[AUTHORITY] Error updating (PUT):', err);
-        }
+        error: (err) => { this.error.set(err?.error?.message || this.t.instant('authorities.errorSavePut')); this.loading.set(false); }
       });
     }
   }

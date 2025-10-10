@@ -1,11 +1,12 @@
 <section class="stack-lg">
+
   <!-- LIST -->
   <div class="glass-dark card stack-md">
     <div class="header">
-      <h2>Clients</h2>
+      <h2>{{ 'clients.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ isNewOpen ? 'Close' : 'New' }}
+          {{ (isNewOpen ? 'common.close' : 'clients.new') | translate }}
         </button>
       </div>
     </div>
@@ -13,34 +14,34 @@
     <!-- Filters -->
     <div class="filters">
       <label class="label">
-        Search
-        <input class="input" placeholder="DNI, name, email..." [(ngModel)]="fText" />
+        <span>{{ 'clients.filters.search' | translate }}</span>
+        <input class="input" [placeholder]="'clients.filters.searchPh' | translate" [(ngModel)]="fText" />
       </label>
 
       <label class="label">
-        Purchases
+        <span>{{ 'clients.filters.purchases' | translate }}</span>
         <select class="input" [(ngModel)]="fPurchases">
-          <option value="all">All</option>
-          <option value="yes">With purchases</option>
-          <option value="no">No purchases</option>
+          <option value="all">{{ 'clients.filters.purchases_all' | translate }}</option>
+          <option value="yes">{{ 'clients.filters.purchases_yes' | translate }}</option>
+          <option value="no">{{ 'clients.filters.purchases_no' | translate }}</option>
         </select>
       </label>
     </div>
 
     <div *ngIf="error()" class="error">{{ error() }}</div>
-    <div *ngIf="loading()">Loading...</div>
+    <div *ngIf="loading()">{{ 'clients.loading' | translate }}</div>
 
-    <!-- Table (WITHOUT inner card to avoid double borders) -->
+    <!-- Table -->
     <div class="table-wrap" *ngIf="!loading()">
       <table class="table">
         <thead>
           <tr>
-            <th>DNI</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Address</th>
-            <th>Phone</th>
-            <th class="center">Purchases</th>
+            <th>{{ 'clients.table.dni' | translate }}</th>
+            <th>{{ 'clients.table.name' | translate }}</th>
+            <th>{{ 'clients.table.email' | translate }}</th>
+            <th>{{ 'clients.table.address' | translate }}</th>
+            <th>{{ 'clients.table.phone' | translate }}</th>
+            <th class="center">{{ 'clients.table.purchases' | translate }}</th>
             <th></th>
           </tr>
         </thead>
@@ -48,17 +49,17 @@
           <tr *ngFor="let c of filteredClients()">
             <td>{{ c.dni }}</td>
             <td>{{ c.name }}</td>
-            <td>{{ c.email || '-' }}</td>
-            <td>{{ c.address || '-' }}</td>
-            <td>{{ c.phone || '-' }}</td>
+            <td>{{ c.email || '—' }}</td>
+            <td>{{ c.address || '—' }}</td>
+            <td>{{ c.phone || '—' }}</td>
             <td class="center">{{ c.purchaseHistory.length || 0 }}</td>
             <td class="right">
-              <button class="btn ghost" (click)="edit(c)">Edit</button>
-              <button class="btn danger" (click)="delete(c.dni)">Delete</button>
+              <button class="btn ghost" (click)="edit(c)">{{ 'common.edit' | translate }}</button>
+              <button class="btn danger" (click)="delete(c.dni)">{{ 'common.delete' | translate }}</button>
             </td>
           </tr>
           <tr *ngIf="filteredClients().length === 0">
-            <td colspan="7" class="muted center">No results</td>
+            <td colspan="7" class="muted center">{{ 'clients.noResults' | translate }}</td>
           </tr>
         </tbody>
       </table>
@@ -69,41 +70,44 @@
   <div class="collapsible" [class.open]="isNewOpen">
     <div class="collapsible__content glass-dark card">
       <div class="header">
-        <h2>{{ editDni() == null ? 'New client' : 'Edit client' }}</h2>
+        <h2>{{ (editDni() == null ? 'clients.newTitle' : 'clients.editTitle') | translate }}</h2>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
         <label class="label">
-          DNI
+          <span>{{ 'clients.form.dni' | translate }}</span>
           <input class="input" type="text" formControlName="dni" maxlength="8" pattern="[0-9]*"
-            placeholder="Enter DNI" required />
+            [placeholder]="'clients.form.dniPh' | translate" required />
         </label>
 
         <label class="label">
-          Name
-          <input class="input" formControlName="name" placeholder="John Doe" />
+          <span>{{ 'clients.form.name' | translate }}</span>
+          <input class="input" formControlName="name" [placeholder]="'clients.form.namePh' | translate" />
         </label>
 
         <label class="label">
-          Email
-          <input class="input" formControlName="email" type="email" placeholder="john@mail.com" />
+          <span>{{ 'clients.form.email' | translate }}</span>
+          <input class="input" formControlName="email" type="email"
+            [placeholder]="'clients.form.emailPh' | translate" />
         </label>
 
         <label class="label">
-          Phone
-          <input class="input" formControlName="phone" placeholder="+54 9 341 ..." />
+          <span>{{ 'clients.form.phone' | translate }}</span>
+          <input class="input" formControlName="phone" [placeholder]="'clients.form.phonePh' | translate" />
         </label>
 
         <label class="label" style="grid-column: 1 / -1;">
-          Address
-          <input class="input" formControlName="address" placeholder="Street 123, City" />
+          <span>{{ 'clients.form.address' | translate }}</span>
+          <input class="input" formControlName="address" [placeholder]="'clients.form.addressPh' | translate" />
         </label>
 
         <div class="right" style="grid-column: 1 / -1;">
           <button class="btn success" type="submit" [disabled]="loading()">
-            {{ editDni() == null ? 'Create' : 'Save' }}
+            {{ (editDni() == null ? 'common.create' : 'common.save') | translate }}
           </button>
-          <button class="btn ghost" type="button" (click)="new()">Cancel</button>
+          <button class="btn ghost" type="button" (click)="new()">
+            {{ 'common.cancel' | translate }}
+          </button>
         </div>
       </form>
     </div>

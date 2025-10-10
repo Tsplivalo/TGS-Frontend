@@ -4,8 +4,23 @@ import { Router } from '@angular/router';
 import { tap, switchMap, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-type UserDTO = { id: string; username: string; email: string; roles?: string[] };
-type ApiResponse<T = any> = { success?: boolean; message?: string; data?: T } | T;
+export type UserDTO = {
+  id: string;
+  username?: string | null;
+  email: string;
+  roles?: string[];
+
+  // ↓ estos son los que usa "Mi cuenta"
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  address?: string | null;
+};
+
+
+export type ApiResponse<T = any> =
+  | { success?: boolean; message?: string; data?: T }
+  | T;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -16,7 +31,7 @@ export class AuthService {
   readonly user       = signal<UserDTO | null>(null);
 
   /** POST /api/auth/register */
-  register(data: { username: string; email: string; password: string }) {
+  register(data: { username: string; email: string; password: string }): Observable<ApiResponse> {
     return this.http.post<ApiResponse>('/api/auth/register', data, { withCredentials: true });
   }
 
@@ -29,7 +44,7 @@ export class AuthService {
       switchMap(() =>
         this.http.get<ApiResponse<UserDTO>>('/api/users/me', { withCredentials: true })
       ),
-      map((res: any) => ('data' in res ? res.data : res) as UserDTO),
+      map((res: any) => ('data' in res ? (res.data as UserDTO) : (res as UserDTO))),
       tap((u) => {
         if (u) {
           this.user.set(u);
@@ -40,8 +55,8 @@ export class AuthService {
   }
 
   /** POST /api/auth/logout */
-  logout() {
-    return this.http.post<ApiResponse>('/api/auth/logout', {}, { withCredentials: true })
+  logout(): void {
+    this.http.post<ApiResponse>('/api/auth/logout', {}, { withCredentials: true })
       .subscribe({
         next: () => {
           this.user.set(null);
@@ -49,17 +64,34 @@ export class AuthService {
           this.router.navigateByUrl('/');
         },
         error: () => {
+          // igual limpiamos sesión en cliente
           this.user.set(null);
           this.isLoggedIn.set(false);
           this.router.navigateByUrl('/');
-        }
+        },
       });
   }
+  // // Variante sin subscribe interno:
+  // logout$(): Observable<ApiResponse> {
+  //   return this.http.post<ApiResponse>('/api/auth/logout', {}, { withCredentials: true }).pipe(
+  //     tap(() => {
+  //       this.user.set(null);
+  //       this.isLoggedIn.set(false);
+  //       this.router.navigateByUrl('/');
+  //     }),
+  //     catchError((e) => {
+  //       this.user.set(null);
+  //       this.isLoggedIn.set(false);
+  //       this.router.navigateByUrl('/');
+  //       return throwError(() => e);
+  //     })
+  //   );
+  // }
 
   /** GET /api/users/me (intenta recuperar sesión) */
   me(): Observable<UserDTO | null> {
     return this.http.get<ApiResponse<UserDTO>>('/api/users/me', { withCredentials: true }).pipe(
-      map((res: any) => ('data' in res ? res.data : res) as UserDTO | null),
+      map((res: any) => ('data' in res ? (res.data as UserDTO | null) : (res as UserDTO | null))),
       tap((u) => {
         this.user.set(u ?? null);
         this.isLoggedIn.set(!!u);
@@ -68,5 +100,16 @@ export class AuthService {
   }
 
   /** Alias por compatibilidad si en algún lado llaman fetchMe() */
-  fetchMe() { return this.me(); }
+  fetchMe(): Observable<UserDTO | null> { return this.me(); }
+
+  /** Helpers de roles */
+  roles(): string[] {
+    return this.user()?.roles ?? [];
+  }
+  hasRole(role: string): boolean {
+    return this.roles().includes(role);
+  }
+  isClient(): boolean {
+    return this.hasRole('CLIENT') || this.hasRole('CLIENTE');
+  }
 }

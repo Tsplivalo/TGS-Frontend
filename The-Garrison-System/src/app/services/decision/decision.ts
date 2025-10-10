@@ -39,7 +39,6 @@ export class DecisionService {
     );
   }
 
-  // usar PATCH parcial en el backend nuevo
   update(id: number, body: PatchDecisionDTO): Observable<DecisionDTO> {
     return this.http.patch<ApiResponse<DecisionDTO>>(`${this.apiUrl}/${id}`, body).pipe(
       map(this.normOne)

@@ -1,49 +1,45 @@
 <section class="stack-lg">
-  <!-- LIST -->
   <div class="glass-dark card stack-md">
     <div class="header">
-      <h2>Strategic decisions</h2>
+      <h2>{{ 'decisions.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
-          {{ isFormOpen ? 'Close' : 'New' }}
+          {{ isFormOpen ? ('common.close' | translate) : ('decisions.new' | translate) }}
         </button>
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="filters">
       <label class="label">
-        <span>Search</span>
-        <input class="input" placeholder="text or id" [(ngModel)]="fText" />
+        <span>{{ 'decisions.filters.search' | translate }}</span>
+        <input class="input" [placeholder]="'decisions.filters.searchPh' | translate" [(ngModel)]="fText" />
       </label>
 
       <label class="label">
-        <span>Thematic (ID)</span>
-        <input class="input" placeholder="filter by thematic id" [(ngModel)]="topicFilter" />
+        <span>{{ 'decisions.filters.topic' | translate }}</span>
+        <input class="input" [placeholder]="'decisions.filters.topicPh' | translate" [(ngModel)]="topicFilter" />
       </label>
     </div>
 
-    <!-- Table -->
     <div class="table-wrap">
       <table class="table" *ngIf="filteredDecisions().length; else empty">
-        <!-- anchos fijos para alinear thead/tbody -->
         <colgroup>
-          <col style="width:90px" /> <!-- ID -->
-          <col style="width:220px" /> <!-- Thematic -->
-          <col /> <!-- Description (flex) -->
-          <col style="width:140px" /> <!-- Start -->
-          <col style="width:140px" /> <!-- End -->
-          <col style="width:220px" /> <!-- Actions -->
+          <col style="width:90px" />
+          <col style="width:220px" />
+          <col />
+          <col style="width:140px" />
+          <col style="width:140px" />
+          <col style="width:220px" />
         </colgroup>
 
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Thematic</th>
-            <th>Description</th>
-            <th>Start</th>
-            <th>End</th>
-            <th class="right">Actions</th>
+            <th>{{ 'decisions.table.id' | translate }}</th>
+            <th>{{ 'decisions.table.topic' | translate }}</th>
+            <th>{{ 'decisions.table.description' | translate }}</th>
+            <th>{{ 'decisions.table.start' | translate }}</th>
+            <th>{{ 'decisions.table.end' | translate }}</th>
+            <th class="right">{{ 'decisions.table.actions' | translate }}</th>
           </tr>
         </thead>
 
@@ -52,7 +48,8 @@
             <td>#{{ d.id }}</td>
             <td>
               <ng-container *ngIf="d.topic?.id != null; else noThematic">
-                <span class="truncate">{{ d.topic?.id }} - {{ d.topic?.description || 'Thematic' }}</span>
+                <span class="truncate">{{ d.topic?.id }} - {{ d.topic?.description || ('decisions.topic' | translate)
+                  }}</span>
               </ng-container>
               <ng-template #noThematic>—</ng-template>
             </td>
@@ -60,35 +57,37 @@
             <td>{{ d.startDate | date:'shortDate' }}</td>
             <td>{{ d.endDate | date:'shortDate' }}</td>
             <td class="right">
-              <button class="btn ghost" (click)="edit(d); isFormOpen = true">Edit</button>
-              <button class="btn danger" (click)="delete(d.id)">Delete</button>
+              <button class="btn ghost" (click)="edit(d); isFormOpen = true">{{ 'common.edit' | translate }}</button>
+              <button class="btn danger" (click)="delete(d.id)">{{ 'common.delete' | translate }}</button>
             </td>
           </tr>
         </tbody>
       </table>
 
       <ng-template #empty>
-        <div class="center muted">No decisions</div>
+        <div class="center muted">{{ 'decisions.empty' | translate }}</div>
       </ng-template>
     </div>
   </div>
 
-  <!-- FORM (COLLAPSIBLE) -->
   <div class="collapsible" [class.open]="isFormOpen">
     <div class="collapsible__content glass-dark card">
       <div class="header">
-        <h2>{{ isEdit() ? ('Edit decision: ' + form.controls.id.value) : 'New decision' }}</h2>
+        <h2>
+          {{ isEdit() ? ('decisions.form.editTitle' | translate:{ id: form.controls.id.value })
+          : ('decisions.form.newTitle' | translate) }}
+        </h2>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
         <div class="error" *ngIf="error()">{{ error() }}</div>
 
         <label class="label">
-          <span>Thematic</span>
-          <input class="input" placeholder="filter (id or description)" [(ngModel)]="topicFilter"
+          <span>{{ 'decisions.form.topic' | translate }}</span>
+          <input class="input" [placeholder]="'decisions.form.topicFilterPh' | translate" [(ngModel)]="topicFilter"
             name="fltThematic" />
-          <select class="input" formControlName="thematicId">
-            <option [ngValue]="null" disabled>Choose a thematic</option>
+          <select class="input" formControlName="topicId">
+            <option [ngValue]="null" disabled>{{ 'decisions.form.chooseTopic' | translate }}</option>
             <option *ngFor="let t of filteredTopics()" [ngValue]="t.id">
               {{ t.id }} - {{ t.description }}
             </option>
@@ -96,26 +95,28 @@
         </label>
 
         <label class="label">
-          <span>Description</span>
-          <input class="input" formControlName="description" placeholder="Description of the strategic decision" />
+          <span>{{ 'decisions.form.description' | translate }}</span>
+          <input class="input" formControlName="description"
+            [placeholder]="'decisions.form.descriptionPh' | translate" />
         </label>
 
         <label class="label">
-          <span>Start date</span>
+          <span>{{ 'decisions.form.start' | translate }}</span>
           <input class="input" type="date" formControlName="startDate" [min]="today" />
         </label>
 
         <label class="label">
-          <span>End date</span>
-          <input class="input" type="date" formControlName="endDate"
-            [min]="form.controls.startDate.value || today" />
+          <span>{{ 'decisions.form.end' | translate }}</span>
+          <input class="input" type="date" formControlName="endDate" [min]="form.controls.startDate.value || today" />
         </label>
 
         <div class="right form-actions">
           <button class="btn success" type="submit" [disabled]="loading()">
-            {{ isEdit() ? 'Save' : 'Create' }}
+            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
           </button>
-          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">Cancel</button>
+          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">
+            {{ 'common.cancel' | translate }}
+          </button>
         </div>
       </form>
     </div>

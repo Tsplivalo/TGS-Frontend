@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { BribeService } from '../../services/bribe/bribe';
 import { BribeDTO, CreateBribeDTO, UpdateBribeDTO } from '../../models/bribe/bribe.model';
@@ -9,6 +10,16 @@ import { AuthorityService } from '../../services/authority/authority';
 import { SaleDTO } from '../../models/sale/sale.model';
 import { AuthorityDTO } from '../../models/authority/authority.model';
 import { GlassPanelComponent } from '../../shared/ui/glass-panel/glass-panel.component.js';
+
+/**
+ * BribeComponent
+ *
+ * Administra sobornos: listado con filtro, alta, edición parcial y marcado como pagado.
+ * Usa signals para estado (lista/carga/error), formularios reactivos y i18n para mensajes.
+ * Decisiones clave:
+ * - En modo creación, authorityId/saleId/amount son obligatorios; en edición se relajan (solo se valida lo tocado).
+ * - En edición, se genera un PATCH con los campos realmente modificados; si no hay cambios, se avisa.
+ */
 
 type BribeForm = {
   id: FormControl<number | null>;
@@ -21,16 +32,19 @@ type BribeForm = {
 @Component({
   selector: 'app-bribe',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, GlassPanelComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, GlassPanelComponent],
   templateUrl: './bribe.html',
   styleUrls: ['./bribe.scss'],
 })
 export class BribeComponent implements OnInit {
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(BribeService);
   private saleSrv = inject(SaleService);
   private authoritySrv = inject(AuthorityService);
+  private t = inject(TranslateService);
 
+  // --- Estado (signals) ---
   bribes = signal<BribeDTO[]>([]);
   sales = signal<SaleDTO[]>([]);
   authorities = signal<AuthorityDTO[]>([]);
@@ -39,6 +53,7 @@ export class BribeComponent implements OnInit {
   error = signal<string | null>(null);
   filterText = '';
 
+  // --- Form reactivo ---
   form: FormGroup<BribeForm> = this.fb.group<BribeForm>({
     id: this.fb.control<number | null>(null),
     authorityId: this.fb.control<string | number | null>(null, { validators: [Validators.required] }),
@@ -47,8 +62,10 @@ export class BribeComponent implements OnInit {
     paid: this.fb.nonNullable.control(false),
   });
 
+  // Edición activa si hay id cargado
   get isEditing(): boolean { return !!this.form.controls.id.value; }
 
+  // --- Ciclo de vida ---
   ngOnInit(): void {
     this.loadBribes();
     this.loadSales();
@@ -56,10 +73,14 @@ export class BribeComponent implements OnInit {
     this.setEditMode(false);
   }
 
+  /**
+   * Cambia validaciones según modo: en creación exigimos authorityId/saleId/amount;
+   * en edición se permite enviar solo los campos modificados (patch) sin forzar el resto.
+   */
   private setEditMode(isEdit: boolean) {
     const cfg = (ctrl: FormControl<any>, validators: any[]) => {
       ctrl.clearValidators();
-      if (!isEdit) ctrl.setValidators(validators); // required only when creating
+      if (!isEdit) ctrl.setValidators(validators);
       ctrl.updateValueAndValidity({ emitEvent: false });
     };
     cfg(this.form.controls.authorityId, [Validators.required]);
@@ -67,17 +88,19 @@ export class BribeComponent implements OnInit {
     cfg(this.form.controls.amount, [Validators.required, Validators.min(0)]);
   }
 
+  // --- Fetchers ---
   loadBribes() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.list().subscribe({
       next: (res: any) => {
+        // Admite backends que respondan { bribes } o { data }
         const list = (res?.bribes ?? res?.data ?? []) as BribeDTO[];
         this.bribes.set(list);
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Could not load bribes.');
+        this.error.set(err?.error?.message || this.t.instant('bribes.errorLoad'));
         this.loading.set(false);
       }
     });
@@ -85,24 +108,19 @@ export class BribeComponent implements OnInit {
 
   loadSales() {
     this.saleSrv.getAllSales().subscribe({
-      next: (res: any) => {
-        const list = (res?.sales ?? res?.data ?? []) as SaleDTO[];
-        this.sales.set(list);
-      },
-      error: (err) => console.warn('[BRIBE] Could not load sales:', err)
+      next: (res: any) => { const list = (res?.sales ?? res?.data ?? []) as SaleDTO[]; this.sales.set(list); },
+      error: () => {}
     });
   }
 
   loadAuthorities() {
     this.authoritySrv.getAllAuthorities().subscribe({
-      next: (res: any) => {
-        const list = (res?.authorities ?? res?.data ?? []) as AuthorityDTO[];
-        this.authorities.set(list);
-      },
-      error: (err) => console.warn('[BRIBE] Could not load authorities:', err)
+      next: (res: any) => { const list = (res?.authorities ?? res?.data ?? []) as AuthorityDTO[]; this.authorities.set(list); },
+      error: () => {}
     });
   }
 
+  // --- Filtrado reactivo por texto libre ---
   filtered = computed(() => {
     const q = (this.filterText || '').toLowerCase().trim();
     if (!q) return this.bribes();
@@ -113,7 +131,9 @@ export class BribeComponent implements OnInit {
     );
   });
 
+  // --- Form helpers ---
   new() {
+    // Estado limpio de creación
     this.form.reset({ id: null, authorityId: null, saleId: null, amount: null, paid: false });
     this.setEditMode(false);
     this.form.markAsPristine();
@@ -121,6 +141,7 @@ export class BribeComponent implements OnInit {
   }
 
   edit(s: BribeDTO) {
+    // Precarga valores del DTO (acepta id en relación o llave suelta)
     this.form.reset();
     this.form.patchValue({
       id: s.id ?? null,
@@ -134,45 +155,41 @@ export class BribeComponent implements OnInit {
     this.error.set(null);
   }
 
+  // --- Guardado (create/patch) ---
   save() {
     const id = this.form.controls.id.value;
 
+    // CREATE: requiere formulario válido completo
     if (!id) {
-      // === CREATE ===
       if (this.form.invalid) {
         this.form.markAllAsTouched();
-        this.error.set('Complete all fields.');
+        this.error.set(this.t.instant('bribes.err.completeAll'));
         return;
       }
       const body: CreateBribeDTO = {
         amount: Number(this.form.controls.amount.value),
         authorityId: String(this.form.controls.authorityId.value!),
         saleId: Number(this.form.controls.saleId.value!),
-        paid: !!this.form.controls.paid.value, // permitido por el backend en create
+        paid: !!this.form.controls.paid.value,
       };
       this.loading.set(true);
       this.error.set(null);
       this.srv.create(body).subscribe({
         next: () => { this.new(); this.loadBribes(); },
-        error: (err) => {
-          this.error.set(err?.error?.message || 'Could not create.');
-          this.loading.set(false);
-        }
+        error: (err) => { this.error.set(err?.error?.message || this.t.instant('bribes.errorCreate')); this.loading.set(false); }
       });
       return;
     }
 
-    // === EDIT (partial PATCH) ===
+    // EDIT: construir PATCH solo con campos tocados
     const c = this.form.controls;
     const patch: UpdateBribeDTO = {};
     if (c.amount.dirty)      patch.amount = Number(c.amount.value);
     if (c.authorityId.dirty) patch.authorityId = String(c.authorityId.value!);
     if (c.saleId.dirty)      patch.saleId = Number(c.saleId.value!);
-    // ⚠️ 'paid' NO se parchea por update genérico: va por endpoint /pay
-    // if (c.paid.dirty)     patch.paid = !!c.paid.value;
 
     if (Object.keys(patch).length === 0) {
-      this.error.set('There are no changes to save.');
+      this.error.set(this.t.instant('bribes.err.noChanges'));
       return;
     }
 
@@ -180,22 +197,20 @@ export class BribeComponent implements OnInit {
     this.error.set(null);
     this.srv.update(id, patch).subscribe({
       next: () => { this.new(); this.loadBribes(); },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Could not update.');
-        this.loading.set(false);
-      }
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('bribes.errorUpdate')); this.loading.set(false); }
     });
   }
 
+  // --- Acción rápida: marcar como pagado ---
   markAsPaid(s: BribeDTO) {
-    if (!s.id) return;
+    if (!s.id) return; // seguridad
     this.loading.set(true);
     this.error.set(null);
 
     this.srv.payOne(s.id).subscribe({
       next: () => this.loadBribes(),
       error: (err) => {
-        this.error.set(err?.error?.message || 'Could not mark as paid.');
+        this.error.set(err?.error?.message || this.t.instant('bribes.errorMarkPaid'));
         this.loading.set(false);
       }
     });

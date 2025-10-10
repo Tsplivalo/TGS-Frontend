@@ -1,52 +1,56 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormsModule, ReactiveFormsModule,
-  FormBuilder, Validators, FormGroup, FormControl
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { DecisionService } from '../../services/decision/decision';
-import {
-  DecisionDTO, CreateDecisionDTO, PatchDecisionDTO
-} from '../../models/decision/decision.model';
-
+import { DecisionDTO, CreateDecisionDTO, PatchDecisionDTO } from '../../models/decision/decision.model';
 import { TopicService } from '../../services/topic/topic';
 import { TopicDTO } from '../../models/topic/topic.model';
+
+/**
+ * DecisionComponent
+ *
+ * Administra decisiones con filtro por texto y tema, validación de fechas (hoy en adelante)
+ * y guardado como CREATE (POST) o UPDATE parcial (PATCH). Comentarios enfocados en decisiones
+ * de diseño, validaciones y construcción de payloads.
+ */
 
 type DecisionForm = {
   id: FormControl<number | null>;
   topicId: FormControl<number | null>;
   description: FormControl<string>;
-  startDate: FormControl<string>; // yyyy-MM-dd
-  endDate: FormControl<string>;    // yyyy-MM-dd
+  startDate: FormControl<string>;
+  endDate: FormControl<string>;
 };
 
 @Component({
   selector: 'app-decision',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './decision.html',
   styleUrls: ['./decision.scss'],
 })
 export class DecisionComponent implements OnInit {
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(DecisionService);
   private topicSrv = inject(TopicService);
 
+  // --- Estado (signals) ---
   decisions = signal<DecisionDTO[]>([]);
   topics = signal<TopicDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
-  isEdit = signal(false);
+  isEdit = signal(false); // true si estamos editando una decisión existente
 
-  // filters
+  // --- Filtros del listado ---
   fText = '';
   topicFilter = '';
+  today = this.todayLocalInput(); // AAAA-MM-DD para inputs tipo date
 
-  // today in input date format
-  today = this.todayLocalInput();
-
+  // --- Form reactivo ---
   form: FormGroup<DecisionForm> = this.fb.group<DecisionForm>({
     id: this.fb.control<number | null>(null),
     topicId: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(1)] }),
@@ -55,11 +59,13 @@ export class DecisionComponent implements OnInit {
     endDate: this.fb.nonNullable.control(this.today, { validators: [Validators.required] }),
   });
 
+  // --- UI: abrir/cerrar formulario ---
   isFormOpen = false;
   toggleForm(){ this.isFormOpen = !this.isFormOpen; }
 
+  // --- Ciclo de vida ---
   ngOnInit(): void {
-    // If the <select> for topics emits a string, convert it to a number
+    // Normaliza topicId si llega como string desde el template (selects)
     this.form.controls.topicId.valueChanges.subscribe((v) => {
       if (typeof v === 'string' && v !== '') {
         const n = Number(v);
@@ -67,10 +73,9 @@ export class DecisionComponent implements OnInit {
       }
     });
 
-    // Enforce min today: if someone manually overrides, correct it
+    // Reglas de fechas: start >= hoy y end >= start
     this.form.controls.startDate.valueChanges.subscribe((v) => {
       if (v && v < this.today) this.form.controls.startDate.setValue(this.today, { emitEvent: false });
-      // if endDate is before startDate, adjust it
       if (this.form.controls.endDate.value && this.form.controls.endDate.value < (this.form.controls.startDate.value || '')) {
         this.form.controls.endDate.setValue(this.form.controls.startDate.value!, { emitEvent: false });
       }
@@ -84,7 +89,7 @@ export class DecisionComponent implements OnInit {
     this.loadTopics();
   }
 
-  // ===== Utils =====
+  // Fecha local en formato input date (AAAA-MM-DD)
   private todayLocalInput(): string {
     const d = new Date();
     const yyyy = d.getFullYear();
@@ -93,6 +98,7 @@ export class DecisionComponent implements OnInit {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  // --- Listados filtrados ---
   filteredDecisions = computed(() => {
     const q = (this.fText || '').toLowerCase().trim();
     const tFilter = (this.topicFilter || '').trim();
@@ -113,42 +119,27 @@ export class DecisionComponent implements OnInit {
     );
   });
 
-  // ===== Data =====
+  // --- Data fetching ---
   load() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAll().subscribe({
-      next: (list: DecisionDTO[]) => {
-        this.decisions.set(list);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Could not load decisions.');
-        this.loading.set(false);
-      }
+      next: (list: DecisionDTO[]) => { this.decisions.set(list); this.loading.set(false); },
+      error: (err) => { this.error.set(err?.error?.message || 'Could not load decisions.'); this.loading.set(false); }
     });
   }
 
   loadTopics() {
-    // getAll() de TopicService devuelve Observable<TopicDTO[]>
     this.topicSrv.getAll().subscribe({
-      next: (list: TopicDTO[]) => {
-        this.topics.set(list);
-      },
-      error: (err) => console.warn('[DECISION] Could not load topics:', err)
+      next: (list: TopicDTO[]) => { this.topics.set(list); },
+      error: () => {}
     });
   }
 
-  // ===== CRUD UI =====
+  // --- Crear / Editar ---
   new() {
     this.isEdit.set(false);
-    this.form.reset({
-      id: null,
-      topicId: null,
-      description: '',
-      startDate: this.today,
-      endDate: this.today,
-    });
+    this.form.reset({ id: null, topicId: null, description: '', startDate: this.today, endDate: this.today });
     this.submitted.set(false);
     this.error.set(null);
   }
@@ -171,14 +162,11 @@ export class DecisionComponent implements OnInit {
     this.error.set(null);
     this.srv.delete(id).subscribe({
       next: () => this.load(),
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Could not delete (check the route in the backend).');
-        this.loading.set(false);
-      }
+      error: (err) => { this.error.set(err?.error?.message || 'Could not delete.'); this.loading.set(false); }
     });
   }
 
-  // ===== Builders =====
+  // --- Builders de payload ---
   private buildCreate(): CreateDecisionDTO {
     const v = this.form.getRawValue();
     return {
@@ -199,17 +187,18 @@ export class DecisionComponent implements OnInit {
     };
   }
 
+  // Regla simple: start >= hoy y end >= start
   private areDatesValid(): boolean {
     const fi = this.form.controls.startDate.value || '';
     const ff = this.form.controls.endDate.value || '';
-    // already constrained by min and subs, but we validate anyway
     return !!fi && !!ff && ff >= fi && fi >= this.today;
   }
 
+  // --- Guardar ---
   save() {
     this.submitted.set(true);
 
-    // Normalize empty select
+    // Normaliza topicId vacío a null para que falle la validación requerida
     const t = this.form.controls.topicId.value;
     if ((t as any) === '') this.form.controls.topicId.setValue(null);
 
@@ -218,42 +207,33 @@ export class DecisionComponent implements OnInit {
 
     if (baseInvalid || datesInvalid) {
       this.form.markAllAsTouched();
-      const msgs: string[] = [];
-      if (this.form.controls.topicId.invalid) msgs.push('Topic');
-      if (this.form.controls.description.invalid) msgs.push('Description');
-      if (datesInvalid) msgs.push('Dates (start ≥ today and end ≥ start)');
-      this.error.set(`Complete correctly: ${msgs.join(', ')}.`);
       return;
     }
 
     this.loading.set(true);
     this.error.set(null);
 
+    // CREATE
     if (!this.isEdit()) {
-      // CREATE
       const payload = this.buildCreate();
       this.srv.create(payload).subscribe({
         next: () => { this.new(); this.load(); },
         error: (err) => {
-          const raw = err?.error;
-          const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not create.');
-          this.error.set(msg);
-          this.loading.set(false);
+          const raw = err?.error; const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not create.');
+          this.error.set(msg); this.loading.set(false);
         }
       });
       return;
     }
 
-    // EDIT (PATCH)
+    // UPDATE (PATCH parcial)
     const id = this.form.controls.id.value!;
     const payload = this.buildPatch();
     this.srv.update(id, payload).subscribe({
       next: () => { this.new(); this.load(); },
       error: (err) => {
-        const raw = err?.error;
-        const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not save.');
-        this.error.set(msg);
-        this.loading.set(false);
+        const raw = err?.error; const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not save.');
+        this.error.set(msg); this.loading.set(false);
       }
     });
   }
