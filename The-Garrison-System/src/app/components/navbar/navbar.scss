@@ -31,6 +31,13 @@
   text-decoration: none;
 }
 
+/* 👉 separación sutil del brand respecto al menú izquierdo */
+.brand--separated {
+  padding-right: 1rem;
+  margin-right: .5rem;
+  border-right: 1px solid var(--border);
+}
+
 .brand-text {
   font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   font-weight: 800;
@@ -57,6 +64,11 @@
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* 👉 menú izquierdo con un poquito más de aire */
+.menu--left {
+  gap: .6rem;
 }
 
 .menu--right {
@@ -125,7 +137,11 @@
   -webkit-backdrop-filter: blur(12px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 8px 22px rgba(0, 0, 0, .18);
   opacity: 0;
-  transition: transform .28s cubic-bezier(.22, .61, .36, 1), width .28s cubic-bezier(.22, .61, .36, 1), height .28s cubic-bezier(.22, .61, .36, 1), opacity .2s ease;
+  transition:
+    transform .28s cubic-bezier(.22, .61, .36, 1),
+    width .28s cubic-bezier(.22, .61, .36, 1),
+    height .28s cubic-bezier(.22, .61, .36, 1),
+    opacity .2s ease;
 }
 
 .glass-indicator.visible {
@@ -197,8 +213,7 @@
   outline-offset: 3px;
 }
 
-/* ====== Extras para botón Salir (dropdown) ====== */
-/* Dropdown a la derecha cuando está en el menú derecho */
+/* ====== Dropdown en el menú derecho ====== */
 .menu--right .menu__item--dropdown .dropdown {
   right: 0;
   left: auto;
@@ -235,12 +250,10 @@
   list-style: none;
 }
 
-/* Acento sutil para Salir (sin cosas raras) */
+/* Acento sutil para Salir */
 :root {
   --danger: #ef4444;
-  /* red-500 */
   --danger-text: #fca5a5;
-  /* red-300 */
 }
 
 .dropdown__item .btn-logout {
@@ -250,7 +263,6 @@
 .dropdown__item .btn-logout:hover {
   background: rgba(239, 68, 68, 0.12);
   color: #fecaca;
-  /* red-200 */
 }
 
 /* Accesibilidad consistente */
@@ -258,4 +270,112 @@
 .dropdown__item button:focus-visible {
   outline: 2px solid #93c5fd;
   outline-offset: 3px;
+}
+
+/* ====== Pill especial para “Tienda” ====== */
+.menu__item--store>a {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)),
+    rgba(20, 22, 28, .35);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .06);
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu__item--store>a:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--border), var(--accent) 32%);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.menu__item--store>a .underline {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  height: 2px;
+  background: color-mix(in srgb, var(--accent), #fff 15%);
+  opacity: 0;
+  transform: scaleX(0.2);
+  transform-origin: left;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.menu__item--store>a:hover .underline,
+.menu__item--store>a.active .underline {
+  opacity: .9;
+  transform: scaleX(1);
+}
+
+/* Responsive tweaks */
+@media (max-width: 720px) {
+  .nav__content {
+    gap: .75rem;
+  }
+
+  .menu--left {
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+}
+
+/* ===== Selector de idioma con banderas SVG embebidas ===== */
+.flag {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+  background-size: cover;
+  background-position: center;
+  flex: 0 0 18px;
+  transform: translateY(1px);
+}
+
+/* 🇪🇸 España */
+.flag-es {
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'>\
+<rect width='3' height='2' fill='%23AA151B'/>\
+<rect y='0.5' width='3' height='1' fill='%23F1BF00'/>\
+</svg>");
+}
+
+/* 🇬🇧 United Kingdom (simplificado) */
+.flag-en {
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'>\
+<clipPath id='c'><rect width='3' height='2'/></clipPath>\
+<g clip-path='url(%23c)'>\
+<rect width='3' height='2' fill='%23012169'/>\
+<path d='M0 0l3 2M3 0L0 2' stroke='%23ffffff' stroke-width='0.3'/>\
+<path d='M0 0l3 2M3 0L0 2' stroke='%23C8102E' stroke-width='0.2' transform='translate(0,0.03)'/>\
+<path d='M1.5 0v2M0 1h3' stroke='%23ffffff' stroke-width='0.5'/>\
+<path d='M1.5 0v2M0 1h3' stroke='%23C8102E' stroke-width='0.3'/>\
+</g></svg>");
+}
+
+/* Ajustes visuales del toggle de idioma */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.lang-label {
+  font-weight: 600;
+}
+
+.lang-code {
+  opacity: .85;
+  letter-spacing: .5px;
 }

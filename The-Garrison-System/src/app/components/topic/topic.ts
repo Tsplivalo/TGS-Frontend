@@ -1,42 +1,52 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { TopicService } from '../../services/topic/topic';
 import { TopicDTO, CreateTopicDTO, UpdateTopicDTO } from '../../models/topic/topic.model';
 
-type TopicForm = {
-  id: FormControl<number | null>;
-  description: FormControl<string>;
-};
+/**
+ * TopicComponent
+ *
+ * CRUD simple de temáticas con filtro por texto. Usa signals para estado,
+ * formularios reactivos para validación y i18n para errores.
+ */
+
+type TopicForm = { id: FormControl<number | null>; description: FormControl<string>; };
 
 @Component({
   selector: 'app-topic',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './topic.html',
   styleUrls: ['./topic.scss'],
 })
 export class TopicComponent implements OnInit {
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(TopicService);
+  private t = inject(TranslateService);
 
+  // --- Estado ---
   topics = signal<TopicDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
 
+  // --- Filtro de búsqueda ---
   filterText = '';
-  isEdit = signal(false);
+  isEdit = signal(false); // true si editamos una temática existente
 
+  // --- Form reactivo ---
   form: FormGroup<TopicForm> = this.fb.group<TopicForm>({
     id: this.fb.control<number | null>(null),
     description: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(1)] }),
   });
 
-  ngOnInit(): void {
-    this.load();
-  }
+  // --- Ciclo de vida ---
+  ngOnInit(): void { this.load(); }
 
+  // --- Listado filtrado ---
   filtered = computed(() => {
     const q = (this.filterText || '').toLowerCase().trim();
     if (!q) return this.topics();
@@ -46,22 +56,17 @@ export class TopicComponent implements OnInit {
     );
   });
 
+  // --- Data fetching ---
   load() {
     this.loading.set(true);
     this.error.set(null);
-    // ⬇️ getAll(): Observable<TopicDTO[]>
     this.srv.getAll().subscribe({
-      next: (list: TopicDTO[]) => {
-        this.topics.set(list);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudieron cargar las temáticas.');
-        this.loading.set(false);
-      }
+      next: (list: TopicDTO[]) => { this.topics.set(list); this.loading.set(false); },
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorLoad')); this.loading.set(false); }
     });
   }
 
+  // --- Crear / Editar ---
   new() {
     this.isEdit.set(false);
     this.form.reset({ id: null, description: '' });
@@ -70,39 +75,29 @@ export class TopicComponent implements OnInit {
 
   edit(t: TopicDTO) {
     this.isEdit.set(true);
-    this.form.setValue({
-      id: t.id ?? null,
-      description: t.description ?? '',
-    });
+    this.form.setValue({ id: t.id ?? null, description: t.description ?? '' });
     this.error.set(null);
   }
 
+  // --- Borrado ---
   delete(id: number) {
     this.loading.set(true);
     this.error.set(null);
     this.srv.delete(id).subscribe({
       next: () => this.load(),
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo eliminar.');
-        this.loading.set(false);
-      }
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorDelete')); this.loading.set(false); }
     });
   }
 
-  private buildCreate(): CreateTopicDTO {
-    const v = this.form.getRawValue();
-    return { description: String(v.description).trim() };
-  }
+  // --- Builders de payload ---
+  private buildCreate(): CreateTopicDTO { return { description: String(this.form.getRawValue().description).trim() }; }
+  private buildUpdate(): UpdateTopicDTO { return { description: String(this.form.getRawValue().description).trim() }; }
 
-  private buildUpdate(): UpdateTopicDTO {
-    const v = this.form.getRawValue();
-    return { description: String(v.description).trim() };
-  }
-
+  // --- Guardado ---
   save() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.error.set('Completá la descripción.');
+      this.error.set(this.t.instant('topics.form.err.fill'));
       return;
     }
 
@@ -112,26 +107,18 @@ export class TopicComponent implements OnInit {
     const id = this.form.controls.id.value;
 
     if (!id) {
-      // CREATE => Observable<TopicDTO>
       const payload = this.buildCreate();
       this.srv.create(payload).subscribe({
-        next: (_created: TopicDTO) => { this.new(); this.load(); },
-        error: (err) => {
-          this.error.set(err?.error?.message || 'No se pudo crear.');
-          this.loading.set(false);
-        }
+        next: () => { this.new(); this.load(); },
+        error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorCreate')); this.loading.set(false); }
       });
       return;
     }
 
-    // UPDATE (PATCH) => Observable<TopicDTO>
     const payload = this.buildUpdate();
     this.srv.update(id, payload).subscribe({
-      next: (_updated: TopicDTO) => { this.new(); this.load(); },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'No se pudo guardar.');
-        this.loading.set(false);
-      }
+      next: () => { this.new(); this.load(); },
+      error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorSave')); this.loading.set(false); }
     });
   }
 }

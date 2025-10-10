@@ -2,43 +2,56 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs'; // ⬅️ IMPORTANTE
+import { firstValueFrom } from 'rxjs';
 
-// Ajustá estos imports al AuthService que ya tenés en tu proyecto:
+// Servicios propios
 import { AuthService } from '../../services/auth/auth';
 
-type IntroItem = { title: string; detail: string };
+// i18n (solo pipe)
+import { TranslateModule } from '@ngx-translate/core';
+
+/**
+ * HomeComponent
+ *
+ * Muestra el panel de autenticación (login/registro) cuando el usuario NO está logueado
+ * y lo oculta con una breve animación cuando inicia sesión. Incluye tarjetas de features
+ * con soporte i18n y accesibilidad básica (tecla Enter/Espacio para expandir).
+ */
+
+type IntroItem = { titleKey: string; detailKey: string };
 
 @Component({
   standalone: true,
   selector: 'app-home',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
 export class HomeComponent {
+  // --- Inyección de dependencias ---
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  // Signals de auth (misma interfaz que el navbar)
+  // --- Estado de autenticación (expuesto por AuthService como signals) ---
   readonly isLoggedIn = this.auth.isLoggedIn;   // signal<boolean>
-  readonly user       = this.auth.user;         // signal<{ username?: string }|null>
+  readonly user       = this.auth.user;         // signal<{ username?: string } | null>
 
-  // Estado visual del panel auth
-  showAuthPanel = true;
-  entering = false;
-  hiding   = false;
+  // --- Estado visual del panel auth ---
+  showAuthPanel = true;   // controla visibilidad del panel
+  entering = false;       // flag para animación de entrada
+  hiding   = false;       // flag para animación de salida
 
-  // Modo del panel
+  // --- Modo del panel (login | register) ---
   mode = signal<'login' | 'register'>('login');
   setMode(m: 'login' | 'register') { this.mode.set(m); }
 
-  // Logo
+  // --- Logo (fallback simple si falla la carga) ---
   logoOk = true;
   onLogoError() { this.logoOk = false; }
 
-  // Forms
+  // --- Formularios reactivos ---
+  // Campos mínimos y validaciones razonables; el backend valida definitivamente.
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
@@ -50,41 +63,23 @@ export class HomeComponent {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  // Estados de envío / errores
+  // --- Estado de envío / error por acción ---
   loadingLogin    = false;
   loadingRegister = false;
-  errorLogin: string | null = null;
-  errorRegister: string | null = null;
+  errorLogin: string | null = null;     // claves i18n o mensajes planos
+  errorRegister: string | null = null;  // idem
 
-  // 🔹 Intro: ahora 6 tarjetas
+  // --- Contenido de introducción (claves i18n) ---
   introItems: IntroItem[] = [
-    {
-      title: 'Gestión simplificada',
-      detail: 'Unificá productos, clientes y ventas en una sola interfaz, con flujos claros y métricas accionables.',
-    },
-    {
-      title: 'Rendimiento y claridad',
-      detail: 'Pantallas ágiles, estados bien definidos y filtros que ayudan a decidir más rápido y mejor.',
-    },
-    {
-      title: 'Listo para escalar',
-      detail: 'Organizá zonas, autoridades y decisiones con controles que crecen con tu operación.',
-    },
-    {
-      title: 'Reportes en tiempo real',
-      detail: 'Visualizá KPIs y tendencias al instante para detectar oportunidades y anticipar desvíos.',
-    },
-    {
-      title: 'Seguridad y roles',
-      detail: 'Definí permisos por área o función para cuidar la información y ordenar el trabajo.',
-    },
-    {
-      title: 'Integraciones y API',
-      detail: 'Conectá tus sistemas, importá datos y automatizá procesos sin fricción.',
-    },
+    { titleKey: 'home.features.simplified.title',  detailKey: 'home.features.simplified.detail' },
+    { titleKey: 'home.features.performance.title', detailKey: 'home.features.performance.detail' },
+    { titleKey: 'home.features.scalable.title',    detailKey: 'home.features.scalable.detail' },
+    { titleKey: 'home.features.reports.title',     detailKey: 'home.features.reports.detail' },
+    { titleKey: 'home.features.security.title',    detailKey: 'home.features.security.detail' },
+    { titleKey: 'home.features.integrations.title',detailKey: 'home.features.integrations.detail' },
   ];
 
-  // Control expand/collapse en las cards
+  // --- Expand/Collapse de cards (con soporte de teclado) ---
   flipped = new Set<number>();
   toggleFlip(i: number, ev?: Event) {
     ev?.preventDefault();
@@ -98,20 +93,22 @@ export class HomeComponent {
     }
   }
 
-  // Mostrar/ocultar panel según auth
+  // --- Derivado: mostrar panel si NO hay sesión ---
   private _shouldShowAuth = computed(() => !this.isLoggedIn());
 
   constructor() {
-    // Reaccionar a cambios de login con pequeñas animaciones
+    // Reacciona a cambios de sesión para disparar animaciones de entrada/salida del panel.
     effect(() => {
       const logged = this.isLoggedIn();
       const mustShow = !logged;
 
       if (mustShow && !this.showAuthPanel) {
+        // Mostrar con micro-animación
         this.entering = true;
         this.showAuthPanel = true;
         queueMicrotask(() => setTimeout(() => (this.entering = false), 200));
       } else if (!mustShow && this.showAuthPanel) {
+        // Ocultar con breve salida
         this.hiding = true;
         setTimeout(() => {
           this.showAuthPanel = false;
@@ -121,52 +118,58 @@ export class HomeComponent {
     });
   }
 
-  // LOGIN
+  // --- LOGIN ---
   async submitLogin() {
     this.errorLogin = null;
     this.loadingLogin = true;
 
     try {
       const { email, password } = this.loginForm.getRawValue();
-      if (!email || !password) throw new Error('Completá email y contraseña.');
+      if (!email || !password) throw new Error('auth.errors.missingFields');
 
-      // ⬇️ disparar Observable como Promise
       await firstValueFrom(this.auth.login({ email, password }));
 
+      // Ocultar panel tras login exitoso
       this.hiding = true;
       setTimeout(() => {
         this.showAuthPanel = false;
         this.hiding = false;
       }, 180);
     } catch (e: any) {
-      this.errorLogin = e?.message || 'No se pudo iniciar sesión.';
+      // Si llega una clave i18n, la UI puede traducirla; si no, mostrar texto tal cual.
+      this.errorLogin = e?.message || 'auth.errors.loginFailed';
     } finally {
       this.loadingLogin = false;
     }
   }
 
-  // REGISTER (+ auto-login)
+  // --- REGISTER (+ auto login) ---
   async submitRegister() {
     this.errorRegister = null;
     this.loadingRegister = true;
 
     try {
       const { username, email, password } = this.registerForm.getRawValue();
-      if (!username || !email || !password) throw new Error('Completá todos los campos.');
+      if (!username || !email || !password) throw new Error('auth.errors.missingFields');
 
-      // ⬇️ idem: Observables → Promise
       await firstValueFrom(this.auth.register({ username, email, password }));
       await firstValueFrom(this.auth.login({ email, password }));
 
+      // Ocultar panel tras registro + login
       this.hiding = true;
       setTimeout(() => {
         this.showAuthPanel = false;
         this.hiding = false;
       }, 180);
     } catch (e: any) {
-      this.errorRegister = e?.message || 'No se pudo registrar.';
+      this.errorRegister = e?.message || 'auth.errors.registerFailed';
     } finally {
       this.loadingRegister = false;
     }
+  }
+
+  // --- CTA: navegación a la tienda ---
+  goStore() {
+    this.router.navigateByUrl('/tienda');
   }
 }

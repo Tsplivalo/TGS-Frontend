@@ -6,6 +6,9 @@
   --border: rgba(255, 255, 255, .16);
   --glass-bg: rgba(10, 14, 22, .58);
   --focus: rgba(148, 163, 184, .22);
+
+  --accent: #c3a462;
+  --accent-700: #9e844e;
 }
 
 :root {
@@ -46,7 +49,6 @@
 /* ------------------------------------------------------------------
    PANEL AUTH
 -------------------------------------------------------------------*/
-
 .auth-panel {
   --split: 50%;
   overflow: hidden;
@@ -210,7 +212,7 @@
 }
 
 /* ------------------------------------------------------------------
-   BRANDING
+   BRANDING / HERO
 -------------------------------------------------------------------*/
 .brand-plain {
   color: var(--text);
@@ -310,6 +312,36 @@
   max-width: 40ch;
 }
 
+/* CTA */
+.hero-cta {
+  margin-top: 1rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn--accent {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(0, 0, 0, .18)),
+    linear-gradient(180deg, var(--accent), var(--accent-700));
+  color: #1a1308;
+  box-shadow: 0 8px 18px rgba(195, 164, 98, .25);
+}
+
+.btn--accent:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(195, 164, 98, .32);
+}
+
 /* Responsive */
 @media (max-width: 1180px) {
   .layout {
@@ -343,7 +375,6 @@
   --intro-border: rgba(255, 255, 255, .24);
   --intro-strong: #ffffff;
   --intro-text: #eef2f7;
-  --intro-muted: #d6dee9;
 
   max-width: 1700px;
   margin: clamp(1.6rem, 4vw, 3rem) auto 0;
@@ -423,7 +454,6 @@
   margin-top: .6rem;
 }
 
-/* Botón (card) */
 .intro-card {
   appearance: none;
   -webkit-appearance: none;
@@ -575,10 +605,7 @@
   max-height: 0;
   opacity: 0;
   transform: translateY(6px);
-  transition:
-    max-height .42s cubic-bezier(.25, .6, .3, 1),
-    opacity .28s ease,
-    transform .28s ease;
+  transition: max-height .42s cubic-bezier(.25, .6, .3, 1), opacity .28s ease, transform .28s ease;
 }
 
 .intro-card.expanded .card-detail {
