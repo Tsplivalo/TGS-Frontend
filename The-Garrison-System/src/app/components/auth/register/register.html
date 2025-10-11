@@ -1,56 +1,23 @@
+<section class="auth-card">
+  <h2>Crear cuenta</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    <label class="label">
+      <span>Email</span>
+      <input class="input" type="email" formControlName="email" autocomplete="username" />
+    </label>
+    <label class="label">
+      <span>Usuario (opcional)</span>
+      <input class="input" type="text" formControlName="username" />
+    </label>
+    <label class="label">
+      <span>Contraseña</span>
+      <input class="input" type="password" formControlName="password" autocomplete="new-password" />
+    </label>
 
-<form [formGroup]="form" (ngSubmit)="submit()" class="auth-form" aria-labelledby="register-title" novalidate>
-
-  <h1 id="register-title">Crear cuenta</h1>
-
-  <!-- Usuario -->
-  <label for="f-username">
-    Usuario
-    <input id="f-username" formControlName="username" type="text" autocomplete="username" placeholder="tu usuario"
-      inputmode="text" maxlength="64" />
-  </label>
-
-  <!-- Email -->
-  <label for="f-email">
-    Email
-    <input id="f-email" formControlName="email" type="email" autocomplete="email" placeholder="tu@email.com"
-      inputmode="email" />
-  </label>
-
-  <!-- Password con toggle de visibilidad -->
-  <label class="password-row" for="f-password">
-    Contraseña
-    <div class="password-field">
-      <input id="f-password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
-        autocomplete="new-password" placeholder="••••••••" aria-describedby="password-rules" />
-
-      <!-- Botón de visibilidad accesible -->
-      <button type="button" class="toggle" (click)="toggleShowPassword()"
-        [attr.aria-pressed]="showPassword ? 'true' : 'false'" aria-label="Mostrar u ocultar contraseña"
-        aria-controls="f-password">
-        {{ showPassword ? 'Ocultar' : 'Mostrar' }}
-      </button>
+    <div class="actions">
+      <button class="btn btn-primary" type="submit" [disabled]="loading">Registrarme</button>
     </div>
 
-    <!-- Reglas: asociadas al input via aria-describedby -->
-    <small class="rules" id="password-rules">
-      Min. 8 caracteres, con mayúscula, minúscula, número y símbolo (ej.: punto .).
-    </small>
-  </label>
-
-  <!-- Submit -->
-  <button type="submit" [disabled]="form.invalid || loading" [attr.aria-busy]="loading ? 'true' : null">
-    {{ loading ? 'Creando…' : 'Crear cuenta' }}
-  </button>
-
-  <!-- Hint secundario -->
-  <p class="hint">
-    ¿Ya tenés cuenta?
-    <a routerLink="/login">Iniciar sesión</a>
-  </p>
-
-  <!-- Errores: se anuncian a lectores de pantalla -->
-  <p class="error" *ngIf="errorMsg" role="alert" aria-live="assertive">
-    {{ errorMsg }}
-  </p>
-</form>
+    <div class="error" *ngIf="error">{{ error }}</div>
+  </form>
+</section>

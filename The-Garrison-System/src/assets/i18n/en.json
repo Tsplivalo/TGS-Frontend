@@ -82,7 +82,8 @@
       "integrations": { "title": "Integrations & API", "detail": "Connect systems and automate without friction." }
     }
   },
-  "common": { "close": "Close", "create": "Create", "save": "Save", "cancel": "Cancel", "edit": "Edit", "delete": "Delete" },
+  "common": { "close": "Close", "create": "Create", "save": "Save", "cancel": "Cancel", "edit": "Edit", "delete": "Delete", "error": "Error" },
+
   "clients": {
     "title": "Clients",
     "new": "New",
@@ -106,6 +107,56 @@
     "table": { "dni": "DNI", "name": "Name", "email": "Email", "address": "Address", "phone": "Phone", "purchases": "Purchases" },
     "form": { "dni": "DNI", "dniPh": "Enter DNI", "name": "Name", "namePh": "John Doe", "email": "Email", "emailPh": "john@mail.com", "phone": "Phone", "phonePh": "+54 9 341 ...", "address": "Address", "addressPh": "Street 123, City" }
   },
+
+  "partner": {
+    "title": "Partners",
+    "new": "New",
+    "newTitle": "New partner",
+    "editTitle": "Edit partner {{dni}}",
+    "list": "List",
+    "loading": "Loading partners...",
+    "filters": {
+      "search": "Search",
+      "searchPh": "DNI, name, email, phone"
+    },
+    "table": {
+      "dni": "DNI",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "actions": "Actions"
+    },
+    "form": {
+      "dni": "DNI",
+      "dniPh": "Enter DNI",
+      "name": "Name",
+      "namePh": "John Doe",
+      "email": "Email",
+      "emailPh": "john@mail.com",
+      "phone": "Phone",
+      "phonePh": "+54...",
+      "address": "Address",
+      "addressPh": "Street 123",
+      "notes": "Notes"
+    },
+    "buttons": {
+      "new": "+ New",
+      "create": "Create",
+      "save": "Save",
+      "clear": "Clear",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "emptyTitle": "No partners",
+    "emptyHint": "Adjust the filter or create a new partner.",
+    "confirmDelete": "Delete partner {{dni}}?",
+    "errorLoad": "Could not load partners.",
+    "errorCreate": "Could not create.",
+    "errorSave": "Could not save.",
+    "errorDelete": "Could not delete."
+  },
+
   "sales": {
     "title": "Sales",
     "new": "New",
@@ -240,7 +291,6 @@
       "end": "End date"
     }
   },
-  
   "topics": {
     "title": "Topics",
     "new": "New",
@@ -299,7 +349,7 @@
     "errorSave": "Could not save.",
     "errorDelete": "Could not delete."
   },
-  
+
   "mgmt": {
     "product": "Products",
     "client": "Clients",
@@ -310,11 +360,200 @@
     "bribe": "Bribes",
     "decision": "Decisions",
     "topic": "Topics",
-    "distributor": "Distributors"
+    "distributor": "Distributors",
+    "shelbyCouncil": "Shelby Council",
+    "monthlyReview": "Monthly reviews",
+    "clandestineAgreement": "Clandestine agreements",
+    "admin": "Administrators",
+    "roleRequests": "Role requests"
+  },
+
+  "status": {
+    "PENDING": "PENDING",
+    "IN_REVIEW": "IN REVIEW",
+    "COMPLETED": "COMPLETED",
+    "APPROVED": "APPROVED",
+    "REJECTED": "REJECTED",
+    "ACTIVE": "ACTIVE",
+    "EXPIRED": "EXPIRED",
+    "CANCELLED": "CANCELLED"
+  },
+  "roles": {
+    "CLIENT": "CLIENT",
+    "DISTRIBUTOR": "DISTRIBUTOR",
+    "PARTNER": "PARTNER",
+    "ADMIN": "ADMIN"
+  },
+
+  "admin": {
+    "title": "Administrators",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "ID, name, email, phone"
+    },
+    "list": "List",
+    "emptyTitle": "No administrators",
+    "emptyHint": "Adjust the filter or create a new administrator.",
+    "form": {
+      "titleCreate": "Create administrator",
+      "titleEdit": "Edit {{dni}}"
+    },
+    "fields": {
+      "dni": "ID",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "buttons": {
+      "new": "+ New",
+      "create": "Create",
+      "save": "Save",
+      "clear": "Clear",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "loading": "Loading...",
+      "errorCreating": "Error creating",
+      "errorSaving": "Error saving",
+      "errorLoading": "Error loading"
+    }
+  },
+
+  "roleRequest": {
+    "title": "Role requests",
+    "my": {
+      "title": "My requests",
+      "emptyTitle": "You have no requests",
+      "emptyHint": "Create a new one with the “+ New” button."
+    },
+    "pending": {
+      "title": "Pending (admin)",
+      "emptyTitle": "No pending requests",
+      "emptyHint": "When there are requests, they will appear here."
+    },
+    "create": { "title": "Create request" },
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "reason": "Reason",
+      "status": "Status",
+      "createdAt": "Created at"
+    },
+    "form": {
+      "requestedRole": "Requested role",
+      "roleToRemove": "Role to remove (optional)",
+      "reason": "Reason"
+    },
+    "buttons": {
+      "new": "+ New",
+      "close": "Close",
+      "send": "Send",
+      "approve": "Approve",
+      "reject": "Reject",
+      "cancel": "Cancel"
+    },
+    "messages": { "errorSubmit": "Could not submit request" }
+  },
+
+  "shelbyCouncil": {
+    "title": "Shelby Council",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Partner, decision, id"
+    },
+    "list": "List",
+    "emptyTitle": "No members",
+    "emptyHint": "Adjust filters or create an entry.",
+    "form": {
+      "titleCreate": "Create entry",
+      "titleEdit": "Edit member #{{id}}"
+    },
+    "fields": {
+      "partnerDni": "Partner DNI",
+      "decisionId": "Decision ID",
+      "joinDate": "Join date",
+      "role": "Role",
+      "notes": "Notes"
+    },
+    "buttons": {
+      "new": "+ New",
+      "create": "Create",
+      "save": "Save",
+      "cancel": "Cancel",
+      "clear": "Clear"
+    }
+  },
+
+  "monthlyReview": {
+    "title": "Monthly reviews",
+    "filters": { "year": "Year", "month": "Month (1-12)" },
+    "stats": { "title": "Statistics (by product)", "empty": "No data for the selected period." },
+    "list": "List",
+    "emptyTitle": "No reviews",
+    "emptyHint": "Adjust filters or create a new review.",
+    "table": {
+      "id": "ID",
+      "period": "Period",
+      "status": "Status",
+      "reviewer": "Reviewer",
+      "date": "Date",
+      "totalAmount": "Total $",
+      "totalCount": "Sales"
+    },
+    "form": {
+      "titleCreate": "Create review",
+      "titleEdit": "Edit #{{id}}",
+      "fields": {
+        "reviewedByDni": "Reviewer DNI (partner)",
+        "year": "Year",
+        "month": "Month",
+        "reviewDate": "Review date",
+        "status": "Status",
+        "observations": "Observations",
+        "recommendations": "Recommendations"
+      }
+    },
+    "buttons": {
+      "new": "+ New",
+      "close": "Close",
+      "create": "Create",
+      "save": "Save",
+      "clear": "Clear",
+      "cancel": "Cancel"
+    }
+  },
+
+  "clandestineAgreement": {
+    "title": "Clandestine agreements",
+    "filters": { "search": "Search", "searchPlaceholder": "Description, authority, id" },
+    "list": "List",
+    "emptyTitle": "No agreements",
+    "emptyHint": "Adjust filters or create a new agreement.",
+    "table": {
+      "id": "ID",
+      "shelbyCouncil": "Shelby Council",
+      "authority": "Authority",
+      "date": "Date",
+      "status": "Status",
+      "description": "Description"
+    },
+    "form": {
+      "titleCreate": "Create agreement",
+      "titleEdit": "Edit agreement #{{id}}",
+      "fields": {
+        "shelbyCouncilId": "Shelby Council ID",
+        "authorityDni": "Authority DNI",
+        "agreementDate": "Agreement date",
+        "description": "Description",
+        "status": "Status"
+      }
+    },
+    "buttons": {
+      "new": "+ New",
+      "create": "Create",
+      "save": "Save",
+      "clear": "Clear",
+      "cancel": "Cancel"
+    }
   }
 }
-
-
-
-
-

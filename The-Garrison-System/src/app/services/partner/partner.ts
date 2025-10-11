@@ -1,44 +1,49 @@
-import { Injectable } from '@angular/core';
+// src/app/services/partner/partner.ts
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
 import {
-  ApiResponse,
   PartnerDTO,
-  //CreatePartnerDTO,
-  //UpdatePartnerDTO,
-  PartnerStatus,
+  CreatePartnerDTO,
+  PatchPartnerDTO,
+  PartnerListResponse,
+  PartnerItemResponse,
 } from '../../models/partner/partner.model';
 
 @Injectable({ providedIn: 'root' })
 export class PartnerService {
-  private readonly apiUrl = '/api/partners';
+  private http = inject(HttpClient);
+  private base = '/api/partners';
 
-  constructor(private http: HttpClient) {}
-
-  getAllPartners(q?: string): Observable<ApiResponse<PartnerDTO[]>> {
+  list(opts?: { q?: string; page?: number; pageSize?: number }) {
     let params = new HttpParams();
-    if (q?.trim()) params = params.set('q', q.trim());
-    return this.http.get<ApiResponse<PartnerDTO[]>>(this.apiUrl, { params });
+    if (opts?.q) params = params.set('q', opts.q);
+    if (opts?.page) params = params.set('page', String(opts.page));
+    if (opts?.pageSize) params = params.set('pageSize', String(opts.pageSize));
+    return this.http.get<PartnerListResponse>(this.base, { params });
   }
 
-  getPartnerById(id: number): Observable<ApiResponse<PartnerDTO>> {
-    return this.http.get<ApiResponse<PartnerDTO>>(`${this.apiUrl}/${id}`);
-  }
-/*
-  createPartner(payload: CreatePartnerDTO): Observable<ApiResponse<PartnerDTO>> {
-    return this.http.post<ApiResponse<PartnerDTO>>(this.apiUrl, payload);
+  get(dni: string) {
+    return this.http.get<PartnerItemResponse>(`${this.base}/${encodeURIComponent(dni)}`);
   }
 
-  
-  updatePartner(id: number, payload: UpdatePartnerDTO): Observable<ApiResponse<PartnerDTO>> {
-    return this.http.patch<ApiResponse<PartnerDTO>>(`${this.apiUrl}/${id}`, payload);
-  }*/
-
-  patchPartnerStatus(id: number, status: PartnerStatus): Observable<ApiResponse<PartnerDTO>> {
-    return this.http.patch<ApiResponse<PartnerDTO>>(`${this.apiUrl}/${id}/status`, { status });
+  create(payload: CreatePartnerDTO) {
+    return this.http.post<PartnerItemResponse>(this.base, payload);
   }
 
-  deletePartner(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  update(dni: string, payload: PatchPartnerDTO) {
+    return this.http.patch<PartnerItemResponse>(`${this.base}/${encodeURIComponent(dni)}`, payload);
+  }
+
+  delete(dni: string) {
+    return this.http.delete<void>(`${this.base}/${encodeURIComponent(dni)}`);
+  }
+
+  // relaciones con decisiones
+  attachDecision(dni: string, decisionId: number) {
+    return this.http.post<PartnerItemResponse>(`${this.base}/${encodeURIComponent(dni)}/decisions/${decisionId}`, {});
+  }
+
+  detachDecision(dni: string, decisionId: number) {
+    return this.http.delete<PartnerItemResponse>(`${this.base}/${encodeURIComponent(dni)}/decisions/${decisionId}`);
   }
 }

@@ -61,6 +61,11 @@ export class NavbarComponent implements AfterViewInit {
     { label: 'mgmt.decision',    path: '/decision' },
     { label: 'mgmt.topic',       path: '/tematica' },
     { label: 'mgmt.distributor', path: '/distribuidor' },
+    { label: 'mgmt.shelbyCouncil',        path: '/consejo-shelby' },
+    { label: 'mgmt.monthlyReview',        path: '/revisiones-mensuales' },
+    { label: 'mgmt.clandestineAgreement', path: '/acuerdos-clandestinos' },
+    { label: 'mgmt.admin',                path: '/admin' },
+    { label: 'mgmt.roleRequests',         path: '/solicitudes-rol' },
   ];
 
   readonly publicItems: MenuItem[] = [
@@ -115,7 +120,12 @@ export class NavbarComponent implements AfterViewInit {
       || url.startsWith('/sobornos')
       || url.startsWith('/decision')
       || url.startsWith('/tematica')
-      || url.startsWith('/distribuidor');
+      || url.startsWith('/distribuidor')
+      || url.startsWith('/consejo-shelby')
+      || url.startsWith('/revisiones-mensuales')
+      || url.startsWith('/acuerdos-clandestinos')
+      || url.startsWith('/admin')
+      || url.startsWith('/solicitudes-rol');
   }
 
   logout() { this.auth.logout(); }

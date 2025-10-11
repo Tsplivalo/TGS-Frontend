@@ -1,0 +1,160 @@
+<section class="stack-lg">
+  <div class="glass-dark card stack-md">
+    <header class="header">
+      <h2 class="title">{{ 'monthlyReview.title' | translate }}</h2>
+      <div class="right">
+        <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
+          {{ isNewOpen() ? ('common.close' | translate) : ('monthlyReview.buttons.new' | translate) }}
+        </button>
+      </div>
+    </header>
+
+    <!-- FILTROS -->
+    <section class="filters">
+      <label class="label">
+        <span class="label-text">{{ 'monthlyReview.filters.year' | translate }}</span>
+        <input class="input" type="number" [ngModel]="fYear()" (ngModelChange)="fYear.set($event); loadStats()" />
+      </label>
+      <label class="label">
+        <span class="label-text">{{ 'monthlyReview.filters.month' | translate }}</span>
+        <input class="input" type="number" [ngModel]="fMonth()" (ngModelChange)="fMonth.set($event); loadStats()" />
+      </label>
+    </section>
+
+    <!-- STATS -->
+    <section class="subsection">
+      <h3 class="sub-title">{{ 'monthlyReview.stats.title' | translate }}</h3>
+      <ul class="stats" *ngIf="stats().length; else emptyStats">
+        <li *ngFor="let s of stats()">
+          <strong>{{ s.label }}</strong>
+          — ${{ s.totalAmount }} ({{ s.totalCount }} {{ 'monthlyReview.table.totalCount' | translate }})
+        </li>
+      </ul>
+      <ng-template #emptyStats>
+        <div class="muted">{{ 'monthlyReview.stats.empty' | translate }}</div>
+      </ng-template>
+    </section>
+
+    <!-- MENSAJES -->
+    <div class="error" *ngIf="error() as err">
+      <strong>{{ 'common.error' | translate }}</strong>: {{ err }}
+    </div>
+    <!-- (no tenés monthlyReview.loading en JSON; podés dejarlo fijo o crear la clave) -->
+    <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
+
+    <!-- LISTADO -->
+    <section class="subsection">
+      <h3 class="sub-title">{{ 'monthlyReview.list' | translate }}</h3>
+
+      <div class="table-wrap" *ngIf="filtered().length; else emptyState">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th style="width:120px;">{{ 'monthlyReview.table.period' | translate }}</th>
+              <th style="width:140px;">{{ 'monthlyReview.table.status' | translate }}</th>
+              <th>{{ 'monthlyReview.table.reviewer' | translate }}</th>
+              <th style="width:140px;">{{ 'monthlyReview.table.date' | translate }}</th>
+              <th style="width:140px;">{{ 'monthlyReview.table.totalAmount' | translate }}</th>
+              <th style="width:120px;">{{ 'monthlyReview.table.totalCount' | translate }}</th>
+              <th class="right" style="width:180px;">{{ 'common.edit' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of filtered(); trackBy: trackById">
+              <td>#{{ it.id }}</td>
+              <td>{{ it.month }}/{{ it.year }}</td>
+              <td><span class="badge {{ it.status }}">{{ it.status }}</span></td>
+              <td>{{ it.reviewedBy?.dni }} — {{ it.reviewedBy?.name }}</td>
+              <td>{{ it.reviewDate | date:'yyyy-MM-dd' }}</td>
+              <td class="right">{{ it.totalSalesAmount ?? 0 }}</td>
+              <td class="right">{{ it.totalSalesCount ?? 0 }}</td>
+              <td class="right">
+                <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+                  [title]="'common.edit' | translate">
+                  ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                </button>
+                <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                  [title]="'common.delete' | translate">
+                  🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty empty-state">
+          <h3>{{ 'monthlyReview.emptyTitle' | translate }}</h3>
+          <p class="muted">{{ 'monthlyReview.emptyHint' | translate }}</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <!-- FORM -->
+  <div class="collapsible" [class.open]="isNewOpen()">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2 class="title">
+          {{ isEdit()
+          ? ('monthlyReview.form.titleEdit' | translate:{ id: form.value.id })
+          : ('monthlyReview.form.titleCreate' | translate) }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
+        <label class="label">
+          <span>{{ 'monthlyReview.form.fields.reviewedByDni' | translate }}</span>
+          <input class="input" type="text" formControlName="reviewedByDni" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'monthlyReview.form.fields.year' | translate }}</span>
+          <input class="input" type="number" formControlName="year" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'monthlyReview.form.fields.month' | translate }}</span>
+          <input class="input" type="number" formControlName="month" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'monthlyReview.form.fields.reviewDate' | translate }}</span>
+          <input class="input" type="date" formControlName="reviewDate" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'monthlyReview.form.fields.status' | translate }}</span>
+          <select class="input" formControlName="status">
+            <option value="PENDING">{{ 'status.PENDING' | translate }}</option>
+            <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate }}</option>
+            <option value="COMPLETED">{{ 'status.COMPLETED' | translate }}</option>
+            <option value="APPROVED">{{ 'status.APPROVED' | translate }}</option>
+            <option value="REJECTED">{{ 'status.REJECTED' | translate }}</option>
+          </select>
+        </label>
+
+        <label class="label col-2">
+          <span>{{ 'monthlyReview.form.fields.observations' | translate }}</span>
+          <textarea class="input" rows="2" formControlName="observations"></textarea>
+        </label>
+
+        <label class="label col-2">
+          <span>{{ 'monthlyReview.form.fields.recommendations' | translate }}</span>
+          <textarea class="input" rows="2" formControlName="recommendations"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
+            {{ 'common.cancel' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

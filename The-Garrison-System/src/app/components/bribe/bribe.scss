@@ -1,28 +1,36 @@
-/* ================================
-   Sobornos: patrón unificado + vidrio
-   ================================ */
+/* ==================================================
+   Bribes (Sobornos) — Card grande con filtros + tabla
+   ================================================== */
 
-/* separación */
+:host {
+  display: block;
+  color: var(--text, #e7e7e7);
+  font: 400 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+}
+
+/* Stacks */
 .stack-md {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--sp-4, 16px);
 }
 
 .stack-lg {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: var(--sp-5, 20px);
 }
 
-/* panel base */
+/* Card + “glass” */
 .card {
   position: relative;
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, 0)), var(--bg-elev);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  padding: var(--sp-5);
+  border-radius: var(--radius, 12px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, 0)),
+    var(--bg-elev, #101214);
+  border: 1px solid var(--border, #2c2c2c);
+  box-shadow: var(--shadow, 0 10px 28px rgba(0, 0, 0, .45));
+  padding: var(--sp-5, 20px);
 }
 
 .card::before {
@@ -31,32 +39,46 @@
   inset: 8px;
   border: 1px solid rgba(195, 164, 98, .22);
   pointer-events: none;
-  border-radius: calc(var(--radius) - 8px);
+  border-radius: calc(var(--radius, 12px) - 8px);
 }
 
-/* header */
+.glass-dark {
+  background: rgba(0, 0, 0, .408);
+  border: 1px solid rgba(255, 255, 255, .247);
+  border-radius: var(--radius, 12px);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  color: var(--text, #e7e7e7);
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, .371),
+    inset -1px -1px 2px rgba(0, 0, 0, .4),
+    0 10px 28px rgba(0, 0, 0, .645);
+}
+
+/* Header */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
-  padding: 0 0 var(--sp-4);
-  margin: 0 0 var(--sp-4);
-  border-bottom: 1px solid var(--border);
+  gap: var(--sp-3, 12px);
+  padding-bottom: var(--sp-4, 16px);
+  margin-bottom: var(--sp-4, 16px);
+  border-bottom: 1px solid var(--border, #2c2c2c);
 }
 
-.header h2 {
+.header .title {
   margin: 0;
-  font-size: var(--h3);
-  font-family: 'Google Sans Code';
+  font-size: var(--h3, 1.25rem);
+  line-height: 1.2;
+  font-weight: 700;
 }
 
-/* filtros */
+/* Filtros */
 .filters {
   display: grid;
-  gap: var(--sp-4);
+  gap: var(--sp-4, 16px);
   grid-template-columns: minmax(240px, 1fr);
-  margin-bottom: var(--sp-4);
+  margin-bottom: var(--sp-2, 8px);
 }
 
 .label {
@@ -64,11 +86,18 @@
   gap: 6px;
 }
 
+.label-text {
+  color: var(--muted, #9aa0a6);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
 .input {
   width: 100%;
-  background: var(--bg-panel);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: var(--bg-panel, #0e0f11);
+  color: var(--text, #e7e7e7);
+  border: 1px solid var(--border, #2c2c2c);
   border-radius: 12px;
   padding: 10px 12px;
   outline: none;
@@ -76,11 +105,20 @@
 }
 
 .input:focus {
-  border-color: var(--accent);
+  border-color: var(--accent, #c3a462);
   box-shadow: 0 0 0 3px rgba(195, 164, 98, .12);
 }
 
-/* tabla */
+/* Mensajes */
+.error {
+  color: #ffb4b4;
+}
+
+.muted {
+  color: var(--muted, #9aa0a6);
+}
+
+/* Tabla */
 .table-wrap {
   padding: 0;
   overflow: auto;
@@ -92,28 +130,27 @@
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
-  /* colgroup gobierna anchos */
   background: linear-gradient(180deg, rgba(255, 255, 255, .015), transparent);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--border, #2c2c2c);
+  border-radius: var(--radius, 12px);
   overflow: hidden;
 }
 
 .table thead th {
-  background: var(--bg-elev);
-  color: var(--muted);
+  background: var(--bg-elev, #141414);
+  color: var(--muted, #9aa0a6);
   font-weight: 700;
   text-transform: uppercase;
   font-size: 12px;
   letter-spacing: .5px;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border, #2c2c2c);
   text-align: left;
 }
 
 .table tbody td {
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border, #2c2c2c);
   vertical-align: middle;
 }
 
@@ -133,12 +170,14 @@
   text-align: center;
 }
 
-.muted {
-  color: var(--muted);
+/* Empty state */
+.empty {
+  padding: 24px 12px;
+  text-align: center;
 }
 
-/* botón vidrio premium (como tenías) */
-.btn-glass {
+/* Botón vidrio (acción “Marcar como pagado”) */
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -156,32 +195,52 @@
   transition: transform .15s ease, background .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
 
-.btn-glass:hover {
+.btn:hover {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, .2);
 }
 
-.btn-glass:active {
+.btn:active {
   transform: translateY(0);
 }
 
-.btn-glass:disabled {
+.btn.success {
+  border-color: rgba(21, 128, 61, .35);
+  background: rgba(21, 128, 61, .25);
+}
+
+.btn.success:hover {
+  background: rgba(21, 128, 61, .35);
+}
+
+.btn[disabled],
+.btn[aria-disabled="true"] {
   opacity: .55;
   cursor: not-allowed;
   transform: none;
 }
 
-/* vidrio oscuro del contenedor (igual a los otros módulos) */
-.glass-dark {
-  background: rgba(0, 0, 0, .408);
-  border: 1px solid rgba(255, 255, 255, .247);
-  border-radius: 12px;
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
-  padding: .75rem 1rem;
-  color: var(--text-strong);
-  box-shadow:
-    inset 1px 1px 2px rgba(255, 255, 255, .371),
-    inset -1px -1px 2px rgba(0, 0, 0, .4),
-    0 10px 28px rgba(0, 0, 0, .645);
+/* A11y helper */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Responsive: si no entra, que scrollee horizontal */
+@media (max-width: 640px) {
+  .table {
+    min-width: 760px;
+  }
+
+  .table thead th,
+  .table tbody td {
+    white-space: nowrap;
+  }
 }

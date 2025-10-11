@@ -1,68 +1,46 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth/auth';
 
-/**
- * LoginComponent
- *
- * Formulario mínimo de inicio de sesión con validación reactiva, indicador de carga,
- * manejo compacto de errores de API y conmutación de visibilidad de contraseña.
- * Navega a "/" tras un login exitoso.
- */
 @Component({
-  standalone: true,
   selector: 'app-login',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslateModule],
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
 export class LoginComponent {
-  // --- Inyección de dependencias ---
-  private fb    = inject(FormBuilder);
-  private auth  = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
   private router = inject(Router);
 
-  // --- Estado UI ---
-  loading = false;                // deshabilita submit y muestra spinner
-  errorMsg: string | null = null; // clave i18n o texto plano retornado por API
-  showPassword = false;           // conmutador de visibilidad del campo contraseña
+  loading = false;
+  error: string | null = null;
 
-  // --- Formulario reactivo ---
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]]
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  // Acceso corto a los controles (plantilla/TS)
-  get f() { return this.form.controls; }
-
-  // Mostrar/ocultar contraseña
-  toggleShowPassword() { this.showPassword = !this.showPassword; }
-
-  // --- Envío del formulario ---
-  submit() {
-    if (this.form.invalid || this.loading) return; // evita reentradas y envíos inválidos
+  submit(): void {
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading = true;
-    this.errorMsg = null;
+    this.error = null;
 
-    // Normalización de payload (trim en email, password tal cual)
-    const payload = {
-      email: this.f.email.value!.trim(),
-      password: this.f.password.value!
-    };
+    const { email, password } = this.form.getRawValue();
 
-    this.auth.login(payload).subscribe({
-      next: () => this.router.navigateByUrl('/'), // redirigir tras éxito
+    this.auth.login({ email: email!, password: password! }).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigateByUrl('/');
+      },
       error: (e) => {
-        // Extrae mensaje útil desde varios formatos de error habituales
-        const apiMsg =
-          e?.error?.message || e?.error?.mensaje || e?.error?.error ||
-          (Array.isArray(e?.error?.errores) && e.error.errores[0]?.message) ||
-          e?.message;
-        this.errorMsg = apiMsg ? String(apiMsg) : 'auth.errors.loginFailed';
+        this.loading = false;
+        this.error = e?.error?.message ?? 'No se pudo iniciar sesión';
       }
-    }).add(() => this.loading = false); // siempre liberar loading
+    });
   }
 }

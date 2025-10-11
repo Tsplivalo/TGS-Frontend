@@ -1,0 +1,142 @@
+<section class="stack-lg">
+
+  <!-- TODO JUNTO EN UN ÚNICO CUADRADO (GLASS + CARD) -->
+  <div class="glass-dark card stack-md">
+    <!-- HEADER + TOOLBAR -->
+    <header class="header">
+      <h2 class="title">{{ 'shelbyCouncil.title' | translate : {} : 'Consejo Shelby' }}</h2>
+      <div class="right">
+        <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
+          {{ isNewOpen()
+          ? ('common.close' | translate : {} : 'Cerrar')
+          : ('shelbyCouncil.buttons.new' | translate : {} : '+ Nuevo') }}
+        </button>
+      </div>
+    </header>
+
+    <!-- FILTROS -->
+    <section class="filters">
+      <label class="label">
+        <span class="label-text">{{ 'shelbyCouncil.filters.search' | translate : {} : 'Buscar' }}</span>
+        <input class="input" type="text" [value]="fText()" (input)="fText.set($any($event.target).value)"
+          [placeholder]="'shelbyCouncil.filters.searchPlaceholder' | translate : {} : 'Socio, decisión, id'"
+          [attr.aria-label]="'shelbyCouncil.filters.search' | translate : {} : 'Buscar'" />
+      </label>
+    </section>
+
+    <!-- MENSAJES -->
+    <div class="error" *ngIf="error() as err">
+      <strong>{{ 'common.error' | translate : {} : 'Error' }}</strong> {{ err }}
+    </div>
+    <div class="muted" *ngIf="loading()">
+      {{ 'shelbyCouncil.loading' | translate : {} : 'Cargando...' }}
+    </div>
+
+    <!-- LISTADO (ADENTRO DEL MISMO CUADRADO) -->
+    <section class="subsection">
+      <h3 class="sub-title">{{ 'shelbyCouncil.list' | translate : {} : 'Listado' }}</h3>
+
+      <div class="table-wrap" *ngIf="filtered().length; else emptyState">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th>{{ 'shelbyCouncil.fields.partnerDni' | translate : {} : 'Socio' }}</th>
+              <th>{{ 'shelbyCouncil.fields.decisionId' | translate : {} : 'Decisión' }}</th>
+              <th>{{ 'shelbyCouncil.fields.joinDate' | translate : {} : 'Ingreso' }}</th>
+              <th>{{ 'shelbyCouncil.fields.role' | translate : {} : 'Rol' }}</th>
+              <th class="right" style="width:180px;">
+                {{ 'common.actions' | translate : {} : 'Acciones' }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of filtered(); trackBy: trackById">
+              <td>#{{ it.id }}</td>
+              <td>{{ it.partner?.dni }} — {{ it.partner?.name || '—' }}</td>
+              <td>{{ it.decision?.id }} — {{ it.decision?.description || '—' }}</td>
+              <td>{{ it.joinDate | date:'yyyy-MM-dd' }}</td>
+              <td>{{ it.role }}</td>
+              <td class="right">
+                <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+                  [attr.aria-label]="'common.edit' | translate : {} : 'Editar'"
+                  [attr.title]="'common.edit' | translate : {} : 'Editar'">
+                  ✏️ <span class="sr-only">{{ 'common.edit' | translate : {} : 'Editar' }}</span>
+                </button>
+                <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                  [attr.aria-label]="'common.delete' | translate : {} : 'Eliminar'"
+                  [attr.title]="'common.delete' | translate : {} : 'Eliminar'">
+                  🗑️ <span class="sr-only">{{ 'common.delete' | translate : {} : 'Eliminar' }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <ng-template #emptyState>
+        <div class="empty">
+          <h3>{{ 'shelbyCouncil.emptyTitle' | translate : {} : 'No hay registros' }}</h3>
+          <p class="muted">
+            {{ 'shelbyCouncil.emptyHint' | translate : {} : 'Probá ajustar la búsqueda o creá un nuevo registro.' }}
+          </p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <!-- ÚNICO PANEL SEPARADO: CREAR/EDITAR (COLAPSABLE) -->
+  <div class="collapsible" [class.open]="isNewOpen()">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2 class="title">
+          {{
+          isEdit()
+          ? ('shelbyCouncil.form.titleEdit' | translate : { id: editId() } : ('Editar #'+editId()))
+          : ('shelbyCouncil.form.titleCreate' | translate : {} : 'Crear registro')
+          }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
+        <label class="label">
+          <span>{{ 'shelbyCouncil.fields.partnerDni' | translate : {} : 'DNI del socio' }}</span>
+          <input class="input" type="text" formControlName="partnerDni" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'shelbyCouncil.fields.decisionId' | translate : {} : 'ID de decisión' }}</span>
+          <input class="input" type="number" formControlName="decisionId" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'shelbyCouncil.fields.joinDate' | translate : {} : 'Fecha de ingreso' }}</span>
+          <input class="input" type="date" formControlName="joinDate" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'shelbyCouncil.fields.role' | translate : {} : 'Rol' }}</span>
+          <input class="input" type="text" formControlName="role" />
+        </label>
+
+        <label class="label col-2">
+          <span>{{ 'shelbyCouncil.fields.notes' | translate : {} : 'Notas' }}</span>
+          <textarea class="input" rows="2" formControlName="notes"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+            {{ isEdit()
+            ? ('common.save' | translate : {} : 'Guardar')
+            : ('common.create' | translate : {} : 'Crear') }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
+            {{ 'shelbyCouncil.buttons.clear' | translate : {} : 'Limpiar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>

@@ -1,62 +1,84 @@
 <section class="stack-lg" aria-labelledby="bribes-title">
-  <div class="table-wrap">
-    <table class="table" *ngIf="filtered().length; else empty">
-      <!-- Caption oculto para lectores de pantalla -->
-      <caption class="sr-only">{{ 'bribes.title' | translate }}</caption>
 
+  <!-- CARD PRINCIPAL -->
+  <div class="glass-dark card stack-md">
+    <!-- HEADER -->
+    <header class="header">
+      <h2 id="bribes-title" class="title">{{ 'bribes.title' | translate }}</h2>
+      <div class="right">
+        <!-- espacio para acciones globales (export, etc.) si más adelante las necesitás -->
+      </div>
+    </header>
 
-      <colgroup>
-        <col style="width:90px" />
-        <col style="width:110px" />
-        <col style="width:130px" />
-        <col style="width:140px" />
-        <col style="width:110px" />
-        <col style="width:160px" />
-        <col style="width:220px" />
-      </colgroup>
+    <!-- FILTROS -->
+    <section class="filters">
+      <label class="label">
+        <span class="label-text">{{ 'bribes.filters.search' | translate }}</span>
+        <input class="input" type="text" [ngModel]="fText()" (ngModelChange)="fText.set($event)"
+          [placeholder]="'bribes.filters.searchPh' | translate" />
+      </label>
+    </section>
 
+    <!-- MENSAJES -->
+    <div class="error" *ngIf="error() as err">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ err }}
+    </div>
+    <div class="muted" *ngIf="loading()">
+      {{ 'admin.messages.loading' | translate  }}
+    </div>
 
-      <thead>
-        <tr>
-          <th scope="col">{{ 'bribes.table.id' | translate }}</th>
-          <th scope="col">{{ 'bribes.table.sale' | translate }}</th>
-          <th scope="col">{{ 'bribes.table.authority' | translate }}</th>
-          <th scope="col">{{ 'bribes.table.amount' | translate }}</th>
-          <th scope="col">{{ 'bribes.table.paid' | translate }}</th>
-          <th scope="col">{{ 'bribes.table.date' | translate }}</th>
-          <th scope="col" class="right">{{ 'bribes.table.actions' | translate }}</th>
-        </tr>
-      </thead>
+    <!-- TABLA -->
+    <div class="table-wrap">
+      <table class="table" *ngIf="filtered().length; else empty">
+        <caption class="sr-only">{{ 'bribes.title' | translate }}</caption>
 
+        <colgroup>
+          <col style="width:90px" />
+          <col style="width:110px" />
+          <col style="width:130px" />
+          <col style="width:140px" />
+          <col style="width:110px" />
+          <col style="width:160px" />
+          <col style="width:220px" />
+        </colgroup>
 
-      <tbody>
-        @for (s of filtered(); track s.id) {
-        <tr>
-          <td>#{{ s.id }}</td>
-          <td>{{ s.sale?.id ?? s.saleId }}</td>
-          <td>{{ s.authority?.id ?? s.authorityId }}</td>
-          <td>{{ s.amount | currency:'ARS' }}</td>
-          <td>{{ s.paid ? ('bribes.yes' | translate) : ('bribes.no' | translate) }}</td>
-          <td>{{ s.creationDate | date:'short' }}</td>
-          <td class="right">
-            <!--
-Botón idempotente: deshabilitado si ya está pago.
-aria-busy cuando el componente esté en loading (opcional si tenés un flag local por fila).
--->
-            <button class="btn success btn-glass" type="button" (click)="markAsPaid(s)" [disabled]="s.paid"
-              [attr.aria-disabled]="s.paid ? 'true' : null">
-              {{ 'bribes.actions.markPaid' | translate }}
-            </button>
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
+        <thead>
+          <tr>
+            <th scope="col">{{ 'bribes.table.id' | translate }}</th>
+            <th scope="col">{{ 'bribes.table.sale' | translate }}</th>
+            <th scope="col">{{ 'bribes.table.authority' | translate }}</th>
+            <th scope="col">{{ 'bribes.table.amount' | translate }}</th>
+            <th scope="col">{{ 'bribes.table.paid' | translate }}</th>
+            <th scope="col">{{ 'bribes.table.date' | translate }}</th>
+            <th scope="col" class="right">{{ 'bribes.table.actions' | translate }}</th>
+          </tr>
+        </thead>
 
+        <tbody>
+          @for (s of filtered(); track s.id) {
+          <tr>
+            <td>#{{ s.id }}</td>
+            <td>{{ s.sale?.id ?? s.saleId }}</td>
+            <td>{{ s.authority?.id ?? s.authorityId }}</td>
+            <td>{{ s.amount | currency:'ARS' }}</td>
+            <td>{{ s.paid ? ('bribes.yes' | translate) : ('bribes.no' | translate) }}</td>
+            <td>{{ s.creationDate | date:'short' }}</td>
+            <td class="right">
+              <button class="btn success btn-glass" type="button" (click)="markAsPaid(s)" [disabled]="s.paid"
+                [attr.aria-disabled]="s.paid ? 'true' : null">
+                {{ 'bribes.actions.markPaid' | translate }}
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
 
-    <ng-template #empty>
-      <div class="center muted">{{ 'bribes.empty' | translate }}</div>
-    </ng-template>
+      <ng-template #empty>
+        <div class="empty">
+          <h3 class="muted">{{ 'bribes.empty' | translate }}</h3>
+        </div>
+      </ng-template>
+    </div>
   </div>
-  
 </section>

@@ -20,7 +20,12 @@
     "bribe": "Sobornos",
     "decision": "Decisiones",
     "topic": "Temáticas",
-    "distributor": "Distribuidores"
+    "distributor": "Distribuidores",
+    "shelbyCouncil": "Consejo Shelby",
+    "monthlyReview": "Revisiones mensuales",
+    "clandestineAgreement": "Acuerdos clandestinos",
+    "admin": "Administradores",
+    "roleRequests": "Solicitudes de rol"
   },
   "store": {
     "title": "Tienda",
@@ -129,7 +134,8 @@
     "save": "Guardar",
     "cancel": "Cancelar",
     "edit": "Editar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "error": "Error"
   },
   "clients": {
     "title": "Clientes",
@@ -172,6 +178,56 @@
       "addressPh": "Calle 123, Ciudad"
     }
   },
+
+  "partner": {
+    "title": "Socios",
+    "new": "Nuevo",
+    "newTitle": "Nuevo socio",
+    "editTitle": "Editar socio {{dni}}",
+    "list": "Listado",
+    "loading": "Cargando socios...",
+    "filters": {
+      "search": "Buscar",
+      "searchPh": "DNI, nombre, email, teléfono"
+    },
+    "table": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "actions": "Acciones"
+    },
+    "form": {
+      "dni": "DNI",
+      "dniPh": "Ingresá DNI",
+      "name": "Nombre",
+      "namePh": "Juan Pérez",
+      "email": "Email",
+      "emailPh": "juan@mail.com",
+      "phone": "Teléfono",
+      "phonePh": "+54...",
+      "address": "Dirección",
+      "addressPh": "Calle 123",
+      "notes": "Notas"
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "clear": "Limpiar",
+      "cancel": "Cancelar",
+      "close": "Cerrar"
+    },
+    "emptyTitle": "No hay socios",
+    "emptyHint": "Ajustá el filtro o creá un nuevo socio.",
+    "confirmDelete": "¿Eliminar socio {{dni}}?",
+    "errorLoad": "No se pudieron cargar los socios.",
+    "errorCreate": "No se pudo crear.",
+    "errorSave": "No se pudo guardar.",
+    "errorDelete": "No se pudo eliminar."
+  },
+
   "sales": {
     "title": "Ventas",
     "new": "Nueva",
@@ -407,5 +463,195 @@
     "errorCreate": "No se pudo crear (verificá datos requeridos).",
     "errorSave": "No se pudo guardar.",
     "errorDelete": "No se pudo eliminar."
+  },
+
+  "status": {
+    "PENDIENTE": "PENDIENTE",
+    "PENDING": "PENDIENTE",
+    "IN_REVIEW": "EN REVISIÓN",
+    "COMPLETED": "COMPLETADA",
+    "APPROVED": "APROBADA",
+    "REJECTED": "RECHAZADA",
+    "ACTIVE": "ACTIVO",
+    "EXPIRED": "VENCIDO",
+    "CANCELLED": "CANCELADO"
+  },
+  "roles": {
+    "CLIENT": "CLIENTE",
+    "DISTRIBUTOR": "DISTRIBUIDOR",
+    "PARTNER": "SOCIO",
+    "ADMIN": "ADMIN"
+  },
+
+  "admin": {
+    "title": "Administradores",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "DNI, nombre, email, teléfono"
+    },
+    "list": "Listado",
+    "emptyTitle": "No hay administradores",
+    "emptyHint": "Ajustá el filtro o creá un nuevo administrador.",
+    "form": {
+      "titleCreate": "Crear administrador",
+      "titleEdit": "Editar {{dni}}"
+    },
+    "fields": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono"
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "clear": "Limpiar",
+      "cancel": "Cancelar"
+    },
+    "messages": {
+      "loading": "Cargando...",
+      "errorCreating": "Error creando",
+      "errorSaving": "Error guardando",
+      "errorLoading": "Error cargando"
+    }
+  },
+
+  "roleRequest": {
+    "title": "Solicitudes de rol",
+    "my": {
+      "title": "Mis solicitudes",
+      "emptyTitle": "No tenés solicitudes",
+      "emptyHint": "Creá una nueva con el botón “+ Nueva”."
+    },
+    "pending": {
+      "title": "Pendientes (admin)",
+      "emptyTitle": "No hay solicitudes pendientes",
+      "emptyHint": "Cuando existan solicitudes, aparecerán acá."
+    },
+    "create": { "title": "Crear solicitud" },
+    "table": {
+      "user": "Usuario",
+      "role": "Rol",
+      "reason": "Motivo",
+      "status": "Estado",
+      "createdAt": "Creada"
+    },
+    "form": {
+      "requestedRole": "Rol solicitado",
+      "roleToRemove": "Quitar rol (opcional)",
+      "reason": "Motivo"
+    },
+    "buttons": {
+      "new": "+ Nueva",
+      "close": "Cerrar",
+      "send": "Enviar",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "cancel": "Cancelar"
+    },
+    "messages": { "errorSubmit": "No se pudo enviar la solicitud" }
+  },
+
+  "shelbyCouncil": {
+    "title": "Consejo Shelby",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Socio, decisión, id"
+    },
+    "list": "Listado",
+    "emptyTitle": "No hay miembros",
+    "emptyHint": "Ajustá los filtros o creá un ingreso.",
+    "form": {
+      "titleCreate": "Crear ingreso",
+      "titleEdit": "Editar miembro #{{id}}"
+    },
+    "fields": {
+      "partnerDni": "DNI del socio",
+      "decisionId": "ID de decisión",
+      "joinDate": "Fecha de ingreso",
+      "role": "Rol",
+      "notes": "Notas"
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "clear": "Limpiar"
+    }
+  },
+
+  "monthlyReview": {
+    "title": "Revisiones mensuales",
+    "filters": { "year": "Año", "month": "Mes (1-12)" },
+    "stats": { "title": "Estadísticas (por producto)", "empty": "Sin datos para el período." },
+    "list": "Listado",
+    "emptyTitle": "No hay revisiones",
+    "emptyHint": "Ajustá los filtros o creá una nueva revisión.",
+    "table": {
+      "id": "ID",
+      "period": "Periodo",
+      "status": "Estado",
+      "reviewer": "Revisor",
+      "date": "Fecha",
+      "totalAmount": "Total $",
+      "totalCount": "Ventas"
+    },
+    "form": {
+      "titleCreate": "Crear revisión",
+      "titleEdit": "Editar #{{id}}",
+      "fields": {
+        "reviewedByDni": "DNI revisor (socio)",
+        "year": "Año",
+        "month": "Mes",
+        "reviewDate": "Fecha de revisión",
+        "status": "Estado",
+        "observations": "Observaciones",
+        "recommendations": "Recomendaciones"
+      }
+    },
+    "buttons": {
+      "new": "+ Nueva",
+      "close": "Cerrar",
+      "create": "Crear",
+      "save": "Guardar",
+      "clear": "Limpiar",
+      "cancel": "Cancelar"
+    }
+  },
+
+  "clandestineAgreement": {
+    "title": "Acuerdos clandestinos",
+    "filters": { "search": "Buscar", "searchPlaceholder": "Descripción, autoridad, id" },
+    "list": "Listado",
+    "emptyTitle": "No hay acuerdos",
+    "emptyHint": "Ajustá los filtros o creá un nuevo acuerdo.",
+    "table": {
+      "id": "ID",
+      "shelbyCouncil": "Consejo Shelby",
+      "authority": "Autoridad",
+      "date": "Fecha",
+      "status": "Estado",
+      "description": "Descripción"
+    },
+    "form": {
+      "titleCreate": "Crear acuerdo",
+      "titleEdit": "Editar acuerdo #{{id}}",
+      "fields": {
+        "shelbyCouncilId": "ID Consejo Shelby",
+        "authorityDni": "DNI autoridad",
+        "agreementDate": "Fecha del acuerdo",
+        "description": "Descripción",
+        "status": "Estado"
+      }
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "clear": "Limpiar",
+      "cancel": "Cancelar"
+    }
   }
 }

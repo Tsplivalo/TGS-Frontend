@@ -1,0 +1,130 @@
+<section class="stack-lg">
+
+  <div class="glass-dark card stack-md">
+    <header class="header">
+      <h2 class="title">{{ 'clandestineAgreement.title' | translate }}</h2>
+      <div class="right">
+        <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
+          {{ isNewOpen() ? ('common.close' | translate) : ('clandestineAgreement.buttons.new' | translate) }}
+        </button>
+      </div>
+    </header>
+
+    <!-- FILTROS -->
+    <section class="filters">
+      <label class="label">
+        <span>{{ 'clandestineAgreement.filters.search' | translate }}</span>
+        <input class="input" type="text" [ngModel]="fText()" (ngModelChange)="fText.set($event)"
+          [placeholder]="'clandestineAgreement.filters.searchPlaceholder' | translate" />
+      </label>
+    </section>
+
+    <!-- MENSAJES -->
+    <div class="error" *ngIf="error() as err"><strong>Error:</strong> {{ err }}</div>
+    <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
+
+    <!-- LISTADO -->
+    <section class="subsection">
+      <h3 class="sub-title">{{ 'clandestineAgreement.list' | translate }}</h3>
+
+      <div class="table-wrap" *ngIf="filtered().length; else emptyState">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th style="width:120px;">{{ 'clandestineAgreement.table.shelbyCouncil' | translate }}</th>
+              <th>{{ 'clandestineAgreement.table.authority' | translate }}</th>
+              <th style="width:140px;">{{ 'clandestineAgreement.table.date' | translate }}</th>
+              <th style="width:140px;">{{ 'clandestineAgreement.table.status' | translate }}</th>
+              <th>{{ 'clandestineAgreement.table.description' | translate }}</th>
+              <th class="right" style="width:160px;">{{ 'common.edit' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of filtered(); trackBy: trackById">
+              <td>#{{ it.id }}</td>
+              <td>{{ it.shelbyCouncil?.id }}</td>
+              <td>{{ it.authority?.dni }} — {{ it.authority?.name }}</td>
+              <td>{{ it.agreementDate | date:'yyyy-MM-dd' }}</td>
+              <td><span class="badge {{ it.status }}">{{ ('status.' + it.status) | translate }}</span></td>
+              <td class="truncate">{{ it.description }}</td>
+              <td class="right">
+                <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+                  [title]="'common.edit' | translate">
+                  ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                </button>
+                <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                  [title]="'common.delete' | translate">
+                  🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <ng-template #emptyState>
+        <div class="empty empty-state">
+          <h3>{{ 'clandestineAgreement.emptyTitle' | translate }}</h3>
+          <p class="muted">{{ 'clandestineAgreement.emptyHint' | translate }}</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <!-- FORM (COLAPSABLE) -->
+  <div class="collapsible" [class.open]="isNewOpen()">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2 class="title">
+          {{ isEdit()
+          ? ('clandestineAgreement.form.titleEdit' | translate:{ id: form.value.id })
+          : ('clandestineAgreement.form.titleCreate' | translate) }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
+        <label class="label">
+          <span>{{ 'clandestineAgreement.form.fields.shelbyCouncilId' | translate }}</span>
+          <input class="input" type="number" formControlName="shelbyCouncilId" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'clandestineAgreement.form.fields.authorityDni' | translate }}</span>
+          <input class="input" type="text" formControlName="authorityDni" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'clandestineAgreement.form.fields.agreementDate' | translate }}</span>
+          <input class="input" type="date" formControlName="agreementDate" />
+        </label>
+
+        <label class="label col-2">
+          <span>{{ 'clandestineAgreement.form.fields.description' | translate }}</span>
+          <textarea class="input" rows="2" formControlName="description"></textarea>
+        </label>
+
+        <label class="label">
+          <span>{{ 'clandestineAgreement.form.fields.status' | translate }}</span>
+          <select class="input" formControlName="status">
+            <option value="PENDING">{{ 'status.PENDING' | translate }}</option>
+            <option value="ACTIVE">{{ 'status.ACTIVE' | translate }}</option>
+            <option value="EXPIRED">{{ 'status.EXPIRED' | translate }}</option>
+            <option value="CANCELLED">{{ 'status.CANCELLED' | translate }}</option>
+          </select>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
+            {{ 'clandestineAgreement.buttons.clear' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>

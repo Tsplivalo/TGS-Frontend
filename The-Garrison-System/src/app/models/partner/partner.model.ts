@@ -1,30 +1,31 @@
-export type PartnerStatus = 'active' | 'inactive';
+// src/app/models/partner/partner.model.ts
+export type PartnerDecisionRefDTO = {
+  id: number;
+  description?: string | null;
+};
 
 export interface PartnerDTO {
-  id?: number;
+  dni: string;
   name: string;
-  email?: string;
-  phone?: string;
-  status: PartnerStatus;
-  // in case you link relationships tomorrow
-  linkedEntityIds?: number[];
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  decisions?: PartnerDecisionRefDTO[] | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// typical API responses (supports with/without meta)
-export interface ApiResponse<T> {
-  success?: boolean;
-  message: string;
-  data: T;
-  meta?: {
-    timestamp?: string;
-    statusCode?: number;
-    total?: number;
-    page?: number;
-    limit?: number;
-    hasNextPage?: boolean;
-    hasPrevPage?: boolean;
-  };
-}
+export type CreatePartnerDTO = {
+  dni: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  // el back admite password opcional (si aplica)
+  password?: string | null;
+};
 
-export interface ListResponse<T> extends ApiResponse<T[]> {}
-export interface ItemResponse<T> extends ApiResponse<T> {}
+export type PatchPartnerDTO = Partial<Omit<CreatePartnerDTO, 'dni'>>;
+
+export type PartnerListResponse = { data: PartnerDTO[] };
+export type PartnerItemResponse = { data: PartnerDTO };
