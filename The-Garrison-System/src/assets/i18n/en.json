@@ -110,52 +110,61 @@
 
   "partner": {
     "title": "Partners",
-    "new": "New",
-    "newTitle": "New partner",
-    "editTitle": "Edit partner {{dni}}",
-    "list": "List",
+    "new": "New partner",
     "loading": "Loading partners...",
-    "filters": {
-      "search": "Search",
-      "searchPh": "DNI, name, email, phone"
-    },
-    "table": {
-      "dni": "DNI",
-      "name": "Name",
-      "email": "Email",
-      "phone": "Phone",
-      "address": "Address",
-      "actions": "Actions"
-    },
-    "form": {
-      "dni": "DNI",
-      "dniPh": "Enter DNI",
-      "name": "Name",
-      "namePh": "John Doe",
-      "email": "Email",
-      "emailPh": "john@mail.com",
-      "phone": "Phone",
-      "phonePh": "+54...",
-      "address": "Address",
-      "addressPh": "Street 123",
-      "notes": "Notes"
-    },
-    "buttons": {
-      "new": "+ New",
-      "create": "Create",
-      "save": "Save",
-      "clear": "Clear",
-      "cancel": "Cancel",
-      "close": "Close"
-    },
+    "list": "List",
     "emptyTitle": "No partners",
-    "emptyHint": "Adjust the filter or create a new partner.",
-    "confirmDelete": "Delete partner {{dni}}?",
-    "errorLoad": "Could not load partners.",
-    "errorCreate": "Could not create.",
-    "errorSave": "Could not save.",
-    "errorDelete": "Could not delete."
+    "emptyHint": "Create a partner with the panel below.",
+    "create": "Create partner",
+    "edit": "Edit partner",
+    "buttons": {
+      "clear": "Clear form"
+    },
+    "filters": {
+      "search": "Search"
+    },
+    "createMode": "How do you want to create the partner?",
+    "mode": {
+      "fromClient": "From existing client",
+      "manual": "Manual"
+    },
+    "client": {
+      "search": "Search client",
+      "searchPh": "DNI, name or email...",
+      "select": "Select client",
+      "selectPh": "Choose a client",
+      "hint": "Selecting a client fills the form; you can adjust afterwards."
+    },
+    "fields": {
+      "dni": "DNI",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "username": "Username",
+      "password": "Password"
+    },
+    "creds": {
+      "toggle": "Create an account for the partner",
+      "hint": "If disabled, the partner is created without user/password."
+    },
+    "errors": {
+      "dni": "Enter a valid DNI.",
+      "name": "Enter a valid name.",
+      "email": "Enter a valid email.",
+      "username": "Username required (min. 3).",
+      "password": "Password required (min. 6).",
+      "load": "Partners could not be loaded.",
+      "create": "Partner could not be created.",
+      "update": "Partner could not be updated.",
+      "delete": "Partner could not be deleted."
+    },
+    "errorLoad": "Partners could not be loaded.",
+    "errorCreate": "Partner could not be created.",
+    "errorUpdate": "Partner could not be updated.",
+    "errorDelete": "Partner could not be deleted."
   },
+
 
   "sales": {
     "title": "Sales",

@@ -126,7 +126,7 @@ export class ShelbyCouncilComponent {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Acciones de UI
+  //                              Acciones de UI
   // ─────────────────────────────────────────────────────────────────────────────
 
   /** Abre/cierra el panel de alta/edición (resetea al cerrar). */

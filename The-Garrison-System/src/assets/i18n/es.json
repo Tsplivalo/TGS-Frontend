@@ -179,54 +179,63 @@
     }
   },
 
-  "partner": {
+   "partner": {
     "title": "Socios",
-    "new": "Nuevo",
-    "newTitle": "Nuevo socio",
-    "editTitle": "Editar socio {{dni}}",
-    "list": "Listado",
+    "new": "Nuevo socio",
     "loading": "Cargando socios...",
-    "filters": {
-      "search": "Buscar",
-      "searchPh": "DNI, nombre, email, teléfono"
-    },
-    "table": {
-      "dni": "DNI",
-      "name": "Nombre",
-      "email": "Email",
-      "phone": "Teléfono",
-      "address": "Dirección",
-      "actions": "Acciones"
-    },
-    "form": {
-      "dni": "DNI",
-      "dniPh": "Ingresá DNI",
-      "name": "Nombre",
-      "namePh": "Juan Pérez",
-      "email": "Email",
-      "emailPh": "juan@mail.com",
-      "phone": "Teléfono",
-      "phonePh": "+54...",
-      "address": "Dirección",
-      "addressPh": "Calle 123",
-      "notes": "Notas"
-    },
-    "buttons": {
-      "new": "+ Nuevo",
-      "create": "Crear",
-      "save": "Guardar",
-      "clear": "Limpiar",
-      "cancel": "Cancelar",
-      "close": "Cerrar"
-    },
+    "list": "Listado",
     "emptyTitle": "No hay socios",
-    "emptyHint": "Ajustá el filtro o creá un nuevo socio.",
-    "confirmDelete": "¿Eliminar socio {{dni}}?",
+    "emptyHint": "Creá un socio con el panel de abajo.",
+    "create": "Crear socio",
+    "edit": "Editar socio",
+    "buttons": {
+      "clear": "Limpiar formulario"
+    },
+    "filters": {
+      "search": "Buscar"
+    },
+    "createMode": "¿Cómo querés crear el socio?",
+    "mode": {
+      "fromClient": "Desde cliente existente",
+      "manual": "Manual"
+    },
+    "client": {
+      "search": "Buscar cliente",
+      "searchPh": "DNI, nombre o email...",
+      "select": "Seleccionar cliente",
+      "selectPh": "Elegí un cliente",
+      "hint": "Al seleccionar se completa el formulario; luego podés ajustar."
+    },
+    "fields": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "username": "Usuario",
+      "password": "Contraseña"
+    },
+    "creds": {
+      "toggle": "Crear cuenta para el socio",
+      "hint": "Si no marcás esta opción, se crea el socio sin usuario/contraseña."
+    },
+    "errors": {
+      "dni": "Ingresá un DNI válido.",
+      "name": "Ingresá un nombre válido.",
+      "email": "Ingresá un email válido.",
+      "username": "Usuario requerido (mín. 3).",
+      "password": "Contraseña requerida (mín. 6).",
+      "load": "No se pudieron cargar los socios.",
+      "create": "No se pudo crear el socio.",
+      "update": "No se pudo actualizar el socio.",
+      "delete": "No se pudo eliminar el socio."
+    },
     "errorLoad": "No se pudieron cargar los socios.",
-    "errorCreate": "No se pudo crear.",
-    "errorSave": "No se pudo guardar.",
-    "errorDelete": "No se pudo eliminar."
+    "errorCreate": "No se pudo crear el socio.",
+    "errorUpdate": "No se pudo actualizar el socio.",
+    "errorDelete": "No se pudo eliminar el socio."
   },
+
 
   "sales": {
     "title": "Ventas",

@@ -2,211 +2,133 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
 import { PartnerService } from '../../services/partner/partner';
+import { ClientService } from '../../services/client/client';
+
 import {
   PartnerDTO,
   CreatePartnerDTO,
   PatchPartnerDTO,
   PartnerDecisionRefDTO
 } from '../../models/partner/partner.model';
+import { ClientDTO } from '../../models/client/client.model';
 
-/**
- * Componente: Partner
- *
- * - Listado con filtro + panel colapsable para crear/editar.
- * - Estado reactivo con Signals (items, loading, error, isNewOpen, isEdit).
- * - Servicio HTTP tipado (create/update/delete + attach/detach de decisiones).
- *
- * UX:
- * - El botón “+ Nuevo / Cerrar” SOLO abre/cierra el panel de creación/edición.
- *   La tabla SIEMPRE permanece visible.
- * - El colapsable se controla con [class.open]="isNewOpen()" y estilos .collapsible.
- *
- * i18n:
- * - Se usa el namespace `partner.*` (singular), alineado con tus JSON.
- * - Para password se reutiliza `auth.fields.password`.
- * - Para el botón de “Agregar” (attach decisión) se reutiliza `store.add`.
- */
+type Mode = 'fromClient' | 'manual';
+
 @Component({
   selector: 'app-partner',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
   templateUrl: './partner.html',
-  styleUrls: ['./partner.scss'],
+  styleUrls: ['./partner.scss']
 })
 export class PartnerComponent implements OnInit {
-  // ─────────────────────────────────────────────
-  // Inyección de dependencias
-  // ─────────────────────────────────────────────
-  private fb  = inject(FormBuilder);
+  // Servicios
+  private tr = inject(TranslateService);
+  private fb = inject(FormBuilder);
   private srv = inject(PartnerService);
-  private tr  = inject(TranslateService);
+  private clientsSrv = inject(ClientService);
 
-  // ─────────────────────────────────────────────
   // Estado base
-  // ─────────────────────────────────────────────
-  /** Lista cargada desde backend. */
-  items   = signal<PartnerDTO[]>([]);
-  /** Flag de carga para bloquear acciones y mostrar mensajes. */
+  items = signal<PartnerDTO[]>([]);
   loading = signal(false);
-  /** Último mensaje de error (o null si no hay). */
-  error   = signal<string | null>(null);
+  error = signal<string | null>(null);
 
-  /** Colapsable del formulario crear/editar. */
+  // Filtros / UI
+  fText = signal<string>('');
   isNewOpen = signal(false);
-  /** true cuando el form está editando un registro existente. */
-  isEdit    = signal(false);
+  isEdit = signal(false);
 
-  /** Texto libre para filtrar el listado. */
-  fText     = signal('');
+  // Modo de creación
+  mode = signal<Mode>('fromClient');
 
-  // ─────────────────────────────────────────────
-  // Formulario crear/editar
-  // ─────────────────────────────────────────────
-  form = this.fb.group({
-    dni:     this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
-    name:    this.fb.nonNullable.control('', [Validators.required]),
-    email:   this.fb.control<string | null>(null, [Validators.email]),
-    phone:   this.fb.control<string | null>(null),
-    address: this.fb.control<string | null>(null),
-    // Campo opcional (solo al crear/actualizar): si viene vacío, NO se envía en PATCH
-    password: this.fb.control<string | null>(null),
+  // Clientes (selector)
+  clients = signal<ClientDTO[]>([]);
+  clientSearch = signal<string>('');
+  selectedClientDni = signal<string | null>(null);
+
+  filteredClients = computed(() => {
+    const q = this.clientSearch().toLowerCase().trim();
+    const arr = this.clients();
+    if (!q) return arr;
+    return arr.filter(c =>
+      c.dni.toLowerCase().includes(q) ||
+      (c.name ?? '').toLowerCase().includes(q) ||
+      (c.email ?? '').toLowerCase().includes(q)
+    );
   });
 
-  /** Campo auxiliar para “adjuntar decisión por ID” a un socio. */
-  decisionIdToAttach = this.fb.control<number | null>(null);
-
-  // ─────────────────────────────────────────────
-  // Ciclo de vida
-  // ─────────────────────────────────────────────
-  ngOnInit(): void { this.load(); }
-
-  // ─────────────────────────────────────────────
-  // Derivados (listado filtrado)
-  // ─────────────────────────────────────────────
-  filtered = computed(() => {
+  // Listado filtrado de socios
+  filteredPartners = computed(() => {
     const q = this.fText().toLowerCase().trim();
     if (!q) return this.items();
     return this.items().filter(it =>
       it.dni.toLowerCase().includes(q) ||
-      it.name.toLowerCase().includes(q) ||
-      (it.email?.toLowerCase().includes(q) ?? false) ||
-      (it.phone?.toLowerCase().includes(q) ?? false) ||
-      (it.address?.toLowerCase().includes(q) ?? false) ||
+      (it.name ?? '').toLowerCase().includes(q) ||
+      (it.email ?? '').toLowerCase().includes(q) ||
+      (it.phone ?? '').toLowerCase().includes(q) ||
+      (it.address ?? '').toLowerCase().includes(q) ||
       (it.decisions ?? []).some(d => (String(d.id).includes(q) || (d.description ?? '').toLowerCase().includes(q)))
     );
   });
 
-  // ─────────────────────────────────────────────
-  // Acciones de UI
-  // ─────────────────────────────────────────────
-  /**
-   * Abre/cierra el colapsable (sin ocultar la tabla).
-   * - Al cerrar, resetea el formulario a modo “crear”.
-   */
-  toggleNew(): void {
-    const open = !this.isNewOpen();
-    this.isNewOpen.set(open);
-    if (!open) this.new();
-  }
+  // Formulario
+  form = this.fb.group({
+    dni:       this.fb.control<string>('', { nonNullable: true, validators: [Validators.required, Validators.minLength(6)] }),
+    name:      this.fb.control<string>('', { nonNullable: true, validators: [Validators.required, Validators.minLength(2)] }),
+    email:     this.fb.control<string>('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    address:   this.fb.control<string>('', { nonNullable: false }),
+    phone:     this.fb.control<string>('', { nonNullable: false }),
 
-  /** Vuelve a modo “crear” y limpia el formulario. */
-  new(): void {
-    this.isEdit.set(false);
-    this.form.reset({
-      dni: '', name: '', email: null, phone: null, address: null, password: null,
-    });
-    this.decisionIdToAttach.reset(null);
-  }
+    // Credenciales (solo modo MANUAL)
+    createCreds: this.fb.control<boolean>(false, { nonNullable: true }),
+    username:  this.fb.control<string>('', { nonNullable: true }),
+    password:  this.fb.control<string>('', { nonNullable: true }),
+  });
 
-  /** Carga un registro para edición y abre el panel. */
-  edit(it: PartnerDTO): void {
-    this.isEdit.set(true);
-    this.form.patchValue({
-      dni: it.dni,
-      name: it.name,
-      email: it.email ?? null,
-      phone: it.phone ?? null,
-      address: it.address ?? null,
-      password: null // nunca se pre-carga
-    });
-    this.isNewOpen.set(true);
-  }
-
-  /**
-   * Guarda el formulario:
-   * - Si isEdit = false ⇒ create()
-   * - Si isEdit = true  ⇒ update()
-   */
-  save(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.loading.set(true);
-    const payload = this.form.getRawValue();
-
-    if (!this.isEdit()) {
-      this.srv.create(payload as CreatePartnerDTO).subscribe({
-        next: () => { this.new(); this.isNewOpen.set(false); this.load(); },
-        error: (e) => {
-          this.error.set(e?.error?.message ?? this.tr.instant('partner.errorCreate'));
-          this.loading.set(false);
-        }
-      });
+  // Habilita / deshabilita validadores de credenciales
+  private toggleCredsValidators(enable: boolean) {
+    if (enable) {
+      this.form.controls.username.setValidators([Validators.required, Validators.minLength(3)]);
+      this.form.controls.password.setValidators([Validators.required, Validators.minLength(6)]);
     } else {
-      const { dni, password, ...rest } = payload as any;
-      // Si el password viene vacío, no lo enviamos
-      const patch: PatchPartnerDTO = { ...rest };
-      if (password) (patch as any).password = password;
-      this.srv.update(dni, patch).subscribe({
-        next: () => { this.new(); this.isNewOpen.set(false); this.load(); },
-        error: (e) => {
-          this.error.set(e?.error?.message ?? this.tr.instant('partner.errorSave'));
-          this.loading.set(false);
-        }
-      });
+      this.form.controls.username.clearValidators();
+      this.form.controls.password.clearValidators();
+      this.form.patchValue({ username: '', password: '' });
+    }
+    this.form.controls.username.updateValueAndValidity({ emitEvent: false });
+    this.form.controls.password.updateValueAndValidity({ emitEvent: false });
+  }
+
+  // Aplica disponibilidad según modo
+  private applyCredsAvailabilityByMode(mode: Mode) {
+    if (mode === 'fromClient') {
+      // Forzar oculto y limpio
+      this.form.patchValue({ createCreds: false, username: '', password: '' });
+      this.toggleCredsValidators(false);
+    } else {
+      // Modo manual: respetar toggle actual
+      const create = !!this.form.controls.createCreds.value;
+      this.toggleCredsValidators(create);
     }
   }
 
-  /** Elimina un socio luego de confirmar. */
-  delete(it: PartnerDTO): void {
-    const msg = this.tr.instant('partner.confirmDelete', { dni: it.dni }) || '¿Eliminar socio?';
-    if (!confirm(msg)) return;
-    this.srv.delete(it.dni).subscribe({
-      next: () => this.load(),
-      error: (e) => this.error.set(e?.error?.message ?? this.tr.instant('partner.errorDelete'))
-    });
+  // === NEW: handler de toggle en template ===
+  onCredsToggle(ev: Event) {
+    const checked = !!(ev.target as HTMLInputElement).checked;
+    this.form.controls.createCreds.setValue(checked);
+    this.toggleCredsValidators(checked);
   }
 
-  /** Adjunta una decisión (por ID) al socio dado. */
-  attachDecision(it: PartnerDTO): void {
-    const id = this.decisionIdToAttach.value;
-    if (!id || id <= 0) return;
-    this.srv.attachDecision(it.dni, id).subscribe({
-      next: (res) => {
-        const updated = res.data;
-        this.items.set(this.items().map(x => x.dni === it.dni ? updated : x));
-        this.decisionIdToAttach.reset(null);
-      }
-    });
+  // ciclo de vida
+  ngOnInit(): void {
+    this.load();
+    this.loadClients();
+    this.applyCredsAvailabilityByMode(this.mode());
   }
 
-  /** Quita (desvincula) una decisión del socio. */
-  detachDecision(it: PartnerDTO, d: PartnerDecisionRefDTO): void {
-    const msg = this.tr.instant('decisions.title') || '¿Quitar decisión?'; // Reutilizamos título de decisiones
-    if (!confirm(`${msg}: #${d.id}`)) return;
-    this.srv.detachDecision(it.dni, d.id).subscribe({
-      next: (res) => {
-        const updated = res.data;
-        this.items.set(this.items().map(x => x.dni === it.dni ? updated : x));
-      }
-    });
-  }
-
-  // trackBy para rendimiento en *ngFor
-  trackByDni = (_: number, it: PartnerDTO) => it.dni;
-
-  // ─────────────────────────────────────────────
-  // Carga de datos
-  // ─────────────────────────────────────────────
+  // data
   private load(): void {
     this.loading.set(true);
     const q = this.fText().trim() || undefined;
@@ -214,6 +136,143 @@ export class PartnerComponent implements OnInit {
       next: (res) => { this.items.set(res.data ?? []); this.loading.set(false); },
       error: (e)  => {
         this.error.set(e?.error?.message ?? this.tr.instant('partner.errorLoad'));
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private loadClients(): void {
+    this.clientsSrv.getAllClients().subscribe({
+      next: (res) => { this.clients.set((res as any)?.data ?? (res as any) ?? []); },
+      error: () => { /* no bloquea el alta */ }
+    });
+  }
+
+  // UI
+  toggleNew() {
+    const open = !this.isNewOpen();
+    this.isNewOpen.set(open);
+    if (open) this.new();
+  }
+
+  new() {
+    this.isEdit.set(false);
+    this.mode.set('fromClient');
+    this.selectedClientDni.set(null);
+    this.clientSearch.set('');
+    this.form.reset({
+      dni: '', name: '', email: '', address: '', phone: '',
+      createCreds: false, username: '', password: ''
+    });
+    this.applyCredsAvailabilityByMode('fromClient');
+  }
+
+  edit(p: PartnerDTO) {
+    this.isEdit.set(true);
+    this.isNewOpen.set(true);
+    this.mode.set('manual'); // al editar, manual
+    this.form.reset({
+      dni: p.dni,
+      name: p.name ?? '',
+      email: p.email ?? '',
+      address: p.address ?? '',
+      phone: p.phone ?? '',
+      createCreds: false,
+      username: '',
+      password: ''
+    });
+    this.applyCredsAvailabilityByMode('manual');
+  }
+
+  onModeChange(ev: Event) {
+    const val = (ev.target as HTMLInputElement).value as Mode;
+    this.mode.set(val);
+    this.applyCredsAvailabilityByMode(val);
+    if (val === 'manual') {
+      this.selectedClientDni.set(null);
+    }
+  }
+
+  onSelectClient(ev: Event) {
+    const dni = (ev.target as HTMLSelectElement).value || '';
+    if (!dni) {
+      this.selectedClientDni.set(null);
+      return;
+    }
+    this.selectedClientDni.set(dni);
+    const c = this.clients().find(x => x.dni === dni);
+    if (c) {
+      this.form.patchValue({
+        dni: c.dni,
+        name: c.name ?? '',
+        email: c.email ?? '',
+        address: c.address ?? '',
+        phone: c.phone ?? ''
+      });
+    }
+  }
+
+  // Guardar
+  save() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const v = this.form.getRawValue();
+    const isManual = this.mode() === 'manual';
+    const wantCreds = isManual && !!v.createCreds;
+
+    const payload: CreatePartnerDTO = {
+      dni: (v.dni || '').trim(),
+      name: (v.name || '').trim(),
+      email: (v.email || '').trim(),
+      address: (v.address || '').trim() || null,
+      phone: (v.phone || '').trim() || null,
+      ...(wantCreds ? {
+        username: (v.username || '').trim(),
+        password: (v.password || '').trim(),
+      } : {})
+    };
+
+    if (!this.isEdit()) {
+      // CREATE
+      this.srv.create(payload).subscribe({
+        next: () => { this.new(); this.load(); this.loading.set(false); },
+        error: (e) => {
+          this.error.set(e?.error?.message ?? this.tr.instant('partner.errorCreate'));
+          this.loading.set(false);
+        }
+      });
+    } else {
+      // EDIT / PATCH
+      const patch: PatchPartnerDTO = {
+        name: payload.name,
+        email: payload.email,
+        address: payload.address ?? undefined,
+        phone: payload.phone ?? undefined
+      };
+      this.srv.update(this.form.controls.dni.value, patch).subscribe({
+        next: () => { this.new(); this.load(); this.loading.set(false); },
+        error: (e) => {
+          this.error.set(e?.error?.message ?? this.tr.instant('partner.errorUpdate'));
+          this.loading.set(false);
+        }
+      });
+    }
+  }
+
+  delete(p: PartnerDTO) {
+    if (!p?.dni) return;
+    this.loading.set(true);
+    this.error.set(null);
+    this.srv.delete(p.dni).subscribe({
+      next: () => { this.load(); },
+      error: (e) => {
+        this.error.set(e?.error?.message ?? this.tr.instant('partner.errorDelete'));
         this.loading.set(false);
       }
     });
