@@ -70,7 +70,7 @@ export class BribeComponent implements OnInit {
   loadBribes() {
     this.loading.set(true);
     this.error.set(null);
-    this.srv.getAll().subscribe({
+    this.srv.list().subscribe({
       next: (res: any) => {
         const list = (res?.bribes ?? res?.data ?? []) as BribeDTO[];
         this.bribes.set(list);
@@ -148,7 +148,7 @@ export class BribeComponent implements OnInit {
         amount: Number(this.form.controls.amount.value),
         authorityId: String(this.form.controls.authorityId.value!),
         saleId: Number(this.form.controls.saleId.value!),
-        paid: !!this.form.controls.paid.value,
+        paid: !!this.form.controls.paid.value, // permitido por el backend en create
       };
       this.loading.set(true);
       this.error.set(null);
@@ -167,8 +167,9 @@ export class BribeComponent implements OnInit {
     const patch: UpdateBribeDTO = {};
     if (c.amount.dirty)      patch.amount = Number(c.amount.value);
     if (c.authorityId.dirty) patch.authorityId = String(c.authorityId.value!);
-    if (c.saleId.dirty)    patch.saleId = Number(c.saleId.value!);
-    if (c.paid.dirty)     patch.paid = !!c.paid.value;
+    if (c.saleId.dirty)      patch.saleId = Number(c.saleId.value!);
+    // ⚠️ 'paid' NO se parchea por update genérico: va por endpoint /pay
+    // if (c.paid.dirty)     patch.paid = !!c.paid.value;
 
     if (Object.keys(patch).length === 0) {
       this.error.set('There are no changes to save.');
@@ -190,7 +191,8 @@ export class BribeComponent implements OnInit {
     if (!s.id) return;
     this.loading.set(true);
     this.error.set(null);
-    this.srv.update(s.id, { paid: true }).subscribe({
+
+    this.srv.payOne(s.id).subscribe({
       next: () => this.loadBribes(),
       error: (err) => {
         this.error.set(err?.error?.message || 'Could not mark as paid.');

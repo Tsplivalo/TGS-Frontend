@@ -23,7 +23,7 @@ export class AboutComponent {
     { title: 'Propósito',     desc: 'Construimos productos que importan.' },
   ];
   @Input() team: TeamItem[] = [
-    { name: 'Lautaro Peralta',  role: 'Backend/Frontend' },
+    { name: 'Lautaro Peralta',  role: 'Backend' },
     { name: 'Tomas Splivalo',  role: 'Frontend' },
     { name: 'Luca Delprato',  role: 'Frontend'  },
  

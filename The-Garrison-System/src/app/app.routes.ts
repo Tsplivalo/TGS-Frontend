@@ -30,43 +30,43 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['cliente', 'distribuidor', 'socio'] },
     loadComponent: () =>
-      import('./components/product/producto').then((m) => m.ProductoComponent),
+      import('./components/product/product').then((m) => m.ProductComponent),
   },
   {
     path: 'cliente',
     canActivate: [authGuard, roleGuard],
     data: { roles: [] }, // Admin only
     loadComponent: () =>
-      import('./components/client/cliente').then((m) => m.ClienteComponent),
+      import('./components/client/client').then((m) => m.ClientComponent),
   },
   {
     path: 'socio',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['cliente', 'distribuidor', 'socio'] },
     loadComponent: () =>
-      import('./components/partner/socio').then((m) => m.SocioComponent),
+      import('./components/partner/partner').then((m) => m.PartnerComponent),
   },
   {
     path: 'venta',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['distribuidor'] },
     loadComponent: () =>
-      import('./components/sale/venta').then((m) => m.VentaComponent),
+      import('./components/sale/sale').then((m) => m.SaleComponent),
   },
   {
     path: 'zona',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['cliente', 'distribuidor', 'socio'] },
     loadComponent: () =>
-      import('./components/zone/zona').then((m) => m.ZonaComponent),
+      import('./components/zone/zone').then((m) => m.ZoneComponent),
   },
   {
     path: 'autoridad',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['distribuidor', 'socio'] },
     loadComponent: () =>
-      import('./components/authority/autoridad').then(
-        (m) => m.AutoridadComponent
+      import('./components/authority/authority').then(
+        (m) => m.AuthorityComponent
       ),
   },
   {
@@ -74,7 +74,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: [] }, // Admin only
     loadComponent: () =>
-      import('./components/bribe/soborno').then((m) => m.SobornoComponent),
+      import('./components/bribe/bribe').then((m) => m.BribeComponent),
   },
   {
     path: 'decision',
@@ -88,7 +88,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard],
     data: { roles: ['socio'] },
     loadComponent: () =>
-      import('./components/topic/topic').then((m) => m.TematicaComponent),
+      import('./components/topic/topic').then((m) => m.TopicComponent),
   },
 
   // === Static pages (new) ===

@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap, switchMap, map } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 type UserDTO = { id: string; username: string; email: string; roles?: string[] };
 type ApiResponse<T = any> = { success?: boolean; message?: string; data?: T } | T;
@@ -21,12 +21,14 @@ export class AuthService {
   }
 
   /**
-   * POST /api/auth/login  ->  GET /api/usuarios/me
+   * POST /api/auth/login  ->  GET /api/users/me
    * Así, aunque el POST no devuelva el usuario, traemos el perfil y actualizamos señales.
    */
   login(data: { email: string; password: string }): Observable<UserDTO> {
     return this.http.post<ApiResponse>('/api/auth/login', data, { withCredentials: true }).pipe(
-      switchMap(() => this.http.get<ApiResponse<UserDTO>>('/api/usuarios/me', { withCredentials: true })),
+      switchMap(() =>
+        this.http.get<ApiResponse<UserDTO>>('/api/users/me', { withCredentials: true })
+      ),
       map((res: any) => ('data' in res ? res.data : res) as UserDTO),
       tap((u) => {
         if (u) {
@@ -54,9 +56,9 @@ export class AuthService {
       });
   }
 
-  /** GET /api/usuarios/me (intenta recuperar sesión) */
+  /** GET /api/users/me (intenta recuperar sesión) */
   me(): Observable<UserDTO | null> {
-    return this.http.get<ApiResponse<UserDTO>>('/api/usuarios/me', { withCredentials: true }).pipe(
+    return this.http.get<ApiResponse<UserDTO>>('/api/users/me', { withCredentials: true }).pipe(
       map((res: any) => ('data' in res ? res.data : res) as UserDTO | null),
       tap((u) => {
         this.user.set(u ?? null);

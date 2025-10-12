@@ -1,6 +1,14 @@
-import { AfterViewInit, Component, ElementRef, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule, NavigationEnd } from '@angular/router';
+  import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../services/auth/auth';
 
@@ -15,10 +23,16 @@ interface MenuItem { label: string; path: string; }
 })
 export class NavbarComponent implements AfterViewInit {
   private auth = inject(AuthService);
-  readonly isLoggedIn = this.auth.isLoggedIn;  // signal<boolean>
-  readonly user = this.auth.user;              // signal<{username?:string}|null>
+  private routerSvc = inject(Router);
 
-  // Menú Gestión (se mantiene igual)
+  // Señales de auth
+  readonly isLoggedIn = this.auth.isLoggedIn;   // signal<boolean>
+  readonly user       = this.auth.user;         // signal<{username?:string}|null>
+
+  // Marca / logo (izquierda)
+  readonly brand = 'garSYS';
+
+  // Menú Gestión (este bloque lo rendereás en el lado derecho en el HTML)
   readonly gestionItems: MenuItem[] = [
     { label: 'Producto',   path: '/producto' },
     { label: 'Cliente',    path: '/cliente' },
@@ -28,10 +42,10 @@ export class NavbarComponent implements AfterViewInit {
     { label: 'Autoridad',  path: '/autoridad' },
     { label: 'Sobornos',   path: '/sobornos' },
     { label: 'Decisiones', path: '/decision' },
-    { label: 'Temática',   path: '/tematica' },
+    { label: 'Temática',   path: '/tematica' }, // alias a /topic
   ];
 
-  // Ítems públicos (solo cuando NO estás logueado)
+  // Ítems públicos (podés mostrarlos a la izquierda o en un dropdown aparte)
   readonly publicItems: MenuItem[] = [
     { label: 'Sobre nosotros', path: '/sobre-nosotros' },
     { label: 'FAQs',           path: '/faqs' },
@@ -43,17 +57,23 @@ export class NavbarComponent implements AfterViewInit {
   @ViewChild('menu', { static: true }) menuRef!: ElementRef<HTMLUListElement>;
   @ViewChildren('mainBtn') buttons!: QueryList<ElementRef<HTMLAnchorElement | HTMLButtonElement>>;
 
-  constructor(private router: Router) {
-    this.router.events
+  constructor(router: Router) {
+    router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => setTimeout(() => this.updateIndicator(), 0));
   }
 
-  ngAfterViewInit() { this.updateIndicator(); }
+  ngAfterViewInit() {
+    this.updateIndicator();
+  }
 
-  // Activa "Gestión" si estás en alguna de sus rutas
+  // Helpers para el template
+  isAuthenticated(): boolean { return !!this.isLoggedIn(); }
+  trackByPath(_i: number, it: MenuItem) { return it.path; }
+
+  // Marca activo Gestión si la URL cae en alguna de sus rutas
   isGestionActive(): boolean {
-    const url = this.router.url;
+    const url = this.routerSvc.url || '';
     return url.startsWith('/producto')
       || url.startsWith('/cliente')
       || url.startsWith('/socio')
@@ -65,12 +85,20 @@ export class NavbarComponent implements AfterViewInit {
       || url.startsWith('/tematica');
   }
 
+  // Botón Salir (para el dropdown de Gestión)
   logout() { this.auth.logout(); }
 
+  // Indicador subrayado del menú principal
   private updateIndicator() {
     const menuEl = this.menuRef?.nativeElement;
-    const activeEl = menuEl?.querySelector('.menu__item a.active, .menu__item--dropdown > .has-underline.active') as HTMLElement | null;
-    if (!menuEl || !activeEl) { this.indicator.visible = false; return; }
+    const activeEl = menuEl?.querySelector(
+      '.menu__item a.active, .menu__item--dropdown > .has-underline.active'
+    ) as HTMLElement | null;
+
+    if (!menuEl || !activeEl) {
+      this.indicator.visible = false;
+      return;
+    }
 
     const menuRect = menuEl.getBoundingClientRect();
     const btnRect  = activeEl.getBoundingClientRect();

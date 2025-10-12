@@ -19,7 +19,7 @@
 
       <label class="label">
         <span>Thematic (ID)</span>
-        <input class="input" placeholder="filter by thematic id" [(ngModel)]="thematicFilter" />
+        <input class="input" placeholder="filter by thematic id" [(ngModel)]="topicFilter" />
       </label>
     </div>
 
@@ -51,14 +51,14 @@
           <tr *ngFor="let d of filteredDecisions()">
             <td>#{{ d.id }}</td>
             <td>
-              <ng-container *ngIf="d.tematica?.id != null; else noThematic">
-                <span class="truncate">{{ d.tematica?.id }} - {{ d.tematica?.descripcion || 'Thematic' }}</span>
+              <ng-container *ngIf="d.topic?.id != null; else noThematic">
+                <span class="truncate">{{ d.topic?.id }} - {{ d.topic?.description || 'Thematic' }}</span>
               </ng-container>
               <ng-template #noThematic>—</ng-template>
             </td>
-            <td><span class="truncate">{{ d.descripcion }}</span></td>
-            <td>{{ d.fechaInicio | date:'shortDate' }}</td>
-            <td>{{ d.fechaFin | date:'shortDate' }}</td>
+            <td><span class="truncate">{{ d.description }}</span></td>
+            <td>{{ d.startDate | date:'shortDate' }}</td>
+            <td>{{ d.endDate | date:'shortDate' }}</td>
             <td class="right">
               <button class="btn ghost" (click)="edit(d); isFormOpen = true">Edit</button>
               <button class="btn danger" (click)="delete(d.id)">Delete</button>
@@ -85,12 +85,12 @@
 
         <label class="label">
           <span>Thematic</span>
-          <input class="input" placeholder="filter (id or description)" [(ngModel)]="thematicFilter"
+          <input class="input" placeholder="filter (id or description)" [(ngModel)]="topicFilter"
             name="fltThematic" />
           <select class="input" formControlName="thematicId">
             <option [ngValue]="null" disabled>Choose a thematic</option>
-            <option *ngFor="let t of filteredThematics()" [ngValue]="t.id">
-              {{ t.id }} - {{ t.descripcion }}
+            <option *ngFor="let t of filteredTopics()" [ngValue]="t.id">
+              {{ t.id }} - {{ t.description }}
             </option>
           </select>
         </label>

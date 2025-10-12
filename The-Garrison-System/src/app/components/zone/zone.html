@@ -15,7 +15,7 @@
 
     <!-- Headquarters -->
     <div *ngIf="headquarters() as sc; else noHeadquarters" class="sede-summary">
-      <strong>Headquarters:</strong> #{{ sc.id }} — {{ sc.nombre }}
+      <strong>Headquarters:</strong> #{{ sc.id }} — {{ sc.name }}
     </div>
     <ng-template #noHeadquarters>
       <div class="muted">No headquarters defined yet.</div>
@@ -56,8 +56,8 @@
         <tbody>
           <tr *ngFor="let z of filteredList()">
             <td>#{{ z.id }}</td>
-            <td><span class="truncate">{{ z.nombre }}</span></td>
-            <td><span class="truncate">{{ z.descripcion || '-' }}</span></td>
+            <td><span class="truncate">{{ z.name }}</span></td>
+            <td><span class="truncate">{{ z.description || '-' }}</span></td>
             <td class="right">
               <button class="btn" (click)="edit(z); isFormOpen = true">Edit</button>
               <button class="btn danger" (click)="delete(z)">Delete</button>

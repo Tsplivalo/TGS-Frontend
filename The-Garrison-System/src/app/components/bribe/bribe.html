@@ -46,13 +46,13 @@
           @for (s of filtered(); track s.id) {
           <tr>
             <td>#{{ s.id }}</td>
-            <td>{{ s.venta?.id ?? s.ventaId }}</td>
-            <td>{{ s.autoridad?.id ?? s.autoridadId }}</td>
-            <td>{{ s.monto | currency:'ARS' }}</td>
-            <td>{{ s.pagado ? 'Yes' : 'No' }}</td>
-            <td>{{ s.fechaCreacion | date:'short' }}</td>
+            <td>{{ s.sale?.id ?? s.saleId }}</td>
+            <td>{{ s.authority?.id ?? s.authorityId }}</td>
+            <td>{{ s.amount | currency:'ARS' }}</td>
+            <td>{{ s.paid ? 'Yes' : 'No' }}</td>
+            <td>{{ s.creationDate | date:'short' }}</td>
             <td class="right">
-              <button class="btn success btn-glass" type="button" (click)="markAsPaid(s)" [disabled]="s.pagado">
+              <button class="btn success btn-glass" type="button" (click)="markAsPaid(s)" [disabled]="s.paid">
                 Mark as paid
               </button>
             </td>
