@@ -1,48 +1,43 @@
 <section class="stack-lg">
-
-  <!-- LIST -->
   <div class="glass-dark card stack-md">
     <div class="header">
-      <h2>Authorities</h2>
+      <h2>{{ 'authorities.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
-          {{ isFormOpen ? 'Close' : 'New' }}
+          {{ isFormOpen ? ('common.close' | translate) : ('authorities.new' | translate) }}
         </button>
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="filters">
       <label class="label">
-        <span>Search</span>
-        <input class="input" placeholder="dni / name / rank" [(ngModel)]="fText" />
+        <span>{{ 'authorities.filters.search' | translate }}</span>
+        <input class="input" [placeholder]="'authorities.filters.searchPh' | translate" [(ngModel)]="fText" />
       </label>
 
       <label class="label">
-        <span>Zone ID</span>
-        <input class="input" placeholder="1" [(ngModel)]="fZoneId" />
+        <span>{{ 'authorities.filters.zoneId' | translate }}</span>
+        <input class="input" [placeholder]="'authorities.filters.zoneIdPh' | translate" [(ngModel)]="fZoneId" />
       </label>
     </div>
 
-    <!-- Table -->
     <div class="table-wrap">
       <table class="table" *ngIf="filteredAuthorities().length; else empty">
-        <!-- Fijar anchos para alinear -->
         <colgroup>
-          <col style="width:120px" /> <!-- DNI -->
-          <col /> <!-- Name -->
-          <col style="width:160px" /> <!-- Rank -->
-          <col style="width:160px" /> <!-- Zone -->
-          <col style="width:220px" /> <!-- Actions -->
+          <col style="width:120px" />
+          <col />
+          <col style="width:160px" />
+          <col style="width:160px" />
+          <col style="width:220px" />
         </colgroup>
 
         <thead>
           <tr>
-            <th>DNI</th>
-            <th>Name</th>
-            <th>Rank</th>
-            <th>Zone</th>
-            <th class="right">Actions</th>
+            <th>{{ 'authorities.table.dni' | translate }}</th>
+            <th>{{ 'authorities.table.name' | translate }}</th>
+            <th>{{ 'authorities.table.rank' | translate }}</th>
+            <th>{{ 'authorities.table.zone' | translate }}</th>
+            <th class="right">{{ 'authorities.table.actions' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -52,85 +47,96 @@
             <td><span class="truncate">{{ a.rank }}</span></td>
             <td><span class="truncate">{{ getZoneText(a) }}</span></td>
             <td class="right">
-              <button class="btn ghost" (click)="edit(a); isFormOpen = true">Edit</button>
-              <button class="btn danger" (click)="delete(a.dni)">Delete</button>
+              <button class="btn ghost btn--icon" (click)="edit(a); isFormOpen = true" [attr.aria-label]="'common.edit' | translate"
+                [attr.title]="'common.edit' | translate">
+                ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+              </button>
+
+              <button class="btn danger btn--icon" (click)="delete(a.dni)" [attr.aria-label]="'common.delete' | translate"
+                [attr.title]="'common.delete' | translate">
+                🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+              </button>
             </td>
+
           </tr>
         </tbody>
       </table>
 
       <ng-template #empty>
-        <div class="center muted">No authorities</div>
+        <div class="center muted">{{ 'authorities.empty' | translate }}</div>
       </ng-template>
     </div>
   </div>
 
-  <!-- FORM (COLLAPSIBLE, SAME STYLE) -->
   <div class="collapsible" [class.open]="isFormOpen">
     <div class="collapsible__content glass-dark card">
       <div class="header">
-        <h2>{{ editDni() == null ? 'New authority' : ('Edit authority: ' + editDni()) }}</h2>
+        <h2>
+          {{ editDni() == null
+          ? ('authorities.form.newTitle' | translate)
+          : ('authorities.form.editTitle' | translate: { dni: editDni() }) }}
+        </h2>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-
-        <!-- errors -->
         <div class="error" *ngIf="error()">{{ error() }}</div>
         <div class="error" *ngIf="submitted() && form.invalid">
           {{ editDni() == null
-          ? 'Complete DNI, Name, Email, Rank and Zone.'
-          : 'Complete Name, Rank and Zone (email is not required when editing).' }}
+          ? ('authorities.form.err.create' | translate)
+          : ('authorities.form.err.edit' | translate) }}
         </div>
 
         <label class="label">
-          <span>DNI</span>
-          <input class="input" formControlName="dni" maxlength="8" placeholder="Enter DNI"
+          <span>{{ 'authorities.form.dni' | translate }}</span>
+          <input class="input" formControlName="dni" maxlength="8" [placeholder]="'authorities.form.dniPh' | translate"
             [readonly]="editDni() !== null" />
         </label>
 
         <label class="label">
-          <span>Name</span>
-          <input class="input" formControlName="name" placeholder="John Doe" />
+          <span>{{ 'authorities.form.name' | translate }}</span>
+          <input class="input" formControlName="name" [placeholder]="'authorities.form.namePh' | translate" />
         </label>
 
         <label class="label">
-          <span>Email</span>
-          <input class="input" type="email" formControlName="email" placeholder="john@mail.com" />
+          <span>{{ 'authorities.form.email' | translate }}</span>
+          <input class="input" type="email" formControlName="email"
+            [placeholder]="'authorities.form.emailPh' | translate" />
         </label>
 
         <label class="label">
-          <span>Phone</span>
-          <input class="input" formControlName="phone" placeholder="+54..." />
+          <span>{{ 'authorities.form.phone' | translate }}</span>
+          <input class="input" formControlName="phone" [placeholder]="'authorities.form.phonePh' | translate" />
         </label>
 
         <label class="label">
-          <span>Address</span>
-          <input class="input" formControlName="address" placeholder="Street 123" />
+          <span>{{ 'authorities.form.address' | translate }}</span>
+          <input class="input" formControlName="address" [placeholder]="'authorities.form.addressPh' | translate" />
         </label>
 
         <label class="label">
-          <span>Rank</span>
+          <span>{{ 'authorities.form.rank' | translate }}</span>
           <select class="input" formControlName="rank">
-            <option value="0">0 - Rank 0</option>
-            <option value="1">1 - Rank 1</option>
-            <option value="2">2 - Rank 2</option>
-            <option value="3">3 - Rank 3</option>
+            <option value="0">0 - {{ 'authorities.form.rank0' | translate }}</option>
+            <option value="1">1 - {{ 'authorities.form.rank1' | translate }}</option>
+            <option value="2">2 - {{ 'authorities.form.rank2' | translate }}</option>
+            <option value="3">3 - {{ 'authorities.form.rank3' | translate }}</option>
           </select>
         </label>
 
         <label class="label">
-          <span>Zone ID</span>
-          <input class="input" formControlName="zoneId" placeholder="1" />
+          <span>{{ 'authorities.form.zoneId' | translate }}</span>
+          <input class="input" formControlName="zoneId" [placeholder]="'authorities.form.zoneIdPh' | translate" />
         </label>
 
         <div class="right form-actions">
           <button class="btn success" type="submit" [disabled]="loading()">
-            {{ editDni() == null ? 'Create' : 'Save' }}
+            {{ editDni() == null ? ('common.create' | translate) : ('common.save' | translate) }}
           </button>
-          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">Cancel</button>
+          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">
+            {{ 'common.cancel' | translate }}
+          </button>
         </div>
       </form>
     </div>
   </div>
-
 </section>

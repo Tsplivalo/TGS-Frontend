@@ -3,25 +3,20 @@
   <!-- LIST -->
   <div class="glass-dark card stack-md">
     <div class="header">
-      <h2>Topics</h2>
+      <h2>{{ 'topics.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="new()">
-          New
+          {{ 'topics.new' | translate }}
         </button>
       </div>
     </div>
 
-    <div class="filters" role="search">
-      <label class="label">
-        <span>Search</span>
-        <!-- usa filterText del component -->
-        <input class="input" placeholder="text or id" [(ngModel)]="filterText" [ngModelOptions]="{ standalone: true }"
-          (keydown.enter)="$event.preventDefault()" aria-label="Search topics by text or id" />
-      </label>
-    </div>
+  <input class="input" [placeholder]="'topics.filters.searchPh' | translate" [(ngModel)]="filterText"
+    [ngModelOptions]="{ standalone: true }" (keydown.enter)="$event.preventDefault()"
+    [attr.aria-label]="'topics.a11y.searchLabel' | translate" />
+
 
     <div class="table-wrap">
-      <!-- usa filtered() del component -->
       <table class="table" *ngIf="filtered().length; else empty">
         <colgroup>
           <col style="width:100px" />
@@ -31,9 +26,9 @@
 
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Description</th>
-            <th class="right">Actions</th>
+            <th>{{ 'topics.table.id' | translate }}</th>
+            <th>{{ 'topics.table.description' | translate }}</th>
+            <th class="right">{{ 'topics.table.actions' | translate }}</th>
           </tr>
         </thead>
 
@@ -42,24 +37,34 @@
             <td>#{{ t.id }}</td>
             <td><span class="truncate">{{ t.description }}</span></td>
             <td class="right">
-              <button class="btn ghost" type="button" (click)="edit(t)">Edit</button>
-              <button class="btn danger" type="button" (click)="delete(t.id)">Delete</button>
+              <button class="btn ghost btn--icon" type="button" (click)="edit(t)" [attr.aria-label]="'common.edit' | translate"
+                [attr.title]="'common.edit' | translate">
+                ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+              </button>
+
+              <button class="btn danger btn--icon" type="button" (click)="delete(t.id)"
+                [attr.aria-label]="'common.delete' | translate" [attr.title]="'common.delete' | translate">
+                🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+              </button>
             </td>
+
           </tr>
         </tbody>
       </table>
 
       <ng-template #empty>
-        <div class="center muted">No topics</div>
+        <div class="center muted">{{ 'topics.empty' | translate }}</div>
       </ng-template>
     </div>
   </div>
 
-  <!-- FORM (simple, siempre visible) -->
+  <!-- FORM -->
   <div class="glass-dark card">
     <div class="header">
       <h2>
-        {{ isEdit() ? ('Edit topic: ' + (form.controls.id.value ?? '')) : 'New topic' }}
+        {{ isEdit()
+        ? ('topics.form.editTitle' | translate:{ id: (form.controls.id.value ?? '') })
+        : ('topics.form.newTitle' | translate) }}
       </h2>
     </div>
 
@@ -67,19 +72,21 @@
       <div class="error" *ngIf="error()">{{ error() }}</div>
 
       <label class="label">
-        <span>Description</span>
-        <input class="input" formControlName="description" placeholder="e.g. Corruption, Smuggling..."
+        <span>{{ 'topics.form.description' | translate }}</span>
+        <input class="input" formControlName="description" [placeholder]="'topics.form.descriptionPh' | translate"
           [attr.aria-invalid]="form.controls.description.invalid && form.controls.description.touched" />
         <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
-          Description is required.
+          {{ 'topics.form.err.required' | translate }}
         </small>
       </label>
 
       <div class="right form-actions">
         <button class="btn success" type="submit" [disabled]="form.invalid || loading()" [attr.aria-busy]="loading()">
-          {{ isEdit() ? 'Save' : 'Create' }}
+          {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
         </button>
-        <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">Cancel</button>
+        <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
+          {{ 'common.cancel' | translate }}
+        </button>
       </div>
     </form>
   </div>

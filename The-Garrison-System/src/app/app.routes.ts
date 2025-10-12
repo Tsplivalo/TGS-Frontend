@@ -8,6 +8,7 @@ export const routes: Routes = [
   // === Home ===
   { path: '', component: HomeComponent },
 
+
   // === Auth ===
   {
     path: 'login',
@@ -25,6 +26,7 @@ export const routes: Routes = [
   },
 
   // === Management (existing) ===
+
   {
     path: 'producto',
     canActivate: [authGuard, roleGuard],
@@ -91,7 +93,28 @@ export const routes: Routes = [
       import('./components/topic/topic').then((m) => m.TopicComponent),
   },
 
-  // === Static pages (new) ===
+  // === Distribuidor ===
+  {
+    path: 'distribuidor',
+    loadComponent: () =>
+      import('./components/distributor/distributor').then(
+        (m) => m.DistributorComponent
+      ),
+  },
+
+  // === Cliente: Tienda + Mi Cuenta ===
+  {
+    path: 'tienda',
+    loadComponent: () =>
+      import('./components/store/store.js').then((m) => m.StoreComponent),
+  },
+  {
+    path: 'mi-cuenta',
+    loadComponent: () =>
+      import('./components/account/account.js').then((m) => m.AccountComponent),
+  },
+
+  // === Páginas estáticas ===
   {
     path: 'sobre-nosotros',
     loadComponent: () =>

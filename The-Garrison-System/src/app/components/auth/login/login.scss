@@ -1,13 +1,46 @@
+/* ===== Variables ===== */
+$radius-sm: .6rem;
+$radius-md: .8rem;
+$radius-lg: 1rem;
+$blur: 12px;
+$glass-bg: rgba(255, 255, 255, 0.06);
+$glass-border: rgba(255, 255, 255, 0.08);
+$input-bg: rgba(0, 0, 0, 0.2);
+$input-border: rgba(255, 255, 255, 0.12);
+$err-color: #ff8080;
+
+/* ===== Mixins ===== */
+@mixin glass($bg: $glass-bg, $border: $glass-border, $blur: $blur) {
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  background: $bg;
+  border: 1px solid $border;
+}
+
+@mixin focus-ring($color: rgba(195, 164, 98, .9)) {
+  outline: none;
+  border-color: $color;
+  box-shadow: 0 0 0 3px rgba(195, 164, 98, .18), inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+/* ===== Card ===== */
 .auth-card {
   max-width: 420px;
   margin: 4rem auto;
   padding: 1.5rem;
-  border-radius: 1rem;
-  backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-lg;
+  @include glass();
 }
 
+/* Fallback sin backdrop-filter (no rompe diseño) */
+@supports not ((backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px))) {
+  .auth-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)), $glass-bg;
+    border: 1px solid $glass-border;
+  }
+}
+
+/* ===== Campos ===== */
 label {
   display: block;
   margin: .75rem 0;
@@ -16,25 +49,56 @@ label {
 input {
   width: 100%;
   padding: .6rem .8rem;
-  border-radius: .6rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.2);
+  border-radius: $radius-sm;
+  border: 1px solid $input-border;
+  background: $input-bg;
   color: #fff;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .06s ease, background .18s ease;
 }
 
+input:hover {
+  border-color: color-mix(in srgb, $input-border, var(--accent) 28%);
+}
+
+input:focus-visible {
+  @include focus-ring();
+  transform: translateY(-1px);
+}
+
+input:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+}
+
+/* ===== Botón ===== */
 button {
   width: 100%;
   margin-top: 1rem;
   padding: .8rem;
-  border-radius: .8rem;
+  border-radius: $radius-md;
+  transition: transform .06s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
 
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+/* ===== Mensajes ===== */
 .muted {
   opacity: .8;
   margin-top: .75rem;
 }
 
 .error {
-  color: #ff8080;
+  color: $err-color;
   margin-top: .5rem;
 }

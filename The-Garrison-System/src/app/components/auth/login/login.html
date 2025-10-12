@@ -1,30 +1,53 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
-  <h1>Iniciar sesión</h1>
+<!--
+  Login template
+  - Comentarios útiles y mejoras de accesibilidad.
+  - Mantiene estructura y bindings existentes (no rompe nada).
+  - Asocia labels con inputs, usa aria-live para errores y mejora el toggle de contraseña.
+-->
+<form [formGroup]="form" (ngSubmit)="submit()" class="auth-form" aria-labelledby="login-title" novalidate>
 
-  <label>
+  <h1 id="login-title">Iniciar sesión</h1>
+
+  <!-- Campo Email -->
+  <label for="f-email">
     Email
-    <input formControlName="email" type="email" autocomplete="email" placeholder="tu@email.com" />
+    <input id="f-email" formControlName="email" type="email" autocomplete="email" placeholder="tu@email.com"
+      inputmode="email" />
   </label>
 
-  <label class="password-row">
+  <!-- Campo Password con botón mostrar/ocultar -->
+  <label class="password-row" for="f-password">
     Contraseña
     <div class="password-field">
-      <input [type]="showPassword ? 'text' : 'password'" formControlName="password" autocomplete="current-password"
-        placeholder="••••••••" />
-      <button type="button" class="toggle" (click)="toggleShowPassword()" aria-label="Mostrar u ocultar contraseña">
+      <input id="f-password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
+        autocomplete="current-password" placeholder="••••••••" />
+
+      <!--
+        Botón de visibilidad:
+        - aria-pressed refleja estado (true cuando se muestra la contraseña)
+        - aria-controls referencia el input de password
+      -->
+      <button type="button" class="toggle" (click)="toggleShowPassword()"
+        [attr.aria-pressed]="showPassword ? 'true' : 'false'" aria-label="Mostrar u ocultar contraseña"
+        aria-controls="f-password">
         {{ showPassword ? 'Ocultar' : 'Mostrar' }}
       </button>
     </div>
   </label>
 
-  <button type="submit" [disabled]="form.invalid || loading">
+  <!-- Submit -->
+  <button type="submit" [disabled]="form.invalid || loading" [attr.aria-busy]="loading ? 'true' : null">
     {{ loading ? 'Ingresando…' : 'Ingresar' }}
   </button>
 
-  <p class="hint">
+  <!-- Hint secundario -->
+  <p class="hint" id="login-hint">
     ¿No tenés cuenta?
     <a routerLink="/register">Crear cuenta</a>
   </p>
 
-  <p class="error" *ngIf="errorMsg">{{ errorMsg }}</p>
+  <!-- Errores: se anuncian a lectores de pantalla -->
+  <p class="error" *ngIf="errorMsg" role="alert" aria-live="assertive">
+    {{ errorMsg }}
+  </p>
 </form>

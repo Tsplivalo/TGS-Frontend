@@ -3,10 +3,10 @@
   <!-- LIST -->
   <div class="glass-dark card stack-md">
     <div class="header">
-      <h2>Sales</h2>
+      <h2>{{ 'sales.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ isNewOpen ? 'Close' : 'New' }}
+          {{ (isNewOpen ? 'common.close' : 'sales.new') | translate }}
         </button>
       </div>
     </div>
@@ -14,12 +14,12 @@
     <!-- Filters -->
     <div class="filters">
       <label class="label">
-        <span>Search</span>
-        <input class="input" placeholder="id, product or client description" [(ngModel)]="fText" />
+        <span>{{ 'sales.filters.search' | translate }}</span>
+        <input class="input" [placeholder]="'sales.filters.searchPh' | translate" [(ngModel)]="fText" />
       </label>
       <label class="label">
-        <span>Client DNI</span>
-        <input class="input" placeholder="" maxlength="8" [(ngModel)]="fClientDni" />
+        <span>{{ 'sales.filters.clientDni' | translate }}</span>
+        <input class="input" maxlength="8" [(ngModel)]="fClientDni" />
       </label>
     </div>
 
@@ -28,12 +28,12 @@
       <table class="table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Date</th>
-            <th>Client</th>
-            <th>Products</th>
-            <th>Quantity</th>
-            <th class="left">Total</th>
+            <th>{{ 'sales.table.id' | translate }}</th>
+            <th>{{ 'sales.table.date' | translate }}</th>
+            <th>{{ 'sales.table.client' | translate }}</th>
+            <th>{{ 'sales.table.products' | translate }}</th>
+            <th>{{ 'sales.table.quantity' | translate }}</th>
+            <th class="left">{{ 'sales.table.total' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -43,7 +43,7 @@
             <td>{{ v.date | date:'short' }}</td>
             <td>
               @if (getClient(v); as cli) {
-              {{ cli.dni }} - {{ cli.name || 'Client' }}
+              {{ cli.dni }} - {{ cli.name || ('sales.client' | translate) }}
               } @else {
               —
               }
@@ -52,7 +52,7 @@
             <!-- Products / item description -->
             <td>
               @if (hasDetails(v)) {
-              {{ getDetails(v).length }} item(s)
+              {{ ('sales.itemsCount' | translate:{count: getDetails(v).length}) }}
               <div class="muted">
                 @for (d of getDetails(v); track d.productId; let last = $last) {
                 {{ detailDescription(d) }}@if (!last) {, }
@@ -75,7 +75,7 @@
           }
           @if (filteredSales().length === 0) {
           <tr>
-            <td colspan="6" class="center muted">No sales</td>
+            <td colspan="6" class="center muted">{{ 'sales.noResults' | translate }}</td>
           </tr>
           }
         </tbody>
@@ -83,11 +83,11 @@
     </div>
   </div>
 
-  <!-- CREATE FORM (COLLAPSIBLE, SAME STYLE AS LIST) -->
+  <!-- CREATE FORM (COLLAPSIBLE) -->
   <div class="collapsible" [class.open]="isNewOpen">
     <div class="collapsible__content glass-dark card">
       <div class="header">
-        <h2>New sale</h2>
+        <h2>{{ 'sales.newTitle' | translate }}</h2>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
@@ -97,40 +97,42 @@
 
         <!-- Client -->
         <label class="label">
-          <span>Client</span>
-          <input class="input" placeholder="filter (dni or name)" maxlength="8" [(ngModel)]="clientFilter"
-            [ngModelOptions]="{standalone: true}" name="fltClient" />
+          <span>{{ 'sales.form.client' | translate }}</span>
+          <input class="input" [placeholder]="'sales.form.clientFilterPh' | translate" maxlength="8"
+            [(ngModel)]="clientFilter" [ngModelOptions]="{standalone: true}" name="fltClient" />
+
           <select class="input" formControlName="clientDni">
-            <option [ngValue]="null" disabled>Choose a client</option>
+            <option [ngValue]="null" disabled>{{ 'sales.form.chooseClient' | translate }}</option>
             @for (c of filteredClients(); track c.dni) {
             <option [ngValue]="c.dni">{{ c.dni }} - {{ c.name }}</option>
             }
           </select>
-          <small class="muted">Not listed? Create it from <strong>Clients</strong>.</small>
+          <small class="muted">{{ 'sales.form.clientHint' | translate }}</small>
         </label>
 
-        <div class="subheader">Products</div>
+        <div class="subheader">{{ 'sales.form.products' | translate }}</div>
 
         @for (l of lines(); track $index; let i = $index) {
         <div class="line">
           <div class="line__row">
             <div class="linea__cell">
               <label class="label">
-                <span>Search product</span>
-                <input class="input" placeholder="id or description" [(ngModel)]="l.filter"
+                <span>{{ 'sales.form.searchProduct' | translate }}</span>
+                <input class="input" [placeholder]="'sales.form.searchProductPh' | translate" [(ngModel)]="l.filter"
                   [ngModelOptions]="{standalone: true}" [name]="'fltProd' + i" />
               </label>
             </div>
 
             <div class="line__cell">
               <label class="label">
-                <span>Product</span>
+                <span>{{ 'sales.form.product' | translate }}</span>
                 <select class="input" [(ngModel)]="l.productId" [ngModelOptions]="{standalone: true}"
                   [name]="'prod' + i">
-                  <option [ngValue]="null" disabled>Choose a product</option>
+                  <option [ngValue]="null" disabled>{{ 'sales.form.chooseProduct' | translate }}</option>
                   @for (p of filteredProductsBy(l.filter || ''); track p.id) {
                   <option [ngValue]="p.id">
-                    {{ p.id }} - {{ p.description }} ({{ p.stock }} u.) - {{ p.price | currency:'ARS' }}
+                    {{ p.id }} - {{ p.description }} ({{ p.stock }} {{ 'sales.form.units' | translate }}) - {{ p.price |
+                    currency:'ARS' }}
                   </option>
                   }
                 </select>
@@ -139,27 +141,36 @@
 
             <div class="line__cell sm">
               <label class="label">
-                <span>Quantity</span>
+                <span>{{ 'sales.form.quantity' | translate }}</span>
                 <input class="input" type="number" min="1" step="1" [attr.max]="getStock(l.productId) || null"
-                  title="Stock available: {{ getStock(l.productId) }}" [(ngModel)]="l.quantity"
-                  (blur)="clampQuantity(i)" [ngModelOptions]="{standalone: true}" [name]="'cant' + i" />
+                  [title]="'sales.form.stockTitle' | translate:{stock: getStock(l.productId) || 0}"
+                  [(ngModel)]="l.quantity" (blur)="clampQuantity(i)" [ngModelOptions]="{standalone: true}"
+                  [name]="'cant' + i" />
               </label>
             </div>
 
             <div class="line__cell actions">
-              <button class="btn danger" type="button" (click)="removeLine(i)">Remove</button>
+              <button class="btn danger" type="button" (click)="removeLine(i)">
+                {{ 'sales.form.remove' | translate }}
+              </button>
             </div>
           </div>
         </div>
         }
 
         <div class="right" style="grid-column: 1 / -1; margin-top: .5rem;">
-          <button class="btn" type="button" (click)="addLine()">+ Add product</button>
+          <button class="btn" type="button" (click)="addLine()">
+            {{ 'sales.form.addProduct' | translate }}
+          </button>
         </div>
 
         <div class="right" style="grid-column: 1 / -1;">
-          <button class="btn success" type="submit" [disabled]="loading()">Create</button>
-          <button class="btn ghost" type="button" (click)="new()">Cancel</button>
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ 'sales.form.create' | translate }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()">
+            {{ 'common.cancel' | translate }}
+          </button>
         </div>
       </form>
     </div>

@@ -1,68 +1,105 @@
 <nav class="nav">
   <div class="nav__content">
     <!-- Brand -->
-    <a class="brand" routerLink="/">
-      <span class="brand-text">Garr<span class="brand-accent">SYS</span></span>
+    <a class="brand brand--separated" routerLink="/">
+      <span class="brand-text">{{ 'brand.name' | translate }}</span>
     </a>
 
-    <!-- Menú IZQUIERDO (si querés agregar items fijos); mantiene el indicador -->
-    <ul #menu class="menu" role="menubar" aria-label="Principal">
-      <!-- Indicador de vidrio deslizante -->
+    <!-- Menú IZQUIERDO: SIEMPRE visible -->
+    <ul #menu class="menu menu--left" role="menubar" aria-label="Principal">
+      <!-- Indicador vidrio -->
       <div class="glass-indicator" [class.visible]="indicator.visible" [ngStyle]="{
           transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
           width: indicator.w + 'px',
           height: indicator.h + 'px'
         }" aria-hidden="true">
       </div>
-      <!-- (dejado vacío a propósito; podés agregar 'Inicio', etc.) -->
-    </ul>
 
-    <!-- Separador flexible empuja todo lo de la derecha -->
-    <div class="spacer"></div>
+      <!-- Ítems cliente (si está autenticado) -->
+      <ng-container *ngIf="isAuthenticated() && (isClient() || isAdmin())">
+        <li class="menu__item" role="none" *ngFor="let it of clientItems; trackBy: trackByPath">
+          <a #mainBtn role="menuitem" [routerLink]="it.path" routerLinkActive="active">
+            {{ it.label | translate }} <span class="underline"></span>
+          </a>
+        </li>
+      </ng-container>
 
-    <!-- Menú DERECHO -->
-    <!-- Cuando NO está logueado: ítems públicos -->
-    <ul class="menu menu--right" *ngIf="!isLoggedIn(); else gestionRight" role="menubar" aria-label="Accesos">
-      <li class="menu__item" role="none" *ngFor="let p of publicItems">
-        <a role="menuitem" [routerLink]="p.path" routerLinkActive="active">
-          {{ p.label }} <span class="underline"></span>
-        </a>
+      <!-- Selector de idioma: SIEMPRE visible y a la derecha del bloque cliente -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
+        <button class="dropdown__toggle has-underline lang-toggle" type="button" aria-haspopup="true"
+          aria-expanded="false">
+          <span [class]="flagClass()" aria-hidden="true"></span>
+          <span class="lang-code">{{ lang() | uppercase }}</span>
+          <span class="chevron">▾</span>
+          <span class="underline"></span>
+        </button>
+
+        <ul class="dropdown" role="menu" [attr.aria-label]="'nav.language' | translate">
+          <li class="dropdown__item" role="none">
+            <button type="button" role="menuitem" (click)="setLang('es')">
+              <span class="flag flag-es" aria-hidden="true"></span>
+              ES
+            </button>
+          </li>
+          <li class="dropdown__item" role="none">
+            <button type="button" role="menuitem" (click)="setLang('en')">
+              <span class="flag flag-en" aria-hidden="true"></span>
+              EN
+            </button>
+          </li>
+        </ul>
       </li>
     </ul>
 
-    <!-- Cuando SÍ está logueado: Gestión a la derecha -->
-    <ng-template #gestionRight>
-      <ul class="menu menu--right" role="menubar" aria-label="Gestión y usuario">
-        <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
-          <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true"
-            aria-expanded="false" [class.active]="isGestionActive()">
-            GESTIÓN <span class="chevron">▾</span>
-            <span class="underline"></span>
-          </button>
+    <!-- Separador flexible -->
+    <div class="spacer"></div>
 
-          <ul class="dropdown" role="menu" aria-label="Gestión">
-            <li *ngFor="let item of gestionItems" class="dropdown__item" role="none">
-              <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
-                {{ item.label }} <span class="underline"></span>
-              </a>
-            </li>
+    <!-- Menú DERECHO: públicas + gestión + usuario -->
+    <ul class="menu menu--right" role="menubar" aria-label="Páginas">
+      <!-- Páginas públicas -->
+      <li class="menu__item" role="none" *ngFor="let p of publicItems; trackBy: trackByPath">
+        <a role="menuitem" [routerLink]="p.path" routerLinkActive="active">
+          {{ p.label | translate }} <span class="underline"></span>
+        </a>
+      </li>
 
-            <li class="dropdown__divider" role="separator"></li>
+      <!-- Gestión (solo admin) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated() && isAdmin()">
+        <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
+          [class.active]="isGestionActive()">
+          {{ 'nav.management' | translate }} <span class="chevron">▾</span>
+          <span class="underline"></span>
+        </button>
 
-            <!-- Usuario -->
-            <li class="dropdown__item muted" role="none" *ngIf="user() as u">
-              {{ u?.username || u?.email || 'Usuario' }}
-            </li>
+        <ul class="dropdown" role="menu" aria-label="Gestión">
+          <li *ngFor="let item of gestionItems; trackBy: trackByPath" class="dropdown__item" role="none">
+            <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
+              {{ item.label | translate }} <span class="underline"></span>
+            </a>
+          </li>
+        </ul>
+      </li>
 
-            <!-- Salir -->
-            <li class="dropdown__item" role="none">
-              <button type="button" class="btn-logout" (click)="logout()">
-                Salir
-              </button>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </ng-template>
+      <!-- Usuario (logueado) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated()">
+        <button class="dropdown__toggle" type="button" aria-haspopup="true" aria-expanded="false">
+          {{ user()?.['username'] || user()?.['email'] || 'User' }}
+          <span class="chevron">▾</span>
+        </button>
+        <ul class="dropdown" role="menu" aria-label="Usuario">
+          <li class="dropdown__item" role="none">
+            <a role="menuitem" routerLink="/mi-cuenta" routerLinkActive="active">
+              {{ 'nav.myAccount' | translate }}
+            </a>
+          </li>
+          <li class="dropdown__divider" role="separator"></li>
+          <li class="dropdown__item" role="none">
+            <button type="button" class="btn-logout" (click)="logout()">
+              {{ 'nav.logout' | translate }}
+            </button>
+          </li>
+        </ul>
+      </li>
+    </ul>
   </div>
 </nav>
