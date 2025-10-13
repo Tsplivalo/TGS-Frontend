@@ -13,8 +13,12 @@
 
             <label>
               <span>{{ 'auth.fields.email' | translate }}</span>
-              <input type="email" formControlName="email" placeholder="{{ 'auth.placeholders.email' | translate }}"
-                autocomplete="email" required />
+              <input type="email" formControlName="email"
+                [placeholder]="getPlaceholderForMode()"
+                autocomplete="email" required
+                [class]="mode() === 'login' ? 'star-wars-placeholder' : ''"
+                (focus)="mode() === 'login' ? onEmailFocus() : null"
+                (blur)="mode() === 'login' ? onEmailBlur() : null" />
             </label>
 
             <label>
@@ -43,14 +47,22 @@
 
             <label>
               <span>{{ 'auth.fields.username' | translate }}</span>
-              <input type="text" formControlName="username" placeholder="{{ 'auth.placeholders.username' | translate }}"
-                autocomplete="username" required />
+              <input type="text" formControlName="username"
+                [placeholder]="getNamePlaceholderForMode()"
+                autocomplete="username" required
+                [class]="mode() === 'register' ? 'star-wars-placeholder' : ''"
+                (focus)="mode() === 'register' ? onNameFocus() : null"
+                (blur)="mode() === 'register' ? onNameBlur() : null" />
             </label>
 
             <label>
               <span>{{ 'auth.fields.email' | translate }}</span>
-              <input type="email" formControlName="email" placeholder="{{ 'auth.placeholders.email' | translate }}"
-                autocomplete="email" required />
+              <input type="email" formControlName="email"
+                [placeholder]="getPlaceholderForMode()"
+                autocomplete="email" required
+                [class]="mode() === 'register' ? 'star-wars-placeholder' : ''"
+                (focus)="mode() === 'register' ? onEmailFocus() : null"
+                (blur)="mode() === 'register' ? onEmailBlur() : null" />
             </label>
 
             <label>

@@ -23,6 +23,59 @@ $err-color: #ff8080;
   box-shadow: 0 0 0 3px rgba(195, 164, 98, .18), inset 0 1px 0 rgba(255, 255, 255, .08);
 }
 
+/* ===== Animaciones Star Wars ===== */
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+@keyframes lightsaber-glow {
+  0%,
+  100% {
+    border-color: #d93a3a;
+    box-shadow: 0 0 5px #d93a3a, 0 0 10px #d93a3a, 0 0 15px #d93a3a, inset 0 1px 0 rgba(255, 255, 255, .08);
+  }
+  50% {
+    border-color: #ff4d4d;
+    box-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d, 0 0 30px #ff4d4d, inset 0 1px 0 rgba(255, 255, 255, .08);
+  }
+}
+
+@keyframes hologram-flicker {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(195, 164, 98, 0.3);
+  }
+  50% {
+    opacity: 0.8;
+    text-shadow: 0 0 8px rgba(195, 164, 98, 0.5), 0 0 12px rgba(195, 164, 98, 0.2);
+  }
+}
+
+@keyframes typing-glow {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    border-color: rgba(195, 164, 98, 0.9);
+    box-shadow: 0 0 3px rgba(195, 164, 98, 0.3);
+  }
+}
+
 /* ===== Card ===== */
 .auth-card {
   max-width: 420px;
@@ -69,6 +122,40 @@ input:disabled {
   opacity: .7;
   cursor: not-allowed;
 }
+
+/* Animación de placeholder tipo Star Wars */
+.star-wars-placeholder::placeholder {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: .15em solid rgba(255, 255, 255, 0.7);
+  animation: blink-caret .75s step-end infinite;
+  font-family: 'Courier New', monospace;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.1s ease;
+  letter-spacing: 0.5px;
+}
+
+/* Efecto especial cuando está escribiendo */
+.star-wars-placeholder:not(:focus)::placeholder {
+  text-shadow: 0 0 5px rgba(195, 164, 98, 0.3);
+}
+
+/* Efecto cuando el usuario está escribiendo */
+.star-wars-placeholder:focus::placeholder {
+  animation: typing-glow 1s ease-in-out infinite;
+}
+
+/* Animación de contraseña tipo sable de luz */
+/*
+  Nota: Animar cada punto de la contraseña de forma individual
+  no es posible con CSS estándar en un <input type="password">.
+  Como alternativa, se aplica un resplandor al enfocar el campo.
+*/
+.lightsaber-password:focus-visible {
+  @include focus-ring(transparent); // Oculta el focus-ring normal
+  animation: lightsaber-glow 1.5s infinite;
+}
+
 
 /* ===== Botón ===== */
 button {

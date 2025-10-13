@@ -11,8 +11,13 @@
   <!-- Campo Email -->
   <label for="f-email">
     Email
-    <input id="f-email" formControlName="email" type="email" autocomplete="email" placeholder="tu@email.com"
-      inputmode="email" />
+    <input id="f-email" formControlName="email" type="email" autocomplete="email" 
+      [placeholder]="animatedPlaceholder || 'anakin.skywalker@darkside.com'"
+      inputmode="email" class="star-wars-placeholder" 
+      (focus)="onEmailFocus()" (blur)="onEmailBlur()" />
+    
+    <!-- Debug: mostrar el valor actual del placeholder -->
+    <small style="color: #888; font-size: 0.8em;">Debug: {{ animatedPlaceholder }}</small>
   </label>
 
   <!-- Campo Password con botón mostrar/ocultar -->
@@ -20,7 +25,7 @@
     Contraseña
     <div class="password-field">
       <input id="f-password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
-        autocomplete="current-password" placeholder="••••••••" />
+        autocomplete="current-password" placeholder="••••••••" class="lightsaber-password" />
 
       <!--
         Botón de visibilidad:

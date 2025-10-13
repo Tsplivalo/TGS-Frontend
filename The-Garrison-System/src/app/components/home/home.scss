@@ -13,9 +13,20 @@
 
 :root {
   --auth-width: 640px;
-  /* ancho del “cuadrado” (columna izquierda) */
+  /* ancho del "cuadrado" (columna izquierda) */
   --auth-min-h: 620px;
   /* alto mínimo del panel */
+}
+
+/* ===== Animaciones Star Wars ===== */
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.4);
+  }
 }
 
 /* ===== Layout ===== */
@@ -155,6 +166,28 @@
   padding: .6rem .7rem;
   outline: none;
   width: 100%;
+}
+
+/* Animación Star Wars para el placeholder */
+.star-wars-placeholder::placeholder {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: .15em solid rgba(255, 255, 255, 0.4);
+  animation: blink-caret .75s step-end infinite;
+  font-family: inherit; /* Usa la misma fuente que el resto de la página */
+  color: rgba(255, 255, 255, 0.4); /* Color más sutil para que se vea como hint */
+  transition: all 0.1s ease;
+  letter-spacing: 0.2px;
+  font-weight: 400;
+}
+
+.star-wars-placeholder:not(:focus)::placeholder {
+  text-shadow: 0 0 3px rgba(195, 164, 98, 0.2);
+}
+
+.star-wars-placeholder:focus::placeholder {
+  color: rgba(255, 255, 255, 0.3); /* Aún más sutil cuando está enfocado */
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .auth-form input:focus {
@@ -658,4 +691,17 @@
   .intro-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===== Animación suave de placeholders ===== */
+.anim-placeholder {
+  transition: opacity 220ms ease, transform 220ms ease;
+  display: inline-block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.anim-placeholder.hidden {
+  opacity: 0;
+  transform: translateY(-6px);
 }
