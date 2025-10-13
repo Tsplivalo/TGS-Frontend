@@ -6,6 +6,10 @@
   --glass-bg: rgba(255, 255, 255, .12);
   --glass-bg-hover: rgba(255, 255, 255, .16);
   --dropdown-bg: rgba(12, 18, 32, .6);
+  --accent: #60a5fa;
+  /* NUEVO: se usaba en el pill de Tienda */
+  --danger: #ef4444;
+  --danger-text: #fca5a5;
 }
 
 .nav {
@@ -64,6 +68,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  z-index: 5;
+  /* por encima del glass-indicator */
 }
 
 /* 👉 menú izquierdo con un poquito más de aire */
@@ -96,7 +102,7 @@
   border: 1px solid transparent;
   background: transparent;
   color: var(--text);
-  transition: transform .15s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  transition: transform .15s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease, color .2s ease;
 }
 
 .menu__item a:hover,
@@ -186,13 +192,20 @@
   opacity: 0;
   transform: translateY(6px);
   transition: opacity .18s ease, transform .18s ease;
+  z-index: 10;
+  min-width: 220px;
 }
 
-.menu__item--dropdown:focus-within .dropdown,
-.menu__item--dropdown:hover .dropdown {
+.menu__item--dropdown:focus-within>.dropdown,
+.menu__item--dropdown:hover>.dropdown {
   display: block;
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Items del dropdown */
+.dropdown__item {
+  position: relative;
 }
 
 .dropdown__item a {
@@ -208,13 +221,14 @@
 /* Accesibilidad */
 .menu__item a:focus-visible,
 .dropdown__toggle:focus-visible,
-.dropdown__item a:focus-visible {
+.dropdown__item a:focus-visible,
+.dropdown__item button:focus-visible {
   outline: 2px solid #93c5fd;
   outline-offset: 3px;
 }
 
 /* ====== Dropdown en el menú derecho ====== */
-.menu--right .menu__item--dropdown .dropdown {
+.menu--right .menu__item--dropdown>.dropdown {
   right: 0;
   left: auto;
 }
@@ -241,7 +255,7 @@
   background: rgba(255, 255, 255, 0.07);
 }
 
-/* Divider opcional */
+/* Divider */
 .dropdown__divider {
   height: 1px;
   margin: .35rem .35rem;
@@ -251,11 +265,6 @@
 }
 
 /* Acento sutil para Salir */
-:root {
-  --danger: #ef4444;
-  --danger-text: #fca5a5;
-}
-
 .dropdown__item .btn-logout {
   color: var(--danger-text);
 }
@@ -265,11 +274,83 @@
   color: #fecaca;
 }
 
-/* Accesibilidad consistente */
-.dropdown__item a:focus-visible,
-.dropdown__item button:focus-visible {
-  outline: 2px solid #93c5fd;
-  outline-offset: 3px;
+/* ====== Submenú interno (Sociedad) ====== */
+/* Contenedor de submenú dentro de un item del dropdown */
+.dropdown__item--sub {
+  position: relative;
+  padding-right: 1.2rem;
+  /* espacio para chevron si lo usás */
+}
+
+/* Bloque clickable que abre el submenú */
+.dropdown__subgroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding: .6rem .7rem;
+  border-radius: .6rem;
+  color: var(--text);
+  cursor: default;
+  /* el submenú abre por hover/focus del li */
+}
+
+/* Título del submenú */
+.dropdown__subgroup-title {
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* Chevron opcional (si lo renderizás con HTML) */
+.dropdown__subgroup .chevron {
+  font-size: .9rem;
+  opacity: .8;
+  transition: transform .15s ease;
+}
+
+/* Lista anidada */
+.dropdown--inner {
+  position: absolute;
+  top: 0;
+  left: calc(100% + .4rem);
+  white-space: nowrap;
+  padding: .35rem .5rem;
+  margin: 0;
+  list-style: none;
+  border-radius: .9rem;
+  border: 1px solid rgba(255, 255, 255, .25);
+  background: rgba(30, 41, 59, 0.55);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .32);
+  display: none;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 12;
+  /* por encima del dropdown padre */
+  min-width: 220px;
+}
+
+/* Abrir submenú por hover o teclado */
+.dropdown__item--sub:focus-within>.dropdown--inner,
+.dropdown__item--sub:hover>.dropdown--inner {
+  display: block;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Estado visual al pasar por el subgrupo */
+.dropdown__item--sub:hover>.dropdown__subgroup,
+.dropdown__item--sub:focus-within>.dropdown__subgroup {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: .6rem;
+}
+
+/* Rotar chevron al abrir (si lo usás) */
+.dropdown__item--sub:hover .chevron,
+.dropdown__item--sub:focus-within .chevron {
+  transform: rotate(90deg);
 }
 
 /* ====== Pill especial para “Tienda” ====== */
@@ -316,7 +397,17 @@
   transform: scaleX(1);
 }
 
-/* Responsive tweaks */
+/* ====== Estados activos de grupos (Gestión / Inbox) ====== */
+/* Si en tu TS agregás class .active al toggle, esto ayuda visualmente */
+.menu__item--dropdown .dropdown__toggle .chevron {
+  transition: transform .15s ease;
+}
+
+.menu__item--dropdown .dropdown__toggle.active .chevron {
+  transform: rotate(180deg);
+}
+
+/* ====== Responsivo ====== */
 @media (max-width: 720px) {
   .nav__content {
     gap: .75rem;
@@ -325,6 +416,12 @@
   .menu--left {
     gap: .4rem;
     flex-wrap: wrap;
+  }
+
+  /* Los flyouts se apilan a la izquierda si no entra el ancho */
+  .dropdown--inner {
+    left: auto;
+    right: calc(100% + .4rem);
   }
 }
 
@@ -378,4 +475,13 @@
 .lang-code {
   opacity: .85;
   letter-spacing: .5px;
+}
+.badge {
+  margin-left: .4rem;
+  padding: .15rem .4rem;
+  border-radius: .5rem;
+  font-size: .75rem;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 800;
 }

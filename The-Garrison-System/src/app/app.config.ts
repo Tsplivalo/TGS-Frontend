@@ -1,24 +1,13 @@
-import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { credentialsInterceptor } from './interceptors/credentials.interceptor';
+import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
 import { AuthService } from './services/auth/auth';
 
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { HttpTranslateLoader } from './i18n/translate-loader';
-
-/**
- * appConfig
- *
- * - Router + HttpClient con interceptor de credenciales
- * - ngx-translate con loader HTTP
- * - APP_INITIALIZER para elegir idioma por navegador (en/ES) en arranque
- *
- * Notas:
- * • Usamos APP_INITIALIZER (token oficial) en lugar de un string arbitrario.
- * • Guardamos acceso a `navigator` para SSR/entornos sin DOM.
- */
 
 export function translateLoaderFactory(http: HttpClient): TranslateLoader {
   return new HttpTranslateLoader(http);
@@ -32,7 +21,6 @@ function detectBrowserLang(): 'en' | 'es' {
 }
 
 function initI18nFactory(ts: TranslateService) {
-  // Debe devolver una función: Angular la ejecuta en bootstrap y espera su finalización
   return () => {
     const lang = detectBrowserLang();
     ts.setDefaultLang('en');
@@ -40,13 +28,20 @@ function initI18nFactory(ts: TranslateService) {
   };
 }
 
+// Hidrata sesión desde cookie en el bootstrap (llama /api/users/me)
+function initAuthFactory() {
+  return () => {
+    const auth = inject(AuthService);
+    auth.fetchMe();
+  };
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    // Routing
     provideRouter(routes),
 
-    // HTTP + Interceptor de credenciales (cookies, etc.)
-    provideHttpClient(withInterceptors([credentialsInterceptor])),
+    // HTTP + Interceptores (credenciales primero, errores después)
+    provideHttpClient(withInterceptors([credentialsInterceptor, authErrorInterceptor])),
 
     // Servicios singleton
     AuthService,
@@ -63,12 +58,19 @@ export const appConfig: ApplicationConfig = {
       })
     ),
 
-    // Inicializador de idioma al arrancar la app
+    // Inicializador de idioma
     {
       provide: APP_INITIALIZER,
       multi: true,
       useFactory: initI18nFactory,
       deps: [TranslateService],
+    },
+    // Inicializador de sesión (me)
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: initAuthFactory,
+      deps: [],
     },
   ],
 };

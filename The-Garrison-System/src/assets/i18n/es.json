@@ -4,10 +4,15 @@
     "store": "Tienda",
     "myAccount": "Mi cuenta",
     "management": "Gestión",
-    "logout": "Salir",
+    "society": "Sociedad",
+    "inbox": "Bandeja",
+    "unread": "sin leer",
+    "roleRequests": "Solicitudes de rol",
+    "mailVerification": "Verificación de mail",
+    "myRoleRequest": "Mi solicitud de rol",
     "about": "Sobre nosotros",
-    "faqs": "FAQs",
-    "contact": "Contactanos",
+    "faqs": "Preguntas frecuentes",
+    "contact": "Contáctanos",
     "language": "Idioma"
   },
   "mgmt": {

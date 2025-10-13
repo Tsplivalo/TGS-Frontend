@@ -3,16 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { RoleRequestService } from '../../services/role-request/role-request';
-import { RoleRequestDTO, CreateRoleRequestDTO } from '../../models/role-request/role-request.model';
+import { RoleRequest, CreateRoleRequestDTO } from '../../models/role-request/role-request.model';
 import { AuthService } from '../../services/auth/auth';
 
-/**
- * Componente: RoleRequest
- *
- * - Un único panel (glass + card) que contiene header, mensajes y listados.
- * - Panel de crear en un colapsable aparte, cerrado por defecto.
- * - Estado y UI con Signals, sin tocar tu lógica de servicios.
- */
 @Component({
   selector: 'app-role-request',
   standalone: true,
@@ -21,35 +14,32 @@ import { AuthService } from '../../services/auth/auth';
   styleUrls: ['./role-request.scss'],
 })
 export class RoleRequestComponent implements OnInit {
-  // Inyección
   private fb   = inject(FormBuilder);
   private srv  = inject(RoleRequestService);
   private auth = inject(AuthService);
 
-  // ── Estado base ──────────────────────────────────────────────────────────────
-  my      = signal<RoleRequestDTO[]>([]);
-  pending = signal<RoleRequestDTO[]>([]);
+  // Estado
+  my      = signal<RoleRequest[]>([]);
+  pending = signal<RoleRequest[]>([]);
   isAdmin = signal(false);
   loading = signal(false);
   error   = signal<string | null>(null);
 
-  // Panel crear (colapsable)
+  // Panel crear
   isNewOpen = signal(false);
 
-  // ── Formulario ───────────────────────────────────────────────────────────────
+  // Form
   form = this.fb.group({
     requestedRole: this.fb.nonNullable.control<'PARTNER'|'DISTRIBUTOR'>('PARTNER', [Validators.required]),
     roleToRemove:  this.fb.control<'CLIENT'|'DISTRIBUTOR'|'PARTNER' | null>(null),
     reason:        this.fb.control<string | null>(null),
   });
 
-  // ── Ciclo de vida ───────────────────────────────────────────────────────────
   ngOnInit(): void {
-    this.isAdmin.set(this.auth.hasRole('ADMIN')); // no toco tu AuthService
+    this.isAdmin.set(this.auth.hasRole('ADMIN'));
     this.refresh();
   }
 
-  // ── Acciones UI ─────────────────────────────────────────────────────────────
   toggleNew(): void {
     this.isNewOpen.set(!this.isNewOpen());
     if (!this.isNewOpen()) {
@@ -57,20 +47,22 @@ export class RoleRequestComponent implements OnInit {
     }
   }
 
-  // ── Llamadas a API ──────────────────────────────────────────────────────────
+  // Cargas
   refresh(): void {
     this.loading.set(true);
-    const done = () => this.loading.set(false);
+    this.error.set(null);
 
-    this.srv.myRequests().subscribe({
-      next: (r) => this.my.set(r.data ?? []),
+    // Mis solicitudes (cliente)
+    this.srv.listMine().subscribe({
+      next: (list) => this.my.set(list ?? []),
       error: () => {},
-      complete: done
+      complete: () => this.loading.set(false)
     });
 
+    // Pendientes (admin)
     if (this.isAdmin()) {
-      this.srv.pending().subscribe({
-        next: (r) => this.pending.set(r.data ?? []),
+      this.srv.list({ status: 'PENDING', page: 1, pageSize: 20 }).subscribe({
+        next: (res) => this.pending.set(res.items ?? []),
         error: () => {}
       });
     }
@@ -89,13 +81,19 @@ export class RoleRequestComponent implements OnInit {
     });
   }
 
-  approve(item: RoleRequestDTO): void {
+  // Acciones admin
+  approve(item: RoleRequest): void {
     if (!confirm('¿Aprobar solicitud?')) return;
-    this.srv.review(item.id, { status: 'APPROVED', adminNotes: 'OK' }).subscribe({ next: () => this.refresh() });
+    this.srv.approve(item.id, 'Aprobado desde bandeja').subscribe({
+      next: () => this.refresh()
+    });
   }
 
-  reject(item: RoleRequestDTO): void {
-    if (!confirm('¿Rechazar solicitud?')) return;
-    this.srv.review(item.id, { status: 'REJECTED', adminNotes: 'No cumple requisitos' }).subscribe({ next: () => this.refresh() });
+  reject(item: RoleRequest): void {
+    const reason = prompt('Motivo de rechazo:') ?? '';
+    if (!reason.trim()) return;
+    this.srv.reject(item.id, reason).subscribe({
+      next: () => this.refresh()
+    });
   }
 }

@@ -1,27 +1,54 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse, RoleRequestDTO, CreateRoleRequestDTO, ReviewRoleRequestDTO } from '../../models/role-request/role-request.model';
+import {
+  RoleRequest,
+  RoleRequestListResponse,
+  CreateRoleRequestDTO,
+} from '../../models/role-request/role-request.model';
 
 @Injectable({ providedIn: 'root' })
 export class RoleRequestService {
-  private readonly apiUrl = '/api/role-requests';
+  private http = inject(HttpClient);
+  private base = '/api/role-requests';
 
-  constructor(private http: HttpClient) {}
-
-  create(payload: CreateRoleRequestDTO): Observable<ApiResponse<RoleRequestDTO>> {
-    return this.http.post<ApiResponse<RoleRequestDTO>>(this.apiUrl, payload);
+  // Cliente: crea solicitud de cambio de rol
+  create(payload: CreateRoleRequestDTO): Observable<RoleRequest> {
+    return this.http.post<RoleRequest>(this.base, payload);
   }
 
-  myRequests(): Observable<ApiResponse<RoleRequestDTO[]>> {
-    return this.http.get<ApiResponse<RoleRequestDTO[]>>(`${this.apiUrl}/me`);
+  // Admin: lista solicitudes con filtros/paginación
+  list(opts?: {
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    q?: string;
+    page?: number;
+    pageSize?: number;
+  }): Observable<RoleRequestListResponse> {
+    let params = new HttpParams();
+    if (opts?.status) params = params.set('status', opts.status);
+    if (opts?.q) params = params.set('q', opts.q);
+    if (opts?.page) params = params.set('page', String(opts.page));
+    if (opts?.pageSize) params = params.set('pageSize', String(opts.pageSize));
+    return this.http.get<RoleRequestListResponse>(this.base, { params });
   }
 
-  pending(): Observable<ApiResponse<RoleRequestDTO[]>> {
-    return this.http.get<ApiResponse<RoleRequestDTO[]>>(`${this.apiUrl}/pending`);
+  // Cliente: ver mis solicitudes (historial)
+  listMine(): Observable<RoleRequest[]> {
+    return this.http.get<RoleRequest[]>(`${this.base}/me`);
   }
 
-  review(id: string, payload: ReviewRoleRequestDTO): Observable<ApiResponse<RoleRequestDTO>> {
-    return this.http.put<ApiResponse<RoleRequestDTO>>(`${this.apiUrl}/${id}/review`, payload);
+  // Admin: aprobar
+  approve(id: string, note?: string): Observable<RoleRequest> {
+    return this.http.patch<RoleRequest>(`${this.base}/${encodeURIComponent(id)}/approve`, { note });
+  }
+
+  // Admin: rechazar
+  reject(id: string, reason: string): Observable<RoleRequest> {
+    return this.http.patch<RoleRequest>(`${this.base}/${encodeURIComponent(id)}/reject`, { reason });
+  }
+
+  // (Opcional) obtener por id
+  get(id: string): Observable<RoleRequest> {
+    return this.http.get<RoleRequest>(`${this.base}/${encodeURIComponent(id)}`);
   }
 }

@@ -16,14 +16,6 @@ import { TranslateModule } from '@ngx-translate/core';
 
 interface MenuItem { label: string; path: string; }
 
-/**
- * NavbarComponent
- *
- * Barra superior con:
- * - Ítems públicos, de cliente y de gestión (según rol)
- * - Selector de idioma (i18n)
- * - Indicador "subrayado" que sigue al link activo
- */
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -32,24 +24,20 @@ interface MenuItem { label: string; path: string; }
   styleUrls: ['./navbar.scss'],
 })
 export class NavbarComponent implements AfterViewInit {
-  // --- Inyección ---
   private auth = inject(AuthService);
   private routerSvc = inject(Router);
   private i18n = inject(I18nService);
 
-  // --- Estado de auth (signals expuestos por AuthService) ---
   readonly isLoggedIn = this.auth.isLoggedIn;
   readonly user       = this.auth.user;
 
-  // --- Marca ---
   readonly brand = 'GarrSYS';
 
-  // --- i18n helpers ---
   lang(): 'en'|'es' { return (this.i18n.current as 'en'|'es') || 'en'; }
   setLang(l: 'en'|'es') { this.i18n.use(l); }
   flagClass(): string   { return this.lang() === 'es' ? 'flag flag-es' : 'flag flag-en'; }
 
-  // --- Menús ---
+  // Gestión (ADMIN usa este bloque si decide iterarlo)
   readonly gestionItems: MenuItem[] = [
     { label: 'mgmt.product',     path: '/producto' },
     { label: 'mgmt.client',      path: '/cliente' },
@@ -65,27 +53,37 @@ export class NavbarComponent implements AfterViewInit {
     { label: 'mgmt.monthlyReview',        path: '/revisiones-mensuales' },
     { label: 'mgmt.clandestineAgreement', path: '/acuerdos-clandestinos' },
     { label: 'mgmt.admin',                path: '/admin' },
-    { label: 'mgmt.roleRequests',         path: '/solicitudes-rol' },
   ];
 
+  // Inbox ADMIN
+  private readonly inboxItemsAdmin: MenuItem[] = [
+    { label: 'nav.roleRequests',     path: '/solicitudes-rol' },
+    { label: 'nav.mailVerification', path: '/verificacion-mail' },
+  ];
+
+  // Inbox CLIENTE base
+  private readonly inboxItemsClient: MenuItem[] = [
+    { label: 'nav.myRoleRequest', path: '/mi-solicitud-rol' }, // Ruta de estado de solicitud
+  ];
+
+  // Páginas públicas
   readonly publicItems: MenuItem[] = [
     { label: 'nav.about',   path: '/sobre-nosotros' },
     { label: 'nav.faqs',    path: '/faqs' },
     { label: 'nav.contact', path: '/contactanos' },
   ];
 
+  // Ítems cliente (si está autenticado como client/admin)
   readonly clientItems: MenuItem[] = [
     { label: 'nav.store', path: '/tienda' },
   ];
 
-  // --- Indicador animado del menú izquierdo ---
   indicator = { x: 0, y: 0, w: 0, h: 0, visible: false };
 
   @ViewChild('menu', { static: true }) menuRef!: ElementRef<HTMLUListElement>;
   @ViewChildren('mainBtn') buttons!: QueryList<ElementRef<HTMLAnchorElement | HTMLButtonElement>>;
 
   constructor(router: Router) {
-    // Recalcula el indicador cuando cambia la ruta
     router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => setTimeout(() => this.updateIndicator(), 0));
@@ -93,22 +91,76 @@ export class NavbarComponent implements AfterViewInit {
 
   ngAfterViewInit() { this.updateIndicator(); }
 
-  // --- Helpers de roles ---
-  isAuthenticated(): boolean { return !!this.isLoggedIn(); }
-
-  isClient(): boolean {
-    const roles = this.user()?.roles ?? [];
-    return roles.includes('CLIENT') || roles.includes('CLIENTE');
+  // ===== Helpers DEV (mock sin backend) =====
+  private hasBypass(): boolean {
+    try { return localStorage.getItem('authBypass') === 'true'; } catch { return false; }
+  }
+  private mockRoles(): string[] {
+    try {
+      const raw = localStorage.getItem('mockRoles');
+      return raw ? raw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean) : [];
+    } catch { return []; }
+  }
+  private mockNotifCount(): number {
+    // Para simular notificaciones de cliente: setear localStorage.setItem('mockClientInbox', JSON.stringify([...]))
+    try {
+      const raw = localStorage.getItem('mockClientInbox');
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.length : 0;
+    } catch { return 0; }
   }
 
+  // --- Helpers de roles / auth ---
+  isAuthenticated(): boolean {
+    return !!this.isLoggedIn() || this.hasBypass();
+  }
+
+  private roles(): string[] {
+    const mocked = this.mockRoles();
+    if (mocked.length) return mocked;
+    const rs = this.user()?.roles ?? [];
+    return Array.isArray(rs) ? rs.map(r => (r || '').toString().toUpperCase()) : [];
+  }
+
+  isClient(): boolean {
+    const r = this.roles();
+    return r.includes('CLIENT') || r.includes('CLIENTE');
+  }
   isAdmin(): boolean {
-    const roles = this.user()?.roles ?? [];
-    return roles.includes('ADMIN') || roles.includes('ADMINISTRATOR');
+    const r = this.roles();
+    return r.includes('ADMIN') || r.includes('ADMINISTRATOR');
+  }
+  isSocio(): boolean {
+    return this.roles().includes('SOCIO');
+  }
+  isDistribuidor(): boolean {
+    return this.roles().includes('DISTRIBUIDOR');
+  }
+
+  /** Cliente base = solo CLIENT/CLIENTE (sin ADMIN/SOCIO/DISTRIBUIDOR) */
+  isOnlyClient(): boolean {
+    const r = new Set(this.roles());
+    const isClient = r.has('CLIENT') || r.has('CLIENTE');
+    const hasOther = r.has('ADMIN') || r.has('ADMINISTRATOR') || r.has('SOCIO') || r.has('DISTRIBUIDOR');
+    return isClient && !hasOther;
+  }
+
+  /** Items de Inbox según el rol */
+  inboxItems(): MenuItem[] {
+    if (this.isAdmin()) return this.inboxItemsAdmin;
+    if (this.isOnlyClient()) return this.inboxItemsClient;
+    return []; // otros roles sin inbox (según tu regla)
+  }
+
+  /** Contador de notificaciones: admin puede tener otros contadores; aquí priorizamos cliente base */
+  inboxCount(): number {
+    if (this.isOnlyClient()) return this.mockNotifCount();
+    return 0;
   }
 
   trackByPath(_i: number, it: MenuItem) { return it.path; }
 
-  // Grupo Gestión activo si la URL comienza con alguno de sus paths
+  // Activo: Gestión
   isGestionActive(): boolean {
     const url = this.routerSvc.url || '';
     return url.startsWith('/producto')
@@ -124,13 +176,19 @@ export class NavbarComponent implements AfterViewInit {
       || url.startsWith('/consejo-shelby')
       || url.startsWith('/revisiones-mensuales')
       || url.startsWith('/acuerdos-clandestinos')
-      || url.startsWith('/admin')
-      || url.startsWith('/solicitudes-rol');
+      || url.startsWith('/admin');
+  }
+
+  // Activo: Inbox (admin o cliente base)
+  isInboxActive(): boolean {
+    const url = this.routerSvc.url || '';
+    return url.startsWith('/solicitudes-rol')
+        || url.startsWith('/verificacion-mail')
+        || url.startsWith('/mi-solicitud-rol');
   }
 
   logout() { this.auth.logout(); }
 
-  // Posiciona el subrayado bajo el ítem activo
   private updateIndicator() {
     const menuEl = this.menuRef?.nativeElement;
     const activeEl = menuEl?.querySelector(

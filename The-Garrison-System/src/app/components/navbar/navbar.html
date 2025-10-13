@@ -54,7 +54,7 @@
     <!-- Separador flexible -->
     <div class="spacer"></div>
 
-    <!-- Menú DERECHO: públicas + gestión + usuario -->
+    <!-- Menú DERECHO: públicas + gestión + bandeja + usuario -->
     <ul class="menu menu--right" role="menubar" aria-label="Páginas">
       <!-- Páginas públicas -->
       <li class="menu__item" role="none" *ngFor="let p of publicItems; trackBy: trackByPath">
@@ -63,8 +63,9 @@
         </a>
       </li>
 
-      <!-- Gestión (solo admin) -->
-      <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated() && isAdmin()">
+      <!-- Gestión (ADMIN | SOCIO | DISTRIBUIDOR) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0"
+        *ngIf="isAuthenticated() && (isAdmin() || isSocio() || isDistribuidor())">
         <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
           [class.active]="isGestionActive()">
           {{ 'nav.management' | translate }} <span class="chevron">▾</span>
@@ -72,9 +73,202 @@
         </button>
 
         <ul class="dropdown" role="menu" aria-label="Gestión">
-          <li *ngFor="let item of gestionItems; trackBy: trackByPath" class="dropdown__item" role="none">
-            <a role="menuitem" [routerLink]="item.path" routerLinkActive="active">
-              {{ item.label | translate }} <span class="underline"></span>
+          <!-- ADMIN: ve todo -->
+          <ng-container *ngIf="isAdmin(); else notAdminBlock">
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/producto" routerLinkActive="active">
+                {{ 'mgmt.product' | translate }} <span class="underline"></span>
+              </a>
+            </li>
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/cliente" routerLinkActive="active">
+                {{ 'mgmt.client' | translate }} <span class="underline"></span>
+              </a>
+            </li>
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/venta" routerLinkActive="active">
+                {{ 'mgmt.sale' | translate }} <span class="underline"></span>
+              </a>
+            </li>
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/zona" routerLinkActive="active">
+                {{ 'mgmt.zone' | translate }} <span class="underline"></span>
+              </a>
+            </li>
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/autoridad" routerLinkActive="active">
+                {{ 'mgmt.authority' | translate }} <span class="underline"></span>
+              </a>
+            </li>
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/sobornos" routerLinkActive="active">
+                {{ 'mgmt.bribe' | translate }} <span class="underline"></span>
+              </a>
+            </li>
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/distribuidor" routerLinkActive="active">
+                {{ 'mgmt.distributor' | translate }} <span class="underline"></span>
+              </a>
+            </li>
+
+            <!-- Submenú: Sociedad (solo ADMIN y SOCIO) -->
+            <li class="dropdown__item dropdown__item--sub" role="none">
+              <!-- Contenedor que recibe foco/hover -->
+              <div class="dropdown__subgroup" tabindex="0" aria-haspopup="true" aria-expanded="false">
+                <span class="dropdown__subgroup-title">{{ 'nav.society' | translate }}</span>
+                <span class="chevron">▸</span>
+              </div>
+              <!-- Menú interno (hermano del subgroup, NO dentro del div) -->
+              <ul class="dropdown dropdown--inner" role="menu" aria-label="Sociedad">
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/decision" routerLinkActive="active">
+                    {{ 'mgmt.decision' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/socio" routerLinkActive="active">
+                    {{ 'mgmt.partner' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/consejo-shelby" routerLinkActive="active">
+                    {{ 'mgmt.shelbyCouncil' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/acuerdos-clandestinos" routerLinkActive="active">
+                    {{ 'mgmt.clandestineAgreement' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/revisiones-mensuales" routerLinkActive="active">
+                    {{ 'mgmt.monthlyReview' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/tematica" routerLinkActive="active">
+                    {{ 'mgmt.topic' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ng-container>
+
+          <!-- SOCIO / DISTRIBUIDOR -->
+          <ng-template #notAdminBlock>
+            <!-- SOCIO -->
+            <ng-container *ngIf="isSocio(); else distribBlock">
+              <li class="dropdown__item" role="none">
+                <a role="menuitem" routerLink="/producto" routerLinkActive="active">
+                  {{ 'mgmt.product' | translate }} <span class="underline"></span>
+                </a>
+              </li>
+              <li class="dropdown__item" role="none">
+                <a role="menuitem" routerLink="/zona" routerLinkActive="active">
+                  {{ 'mgmt.zone' | translate }} <span class="underline"></span>
+                </a>
+              </li>
+              <li class="dropdown__item" role="none">
+                <a role="menuitem" routerLink="/autoridad" routerLinkActive="active">
+                  {{ 'mgmt.authority' | translate }} <span class="underline"></span>
+                </a>
+              </li>
+              <li class="dropdown__item" role="none">
+                <a role="menuitem" routerLink="/sobornos" routerLinkActive="active">
+                  {{ 'mgmt.bribe' | translate }} <span class="underline"></span>
+                </a>
+              </li>
+              <li class="dropdown__item" role="none">
+                <a role="menuitem" routerLink="/distribuidor" routerLinkActive="active">
+                  {{ 'mgmt.distributor' | translate }} <span class="underline"></span>
+                </a>
+              </li>
+
+              <!-- Submenú: Sociedad -->
+              <li class="dropdown__item dropdown__item--sub" role="none">
+                <div class="dropdown__subgroup" tabindex="0" aria-haspopup="true" aria-expanded="false">
+                  <span class="dropdown__subgroup-title">{{ 'nav.society' | translate }}</span>
+                  <span class="chevron">▸</span>
+                </div>
+                <ul class="dropdown dropdown--inner" role="menu" aria-label="Sociedad">
+                  <li class="dropdown__item" role="none">
+                    <a role="menuitem" routerLink="/decision" routerLinkActive="active">
+                      {{ 'mgmt.decision' | translate }} <span class="underline"></span>
+                    </a>
+                  </li>
+                  <li class="dropdown__item" role="none">
+                    <a role="menuitem" routerLink="/socio" routerLinkActive="active">
+                      {{ 'mgmt.partner' | translate }} <span class="underline"></span>
+                    </a>
+                  </li>
+                  <li class="dropdown__item" role="none">
+                    <a role="menuitem" routerLink="/consejo-shelby" routerLinkActive="active">
+                      {{ 'mgmt.shelbyCouncil' | translate }} <span class="underline"></span>
+                    </a>
+                  </li>
+                  <li class="dropdown__item" role="none">
+                    <a role="menuitem" routerLink="/acuerdos-clandestinos" routerLinkActive="active">
+                      {{ 'mgmt.clandestineAgreement' | translate }} <span class="underline"></span>
+                    </a>
+                  </li>
+                  <li class="dropdown__item" role="none">
+                    <a role="menuitem" routerLink="/revisiones-mensuales" routerLinkActive="active">
+                      {{ 'mgmt.monthlyReview' | translate }} <span class="underline"></span>
+                    </a>
+                  </li>
+                  <li class="dropdown__item" role="none">
+                    <a role="menuitem" routerLink="/tematica" routerLinkActive="active">
+                      {{ 'mgmt.topic' | translate }} <span class="underline"></span>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            </ng-container>
+
+            <!-- DISTRIBUIDOR -->
+            <ng-template #distribBlock>
+              <ng-container *ngIf="isDistribuidor()">
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/producto" routerLinkActive="active">
+                    {{ 'mgmt.product' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/cliente" routerLinkActive="active">
+                    {{ 'mgmt.client' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/venta" routerLinkActive="active">
+                    {{ 'mgmt.sale' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/zona" routerLinkActive="active">
+                    {{ 'mgmt.zone' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+              </ng-container>
+            </ng-template>
+          </ng-template>
+        </ul>
+      </li>
+
+      <!-- Bandeja de entrada (ADMIN o CLIENTE base) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0"
+        *ngIf="isAuthenticated() && (isAdmin() || isOnlyClient())">
+        <button class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
+          [class.active]="isInboxActive()">
+          {{ 'nav.inbox' | translate }}
+          <span *ngIf="inboxCount() > 0" class="badge" [attr.aria-label]="'nav.unread' | translate">{{ inboxCount()
+            }}</span>
+          <span class="chevron">▾</span>
+          <span class="underline"></span>
+        </button>
+        <ul class="dropdown" role="menu" aria-label="Bandeja de entrada">
+          <li class="dropdown__item" role="none" *ngFor="let it of inboxItems(); trackBy: trackByPath">
+            <a role="menuitem" [routerLink]="it.path" routerLinkActive="active">
+              {{ it.label | translate }} <span class="underline"></span>
             </a>
           </li>
         </ul>
