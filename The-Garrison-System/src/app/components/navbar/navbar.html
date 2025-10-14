@@ -9,11 +9,10 @@
     <ul #menu class="menu menu--left" role="menubar" aria-label="Principal">
       <!-- Indicador vidrio -->
       <div class="glass-indicator" [class.visible]="indicator.visible" [ngStyle]="{
-          transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
-          width: indicator.w + 'px',
-          height: indicator.h + 'px'
-        }" aria-hidden="true">
-      </div>
+             transform: 'translate(' + indicator.x + 'px,' + indicator.y + 'px)',
+             width: indicator.w + 'px',
+             height: indicator.h + 'px'
+           }" aria-hidden="true"></div>
 
       <!-- Ítems cliente (si está autenticado) -->
       <ng-container *ngIf="isAuthenticated() && (isClient() || isAdmin())">
@@ -24,7 +23,7 @@
         </li>
       </ng-container>
 
-      <!-- Selector de idioma: SIEMPRE visible y a la derecha del bloque cliente -->
+      <!-- Selector de idioma -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
         <button class="dropdown__toggle has-underline lang-toggle" type="button" aria-haspopup="true"
           aria-expanded="false">
@@ -37,21 +36,18 @@
         <ul class="dropdown" role="menu" [attr.aria-label]="'nav.language' | translate">
           <li class="dropdown__item" role="none">
             <button type="button" role="menuitem" (click)="setLang('es')">
-              <span class="flag flag-es" aria-hidden="true"></span>
-              ES
+              <span class="flag flag-es" aria-hidden="true"></span> ES
             </button>
           </li>
           <li class="dropdown__item" role="none">
             <button type="button" role="menuitem" (click)="setLang('en')">
-              <span class="flag flag-en" aria-hidden="true"></span>
-              EN
+              <span class="flag flag-en" aria-hidden="true"></span> EN
             </button>
           </li>
         </ul>
       </li>
     </ul>
 
-    <!-- Separador flexible -->
     <div class="spacer"></div>
 
     <!-- Menú DERECHO: públicas + gestión + bandeja + usuario -->
@@ -73,7 +69,6 @@
         </button>
 
         <ul class="dropdown" role="menu" aria-label="Gestión">
-          <!-- ADMIN: ve todo -->
           <ng-container *ngIf="isAdmin(); else notAdminBlock">
             <li class="dropdown__item" role="none">
               <a role="menuitem" routerLink="/producto" routerLinkActive="active">
@@ -111,15 +106,14 @@
               </a>
             </li>
 
-            <!-- Submenú: Sociedad (solo ADMIN y SOCIO) -->
+            <!-- Sociedad (ADMIN) -->
             <li class="dropdown__item dropdown__item--sub" role="none">
-              <!-- Contenedor que recibe foco/hover -->
               <div class="dropdown__subgroup" tabindex="0" aria-haspopup="true" aria-expanded="false">
                 <span class="dropdown__subgroup-title">{{ 'nav.society' | translate }}</span>
                 <span class="chevron">▸</span>
               </div>
-              <!-- Menú interno (hermano del subgroup, NO dentro del div) -->
-              <ul class="dropdown dropdown--inner" role="menu" aria-label="Sociedad">
+              <!-- 👇 SOLO cambio: clase extra dropdown--inner-diag -->
+              <ul class="dropdown dropdown--inner dropdown--inner-diag" role="menu" aria-label="Sociedad">
                 <li class="dropdown__item" role="none">
                   <a role="menuitem" routerLink="/decision" routerLinkActive="active">
                     {{ 'mgmt.decision' | translate }} <span class="underline"></span>
@@ -184,13 +178,14 @@
                 </a>
               </li>
 
-              <!-- Submenú: Sociedad -->
+              <!-- Sociedad (SOCIO) -->
               <li class="dropdown__item dropdown__item--sub" role="none">
                 <div class="dropdown__subgroup" tabindex="0" aria-haspopup="true" aria-expanded="false">
                   <span class="dropdown__subgroup-title">{{ 'nav.society' | translate }}</span>
                   <span class="chevron">▸</span>
                 </div>
-                <ul class="dropdown dropdown--inner" role="menu" aria-label="Sociedad">
+                <!-- 👇 SOLO cambio: clase extra dropdown--inner-diag -->
+                <ul class="dropdown dropdown--inner dropdown--inner-diag" role="menu" aria-label="Sociedad">
                   <li class="dropdown__item" role="none">
                     <a role="menuitem" routerLink="/decision" routerLinkActive="active">
                       {{ 'mgmt.decision' | translate }} <span class="underline"></span>
@@ -257,14 +252,15 @@
       <!-- Bandeja de entrada (ADMIN o CLIENTE base) -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0"
         *ngIf="isAuthenticated() && (isAdmin() || isOnlyClient())">
-        <button class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
-          [class.active]="isInboxActive()">
-          {{ 'nav.inbox' | translate }}
-          <span *ngIf="inboxCount() > 0" class="badge" [attr.aria-label]="'nav.unread' | translate">{{ inboxCount()
-            }}</span>
-          <span class="chevron">▾</span>
+        <button class="dropdown__toggle has-underline icon-only" type="button" aria-haspopup="true"
+          aria-expanded="false" [class.active]="isInboxActive()" [attr.aria-label]="'nav.inbox' | translate">
+          <span class="material-symbols-outlined inbox-icon" aria-hidden="true">inbox</span>
+          <span *ngIf="inboxCount() > 0" class="badge" [attr.aria-label]="'nav.unread' | translate">
+            {{ inboxCount() }}
+          </span>
           <span class="underline"></span>
         </button>
+
         <ul class="dropdown" role="menu" aria-label="Bandeja de entrada">
           <li class="dropdown__item" role="none" *ngFor="let it of inboxItems(); trackBy: trackByPath">
             <a role="menuitem" [routerLink]="it.path" routerLinkActive="active">
@@ -276,17 +272,27 @@
 
       <!-- Usuario (logueado) -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated()">
-        <button class="dropdown__toggle" type="button" aria-haspopup="true" aria-expanded="false">
-          {{ user()?.['username'] || user()?.['email'] || 'User' }}
-          <span class="chevron">▾</span>
+        <button class="dropdown__toggle icon-only" type="button" aria-haspopup="true" aria-expanded="false"
+          [attr.aria-label]="(user()?.['username'] || user()?.['email'] || 'User')">
+          <span class="material-symbols-outlined account-icon" aria-hidden="true">account_box</span>
+          <span class="underline"></span>
         </button>
+
         <ul class="dropdown" role="menu" aria-label="Usuario">
+          <!-- Cabecera con el usuario (no clickable) -->
+          <li class="dropdown__item dropdown__item--header" role="none" aria-disabled="true">
+            <div class="dropdown__header">
+              {{ user()?.['username'] || user()?.['email'] || 'User' }}
+            </div>
+          </li>
+
+          <li class="dropdown__divider" role="separator"></li>
+
           <li class="dropdown__item" role="none">
             <a role="menuitem" routerLink="/mi-cuenta" routerLinkActive="active">
               {{ 'nav.myAccount' | translate }}
             </a>
           </li>
-          <li class="dropdown__divider" role="separator"></li>
           <li class="dropdown__item" role="none">
             <button type="button" class="btn-logout" (click)="logout()">
               {{ 'nav.logout' | translate }}

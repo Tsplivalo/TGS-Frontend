@@ -14,6 +14,8 @@ export type UserDTO = {
   phone?: string | null;
 };
 
+export type Role = 'ADMIN' | 'PARTNER' | 'DISTRIBUTOR' | 'CLIENT';
+
 export interface ApiResponse<T = unknown> { data: T; message?: string; }
 
 @Injectable({ providedIn: 'root' })
@@ -21,14 +23,20 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
+  /** === Config ===
+   * Si tu backend emite JWT en respuesta y querés mandarlo en Authorization,
+   * seteá USE_COOKIES = false y usá setToken() en el login.
+   * Actualmente usamos cookies (withCredentials: true), así que queda en true.
+   */
+  private static readonly USE_COOKIES = true;
+  private static readonly TOKEN_KEY = 'auth_token';
+
   /** estado */
   readonly user = signal<UserDTO | null>(null);
   readonly isLoggedIn = signal<boolean>(false);
 
-  /**
-   * PERFIL
-   * En este backend, el endpoint correcto es /api/users/me
-   */
+  // ========== Perfil ==========
+  /** GET /api/users/me (con cookies) */
   me(): Observable<UserDTO | null> {
     return this.http.get<ApiResponse<UserDTO>>('/api/users/me', { withCredentials: true }).pipe(
       map(res => (res?.data ?? null) as UserDTO | null),
@@ -39,45 +47,76 @@ export class AuthService {
     );
   }
 
-  /** Compat con main.ts: hidrata sesión desde cookie */
+  /** Hidrata sesión desde cookie (lo llama main.ts o AppComponent) */
   fetchMe(): void {
     this.me().subscribe();
   }
 
-  /** LOGIN: /api/auth/login  (objeto {email,password}) */
+  // ========== Auth ==========
+  /** POST /api/auth/login  body: { email, password } */
   login(payload: { email: string; password: string }): Observable<ApiResponse> {
     return this.http.post<ApiResponse>('/api/auth/login', payload, { withCredentials: true }).pipe(
-      tap(() => this.me().subscribe())
+      tap((res: any) => {
+        // Si alguna vez el backend devuelve token, lo guardamos (opcional)
+        const token = res?.data?.token as string | undefined;
+        if (token) this.setToken(token);
+        // Siempre refrescamos el perfil para poblar signals
+        this.me().subscribe();
+      })
     );
   }
 
-  /** REGISTER: /api/auth/register */
+  /** POST /api/auth/register */
   register(payload: { email: string; password: string; username?: string }): Observable<ApiResponse> {
     return this.http.post<ApiResponse>('/api/auth/register', payload, { withCredentials: true });
   }
 
-  /** LOGOUT: /api/auth/logout */
+  /** POST /api/auth/logout */
   logout(): void {
     this.http.post<ApiResponse>('/api/auth/logout', {}, { withCredentials: true })
       .subscribe({
-        next: () => {
-          this.user.set(null);
-          this.isLoggedIn.set(false);
-          this.router.navigateByUrl('/');
-        },
-        error: () => {
-          this.user.set(null);
-          this.isLoggedIn.set(false);
-          this.router.navigateByUrl('/');
-        }
+        next: () => this.clearSessionAndGoHome(),
+        error: () => this.clearSessionAndGoHome()
       });
   }
 
-  /** helpers de roles */
+  private clearSessionAndGoHome() {
+    this.clearToken();
+    this.user.set(null);
+    this.isLoggedIn.set(false);
+    this.router.navigateByUrl('/');
+  }
+
+  // ========== Token helpers (opcional JWT) ==========
+  /** Devuelve el token si estás usando modo JWT; en modo cookies devuelve null. */
+  token(): string | null {
+    if (AuthService.USE_COOKIES) return null;
+    try {
+      return localStorage.getItem(AuthService.TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Guarda el token (si usás JWT). */
+  setToken(token: string | null) {
+    if (AuthService.USE_COOKIES) return; // no hacemos nada en modo cookies
+    try {
+      if (token) localStorage.setItem(AuthService.TOKEN_KEY, token);
+      else localStorage.removeItem(AuthService.TOKEN_KEY);
+    } catch {}
+  }
+
+  /** Limpia token local. */
+  private clearToken() {
+    try { localStorage.removeItem(AuthService.TOKEN_KEY); } catch {}
+  }
+
+  // ========== Roles / helpers ==========
   roles(): string[] { return this.user()?.roles ?? []; }
   hasRole(role: string): boolean { return this.roles().includes(role); }
   isAdmin(): boolean { return this.hasRole('ADMIN') || this.hasRole('ADMINISTRATOR'); }
-  isPartner(): boolean { return this.hasRole('PARTNER'); }
-  isDistributor(): boolean { return this.hasRole('DISTRIBUTOR'); }
+  isPartner(): boolean { return this.hasRole('PARTNER') || this.hasRole('SOCIO'); } // por si usás 'SOCIO'
+  isDistributor(): boolean { return this.hasRole('DISTRIBUTOR') || this.hasRole('DISTRIBUIDOR'); }
   isClient(): boolean { return this.hasRole('CLIENT') || this.hasRole('CLIENTE'); }
 }

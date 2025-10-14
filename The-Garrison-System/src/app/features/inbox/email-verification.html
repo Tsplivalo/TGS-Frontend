@@ -1,0 +1,28 @@
+<section class="ev-pane">
+  <header class="ev-pane__header">
+    <h1>Verificación de email</h1>
+  </header>
+
+  <!-- Estados -->
+  <div *ngIf="state() === 'idle'" class="ev-box">
+    Pegá el link de verificación que recibiste por correo o hacé clic en el botón del email.
+  </div>
+
+  <div *ngIf="state() === 'verifying'" class="ev-box ev-box--info">
+    Verificando token…
+  </div>
+
+  <div *ngIf="state() === 'ok'" class="ev-box ev-box--ok">
+    ¡Tu email fue verificado correctamente! <span class="ev-msg" *ngIf="message()">{{ message() }}</span>
+  </div>
+
+  <div *ngIf="state() === 'error'" class="ev-box ev-box--bad">
+    No se pudo verificar el token. <span class="ev-msg" *ngIf="message()">{{ message() }}</span>
+  </div>
+
+  <!-- Acciones -->
+  <footer class="ev-actions">
+    <button class="btn" (click)="resend()">Reenviar verificación</button>
+    <a routerLink="/" class="btn">Ir al inicio</a>
+  </footer>
+</section>

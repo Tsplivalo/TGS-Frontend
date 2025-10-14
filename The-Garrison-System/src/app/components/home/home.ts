@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,14 +10,6 @@ import { AuthService } from '../../services/auth/auth';
 // i18n (solo pipe)
 import { TranslateModule } from '@ngx-translate/core';
 
-/**
- * HomeComponent
- *
- * Muestra el panel de autenticación (login/registro) cuando el usuario NO está logueado
- * y lo oculta con una breve animación cuando inicia sesión. Incluye tarjetas de features
- * con soporte i18n y accesibilidad básica (tecla Enter/Espacio para expandir).
- */
-
 type IntroItem = { titleKey: string; detailKey: string };
 
 @Component({
@@ -27,31 +19,33 @@ type IntroItem = { titleKey: string; detailKey: string };
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
-export class HomeComponent {
-  // --- Inyección de dependencias ---
+export class HomeComponent implements OnInit, OnDestroy {
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  // --- Estado de autenticación (expuesto por AuthService como signals) ---
-  readonly isLoggedIn = this.auth.isLoggedIn;   // signal<boolean>
-  readonly user       = this.auth.user;         // signal<{ username?: string } | null>
+  // --- Estado auth ---
+  readonly isLoggedIn = this.auth.isLoggedIn;
+  readonly user       = this.auth.user;
 
-  // --- Estado visual del panel auth ---
-  showAuthPanel = true;   // controla visibilidad del panel
-  entering = false;       // flag para animación de entrada
-  hiding   = false;       // flag para animación de salida
+  // --- UI auth panel ---
+  showAuthPanel = true;
+  entering = false;
+  hiding   = false;
 
-  // --- Modo del panel (login | register) ---
+  // --- Modo (login | register) ---
   mode = signal<'login' | 'register'>('login');
-  setMode(m: 'login' | 'register') { this.mode.set(m); }
+  setMode(m: 'login' | 'register') {
+    this.mode.set(m);
+    this.restartAnimationForMode();
+  }
 
-  // --- Logo (fallback simple si falla la carga) ---
+  // --- Logo ---
   logoOk = true;
   onLogoError() { this.logoOk = false; }
 
-  // --- Formularios reactivos ---
-  // Campos mínimos y validaciones razonables; el backend valida definitivamente.
+  // --- Formularios ---
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
@@ -63,13 +57,64 @@ export class HomeComponent {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  // --- Estado de envío / error por acción ---
+  // --- Estado envío / error ---
   loadingLogin    = false;
   loadingRegister = false;
-  errorLogin: string | null = null;     // claves i18n o mensajes planos
-  errorRegister: string | null = null;  // idem
+  errorLogin: string | null = null;
+  errorRegister: string | null = null;
 
-  // --- Contenido de introducción (claves i18n) ---
+  // ====== PLACEHOLDERS ANIMADOS (sin genéricos) ======
+  animatedPlaceholder = '';       // email (login/register)
+  animatedNamePlaceholder = '';   // username (register)
+
+  // >>> Tokens de cancelación (evita carreras entre type/delete) <<<
+  private emailToken = 0;
+  private nameToken  = 0;
+  private bumpEmailToken(): number { return ++this.emailToken; }
+  private bumpNameToken(): number  { return ++this.nameToken; }
+
+  // Personajes login (solo email)
+  private loginCharacters = [
+    { name: 'Anakin Skywalker', email: 'anakinskywalker@theforce.com' },
+    { name: 'Luke Skywalker',   email: 'lukeskywalker@jedi.com' },
+    { name: 'Leia Organa',      email: 'leia@rebellion.com' },
+    { name: 'Obi-Wan Kenobi',   email: 'obiwan@jedi.com' },
+    { name: 'Yoda',             email: 'yoda@dagobah.com' },
+    { name: 'Darth Vader',      email: 'darthvader@empire.com' },
+    { name: 'Han Solo',         email: 'han@millennium.com' },
+    { name: 'Chewbacca',        email: 'chewbacca@kashyyyk.com' }
+  ];
+  private loginCharacterIndex = 0;
+
+  // Personajes register (nombre + email)
+  private registerCharacters = [
+    { name: 'Anakin Skywalker', email: 'anakinskywalker@theforce.com' },
+    { name: 'Luke Skywalker',   email: 'lukeskywalker@jedi.com' },
+    { name: 'Leia Organa',      email: 'leia@rebellion.com' },
+    { name: 'Obi-Wan Kenobi',   email: 'obiwan@jedi.com' },
+    { name: 'Yoda',             email: 'yoda@dagobah.com' },
+    { name: 'Darth Vader',      email: 'darthvader@empire.com' },
+    { name: 'Han Solo',         email: 'han@millennium.com' },
+    { name: 'Chewbacca',        email: 'chewbacca@kashyyyk.com' },
+    { name: 'Rey',              email: 'rey@resistance.com' },
+    { name: 'Kylo Ren',         email: 'kyloren@firstorder.com' },
+    { name: 'Padmé Amidala',    email: 'padme@naboo.com' },
+    { name: 'Mace Windu',       email: 'macewindu@jedi.com' }
+  ];
+  private registerCharacterIndex = 0;
+
+  // Flags animación
+  private isTyping = false;
+  private isTypingName = false;
+  private isDeletingEmail = false;
+  private isDeletingName = false;
+
+  private userIsTyping = false;
+  private userIsTypingName = false;
+
+  private registerAnimationRunning = false;
+
+  // Intro
   introItems: IntroItem[] = [
     { titleKey: 'home.features.simplified.title',  detailKey: 'home.features.simplified.detail' },
     { titleKey: 'home.features.performance.title', detailKey: 'home.features.performance.detail' },
@@ -79,7 +124,7 @@ export class HomeComponent {
     { titleKey: 'home.features.integrations.title',detailKey: 'home.features.integrations.detail' },
   ];
 
-  // --- Expand/Collapse de cards (con soporte de teclado) ---
+  // Expandibles
   flipped = new Set<number>();
   toggleFlip(i: number, ev?: Event) {
     ev?.preventDefault();
@@ -93,83 +138,276 @@ export class HomeComponent {
     }
   }
 
-  // --- Derivado: mostrar panel si NO hay sesión ---
   private _shouldShowAuth = computed(() => !this.isLoggedIn());
 
   constructor() {
-    // Reacciona a cambios de sesión para disparar animaciones de entrada/salida del panel.
     effect(() => {
-      const logged = this.isLoggedIn();
-      const mustShow = !logged;
-
+      const mustShow = !this.isLoggedIn();
       if (mustShow && !this.showAuthPanel) {
-        // Mostrar con micro-animación
         this.entering = true;
         this.showAuthPanel = true;
         queueMicrotask(() => setTimeout(() => (this.entering = false), 200));
       } else if (!mustShow && this.showAuthPanel) {
-        // Ocultar con breve salida
         this.hiding = true;
-        setTimeout(() => {
-          this.showAuthPanel = false;
-          this.hiding = false;
-        }, 220);
+        setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 220);
       }
     });
   }
 
-  // --- LOGIN ---
-  async submitLogin() {
-    this.errorLogin = null;
-    this.loadingLogin = true;
+  ngOnInit() { this.startStarWarsAnimation(); }
 
+  ngOnDestroy() {
+    // invalidar todo lo pendiente
+    this.bumpEmailToken();
+    this.bumpNameToken();
+    this.registerAnimationRunning = false;
+    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+    this.loginCharacterIndex = 0;
+    this.registerCharacterIndex = 0;
+  }
+
+  // ===== Helpers de estado anim (sin genéricos) =====
+  emailAnimOn(): boolean {
+    return this.isTyping || this.isDeletingEmail || !!this.animatedPlaceholder;
+  }
+  nameAnimOn(): boolean {
+    return this.isTypingName || this.isDeletingName || !!this.animatedNamePlaceholder;
+  }
+
+  // ===== Inicio / reinicio animación =====
+  private startStarWarsAnimation() {
+    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+    this.registerAnimationRunning = false;
+
+    this.loginCharacterIndex = 0;
+    this.registerCharacterIndex = 0;
+
+    // limpiar y empezar
+    this.animatedPlaceholder = '';
+    this.animatedNamePlaceholder = '';
+
+    this.startAnimationForCurrentMode();
+  }
+
+  private startAnimationForCurrentMode() {
+    if (this.mode() === 'login') this.startLoginAnimation();
+    else this.startRegisterAnimation();
+  }
+
+  private async startLoginAnimation() {
+    this.isTyping = false;
+    this.isDeletingEmail = false;
+    this.animatedNamePlaceholder = '';
+    this.animatedPlaceholder = '';
+
+    while (this.mode() === 'login') {
+      // token único para TODO el ciclo (type + pause + delete) del email
+      const token = this.bumpEmailToken();
+
+      const email = this.loginCharacters[this.loginCharacterIndex].email;
+      await this.typeEmail(email, token);
+      if (token !== this.emailToken) break;
+
+      await this.delay(3000);
+      if (token !== this.emailToken) break;
+
+      await this.deleteEmailText(email, token);
+      if (token !== this.emailToken) break;
+
+      // descanso breve sin texto
+      await this.delay(800);
+      if (token !== this.emailToken) break;
+
+      this.loginCharacterIndex = (this.loginCharacterIndex + 1) % this.loginCharacters.length;
+    }
+
+    // limpiar al salir
+    this.animatedPlaceholder = '';
+  }
+
+  private async startRegisterAnimation() {
+    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+    this.registerAnimationRunning = true;
+
+    this.animatedPlaceholder = '';
+    this.animatedNamePlaceholder = '';
+
+    this.runRegisterAnimationLoop();
+  }
+
+  private restartAnimationForMode() {
+    // invalidar todo lo que esté en curso
+    this.bumpEmailToken();
+    this.bumpNameToken();
+
+    this.registerAnimationRunning = false;
+    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+
+    this.loginCharacterIndex = 0;
+    this.registerCharacterIndex = 0;
+
+    this.animatedPlaceholder = '';
+    this.animatedNamePlaceholder = '';
+
+    setTimeout(() => this.startAnimationForCurrentMode(), 60);
+  }
+
+  private async runRegisterAnimationLoop() {
+    while (this.registerAnimationRunning && this.mode() === 'register') {
+      // tokens por campo (independientes)
+      const nameToken  = this.bumpNameToken();
+      const emailToken = this.bumpEmailToken();
+
+      const character = this.registerCharacters[this.registerCharacterIndex];
+
+      await this.typeName(character.name, nameToken);
+      if (nameToken !== this.nameToken) break;
+
+      await this.delay(1000);
+      if (emailToken !== this.emailToken) break;
+
+      await this.typeEmail(character.email, emailToken);
+      if (emailToken !== this.emailToken) break;
+
+      await this.delay(3000);
+      if (emailToken !== this.emailToken) break;
+
+      await this.deleteEmailText(character.email, emailToken);
+      if (emailToken !== this.emailToken) break;
+
+      await this.delay(500); // sin genérico
+      if (nameToken !== this.nameToken) break;
+
+      await this.deleteNameText(character.name, nameToken);
+      if (nameToken !== this.nameToken) break;
+
+      await this.delay(500); // sin genérico
+      if (nameToken !== this.nameToken || emailToken !== this.emailToken) break;
+
+      // descanso breve sin texto
+      this.animatedPlaceholder = '';
+      this.animatedNamePlaceholder = '';
+      await this.delay(1200);
+      if (nameToken !== this.nameToken || emailToken !== this.emailToken) break;
+
+      this.registerCharacterIndex = (this.registerCharacterIndex + 1) % this.registerCharacters.length;
+    }
+
+    // limpiar al salir
+    this.animatedPlaceholder = '';
+    this.animatedNamePlaceholder = '';
+  }
+
+  // ===== Lógica de tipeo/borrado (con tokens y snapshots) =====
+  private async typeEmail(text: string, token: number) {
+    if (this.isTyping) return;
+    this.isTyping = true;
+
+    // escribir char a char, abortable
+    for (let i = 0; i <= text.length; i++) {
+      if (token !== this.emailToken) break;
+      this.animatedPlaceholder = text.substring(0, i);
+
+      let speed = 120;
+      if (i < text.length * 0.3) speed = 150;
+      else if (i > text.length * 0.7) speed = 80;
+      if (text[i] === '@' || text[i] === '.') speed = 200;
+
+      await this.delay(speed);
+    }
+
+    // si se canceló, no tocar flags
+    if (token === this.emailToken) this.isTyping = false;
+  }
+
+  private async deleteEmailText(text: string, token: number) {
+    if (this.isDeletingEmail) return;
+    this.isDeletingEmail = true;
+
+    // snapshot del texto actual para evitar "reapariciones"
+    const starting = this.animatedPlaceholder || text;
+
+    for (let i = starting.length; i >= 0; i--) {
+      if (token !== this.emailToken) break;
+      this.animatedPlaceholder = starting.substring(0, i);
+      await this.delay(60);
+    }
+
+    if (token === this.emailToken) this.isDeletingEmail = false;
+  }
+
+  private async typeName(text: string, token: number) {
+    if (this.isTypingName) return;
+    this.isTypingName = true;
+
+    for (let i = 0; i <= text.length; i++) {
+      if (token !== this.nameToken) break;
+      this.animatedNamePlaceholder = text.substring(0, i);
+
+      let speed = 120;
+      if (i < text.length * 0.3) speed = 150;
+      else if (i > text.length * 0.7) speed = 80;
+      if (text[i] === ' ') speed = 200;
+      else if (text[i] === '-' || text[i] === "'") speed = 180;
+
+      await this.delay(speed);
+    }
+
+    if (token === this.nameToken) this.isTypingName = false;
+  }
+
+  private async deleteNameText(text: string, token: number) {
+    if (this.isDeletingName) return;
+    this.isDeletingName = true;
+
+    const starting = this.animatedNamePlaceholder || text;
+
+    for (let i = starting.length; i >= 0; i--) {
+      if (token !== this.nameToken) break;
+      this.animatedNamePlaceholder = starting.substring(0, i);
+      await this.delay(60);
+    }
+
+    if (token === this.nameToken) this.isDeletingName = false;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // --- Focus handlers ---
+  onEmailFocus() { this.userIsTyping = true; }
+  onEmailBlur()  { setTimeout(() => { this.userIsTyping = false; }, 1000); }
+  onNameFocus()  { this.userIsTypingName = true; }
+  onNameBlur()   { setTimeout(() => { this.userIsTypingName = false; }, 1000); }
+
+  // --- Login/Register ---
+  async submitLogin() {
+    this.errorLogin = null; this.loadingLogin = true;
     try {
       const { email, password } = this.loginForm.getRawValue();
       if (!email || !password) throw new Error('auth.errors.missingFields');
-
       await firstValueFrom(this.auth.login({ email, password }));
-
-      // Ocultar panel tras login exitoso
       this.hiding = true;
-      setTimeout(() => {
-        this.showAuthPanel = false;
-        this.hiding = false;
-      }, 180);
+      setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 180);
     } catch (e: any) {
-      // Si llega una clave i18n, la UI puede traducirla; si no, mostrar texto tal cual.
       this.errorLogin = e?.message || 'auth.errors.loginFailed';
-    } finally {
-      this.loadingLogin = false;
-    }
+    } finally { this.loadingLogin = false; }
   }
 
-  // --- REGISTER (+ auto login) ---
   async submitRegister() {
-    this.errorRegister = null;
-    this.loadingRegister = true;
-
+    this.errorRegister = null; this.loadingRegister = true;
     try {
       const { username, email, password } = this.registerForm.getRawValue();
       if (!username || !email || !password) throw new Error('auth.errors.missingFields');
-
       await firstValueFrom(this.auth.register({ username, email, password }));
       await firstValueFrom(this.auth.login({ email, password }));
-
-      // Ocultar panel tras registro + login
       this.hiding = true;
-      setTimeout(() => {
-        this.showAuthPanel = false;
-        this.hiding = false;
-      }, 180);
+      setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 180);
     } catch (e: any) {
       this.errorRegister = e?.message || 'auth.errors.registerFailed';
-    } finally {
-      this.loadingRegister = false;
-    }
+    } finally { this.loadingRegister = false; }
   }
 
-  // --- CTA: navegación a la tienda ---
-  goStore() {
-    this.router.navigateByUrl('/tienda');
-  }
+  goStore() { this.router.navigateByUrl('/tienda'); }
 }

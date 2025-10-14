@@ -1,0 +1,73 @@
+<section class="pane">
+  <header class="pane__header">
+    <h1>Solicitudes de rol</h1>
+    <div class="actions">
+      <select class="input" [(ngModel)]="statusFilter" (ngModelChange)="reload()">
+        <option value="PENDING">Pendientes</option>
+        <option value="APPROVED">Aprobadas</option>
+        <option value="REJECTED">Rechazadas</option>
+      </select>
+
+      <div class="search">
+        <input class="input" placeholder="Buscar…" [(ngModel)]="q" (keyup.enter)="reload()" />
+        <button class="btn" (click)="reload()">Buscar</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="card__body table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Rol solicitado</th>
+            <th>Motivo</th>
+            <th>Creado</th>
+            <th>Estado</th>
+            <th class="right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of items()">
+            <td class="nowrap">{{ r.user }}</td>
+            <td class="nowrap">{{ r.reviewedBy }}</td>
+            <td class="nowrap">{{ r.requestedRole }}</td>
+            <td class="truncate" [title]="r.reason || ''">{{ r.reason || '—' }}</td>
+            <td class="nowrap">{{ r.createdAt | date:'short' }}</td>
+            <td>
+              <span class="badge" [class.badge--pending]="r.status==='PENDING'"
+                [class.badge--ok]="r.status==='APPROVED'" [class.badge--bad]="r.status==='REJECTED'">
+                {{ r.status }}
+              </span>
+            </td>
+            <td class="right nowrap">
+              <ng-container [ngSwitch]="r.status">
+                <div *ngSwitchCase="'PENDING'" class="inline-actions">
+                  <button class="btn btn--ok" (click)="approve(r)">Aprobar</button>
+                  <button class="btn btn--bad" (click)="reject(r)">Rechazar</button>
+                </div>
+                <span *ngSwitchDefault class="muted">—</span>
+              </ng-container>
+            </td>
+          </tr>
+          <tr *ngIf="!items()?.length">
+            <td class="empty" colspan="7">
+              No hay resultados para los filtros actuales.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="pager">
+      <div class="muted">Total: {{ total() }}</div>
+      <div class="pager__controls">
+        <button class="btn" [disabled]="page()<=1" (click)="prev()">Anterior</button>
+        <span class="muted">Página {{ page() }}</span>
+        <button class="btn" [disabled]="page()*pageSize()>=total()" (click)="next()">Siguiente</button>
+      </div>
+    </footer>
+  </div>
+</section>

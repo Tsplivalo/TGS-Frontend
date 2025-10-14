@@ -3,6 +3,7 @@
   "nav": {
     "store": "Store",
     "myAccount": "My account",
+    "logout": "Log out",
     "management": "Management",
     "society": "Society",
     "inbox": "Inbox",

@@ -275,14 +275,11 @@
 }
 
 /* ====== Submenú interno (Sociedad) ====== */
-/* Contenedor de submenú dentro de un item del dropdown */
 .dropdown__item--sub {
   position: relative;
   padding-right: 1.2rem;
-  /* espacio para chevron si lo usás */
 }
 
-/* Bloque clickable que abre el submenú */
 .dropdown__subgroup {
   display: flex;
   align-items: center;
@@ -292,23 +289,19 @@
   border-radius: .6rem;
   color: var(--text);
   cursor: default;
-  /* el submenú abre por hover/focus del li */
 }
 
-/* Título del submenú */
 .dropdown__subgroup-title {
   font-weight: 700;
   letter-spacing: .2px;
 }
 
-/* Chevron opcional (si lo renderizás con HTML) */
 .dropdown__subgroup .chevron {
   font-size: .9rem;
   opacity: .8;
   transition: transform .15s ease;
 }
 
-/* Lista anidada */
 .dropdown--inner {
   position: absolute;
   top: 0;
@@ -332,7 +325,6 @@
   min-width: 220px;
 }
 
-/* Abrir submenú por hover o teclado */
 .dropdown__item--sub:focus-within>.dropdown--inner,
 .dropdown__item--sub:hover>.dropdown--inner {
   display: block;
@@ -340,14 +332,12 @@
   transform: translateX(0);
 }
 
-/* Estado visual al pasar por el subgrupo */
 .dropdown__item--sub:hover>.dropdown__subgroup,
 .dropdown__item--sub:focus-within>.dropdown__subgroup {
   background: rgba(255, 255, 255, 0.07);
   border-radius: .6rem;
 }
 
-/* Rotar chevron al abrir (si lo usás) */
 .dropdown__item--sub:hover .chevron,
 .dropdown__item--sub:focus-within .chevron {
   transform: rotate(90deg);
@@ -398,7 +388,6 @@
 }
 
 /* ====== Estados activos de grupos (Gestión / Inbox) ====== */
-/* Si en tu TS agregás class .active al toggle, esto ayuda visualmente */
 .menu__item--dropdown .dropdown__toggle .chevron {
   transition: transform .15s ease;
 }
@@ -476,6 +465,8 @@
   opacity: .85;
   letter-spacing: .5px;
 }
+
+/* Badge genérico (cuando no es icon-only) */
 .badge {
   margin-left: .4rem;
   padding: .15rem .4rem;
@@ -484,4 +475,166 @@
   background: #ef4444;
   color: #fff;
   font-weight: 800;
+}
+
+/* ====== Material Symbols hardening ====== */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* variaciones */
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ====== Botón Inbox icon-only ====== */
+.dropdown__toggle.icon-only {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  /* para posicionar el badge */
+}
+
+/* Tamaño y ajuste del ícono de inbox */
+.inbox-icon {
+  font-size: 22px;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+/* Badge arriba a la derecha en modo icon-only */
+.dropdown__toggle.icon-only .badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(12, 18, 32, .6);
+}
+
+/* Evitar subrayado largo en botón de icono */
+.dropdown__toggle.icon-only .underline {
+  left: 8px;
+  right: 8px;
+}
+
+/* Ícono de cuenta en el botón */
+.account-icon {
+  font-size: 22px;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+/* Cabecera dentro del dropdown de usuario */
+.dropdown__item--header .dropdown__header {
+  padding: .6rem .7rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  cursor: default;
+  user-select: text;
+}
+
+/* ====== Despliegue diagonal (hacia abajo con leve desplazamiento lateral) ====== */
+
+/* base común */
+.dropdown--diag {
+  /* arranca un poco desplazado en diagonal */
+  transform: translate(10px, 10px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+/* cuando abre (hover/focus) anulamos el desplazamiento */
+.menu__item--dropdown:focus-within>.dropdown--diag,
+.menu__item--dropdown:hover>.dropdown--diag {
+  display: block;
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* Variante: el dropdown está en el menú de la derecha => que salga hacia abajo y levemente a la IZQUIERDA */
+.menu--right .menu__item--dropdown>.dropdown--diag {
+  right: 0;
+  left: auto;
+  transform: translate(-10px, 10px);
+}
+
+.menu--right .menu__item--dropdown:focus-within>.dropdown--diag,
+.menu--right .menu__item--dropdown:hover>.dropdown--diag {
+  transform: translate(0, 0);
+}
+
+/* Opcional: mantener un pequeño "puente" para que no se corte el hover entre botón y panel */
+.dropdown--diag::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  /* área fantasma entre botón y panel */
+}
+
+/* En pantallas chicas, reducí el offset para que no se vaya afuera */
+@media (max-width: 720px) {
+  .dropdown--diag {
+    transform: translate(6px, 8px);
+  }
+
+  .menu--right .menu__item--dropdown>.dropdown--diag {
+    transform: translate(-6px, 8px);
+  }
+}
+
+/* ====== Submenú Sociedad: despliegue diagonal hacia abajo ====== */
+.dropdown--inner-diag {
+  /* abre debajo y levemente a la derecha del item */
+  top: calc(100% + .5rem);
+  left: .75rem;
+  right: auto;
+  transform: translate(6px, 8px);
+  opacity: 0;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+/* Mostrar en hover/focus del contenedor */
+.dropdown__item--sub:focus-within>.dropdown--inner-diag,
+.dropdown__item--sub:hover>.dropdown--inner-diag {
+  display: block;
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* Evitar corte del flyout */
+.menu__item--dropdown {
+  overflow: visible;
+}
+
+/* Responsive: mover un poco menos a la derecha en pantallas chicas */
+@media (max-width: 720px) {
+  .dropdown--inner-diag {
+    left: .4rem;
+    transform: translate(4px, 6px);
+  }
 }
