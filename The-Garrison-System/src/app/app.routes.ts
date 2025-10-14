@@ -35,7 +35,7 @@ export const routes: Routes = [
   { path: 'autoridad', loadComponent: () => import('./components/authority/authority.js').then(m => m.AuthorityComponent),
     canMatch: [authGuard, roleGuard],
     data: { roles: ['ADMIN','ADMINISTRATOR','SOCIO'] } },
-  { path: 'sobornos', loadComponent: () => import('./components/bribe/bribe.js').then(m => m.BribeComponent),
+  { path: 'sobornos', loadComponent: () => import('./components/bribe/bribe').then(m => m.BribeComponent),
     canMatch: [authGuard, roleGuard],
     data: { roles: ['ADMIN','ADMINISTRATOR','SOCIO'] } },
   { path: 'distribuidor', loadComponent: () => import('./components/distributor/distributor.js').then(m => m.DistributorComponent),

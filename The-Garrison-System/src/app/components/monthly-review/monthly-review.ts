@@ -234,10 +234,15 @@ export class MonthlyReviewComponent implements OnInit {
   /** Carga el listado completo desde el servicio. */
   private load(): void {
     this.loading.set(true);
+    this.error.set(null);
+
     this.srv.list().subscribe({
-      next: (res) => { this.items.set(res.data ?? []); this.loading.set(false); },
-      error: (e)  => {
-        this.error.set(e?.error?.message ?? (this.tr.instant('monthlyReview.errorLoad') || 'Error cargando'));
+      next: (list: MonthlyReviewDTO[]) => {
+        this.items.set(Array.isArray(list) ? list : []);
+        this.loading.set(false);
+      },
+      error: (e: any) => {
+        this.error.set(e?.error?.message ?? 'Error cargando');
         this.loading.set(false);
       }
     });
@@ -250,9 +255,10 @@ export class MonthlyReviewComponent implements OnInit {
   loadStats(): void {
     const y = this.fYear();
     const m = this.fMonth() ?? undefined;
+
     this.srv.stats(y, m, 'product').subscribe({
-      next: (res) => this.stats.set(res.data ?? []),
-      error: () => {}
+      next: (arr: SalesStatsItem[]) => this.stats.set(Array.isArray(arr) ? arr : []),
+      error: (_e: any) => {}
     });
-  }
+}
 }

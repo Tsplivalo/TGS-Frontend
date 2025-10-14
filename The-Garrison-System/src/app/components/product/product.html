@@ -1,179 +1,93 @@
 <section class="stack-lg">
-
-  <!-- LISTADO / PANEL PRINCIPAL -->
   <div class="glass-dark card stack-md">
-    <!-- Toolbar -->
-    <header class="header">
-      <h2 class="title">{{ 'product.title' | translate }}</h2>
+    <div class="header">
+      <h2>{{ 'products.title' | translate }}</h2>
       <div class="right">
-        <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ isNewOpen ? ('product.close' | translate) : ('product.new' | translate) }}
+        <button class="btn" (click)="new()">{{ 'common.new' | translate }}</button>
+      </div>
+    </div>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <form class="grid form" [formGroup]="form" (ngSubmit)="save()">
+      <label class="label">
+        <span>{{ 'products.description' | translate }}</span>
+        <input class="input" formControlName="description" />
+        <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
+          {{ 'products.validation.description' | translate }}
+        </small>
+      </label>
+
+      <label class="label" style="grid-column: 1 / -1;">
+        <span>{{ 'products.detail' | translate }}</span>
+        <textarea class="input" formControlName="detail" rows="2"></textarea>
+        <small class="hint" *ngIf="form.controls.detail.invalid && form.controls.detail.touched">
+          {{ 'products.validation.detail' | translate }}
+        </small>
+      </label>
+
+      <label class="label">
+        <span>{{ 'products.price' | translate }}</span>
+        <input type="number" class="input" formControlName="price" step="0.01" />
+      </label>
+
+      <label class="label">
+        <span>{{ 'products.stock' | translate }}</span>
+        <input type="number" class="input" formControlName="stock" />
+      </label>
+
+      <label class="label checkbox">
+        <input type="checkbox" formControlName="isIllegal" />
+        <span>{{ 'products.isIllegal' | translate }}</span>
+      </label>
+
+      <!-- Solo front -->
+      <label class="label" style="grid-column: 1 / -1;">
+        <span>{{ 'products.imageUrl' | translate }}</span>
+        <input class="input" formControlName="imageUrl" placeholder="https://..." />
+      </label>
+
+      <div class="right" style="grid-column: 1 / -1;">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ (editId() == null ? 'common.create' : 'common.save') | translate }}
+        </button>
+        <button class="btn ghost" type="button" (click)="new()">
+          {{ 'common.cancel' | translate }}
         </button>
       </div>
-    </header>
+    </form>
 
-    <!-- Mensajes -->
-    <div class="error" *ngIf="error() as err">
-      <strong>{{ 'common.error' | translate: {} : 'Error' }}</strong> {{ err }}
-    </div>
-    <div class="muted" *ngIf="loading()">{{ 'product.loading' | translate : {} : 'Cargando productos...' }}</div>
+    <hr />
 
-    <!-- Filtros -->
-    <section class="filters">
-      <label class="label">
-        <span class="label-text">{{ 'product.filters.search' | translate }}</span>
-        <input class="input" type="text" [placeholder]="'product.filters.search' | translate" [value]="fText()"
-          (input)="fText.set($any($event.target).value)" />
-      </label>
+    <div *ngIf="loading()">{{ 'common.loading' | translate }}</div>
 
-      <label class="label">
-        <span class="label-text">{{ 'product.filters.stock' | translate }}</span>
-        <select class="input" [value]="fStock()" (change)="fStock.set($any($event.target).value)">
-          <option value="all">{{ 'product.filters.stock_all' | translate }}</option>
-          <option value="with">{{ 'product.filters.stock_with' | translate }}</option>
-          <option value="without">{{ 'product.filters.stock_without' | translate }}</option>
-        </select>
-      </label>
-    </section>
-
-    <!-- TABLA: Listado principal -->
-    <section class="subsection">
-      <h3 class="sub-title">{{ 'product.list' | translate }}</h3>
-
-      <div class="table-wrap" *ngIf="filteredList().length; else emptyState">
-        <table class="table">
-          <thead>
-            <tr>
-              <th style="width:80px;">ID</th>
-              <th>{{ 'product.fields.description' | translate }}</th>
-              <th style="width:120px;">{{ 'product.fields.imageUrl' | translate }}</th>
-              <th style="width:140px;">{{ 'product.fields.price' | translate }}</th>
-              <th style="width:120px;">{{ 'product.fields.stock' | translate }}</th>
-              <th style="width:120px;">{{ 'product.fields.illegal' | translate }}</th>
-              <th style="width:200px;" class="right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let p of filteredList()">
-              <td>#{{ p.id }}</td>
-              <td>{{ p.description }}</td>
-              <td>
-                <img *ngIf="p.imageUrl" [src]="p.imageUrl!" alt=""
-                  style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
-                <span *ngIf="!p.imageUrl" class="muted">—</span>
-              </td>
-              <td>{{ p.price | currency:'ARS':'symbol':'1.0-2' }}</td>
-              <td>
-                <span class="badge" [class.badge-warn]="p.stock === 0">{{ p.stock }}</span>
-              </td>
-              <td>
-                <span class="badge" [class.badge-danger]="p.isIllegal" [class.badge-ok]="!p.isIllegal">
-                  {{ p.isIllegal ? 'Sí' : 'No' }}
-                </span>
-              </td>
-              <td class="right">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(p)" [attr.aria-label]="'common.edit' | translate"
-                  [attr.title]="'common.edit' | translate">
-                  ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
-                </button>
-              
-                <button class="btn danger btn--icon" type="button" (click)="delete(p.id)" [disabled]="loading()"
-                  [attr.aria-label]="'common.delete' | translate" [attr.title]="'common.delete' | translate">
-                  🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
-                </button>
-              </td>
-
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Empty state -->
-      <ng-template #emptyState>
-        <div class="empty">
-          <h3>{{ 'product.emptyTitle' | translate : {} : 'No hay productos' }}</h3>
-          <p>{{ 'product.emptyHint' | translate : {} : 'Probá ajustar los filtros o creá un producto nuevo.' }}</p>
-        </div>
-      </ng-template>
-    </section>
+    <table class="table" *ngIf="!loading()">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>{{ 'products.description' | translate }}</th>
+          <th>{{ 'products.detail' | translate }}</th>
+          <th>{{ 'products.price' | translate }}</th>
+          <th>{{ 'products.stock' | translate }}</th>
+          <th>{{ 'products.isIllegal' | translate }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- trackBy correcto -->
+        <tr *ngFor="let p of items(); trackBy: trackById">
+          <td>{{ p.id }}</td>
+          <td>{{ p.description }}</td>
+          <td>{{ p.detail }}</td>
+          <td>{{ p.price | number:'1.2-2' }}</td>
+          <td>{{ p.stock }}</td>
+          <td>{{ p.isIllegal ? '⚠️' : '✅' }}</td>
+          <td class="right">
+            <button class="btn" (click)="edit(p)">{{ 'common.edit' | translate }}</button>
+            <button class="btn danger" (click)="remove(p.id)">{{ 'common.delete' | translate }}</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-
-  <!-- FORMULARIO (PLEGABLE) -->
-  <div class="collapsible" [class.open]="isNewOpen">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
-        <h2 class="title">
-          {{ editId() == null
-          ? ('product.create' | translate)
-          : ('product.editTitle' | translate : { id: editId() } : ('Editar producto #' + editId())) }}
-        </h2>
-      </div>
-
-      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-        <label class="label col-2">
-          <span>{{ 'product.fields.description' | translate }}</span>
-          <input class="input" formControlName="description" [placeholder]="'product.fields.description' | translate" />
-          <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
-            {{ 'product.required' | translate : {} : 'Campo requerido.' }}
-          </small>
-        </label>
-
-        <label class="label">
-          <span>{{ 'product.fields.price' | translate }}</span>
-          <input class="input" type="number" min="0" step="0.01" formControlName="price"
-            (input)="coerceNumber('price', $event)" />
-          <small class="hint" *ngIf="form.controls.price.invalid && form.controls.price.touched">
-            {{ 'product.priceInvalid' | translate : {} : 'Ingresá un precio válido.' }}
-          </small>
-        </label>
-
-        <label class="label">
-          <span>{{ 'product.fields.stock' | translate }}</span>
-          <input class="input" type="number" min="0" formControlName="stock" (input)="coerceNumber('stock', $event)" />
-          <small class="hint" *ngIf="form.controls.stock.invalid && form.controls.stock.touched">
-            {{ 'product.stockInvalid' | translate : {} : 'Ingresá un stock válido.' }}
-          </small>
-        </label>
-
-        <label class="label switch">
-          <input type="checkbox" formControlName="isIllegal" />
-          <span>{{ 'product.fields.illegal' | translate }}</span>
-        </label>
-
-        <!-- Imagen (URL) -->
-        <label class="label col-2">
-          <span>{{ 'product.fields.imageUrl' | translate }}</span>
-          <input class="input" type="url" formControlName="imageUrl" placeholder="https://..."
-            (input)="onImageUrlInput($event)" />
-          <small class="muted">
-            {{ 'product.imageUrlHint' | translate : {} : 'Pegá un link a una imagen (JPG/PNG/WebP). Si preferís subir
-            archivo, usá el campo de abajo.' }}
-          </small>
-        </label>
-
-        <!-- Imagen (archivo) -->
-        <label class="label">
-          <span>{{ 'product.fields.imageFile' | translate }}</span>
-          <input class="input" type="file" accept="image/*" (change)="onFileSelected($event)" />
-          <small class="muted">{{ 'product.imageFileHint' | translate : {} : 'Si subís un archivo, primero se sube y
-            luego se guarda su URL.' }}</small>
-        </label>
-
-        <!-- Preview -->
-        <div *ngIf="imagePreview() as img" class="image-preview col-2">
-          <img [src]="img" [alt]="'product.preview' | translate" />
-        </div>
-
-        <div class="form-actions">
-          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ editId() == null ? ('product.create' | translate) : ('product.save' | translate) }}
-          </button>
-          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'product.cancel' | translate }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
 </section>

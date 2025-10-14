@@ -15,18 +15,12 @@
     </div>
     <div class="muted" *ngIf="loading()">{{ 'distributors.loading' | translate }}</div>
 
-    <section class="filters">
-      <label class="label">
-        <span class="label-text">{{ 'distributors.filters.search' | translate }}</span>
-        <input class="input" type="text" [placeholder]="'distributors.filters.searchPh' | translate"
-          [(ngModel)]="fText" />
-      </label>
-    </section>
+    <!-- (Quité filtros y filtered() porque no existen en el TS) -->
 
     <section class="subsection">
       <h3 class="sub-title">{{ 'distributors.list' | translate }}</h3>
 
-      <div class="table-wrap" *ngIf="filtered().length; else empty">
+      <div class="table-wrap" *ngIf="items().length; else empty">
         <table class="table">
           <thead>
             <tr>
@@ -40,7 +34,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let d of filtered()">
+            <tr *ngFor="let d of items()">
               <td>{{ d.dni }}</td>
               <td>{{ d.name }}</td>
               <td>{{ d.phone }}</td>
@@ -48,17 +42,16 @@
               <td>{{ d.zone?.name || ('#' + (d.zone?.id ?? d.zoneId ?? '')) }}</td>
               <td class="right">{{ d.products?.length || 0 }}</td>
               <td class="right">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(d)" [attr.aria-label]="'common.edit' | translate"
-                  [attr.title]="'common.edit' | translate">
+                <button class="btn ghost btn--icon" type="button" (click)="edit(d)"
+                  [attr.aria-label]="'common.edit' | translate" [attr.title]="'common.edit' | translate">
                   ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
                 </button>
 
-                <button class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
+                <button class="btn danger btn--icon" type="button" (click)="remove(d.dni)" [disabled]="loading()"
                   [attr.aria-label]="'common.delete' | translate" [attr.title]="'common.delete' | translate">
                   🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
                 </button>
               </td>
-
             </tr>
           </tbody>
         </table>
@@ -73,12 +66,12 @@
     </section>
   </div>
 
-  <!-- FORM (COLLAPSIBLE) -->
-  <div class="collapsible" [class.open]="isFormOpen">
+  <!-- FORM (always visible; quité [class.open]="isFormOpen" porque no existe en el TS) -->
+  <div class="collapsible open">
     <div class="collapsible__content panel panel--glass">
       <div class="header">
         <h2 class="title">
-          {{ isEdit()
+          {{ editDni() != null
           ? ('distributors.form.editTitle' | translate:{ dni: form.controls.dni.value })
           : ('distributors.form.newTitle' | translate) }}
         </h2>
@@ -87,34 +80,37 @@
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid form-grid--compact">
         <div class="error" *ngIf="error()">{{ error() }}</div>
 
+        <!-- Prefill desde cliente (esto SÍ existe en el TS) -->
+        <div class="row" style="grid-column: 1 / -1;">
+          <label class="label">
+            <span>{{ 'distributors.fromClientDni' | translate }}</span>
+            <input class="input" formControlName="fromClientDni" placeholder="DNI de cliente…" />
+          </label>
+          <button type="button" class="btn" (click)="prefFillFromClient()">
+            {{ 'distributors.prefill' | translate }}
+          </button>
+        </div>
+
         <label class="label">
           <span>{{ 'distributors.form.dni' | translate }}</span>
-          <input class="input" formControlName="dni" [readonly]="isEdit()"
+          <input class="input" formControlName="dni" [readonly]="editDni() != null"
             [placeholder]="'distributors.form.dniPh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.dni.invalid">{{ 'distributors.form.err.dni' |
-            translate }}</small>
         </label>
 
         <label class="label">
           <span>{{ 'distributors.form.name' | translate }}</span>
           <input class="input" formControlName="name" [placeholder]="'distributors.form.namePh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.name.invalid">{{ 'distributors.form.err.name' |
-            translate }}</small>
         </label>
 
         <label class="label">
           <span>{{ 'distributors.form.phone' | translate }}</span>
           <input class="input" formControlName="phone" [placeholder]="'distributors.form.phonePh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.phone.invalid">{{ 'distributors.form.err.phone' |
-            translate }}</small>
         </label>
 
         <label class="label">
           <span>{{ 'distributors.form.email' | translate }}</span>
           <input class="input" type="email" formControlName="email"
             [placeholder]="'distributors.form.emailPh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.email.invalid">{{ 'distributors.form.err.email' |
-            translate }}</small>
         </label>
 
         <label class="label">
@@ -128,8 +124,6 @@
             <option [ngValue]="null">{{ 'distributors.form.chooseZone' | translate }}</option>
             <option *ngFor="let z of zones()" [ngValue]="z.id">{{ z.name }}</option>
           </select>
-          <small class="hint" *ngIf="submitted() && form.controls.zoneId.invalid">{{ 'distributors.form.err.zone' |
-            translate }}</small>
         </label>
 
         <label class="label col-2">
@@ -146,9 +140,9 @@
 
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+            {{ editDni() != null ? ('common.save' | translate) : ('common.create' | translate) }}
           </button>
-          <button class="btn ghost" type="button" (click)="cancel()" [disabled]="loading()">
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
             {{ 'common.cancel' | translate }}
           </button>
         </div>

@@ -27,6 +27,7 @@ export class ClientComponent implements OnInit {
   private t   = inject(TranslateService);
 
   // --- Estado ---
+  items = signal<ClientDTO[]>([]);
   loading = signal(false);
   error   = signal<string | null>(null);
 
@@ -36,6 +37,9 @@ export class ClientComponent implements OnInit {
   // --- Filtros ---
   fText = '';
   fPurchases: 'all' | 'yes' | 'no' = 'all';
+
+
+
 
   // Filtrado reactivo por texto y por historial de compras
   filteredClients = computed(() => {
@@ -68,20 +72,20 @@ export class ClientComponent implements OnInit {
     phone:   [''],                     // opcional
   });
 
-  // --- Ciclo de vida ---
-  ngOnInit(): void { this.load(); }
+trackByDni = (_: number, c: ClientDTO) => c.dni;
 
-  // --- Data fetching ---
+  ngOnInit() { this.load(); }
+
   load() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAllClients().subscribe({
-      next: (r: ApiResponse<ClientDTO[]>) => {
-        this.clients.set(r.data ?? []);
+      next: (list: ClientDTO[]) => {           // ✅ acá list es ClientDTO[]
+        this.items.set(list);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set(this.t.instant('clients.errorLoad'));
+      error: (err) => {
+        this.error.set(err?.error?.message || this.t.instant('clients.errorLoad'));
         this.loading.set(false);
       }
     });

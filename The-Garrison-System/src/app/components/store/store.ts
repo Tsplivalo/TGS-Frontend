@@ -2,18 +2,8 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../services/product/product';
 import { ProductImageService } from '../../services/product-image/product-image';
-import { ApiResponse, ProductDTO } from '../../models/product/product.model';
-import { TranslateModule } from '@ngx-translate/core'; // ⬅️ AÑADIR
-
-/**
- * StoreComponent
- *
- * Catálogo de productos con búsqueda, carrito local (localStorage) y animación "fly to cart".
- * Decisiones clave:
- * - Las imágenes se superponen en front vía ProductImageService (no dependen del backend).
- * - El carrito se mantiene en `localStorage` (LS_KEY) y se expone como API de lectura (items/count/total).
- * - Efecto visual de agregado al carrito: clon de imagen o burbuja que "vuela" al FAB del carrito.
- */
+import { ProductDTO } from '../../models/product/product.model';
+import { TranslateModule } from '@ngx-translate/core';
 
 type CartItem = {
   id: number;
@@ -26,14 +16,15 @@ type CartItem = {
 @Component({
   selector: 'app-store',
   standalone: true,
-  imports: [CommonModule, TranslateModule], // ⬅️ AÑADIR
+  imports: [CommonModule, TranslateModule],
   templateUrl: './store.html',
   styleUrls: ['./store.scss'],
 })
 export class StoreComponent implements OnInit {
   // --- Inyección ---
   private productsSrv = inject(ProductService);
-  private imgSvc = inject(ProductImageService, { optional: true as any });
+  // la inyección es opcional, pero además casteo a any cuando uso métodos que podrían no existir
+  private imgSvc = inject(ProductImageService, { optional: true });
 
   // --- Estado base ---
   loading = signal(false);
@@ -53,7 +44,7 @@ export class StoreComponent implements OnInit {
   toggleCartDrawer() { this.showCart.set(!this.showCart()); }
 
   // --- Carrito en localStorage ---
-  private LS_KEY = 'cart.v1';
+  private readonly LS_KEY = 'cart.v1';
   private itemsSig = signal<CartItem[]>(this.loadCart());
 
   // Totales + pequeña animación (bump) del ícono
@@ -86,19 +77,38 @@ export class StoreComponent implements OnInit {
   refresh() {
     this.loading.set(true);
     this.error.set(null);
+
+    // getAllProducts() ya devuelve ProductDTO[] normalizado
     this.productsSrv.getAllProducts().subscribe({
-      next: (r: ApiResponse<ProductDTO[]> | ProductDTO[]) => {
-        const data = Array.isArray(r) ? r : (r as any).data;
-        // superponemos las imágenes locales (solo front)
-        const overlay = this.imgSvc?.overlay?.bind(this.imgSvc) ?? ((arr: ProductDTO[]) => arr);
-        this.products.set(overlay(data ?? []));
+      next: (arr: ProductDTO[]) => {
+        const withImages = this.enrichImages(arr ?? []);
+        this.products.set(withImages);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error.set(err?.error?.message ?? 'store.errors.load'); // i18n sugerida
         this.loading.set(false);
       },
     });
+  }
+
+  /** Superpone imágenes locales (solo front). Soporta:
+   *  - imgSvc.overlay?(products) → devuelve un array con imageUrl set
+   *  - imgSvc.get?(id) → rellena imageUrl por cada producto
+   */
+  private enrichImages(data: ProductDTO[]): ProductDTO[] {
+    const anyImg = this.imgSvc as any;
+    if (anyImg?.overlay?.bind) {
+      // Si tenés un método overlay en ProductImageService, úsalo
+      const overlay = anyImg.overlay.bind(this.imgSvc);
+      const res = overlay(data);
+      return Array.isArray(res) ? res : data;
+    }
+    // Fallback: usar get(id) para asignar imageUrl
+    return data.map(p => ({
+      ...p,
+      imageUrl: (anyImg?.get?.(p.id) ?? p.imageUrl ?? null)
+    }));
   }
 
   // --- Persistencia del carrito ---
@@ -251,8 +261,8 @@ export class StoreComponent implements OnInit {
       fill: 'forwards',
     });
 
-    anim.onfinish = () => { node.remove(); this.pulseCart(); };
-    anim.oncancel = () => { node.remove(); };
+    (anim as any).onfinish = () => { node.remove(); this.pulseCart(); };
+    (anim as any).oncancel = () => { node.remove(); };
   }
 
   // Pequeño "bump" del botón del carrito (para feedback)

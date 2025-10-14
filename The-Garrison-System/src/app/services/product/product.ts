@@ -1,52 +1,65 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import {
-  ApiResponse,
   ProductDTO,
   CreateProductDTO,
   UpdateProductDTO,
 } from '../../models/product/product.model';
 
+type ApiResponse<T = any> = { data: T } | T;
+
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private http = inject(HttpClient);
-  // ✅ Ruta correcta del back
   private base = '/api/products';
 
-  /** GET /api/products */
-  getAllProducts(): Observable<ProductDTO[]> {
+  list(): Observable<ProductDTO[]> {
     return this.http.get<ApiResponse<ProductDTO[]>>(this.base).pipe(
-      map((res: any) => ('data' in res ? res.data : res) as ProductDTO[])
+      map((res: any) => (res?.data ?? res) as ProductDTO[])
     );
   }
 
-  /** Alias opcional */
-  list(): Observable<ProductDTO[]> { return this.getAllProducts(); }
+  /** ✅ Alias para compatibilidad con componentes existentes (store) */
+  getAllProducts(): Observable<ProductDTO[]> {
+    return this.list();
+  }
 
-  /** GET /api/products/:id */
-  getProduct(id: number): Observable<ProductDTO> {
+  search(q: string, by: 'description' | 'legal' = 'description'): Observable<ProductDTO[]> {
+    let params = new HttpParams().set('q', q);
+    if (by) params = params.set('by', by);
+    return this.http.get<ApiResponse<ProductDTO[]>>(`${this.base}/search`, { params }).pipe(
+      map((res: any) => (res?.data ?? res) as ProductDTO[])
+    );
+  }
+
+  get(id: number): Observable<ProductDTO> {
     return this.http.get<ApiResponse<ProductDTO>>(`${this.base}/${id}`).pipe(
-      map((res: any) => ('data' in res ? res.data : res) as ProductDTO)
+      map((res: any) => (res?.data ?? res) as ProductDTO)
     );
   }
 
-  /** POST /api/products */
-  createProduct(payload: CreateProductDTO): Observable<ApiResponse<ProductDTO>> {
-    // ✅ NO enviar imageUrl al back (se maneja en front)
-    const { imageUrl, ...clean } = payload as any;
-    return this.http.post<ApiResponse<ProductDTO>>(this.base, clean);
+  create(payload: CreateProductDTO): Observable<ProductDTO> {
+    const { imageUrl, ...body } = payload as any;
+    (body.price as any) = Number(body.price);
+    (body.stock as any) = Number(body.stock);
+    (body.isIllegal as any) = Boolean(body.isIllegal);
+    return this.http.post<ApiResponse<ProductDTO>>(this.base, body).pipe(
+      map((res: any) => (res?.data ?? res) as ProductDTO)
+    );
   }
 
-  /** PATCH /api/products/:id */
-  updateProduct(id: number, payload: UpdateProductDTO): Observable<ApiResponse<ProductDTO>> {
-    // ✅ NO enviar imageUrl al back
+  update(id: number, payload: UpdateProductDTO): Observable<ProductDTO> {
     const { imageUrl, ...clean } = payload as any;
-    return this.http.patch<ApiResponse<ProductDTO>>(`${this.base}/${id}`, clean);
+    if (clean.price != null) clean.price = Number(clean.price);
+    if (clean.stock != null) clean.stock = Number(clean.stock);
+    if (clean.isIllegal != null) clean.isIllegal = Boolean(clean.isIllegal);
+    return this.http.patch<ApiResponse<ProductDTO>>(`${this.base}/${id}`, clean).pipe(
+      map((res: any) => (res?.data ?? res) as ProductDTO)
+    );
   }
 
-  /** DELETE /api/products/:id */
-  deleteProduct(id: number): Observable<ApiResponse<unknown>> {
+  delete(id: number): Observable<unknown> {
     return this.http.delete<ApiResponse<unknown>>(`${this.base}/${id}`);
   }
 }

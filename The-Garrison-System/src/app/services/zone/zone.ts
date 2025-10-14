@@ -13,8 +13,15 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ZoneService {
   private readonly apiUrl = '/api/zones';
+  private readonly base = '/api/zones';
 
   constructor(private http: HttpClient) {}
+
+    list(): Observable<ZoneDTO[]> {
+    return this.http.get<any>(this.base).pipe(
+      map((res) => (res?.data ?? res) as ZoneDTO[])
+    );
+  }
 
   // ===== CRUD =====
   getAllZones(): Observable<ApiResponse<ZoneDTO[]>> {

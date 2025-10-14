@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { ApiResponse, DistributorDTO, CreateDistributorDTO, PatchDistributorDTO } from '../../models/distributor/distributor.model';
+import {
+  ApiResponse,
+  DistributorDTO,
+  CreateDistributorDTO,
+  PatchDistributorDTO
+} from '../../models/distributor/distributor.model';
 
 @Injectable({ providedIn: 'root' })
 export class DistributorService {
@@ -9,64 +14,63 @@ export class DistributorService {
 
   constructor(private http: HttpClient) {}
 
-  // ------- Normalizaciones -------
   private normalizeOne = (raw: any): DistributorDTO => {
-    if (!raw) return { dni: '', name: '', phone: '', email: '' };
+    if (!raw) return { dni: '', name: '', phone: '', email: '' } as any;
 
     const dni = String(raw.dni ?? raw.DNI ?? '');
-    const name = String(raw.name ?? raw.nombre ?? '');
-    const phone = String(raw.phone ?? raw.telefono ?? '');
-    const email = String(raw.email ?? '');
-    const address = raw.address ?? raw.direccion ?? '';
+    const zoneId = raw.zoneId != null ? Number(raw.zoneId) : null;
+    const zone = raw.zone ?? (zoneId ? { id: zoneId, name: raw.zoneName ?? '' } : null);
+    const products = Array.isArray(raw.products)
+      ? raw.products.map((p: any) => ({ id: Number(p.id), description: String(p.description ?? '') }))
+      : undefined;
 
-    // zona (puede venir como objeto o solo id)
-    const zoneObj = raw.zone ?? raw.zona ?? null;
-    const zoneId = Number(zoneObj?.id ?? raw.zoneId ?? raw.zonaId ?? NaN);
-    const zone = zoneObj
-      ? { id: Number((zoneObj.id ?? zoneId) || 0), name: String(zoneObj.name ?? zoneObj.nombre ?? '') }
-      : zoneId && !Number.isNaN(zoneId)
-      ? { id: zoneId, name: '' }
-      : null;
-
-    // productos (array o "Information not available"…)
-    const productsArr: any[] = Array.isArray(raw.products) ? raw.products : [];
-    const products = productsArr.map((p) => ({
-      id: Number(p.id ?? 0),
-      description: String(p.description ?? p.descripcion ?? ''),
-    }));
-
-    return { dni, name, phone, email, address, zoneId: zone?.id ?? null, zone, products };
+    return {
+      dni,
+      name: String(raw.name ?? ''),
+      phone: String(raw.phone ?? ''),
+      email: String(raw.email ?? ''),
+      address: raw.address ?? '',
+      zoneId,
+      zone,
+      products
+    };
   };
 
-  private normalizeMany = (raw: any): DistributorDTO[] => {
-    const arr: any[] = Array.isArray(raw)
-      ? raw
-      : Array.isArray(raw?.data)
-      ? raw.data
-      : [];
-    return arr.map(this.normalizeOne);
-  };
-
-  // ------- CRUD -------
-  getAll(): Observable<DistributorDTO[]> {
-    return this.http.get<ApiResponse<DistributorDTO[]>>(this.apiUrl)
-      .pipe(map((res: any) => this.normalizeMany(res)));
+  list(): Observable<DistributorDTO[]> {
+    return this.http.get<ApiResponse<DistributorDTO[]>>(this.apiUrl).pipe(
+      map((res: any) => {
+        const data = (res?.data ?? res) as any[];
+        return data.map(this.normalizeOne);
+      })
+    );
   }
 
-  getOne(dni: string): Observable<DistributorDTO> {
-    return this.http.get<ApiResponse<DistributorDTO>>(`${this.apiUrl}/${encodeURIComponent(dni)}`)
-      .pipe(map((res: any) => this.normalizeOne(res?.data ?? res)));
+  get(dni: string): Observable<DistributorDTO> {
+    return this.http.get<ApiResponse<DistributorDTO>>(`${this.apiUrl}/${encodeURIComponent(dni)}`).pipe(
+      map((res: any) => this.normalizeOne(res?.data ?? res))
+    );
   }
 
-  create(body: CreateDistributorDTO): Observable<DistributorDTO> {
-    return this.http.post<ApiResponse<DistributorDTO>>(this.apiUrl, body)
-      .pipe(map((res: any) => this.normalizeOne(res?.data ?? res)));
+  create(payload: CreateDistributorDTO): Observable<DistributorDTO> {
+    const body: any = { ...payload };
+    body.zoneId = Number(body.zoneId);
+    if (Array.isArray(body.productsIds)) {
+      body.productsIds = body.productsIds.map((id: any) => Number(id)).filter((n: any) => Number.isFinite(n));
+    }
+    return this.http.post<ApiResponse<DistributorDTO>>(this.apiUrl, body).pipe(
+      map((res: any) => this.normalizeOne(res?.data ?? res))
+    );
   }
 
   update(dni: string, patch: PatchDistributorDTO): Observable<DistributorDTO> {
-    // el back expone PATCH /:dni
-    return this.http.patch<ApiResponse<DistributorDTO>>(`${this.apiUrl}/${encodeURIComponent(dni)}`, patch)
-      .pipe(map((res: any) => this.normalizeOne(res?.data ?? res)));
+    const body: any = { ...patch };
+    if (body.zoneId != null) body.zoneId = Number(body.zoneId);
+    if (Array.isArray(body.productsIds)) {
+      body.productsIds = body.productsIds.map((id: any) => Number(id)).filter((n: any) => Number.isFinite(n));
+    }
+    return this.http.patch<ApiResponse<DistributorDTO>>(`${this.apiUrl}/${encodeURIComponent(dni)}`, body).pipe(
+      map((res: any) => this.normalizeOne(res?.data ?? res))
+    );
   }
 
   delete(dni: string): Observable<{ message: string }> {

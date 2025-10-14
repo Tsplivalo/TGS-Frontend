@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormControl } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -6,20 +6,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DistributorService } from '../../services/distributor/distributor';
 import { ZoneService } from '../../services/zone/zone';
 import { ProductService } from '../../services/product/product';
+import { ClientService } from '../../services/client/client';
 
 import { ZoneDTO } from '../../models/zone/zona.model';
 import { ProductDTO } from '../../models/product/product.model';
+import { ClientDTO } from '../../models/client/client.model';
 import { DistributorDTO, CreateDistributorDTO, PatchDistributorDTO } from '../../models/distributor/distributor.model';
-
-/**
- * DistributorComponent
- *
- * CRUD de distribuidores con:
- * - Listado + filtro por texto (dni/nombre/email/zona)
- * - Form reactivo con validación y normalización de tipos (zoneId string→number)
- * - Estrategia de guardado: POST para crear y PATCH con campos dirty para editar
- * - Mensajes listos para i18n y manejo de carga/errores con signals
- */
 
 type DistForm = {
   dni: FormControl<string>;
@@ -29,6 +21,7 @@ type DistForm = {
   address: FormControl<string>;
   zoneId: FormControl<number | null>;
   productsIds: FormControl<number[]>;
+  fromClientDni: FormControl<string | null>; // NUEVO: prefillear desde cliente
 };
 
 @Component({
@@ -39,182 +32,123 @@ type DistForm = {
   styleUrls: ['./distributor.scss'],
 })
 export class DistributorComponent implements OnInit {
-  // --- Inyección ---
+
   private fb = inject(FormBuilder);
+  private t = inject(TranslateService);
   private srv = inject(DistributorService);
   private zoneSrv = inject(ZoneService);
   private prodSrv = inject(ProductService);
-  private t = inject(TranslateService);
+  private clientSrv = inject(ClientService);
 
-  // --- Estado base ---
-  loading = signal(false);
-  error = signal<string | null>(null);
-  submitted = signal(false);
-
-  list = signal<DistributorDTO[]>([]);
+  items = signal<DistributorDTO[]>([]);
   zones = signal<ZoneDTO[]>([]);
   products = signal<ProductDTO[]>([]);
-  fText = '';
+  loading = signal(false);
+  error = signal<string | null>(null);
+  editDni = signal<string | null>(null);
 
-  // --- UI ---
-  isFormOpen = false;
-  isEdit = signal(false); // true si estamos editando
-
-  // --- Form reactivo ---
-  form: FormGroup<DistForm> = this.fb.group<DistForm>({
+  form: FormGroup<DistForm> = this.fb.nonNullable.group({
     dni: this.fb.nonNullable.control('', { validators: [Validators.required] }),
     name: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(2)] }),
-    phone: this.fb.nonNullable.control('', { validators: [Validators.required] }),
+    phone: this.fb.nonNullable.control(''),
     email: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.email] }),
     address: this.fb.nonNullable.control(''),
-    zoneId: this.fb.control<number | null>(null, { validators: [Validators.required, Validators.min(1)] }),
+    zoneId: this.fb.control<number | null>(null),
     productsIds: this.fb.nonNullable.control<number[]>([]),
+    fromClientDni: this.fb.control<string | null>(null), // NUEVO
   });
 
-  // --- Ciclo de vida ---
-  ngOnInit(): void {
-    this.load();
-    this.loadZones();
-    this.loadProducts();
+  ngOnInit() { this.loadAll(); }
 
-    // Normaliza zoneId si viene como string desde el <select>
-    this.form.controls.zoneId.valueChanges.subscribe(v => {
-      if (typeof v === 'string' && v !== '') {
-        const n = Number(v);
-        if (!Number.isNaN(n)) this.form.controls.zoneId.setValue(n, { emitEvent: false });
-      }
-    });
-  }
-
-  // --- Data ---
-  load() {
+  loadAll() {
     this.loading.set(true);
     this.error.set(null);
-    this.srv.getAll().subscribe({
-      next: (res) => { this.list.set(res); this.loading.set(false); },
-      error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorLoad')); this.loading.set(false); }
+    this.srv.list().subscribe({
+      next: (list) => { this.items.set(list); this.loading.set(false); },
+      error: (err) => { this.error.set(err?.error?.message ?? 'distributors.err.load'); this.loading.set(false); }
     });
+    this.zoneSrv.list().subscribe({ next: (z) => this.zones.set(z) });
+    this.prodSrv.list().subscribe({ next: (p) => this.products.set(p) });
   }
 
-  loadZones() {
-    this.zoneSrv.getAllZones().subscribe({
-      next: (res: any) => this.zones.set(res?.data ?? res ?? []),
-      error: () => {}
-    });
-  }
-
-  loadProducts() {
-    this.prodSrv.getAllProducts().subscribe({
-      next: (res: any) => this.products.set(res?.data ?? res ?? []),
-      error: () => {}
-    });
-  }
-
-  // --- Listado filtrado ---
-  filtered = computed(() => {
-    const q = (this.fText || '').toLowerCase().trim();
-    if (!q) return this.list();
-    return this.list().filter(d =>
-      String(d.dni).includes(q) ||
-      (d.name || '').toLowerCase().includes(q) ||
-      (d.email || '').toLowerCase().includes(q) ||
-      (d.zone?.name || '').toLowerCase().includes(q)
-    );
-  });
-
-  // --- UI helpers ---
   new() {
-    this.isEdit.set(false);
-    this.submitted.set(false);
-    this.error.set(null);
-    this.form.reset({ dni: '', name: '', phone: '', email: '', address: '', zoneId: null, productsIds: [] });
-    this.isFormOpen = true;
+    this.editDni.set(null);
+    this.form.reset({
+      dni: '',
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      zoneId: null,
+      productsIds: [],
+      fromClientDni: null
+    });
   }
 
   edit(d: DistributorDTO) {
-    this.isEdit.set(true);
-    this.submitted.set(false);
-    this.error.set(null);
+    this.editDni.set(d.dni);
     this.form.reset({
-      dni: String(d.dni ?? ''),
-      name: d.name ?? '',
+      dni: d.dni,
+      name: d.name,
       phone: d.phone ?? '',
       email: d.email ?? '',
       address: d.address ?? '',
-      zoneId: (d.zone?.id ?? d.zoneId ?? null) as number | null,
-      productsIds: (d.products?.map(p => p.id) ?? d.products ?? []) as number[],
+      zoneId: d.zoneId ?? null,
+      productsIds: (d.products ?? []).map(p => p.id),
+      fromClientDni: null
     });
-    this.isFormOpen = true;
   }
 
-  cancel() {
-    this.isFormOpen = false;
-    this.submitted.set(false);
-    this.error.set(null);
+  prefFillFromClient() {
+    const dni = this.form.controls.fromClientDni.value;
+    if (!dni) return;
+    this.clientSrv.getClientByDni(dni).subscribe({
+      next: (c: ClientDTO) => {
+        this.form.patchValue({
+          dni: c.dni,
+          name: c.name ?? '',
+          email: c.email ?? '',
+          address: c.address ?? '',
+          phone: c.phone ?? ''
+        });
+      },
+      error: () => {}
+    });
   }
 
-  // --- Builders ---
-  private buildCreate(): CreateDistributorDTO {
-    const v = this.form.getRawValue();
-    const ids = Array.isArray(v.productsIds) ? v.productsIds.map(Number).filter(n => !Number.isNaN(n)) : [];
-    return {
-      dni: String(v.dni).trim(),
-      name: String(v.name).trim(),
-      phone: String(v.phone).trim(),
-      email: String(v.email).trim(),
-      address: String(v.address || '').trim(),
-      zoneId: Number(v.zoneId),
-      productsIds: ids,
-    };
-  }
-
-  private buildUpdate(): PatchDistributorDTO {
-    const v = this.form.getRawValue();
-    const patch: PatchDistributorDTO = {};
-    if (this.form.controls.name.dirty) patch.name = String(v.name).trim();
-    if (this.form.controls.phone.dirty) patch.phone = String(v.phone).trim();
-    if (this.form.controls.email.dirty) patch.email = String(v.email).trim();
-    if (this.form.controls.address.dirty) patch.address = String(v.address || '').trim();
-    if (this.form.controls.zoneId.dirty && v.zoneId != null) patch.zoneId = Number(v.zoneId);
-    if (this.form.controls.productsIds.dirty) patch.productsIds = (v.productsIds || []).map(Number).filter(n => !Number.isNaN(n));
-    return patch;
-  }
-
-  // --- Guardado ---
   save() {
-    this.submitted.set(true);
-    if (this.form.invalid) {
-      this.error.set(this.t.instant('distributors.form.err.fill'));
-      return;
-    }
-
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading.set(true);
     this.error.set(null);
 
-    if (!this.isEdit()) {
-      const payload = this.buildCreate();
-      this.srv.create(payload).subscribe({
-        next: () => { this.cancel(); this.load(); },
-        error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorCreate')); this.loading.set(false); }
-      });
-      return;
-    }
+    const raw = this.form.getRawValue();
+    const body: CreateDistributorDTO | PatchDistributorDTO = {
+      dni: String(raw.dni),
+      name: String(raw.name),
+      phone: String(raw.phone ?? ''),
+      email: String(raw.email ?? ''),
+      address: String(raw.address ?? ''),
+      zoneId: raw.zoneId != null ? Number(raw.zoneId) : (null as any),
+      productsIds: (raw.productsIds ?? []).map(Number)
+    } as any;
 
-    const dni = String(this.form.controls.dni.value);
-    const patch = this.buildUpdate();
-    this.srv.update(dni, patch).subscribe({
-      next: () => { this.cancel(); this.load(); },
-      error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorSave')); this.loading.set(false); }
+    const isEdit = this.editDni() != null;
+    const req$ = isEdit
+      ? this.srv.update(this.editDni()!, body as PatchDistributorDTO)
+      : this.srv.create(body as CreateDistributorDTO);
+
+    req$.subscribe({
+      next: () => { this.new(); this.loadAll(); },
+      error: (err) => { this.error.set(err?.error?.message ?? (isEdit ? 'distributors.err.update' : 'distributors.err.create')); this.loading.set(false); }
     });
   }
 
-  // --- Borrado ---
-  delete(dni: string | number) {
+  remove(dni: string) {
     this.loading.set(true);
     this.error.set(null);
-    this.srv.delete(String(dni)).subscribe({
-      next: () => this.load(),
-      error: (err) => { this.error.set(err?.error?.message || this.t.instant('distributors.errorDelete')); this.loading.set(false); }
+    this.srv.delete(dni).subscribe({
+      next: () => { this.loading.set(false); this.loadAll(); },
+      error: (err) => { this.error.set(err?.error?.message ?? 'distributors.err.delete'); this.loading.set(false); }
     });
   }
 }

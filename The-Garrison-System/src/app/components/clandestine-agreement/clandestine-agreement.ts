@@ -114,9 +114,18 @@ export class ClandestineAgreementComponent implements OnInit {
 
   private load(): void {
     this.loading.set(true);
+    this.error.set(null);
+
     this.srv.list().subscribe({
-      next: (res) => { this.items.set(res.data ?? []); this.loading.set(false); },
-      error: (e) =>  { this.error.set(e?.error?.message ?? 'Error cargando'); this.loading.set(false); }
+      next: (list) => {                 // list es un arreglo ya normalizado por el service
+        this.items.set(Array.isArray(list) ? list : []);
+        this.loading.set(false);
+      },
+      error: (e) => {
+        this.error.set(e?.error?.message ?? 'Error cargando');
+        this.loading.set(false);
+      }
     });
   }
+
 }
