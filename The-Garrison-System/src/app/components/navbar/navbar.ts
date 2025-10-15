@@ -6,11 +6,12 @@ import {
   ViewChild,
   ViewChildren,
   inject,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '../../services/auth/auth';
+import { AuthService, Role } from '../../services/auth/auth'; 
 import { I18nService } from '../../services/i18n/i18n.js';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -28,52 +29,40 @@ export class NavbarComponent implements AfterViewInit {
   private routerSvc = inject(Router);
   private i18n = inject(I18nService);
 
-  readonly isLoggedIn = this.auth.isLoggedIn;
-  readonly user       = this.auth.user;
+  readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
+  readonly user = computed(() => this.auth.user());
+  readonly currentRoles = computed(() => this.auth.currentRoles());
+  readonly profileCompleteness = computed(() => this.auth.profileCompleteness());
 
   readonly brand = 'GarrSYS';
 
-  lang(): 'en'|'es' { return (this.i18n.current as 'en'|'es') || 'en'; }
-  setLang(l: 'en'|'es') { this.i18n.use(l); }
-  flagClass(): string   { return this.lang() === 'es' ? 'flag flag-es' : 'flag flag-en'; }
+  lang(): 'en' | 'es' { return (this.i18n.current as 'en' | 'es') || 'en'; }
+  setLang(l: 'en' | 'es') { this.i18n.use(l); }
+  flagClass(): string { return this.lang() === 'es' ? 'flag flag-es' : 'flag flag-en'; }
 
-  // Gestión (ADMIN usa este bloque si decide iterarlo)
   readonly gestionItems: MenuItem[] = [
-    { label: 'mgmt.product',     path: '/producto' },
-    { label: 'mgmt.client',      path: '/cliente' },
-    { label: 'mgmt.partner',     path: '/socio' },
-    { label: 'mgmt.sale',        path: '/venta' },
-    { label: 'mgmt.zone',        path: '/zona' },
-    { label: 'mgmt.authority',   path: '/autoridad' },
-    { label: 'mgmt.bribe',       path: '/sobornos' },
-    { label: 'mgmt.decision',    path: '/decision' },
-    { label: 'mgmt.topic',       path: '/tematica' },
+    { label: 'mgmt.product', path: '/producto' },
+    { label: 'mgmt.client', path: '/cliente' },
+    { label: 'mgmt.partner', path: '/socio' },
+    { label: 'mgmt.sale', path: '/venta' },
+    { label: 'mgmt.zone', path: '/zona' },
+    { label: 'mgmt.authority', path: '/autoridad' },
+    { label: 'mgmt.bribe', path: '/sobornos' },
+    { label: 'mgmt.decision', path: '/decision' },
+    { label: 'mgmt.topic', path: '/tematica' },
     { label: 'mgmt.distributor', path: '/distribuidor' },
-    { label: 'mgmt.shelbyCouncil',        path: '/consejo-shelby' },
-    { label: 'mgmt.monthlyReview',        path: '/revisiones-mensuales' },
+    { label: 'mgmt.shelbyCouncil', path: '/consejo-shelby' },
+    { label: 'mgmt.monthlyReview', path: '/revisiones-mensuales' },
     { label: 'mgmt.clandestineAgreement', path: '/acuerdos-clandestinos' },
-    { label: 'mgmt.admin',                path: '/admin' },
+    { label: 'mgmt.admin', path: '/admin' },
   ];
 
-  // Inbox ADMIN
-  private readonly inboxItemsAdmin: MenuItem[] = [
-    { label: 'nav.roleRequests',     path: '/solicitudes-rol' },
-    { label: 'nav.mailVerification', path: '/verificacion-mail' },
-  ];
-
-  // Inbox CLIENTE base
-  private readonly inboxItemsClient: MenuItem[] = [
-    { label: 'nav.myRoleRequest', path: '/mi-solicitud-rol' }, // Ruta de estado de solicitud
-  ];
-
-  // Páginas públicas
   readonly publicItems: MenuItem[] = [
-    { label: 'nav.about',   path: '/sobre-nosotros' },
-    { label: 'nav.faqs',    path: '/faqs' },
+    { label: 'nav.about', path: '/sobre-nosotros' },
+    { label: 'nav.faqs', path: '/faqs' },
     { label: 'nav.contact', path: '/contactanos' },
   ];
 
-  // Ítems cliente (si está autenticado como client/admin)
   readonly clientItems: MenuItem[] = [
     { label: 'nav.store', path: '/tienda' },
   ];
@@ -91,76 +80,85 @@ export class NavbarComponent implements AfterViewInit {
 
   ngAfterViewInit() { this.updateIndicator(); }
 
-  // ===== Helpers DEV (mock sin backend) =====
-  private hasBypass(): boolean {
-    try { return localStorage.getItem('authBypass') === 'true'; } catch { return false; }
-  }
-  private mockRoles(): string[] {
-    try {
-      const raw = localStorage.getItem('mockRoles');
-      return raw ? raw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean) : [];
-    } catch { return []; }
-  }
-  private mockNotifCount(): number {
-    // Para simular notificaciones de cliente: setear localStorage.setItem('mockClientInbox', JSON.stringify([...]))
-    try {
-      const raw = localStorage.getItem('mockClientInbox');
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr.length : 0;
-    } catch { return 0; }
-  }
-
-  // --- Helpers de roles / auth ---
   isAuthenticated(): boolean {
-    return !!this.isLoggedIn() || this.hasBypass();
+    return this.auth.isAuthenticated();
   }
 
-  private roles(): string[] {
-    const mocked = this.mockRoles();
-    if (mocked.length) return mocked;
-    const rs = this.user()?.roles ?? [];
-    return Array.isArray(rs) ? rs.map(r => (r || '').toString().toUpperCase()) : [];
+  private roles(): Role[] {
+    return this.currentRoles();
   }
 
   isClient(): boolean {
-    const r = this.roles();
-    return r.includes('CLIENT') || r.includes('CLIENTE');
+    return this.auth.hasRole(Role.CLIENT);
   }
+
   isAdmin(): boolean {
-    const r = this.roles();
-    return r.includes('ADMIN') || r.includes('ADMINISTRATOR');
-  }
-  isSocio(): boolean {
-    return this.roles().includes('SOCIO');
-  }
-  isDistribuidor(): boolean {
-    return this.roles().includes('DISTRIBUIDOR');
+    return this.auth.hasRole(Role.ADMIN);
   }
 
-  /** Cliente base = solo CLIENT/CLIENTE (sin ADMIN/SOCIO/DISTRIBUIDOR) */
+  isPartner(): boolean {
+    return this.auth.hasRole(Role.PARTNER);
+  }
+
+  isDistributor(): boolean {
+    return this.auth.hasRole(Role.DISTRIBUTOR);
+  }
+
+  isAuthority(): boolean {
+    return this.auth.hasRole(Role.AUTHORITY);
+  }
+
   isOnlyClient(): boolean {
-    const r = new Set(this.roles());
-    const isClient = r.has('CLIENT') || r.has('CLIENTE');
-    const hasOther = r.has('ADMIN') || r.has('ADMINISTRATOR') || r.has('SOCIO') || r.has('DISTRIBUIDOR');
-    return isClient && !hasOther;
+    const roles = this.roles();
+    const hasClient = roles.includes(Role.CLIENT);
+    const hasOther = roles.some(r => 
+      r === Role.ADMIN || 
+      r === Role.PARTNER || 
+      r === Role.DISTRIBUTOR || 
+      r === Role.AUTHORITY
+    );
+    return hasClient && !hasOther;
   }
 
-  /** Items de Inbox según el rol */
-  inboxItems(): MenuItem[] {
-    if (this.isAdmin()) return this.inboxItemsAdmin;
-    if (this.isOnlyClient()) return this.inboxItemsClient;
-    return []; // otros roles sin inbox (según tu regla)
+  /**
+   * ✅ CAMBIO: Los clientes pueden ver la tienda siempre
+   * Solo necesitan perfil completo + email verificado para COMPRAR
+   */
+  canAccessStore(): boolean {
+    return this.isClient() || this.isAdmin();
   }
 
-  /** Contador de notificaciones: admin puede tener otros contadores; aquí priorizamos cliente base */
+  /**
+   * Verifica si el usuario puede comprar (email verificado + perfil completo)
+   * Se usa en la página de la tienda, no aquí
+   */
+  canPurchase(): boolean {
+    return this.auth.canPurchase();
+  }
+
+  displayName(): string {
+    const user = this.user();
+    return user?.username || 'Usuario';
+  }
+
+  getProfileCompleteness(): number {
+    return this.profileCompleteness();
+  }
+
+  isProfileComplete(): boolean {
+    return this.profileCompleteness() === 100;
+  }
+
+  isEmailVerified(): boolean {
+    return this.user()?.emailVerified ?? false;
+  }
+
   inboxCount(): number {
-    if (this.isOnlyClient()) return this.mockNotifCount();
     return 0;
   }
 
   trackByPath(_i: number, it: MenuItem) { return it.path; }
 
-  // Activo: Gestión
   isGestionActive(): boolean {
     const url = this.routerSvc.url || '';
     return url.startsWith('/producto')
@@ -179,15 +177,24 @@ export class NavbarComponent implements AfterViewInit {
       || url.startsWith('/admin');
   }
 
-  // Activo: Inbox (admin o cliente base)
   isInboxActive(): boolean {
     const url = this.routerSvc.url || '';
-    return url.startsWith('/solicitudes-rol')
-        || url.startsWith('/verificacion-mail')
-        || url.startsWith('/mi-solicitud-rol');
+    return url.startsWith('/inbox');
   }
 
-  logout() { this.auth.logout(); }
+  logout() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      this.auth.logout().subscribe({
+        next: () => {
+          console.log('[Navbar] Logout successful');
+        },
+        error: (err) => {
+          console.error('[Navbar] Logout error:', err);
+          this.routerSvc.navigate(['/login']);
+        }
+      });
+    }
+  }
 
   private updateIndicator() {
     const menuEl = this.menuRef?.nativeElement;
@@ -201,9 +208,9 @@ export class NavbarComponent implements AfterViewInit {
     }
 
     const menuRect = menuEl.getBoundingClientRect();
-    const btnRect  = activeEl.getBoundingClientRect();
+    const btnRect = activeEl.getBoundingClientRect();
     const x = btnRect.left - menuRect.left;
-    const y = btnRect.top  - menuRect.top;
+    const y = btnRect.top - menuRect.top;
     const w = btnRect.width;
     const h = btnRect.height;
 

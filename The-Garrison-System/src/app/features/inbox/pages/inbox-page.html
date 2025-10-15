@@ -1,39 +1,124 @@
-<div class="inbox-page">
-  <div *ngIf="loading" class="loading">Cargando...</div>
+<!-- src/app/features/inbox/pages/inbox-page.component.html -->
 
-  <div *ngIf="!loading && user" class="inbox-layout">
-    <aside class="inbox-sidebar">
-      <nav class="inbox-navigation">
-        <button class="nav-item" [class.active]="activeSection === 'role-requests'"
-          (click)="setActiveSection('role-requests')">
-          <span class="icon">📋</span>
-          <span class="text">Solicitudes de Rol</span>
+<div class="inbox-container">
+  <!-- Header -->
+  <header class="inbox-header">
+    <h1>Bandeja de Entrada</h1>
+    <div class="user-info" *ngIf="user() as currentUser">
+      <span class="username">{{ currentUser.username }}</span>
+      <span class="profile-badge" [class.complete]="hasCompleteProfile()">
+        {{ profileCompleteness() }}% completo
+      </span>
+      <span class="role-badge" *ngFor="let role of currentUser.roles">
+        {{ role }}
+      </span>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Cargando bandeja...</p>
+  </div>
+
+  <!-- Content (when loaded) -->
+  <div class="inbox-content" *ngIf="!loading()">
+
+    <!-- ========================================
+         VISTA ADMIN - CON TABS
+         ======================================== -->
+    <ng-container *ngIf="isAdmin()">
+      <!-- Tabs de navegación -->
+      <nav class="inbox-tabs" role="tablist">
+        <button role="tab" [attr.aria-selected]="activeSection() === 'role-requests'"
+          [class.active]="activeSection() === 'role-requests'" (click)="setActiveSection('role-requests')">
+          📋 Solicitudes de Rol
         </button>
-
-        <button *ngIf="isAdmin" class="nav-item" [class.active]="activeSection === 'email-verification'"
-          (click)="setActiveSection('email-verification')">
-          <span class="icon">📧</span>
-          <span class="text">Verificación de Email</span>
+        <button role="tab" [attr.aria-selected]="activeSection() === 'email-verification'"
+          [class.active]="activeSection() === 'email-verification'" (click)="setActiveSection('email-verification')">
+          ✉️ Verificación de Emails
         </button>
       </nav>
-    </aside>
 
-    <main class="inbox-content">
-      <ng-container *ngIf="activeSection === 'role-requests'">
-        <app-admin-role-requests-inbox *ngIf="isAdmin">
-        </app-admin-role-requests-inbox>
-
-        <app-user-role-requests-inbox *ngIf="!isAdmin" [currentRoles]="user.roles"
-          [hasCompleteProfile]="hasCompleteProfile">
-        </app-user-role-requests-inbox>
-      </ng-container>
-
-      <ng-container *ngIf="activeSection === 'email-verification' && isAdmin">
-        <div class="coming-soon">
-          <h3>Verificación de Email</h3>
-          <p>Esta sección estará disponible próximamente</p>
+      <!-- Contenido según tab activo -->
+      <div class="tab-content" role="tabpanel">
+        <!-- Tab: Solicitudes de Rol -->
+        <div *ngIf="activeSection() === 'role-requests'" class="tab-panel">
+          <app-admin-role-requests-inbox></app-admin-role-requests-inbox>
         </div>
-      </ng-container>
-    </main>
+
+        <!-- Tab: Verificación de Emails -->
+        <div *ngIf="activeSection() === 'email-verification'" class="tab-panel">
+          <div class="placeholder">
+            <h2>Verificación de Emails</h2>
+            <p>Gestión de verificaciones de correo electrónico pendientes.</p>
+            <p class="muted">Componente en desarrollo...</p>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ========================================
+         VISTA CLIENTE BASE - SIN TABS
+         ======================================== -->
+    <ng-container *ngIf="!isAdmin() && isOnlyClient()">
+      <div class="client-inbox">
+        <div class="section-header">
+          <h2>Mi Solicitud de Rol</h2>
+          <p class="section-description">
+            Aquí puedes ver el estado de tu solicitud para convertirte en Partner o Distribuidor.
+          </p>
+        </div>
+
+        <!-- ✅ Alerta si el perfil no está completo -->
+        <div class="alert alert-warning" *ngIf="!hasCompleteProfile()">
+          <strong>⚠️ Completa tu perfil</strong>
+          <p>
+            Necesitas completar tu perfil al 100% antes de solicitar roles adicionales.
+            <a routerLink="/mi-cuenta">Ir a Mi Cuenta</a>
+          </p>
+          <div class="suggestions" *ngIf="getProfileSuggestions().length > 0">
+            <p><strong>Pendiente:</strong></p>
+            <ul>
+              <li *ngFor="let suggestion of getProfileSuggestions()">
+                {{ suggestion }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ✅ Componente de solicitud - con roles actuales y estado de perfil -->
+        <app-user-role-requests-inbox [currentRoles]="currentRoles()" [hasCompleteProfile]="hasCompleteProfile()">
+        </app-user-role-requests-inbox>
+      </div>
+    </ng-container>
+
+    <!-- ========================================
+         OTROS ROLES (Partner, Distributor, Authority)
+         ======================================== -->
+    <ng-container *ngIf="!isAdmin() && !isOnlyClient() && user()">
+      <div class="access-denied">
+        <div class="icon">🔒</div>
+        <h2>Acceso No Disponible</h2>
+        <p>
+          La bandeja de entrada no está disponible para tu rol actual.
+          Esta sección es exclusiva para clientes base y administradores.
+        </p>
+        <a routerLink="/" class="btn btn-primary">Volver al Inicio</a>
+      </div>
+    </ng-container>
+
+    <!-- ========================================
+         NO AUTENTICADO (no debería llegar aquí por el guard)
+         ======================================== -->
+    <ng-container *ngIf="!user()">
+      <div class="not-authenticated">
+        <div class="icon">🔐</div>
+        <h2>Sesión Requerida</h2>
+        <p>Necesitas iniciar sesión para acceder a esta página.</p>
+        <a routerLink="/login" class="btn btn-primary">Iniciar Sesión</a>
+      </div>
+    </ng-container>
+
   </div>
 </div>

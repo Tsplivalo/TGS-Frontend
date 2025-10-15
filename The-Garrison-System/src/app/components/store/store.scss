@@ -522,3 +522,105 @@
 .fly-bubble {
   pointer-events: none;
 }
+
+/* =========================
+   ✅ ALERTAS Y VALIDACIÓN DE COMPRA
+   Agregar al final del archivo store.scss
+   ========================= */
+
+/* Alerta de compra en el drawer */
+.cart-purchase-alert {
+  margin-bottom: var(--sp-3);
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+
+  &--warning {
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.08));
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+  }
+
+  &__icon {
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fcd34d;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.875rem;
+      line-height: 1.4;
+      color: #fde047;
+
+      a {
+        color: #fef3c7;
+        text-decoration: underline;
+        font-weight: 600;
+
+        &:hover {
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}
+
+/* Botón deshabilitado */
+.btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+
+  &:hover {
+    transform: none !important;
+    box-shadow: 0 6px 16px rgba(195, 164, 98, 0.22) !important;
+  }
+}
+
+/* Ajustes al footer del drawer para acomodar la alerta */
+.cart-drawer__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+
+  .cart-drawer__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Responsive para alertas */
+@media (max-width: 560px) {
+  .alert {
+    &__content {
+      strong {
+        font-size: 0.875rem;
+      }
+
+      p {
+        font-size: 0.8125rem;
+      }
+    }
+  }
+}

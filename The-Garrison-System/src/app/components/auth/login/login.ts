@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+// src/app/pages/auth/login/login.component.ts
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth/auth';
 
@@ -12,35 +13,66 @@ import { AuthService } from '../../../services/auth/auth';
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
-export class LoginComponent {
-  private fb = inject(FormBuilder);
-  private auth = inject(AuthService);
-  private router = inject(Router);
+export class LoginComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   loading = false;
   error: string | null = null;
+  returnUrl: string = '/';
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
+  ngOnInit(): void {
+    // Obtener URL de retorno si existe
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    
+    // Si ya está autenticado, redirigir
+    if (this.auth.isAuthenticated()) {
+      this.router.navigateByUrl(this.returnUrl);
+    }
+  }
+
   submit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    // Validar formulario
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     this.loading = true;
     this.error = null;
 
     const { email, password } = this.form.getRawValue();
 
-    this.auth.login({ email: email!, password: password! }).subscribe({
-      next: () => {
+    this.auth.login({
+      email: email!,
+      password: password!
+    }).subscribe({
+      next: (user) => {
         this.loading = false;
-        this.router.navigateByUrl('/');
+        console.log('[Login] Success:', user);
+        
+        // Redirigir a la URL de retorno o a home
+        this.router.navigateByUrl(this.returnUrl);
       },
-      error: (e) => {
+      error: (err) => {
         this.loading = false;
-        this.error = e?.error?.message ?? 'No se pudo iniciar sesión';
+        this.error = err.message || 'No se pudo iniciar sesión';
+        console.error('[Login] Error:', err);
       }
     });
+  }
+
+  /**
+   * Limpia el mensaje de error
+   */
+  clearError(): void {
+    this.error = null;
   }
 }

@@ -1,3 +1,4 @@
+<!-- src/app/components/navbar/navbar.component.html -->
 <nav class="nav">
   <div class="nav__content">
     <!-- Brand -->
@@ -14,11 +15,12 @@
              height: indicator.h + 'px'
            }" aria-hidden="true"></div>
 
-      <!-- Ítems cliente (si está autenticado) -->
-      <ng-container *ngIf="isAuthenticated() && (isClient() || isAdmin())">
+      <!-- ✅ Ítems cliente: Tienda (siempre visible si es cliente/admin) -->
+      <ng-container *ngIf="isAuthenticated() && canAccessStore()">
         <li class="menu__item" role="none" *ngFor="let it of clientItems; trackBy: trackByPath">
           <a #mainBtn role="menuitem" [routerLink]="it.path" routerLinkActive="active">
-            {{ it.label | translate }} <span class="underline"></span>
+            {{ it.label | translate }}
+            <span class="underline"></span>
           </a>
         </li>
       </ng-container>
@@ -59,9 +61,9 @@
         </a>
       </li>
 
-      <!-- Gestión (ADMIN | SOCIO | DISTRIBUIDOR) -->
+      <!-- Gestión (ADMIN | PARTNER | DISTRIBUTOR) -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0"
-        *ngIf="isAuthenticated() && (isAdmin() || isSocio() || isDistribuidor())">
+        *ngIf="isAuthenticated() && (isAdmin() || isPartner() || isDistributor())">
         <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
           [class.active]="isGestionActive()">
           {{ 'nav.management' | translate }} <span class="chevron">▾</span>
@@ -69,6 +71,7 @@
         </button>
 
         <ul class="dropdown" role="menu" aria-label="Gestión">
+          <!-- ADMIN - Acceso completo -->
           <ng-container *ngIf="isAdmin(); else notAdminBlock">
             <li class="dropdown__item" role="none">
               <a role="menuitem" routerLink="/producto" routerLinkActive="active">
@@ -112,7 +115,6 @@
                 <span class="dropdown__subgroup-title">{{ 'nav.society' | translate }}</span>
                 <span class="chevron">▸</span>
               </div>
-              <!-- 👇 SOLO cambio: clase extra dropdown--inner-diag -->
               <ul class="dropdown dropdown--inner dropdown--inner-diag" role="menu" aria-label="Sociedad">
                 <li class="dropdown__item" role="none">
                   <a role="menuitem" routerLink="/decision" routerLinkActive="active">
@@ -146,12 +148,23 @@
                 </li>
               </ul>
             </li>
+
+            <li class="dropdown__divider" role="separator"></li>
+
+            <!-- Admin Panel -->
+            <li class="dropdown__item" role="none">
+              <a role="menuitem" routerLink="/admin" routerLinkActive="active" class="admin-link">
+                <span class="material-symbols-outlined">admin_panel_settings</span>
+                {{ 'mgmt.admin' | translate }}
+                <span class="underline"></span>
+              </a>
+            </li>
           </ng-container>
 
-          <!-- SOCIO / DISTRIBUIDOR -->
+          <!-- PARTNER / DISTRIBUTOR -->
           <ng-template #notAdminBlock>
-            <!-- SOCIO -->
-            <ng-container *ngIf="isSocio(); else distribBlock">
+            <!-- PARTNER -->
+            <ng-container *ngIf="isPartner(); else distribBlock">
               <li class="dropdown__item" role="none">
                 <a role="menuitem" routerLink="/producto" routerLinkActive="active">
                   {{ 'mgmt.product' | translate }} <span class="underline"></span>
@@ -178,13 +191,12 @@
                 </a>
               </li>
 
-              <!-- Sociedad (SOCIO) -->
+              <!-- Sociedad (PARTNER) -->
               <li class="dropdown__item dropdown__item--sub" role="none">
                 <div class="dropdown__subgroup" tabindex="0" aria-haspopup="true" aria-expanded="false">
                   <span class="dropdown__subgroup-title">{{ 'nav.society' | translate }}</span>
                   <span class="chevron">▸</span>
                 </div>
-                <!-- 👇 SOLO cambio: clase extra dropdown--inner-diag -->
                 <ul class="dropdown dropdown--inner dropdown--inner-diag" role="menu" aria-label="Sociedad">
                   <li class="dropdown__item" role="none">
                     <a role="menuitem" routerLink="/decision" routerLinkActive="active">
@@ -220,9 +232,9 @@
               </li>
             </ng-container>
 
-            <!-- DISTRIBUIDOR -->
+            <!-- DISTRIBUTOR -->
             <ng-template #distribBlock>
-              <ng-container *ngIf="isDistribuidor()">
+              <ng-container *ngIf="isDistributor()">
                 <li class="dropdown__item" role="none">
                   <a role="menuitem" routerLink="/producto" routerLinkActive="active">
                     {{ 'mgmt.product' | translate }} <span class="underline"></span>
@@ -249,10 +261,10 @@
         </ul>
       </li>
 
-      <!-- Bandeja de entrada (ADMIN o CLIENTE base) -->
+      <!-- ✅ Bandeja UNIFICADA (ADMIN o CLIENTE base) -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0"
         *ngIf="isAuthenticated() && (isAdmin() || isOnlyClient())">
-        <button class="dropdown__toggle has-underline icon-only" type="button" aria-haspopup="true"
+        <button #mainBtn class="dropdown__toggle has-underline icon-only" type="button" aria-haspopup="true"
           aria-expanded="false" [class.active]="isInboxActive()" [attr.aria-label]="'nav.inbox' | translate">
           <span class="material-symbols-outlined inbox-icon" aria-hidden="true">inbox</span>
           <span *ngIf="inboxCount() > 0" class="badge" [attr.aria-label]="'nav.unread' | translate">
@@ -262,43 +274,90 @@
         </button>
 
         <ul class="dropdown" role="menu" aria-label="Bandeja de entrada">
-          <li class="dropdown__item" role="none" *ngFor="let it of inboxItems(); trackBy: trackByPath">
-            <a role="menuitem" [routerLink]="it.path" routerLinkActive="active">
-              {{ it.label | translate }} <span class="underline"></span>
+          <li class="dropdown__item" role="none">
+            <a role="menuitem" routerLink="/inbox" routerLinkActive="active">
+              📬 {{ 'nav.inbox' | translate }}
+              <span class="underline"></span>
             </a>
           </li>
         </ul>
       </li>
 
-      <!-- Usuario (logueado) -->
+      <!-- ✅ Usuario (SIMPLIFICADO) -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0" *ngIf="isAuthenticated()">
         <button class="dropdown__toggle icon-only" type="button" aria-haspopup="true" aria-expanded="false"
-          [attr.aria-label]="(user()?.['username'] || user()?.['email'] || 'User')">
+          [attr.aria-label]="displayName()">
           <span class="material-symbols-outlined account-icon" aria-hidden="true">account_box</span>
+          <span *ngIf="!isProfileComplete()" class="profile-incomplete-badge"
+            [attr.title]="'Perfil ' + getProfileCompleteness() + '% completo'">
+            {{ getProfileCompleteness() }}%
+          </span>
           <span class="underline"></span>
         </button>
 
-        <ul class="dropdown" role="menu" aria-label="Usuario">
-          <!-- Cabecera con el usuario (no clickable) -->
+        <ul class="dropdown dropdown--user" role="menu" aria-label="Usuario">
+          <!-- ✅ Cabecera simple: solo nombre -->
           <li class="dropdown__item dropdown__item--header" role="none" aria-disabled="true">
             <div class="dropdown__header">
-              {{ user()?.['username'] || user()?.['email'] || 'User' }}
+              <strong class="user-name">{{ displayName() }}</strong>
+            </div>
+          </li>
+
+          <!-- ✅ Barra de progreso del perfil -->
+          <li class="dropdown__item dropdown__item--progress" role="none" aria-disabled="true">
+            <div class="profile-status">
+              <span class="status-bar">
+                <span class="status-fill" [style.width.%]="getProfileCompleteness()"
+                  [class.complete]="isProfileComplete()"></span>
+              </span>
+              <span class="status-text">{{ getProfileCompleteness() }}% completo</span>
+            </div>
+          </li>
+
+          <!-- ✅ Alerta de email no verificado -->
+          <li class="dropdown__item dropdown__item--warning" role="none" *ngIf="!isEmailVerified()">
+            <div class="warning-message">
+              ⚠️ Verifica tu email
+              <a routerLink="/verify-email" class="verify-link">Verificar ahora</a>
             </div>
           </li>
 
           <li class="dropdown__divider" role="separator"></li>
 
+          <!-- ✅ Roles del usuario -->
+          <li class="dropdown__item dropdown__item--info" role="none" aria-disabled="true">
+            <div class="user-roles">
+              <span class="roles-label">Roles:</span>
+              <span class="role-badge" *ngFor="let role of user()?.roles">{{ role }}</span>
+            </div>
+          </li>
+
+          <li class="dropdown__divider" role="separator"></li>
+
+          <!-- ✅ Mi cuenta -->
           <li class="dropdown__item" role="none">
             <a role="menuitem" routerLink="/mi-cuenta" routerLinkActive="active">
+              <span class="material-symbols-outlined">manage_accounts</span>
               {{ 'nav.myAccount' | translate }}
             </a>
           </li>
+
+          <!-- ✅ Logout -->
           <li class="dropdown__item" role="none">
             <button type="button" class="btn-logout" (click)="logout()">
+              <span class="material-symbols-outlined">logout</span>
               {{ 'nav.logout' | translate }}
             </button>
           </li>
         </ul>
+      </li>
+
+      <!-- Login (no autenticado) -->
+      <li class="menu__item" role="none" *ngIf="!isAuthenticated()">
+        <a role="menuitem" routerLink="/login" routerLinkActive="active" class="btn-login">
+          <span class="material-symbols-outlined">login</span>
+          {{ 'nav.login' | translate }}
+        </a>
       </li>
     </ul>
   </div>

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 // Servicios propios
-import { AuthService } from '../../services/auth/auth';
+import { AuthService } from '../../services/auth/auth'; // ← Actualizado
 
 // i18n (solo pipe)
 import { TranslateModule } from '@ngx-translate/core';
@@ -25,14 +25,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  // --- Estado auth ---
-  readonly isLoggedIn = this.auth.isLoggedIn;
-  readonly user       = this.auth.user;
+  // --- Estado auth (usando el nuevo servicio) ---
+  readonly isLoggedIn = computed(() => this.auth.isAuthenticated()); // ← Actualizado
+  readonly user = computed(() => this.auth.user()); // ← Actualizado
 
   // --- UI auth panel ---
   showAuthPanel = true;
   entering = false;
-  hiding   = false;
+  hiding = false;
 
   // --- Modo (login | register) ---
   mode = signal<'login' | 'register'>('login');
@@ -45,20 +45,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   logoOk = true;
   onLogoError() { this.logoOk = false; }
 
-  // --- Formularios ---
+  // --- Formularios (actualizados con validaciones del backend) ---
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
+    password: ['', [Validators.required, Validators.minLength(8)]], // ← Mínimo 8 caracteres
   });
 
   registerForm = this.fb.group({
-    username: ['', [Validators.required, Validators.minLength(2)]],
+    username: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [
+      Validators.required,
+      Validators.minLength(8),
+      // Validación de complejidad de contraseña
+      Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    ]],
   });
 
   // --- Estado envío / error ---
-  loadingLogin    = false;
+  loadingLogin = false;
   loadingRegister = false;
   errorLogin: string | null = null;
   errorRegister: string | null = null;
@@ -69,37 +74,37 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // >>> Tokens de cancelación (evita carreras entre type/delete) <<<
   private emailToken = 0;
-  private nameToken  = 0;
+  private nameToken = 0;
   private bumpEmailToken(): number { return ++this.emailToken; }
-  private bumpNameToken(): number  { return ++this.nameToken; }
+  private bumpNameToken(): number { return ++this.nameToken; }
 
   // Personajes login (solo email)
   private loginCharacters = [
     { name: 'Anakin Skywalker', email: 'anakinskywalker@theforce.com' },
-    { name: 'Luke Skywalker',   email: 'lukeskywalker@jedi.com' },
-    { name: 'Leia Organa',      email: 'leia@rebellion.com' },
-    { name: 'Obi-Wan Kenobi',   email: 'obiwan@jedi.com' },
-    { name: 'Yoda',             email: 'yoda@dagobah.com' },
-    { name: 'Darth Vader',      email: 'darthvader@empire.com' },
-    { name: 'Han Solo',         email: 'han@millennium.com' },
-    { name: 'Chewbacca',        email: 'chewbacca@kashyyyk.com' }
+    { name: 'Luke Skywalker', email: 'lukeskywalker@jedi.com' },
+    { name: 'Leia Organa', email: 'leia@rebellion.com' },
+    { name: 'Obi-Wan Kenobi', email: 'obiwan@jedi.com' },
+    { name: 'Yoda', email: 'yoda@dagobah.com' },
+    { name: 'Darth Vader', email: 'darthvader@empire.com' },
+    { name: 'Han Solo', email: 'han@millennium.com' },
+    { name: 'Chewbacca', email: 'chewbacca@kashyyyk.com' }
   ];
   private loginCharacterIndex = 0;
 
   // Personajes register (nombre + email)
   private registerCharacters = [
     { name: 'Anakin Skywalker', email: 'anakinskywalker@theforce.com' },
-    { name: 'Luke Skywalker',   email: 'lukeskywalker@jedi.com' },
-    { name: 'Leia Organa',      email: 'leia@rebellion.com' },
-    { name: 'Obi-Wan Kenobi',   email: 'obiwan@jedi.com' },
-    { name: 'Yoda',             email: 'yoda@dagobah.com' },
-    { name: 'Darth Vader',      email: 'darthvader@empire.com' },
-    { name: 'Han Solo',         email: 'han@millennium.com' },
-    { name: 'Chewbacca',        email: 'chewbacca@kashyyyk.com' },
-    { name: 'Rey',              email: 'rey@resistance.com' },
-    { name: 'Kylo Ren',         email: 'kyloren@firstorder.com' },
-    { name: 'Padmé Amidala',    email: 'padme@naboo.com' },
-    { name: 'Mace Windu',       email: 'macewindu@jedi.com' }
+    { name: 'Luke Skywalker', email: 'lukeskywalker@jedi.com' },
+    { name: 'Leia Organa', email: 'leia@rebellion.com' },
+    { name: 'Obi-Wan Kenobi', email: 'obiwan@jedi.com' },
+    { name: 'Yoda', email: 'yoda@dagobah.com' },
+    { name: 'Darth Vader', email: 'darthvader@empire.com' },
+    { name: 'Han Solo', email: 'han@millennium.com' },
+    { name: 'Chewbacca', email: 'chewbacca@kashyyyk.com' },
+    { name: 'Rey', email: 'rey@resistance.com' },
+    { name: 'Kylo Ren', email: 'kyloren@firstorder.com' },
+    { name: 'Padmé Amidala', email: 'padme@naboo.com' },
+    { name: 'Mace Windu', email: 'macewindu@jedi.com' }
   ];
   private registerCharacterIndex = 0;
 
@@ -116,12 +121,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // Intro
   introItems: IntroItem[] = [
-    { titleKey: 'home.features.simplified.title',  detailKey: 'home.features.simplified.detail' },
+    { titleKey: 'home.features.simplified.title', detailKey: 'home.features.simplified.detail' },
     { titleKey: 'home.features.performance.title', detailKey: 'home.features.performance.detail' },
-    { titleKey: 'home.features.scalable.title',    detailKey: 'home.features.scalable.detail' },
-    { titleKey: 'home.features.reports.title',     detailKey: 'home.features.reports.detail' },
-    { titleKey: 'home.features.security.title',    detailKey: 'home.features.security.detail' },
-    { titleKey: 'home.features.integrations.title',detailKey: 'home.features.integrations.detail' },
+    { titleKey: 'home.features.scalable.title', detailKey: 'home.features.scalable.detail' },
+    { titleKey: 'home.features.reports.title', detailKey: 'home.features.reports.detail' },
+    { titleKey: 'home.features.security.title', detailKey: 'home.features.security.detail' },
+    { titleKey: 'home.features.integrations.title', detailKey: 'home.features.integrations.detail' },
   ];
 
   // Expandibles
@@ -201,7 +206,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.animatedPlaceholder = '';
 
     while (this.mode() === 'login') {
-      // token único para TODO el ciclo (type + pause + delete) del email
       const token = this.bumpEmailToken();
 
       const email = this.loginCharacters[this.loginCharacterIndex].email;
@@ -214,14 +218,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.deleteEmailText(email, token);
       if (token !== this.emailToken) break;
 
-      // descanso breve sin texto
       await this.delay(800);
       if (token !== this.emailToken) break;
 
       this.loginCharacterIndex = (this.loginCharacterIndex + 1) % this.loginCharacters.length;
     }
 
-    // limpiar al salir
     this.animatedPlaceholder = '';
   }
 
@@ -236,7 +238,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private restartAnimationForMode() {
-    // invalidar todo lo que esté en curso
     this.bumpEmailToken();
     this.bumpNameToken();
 
@@ -254,8 +255,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private async runRegisterAnimationLoop() {
     while (this.registerAnimationRunning && this.mode() === 'register') {
-      // tokens por campo (independientes)
-      const nameToken  = this.bumpNameToken();
+      const nameToken = this.bumpNameToken();
       const emailToken = this.bumpEmailToken();
 
       const character = this.registerCharacters[this.registerCharacterIndex];
@@ -275,16 +275,15 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.deleteEmailText(character.email, emailToken);
       if (emailToken !== this.emailToken) break;
 
-      await this.delay(500); // sin genérico
+      await this.delay(500);
       if (nameToken !== this.nameToken) break;
 
       await this.deleteNameText(character.name, nameToken);
       if (nameToken !== this.nameToken) break;
 
-      await this.delay(500); // sin genérico
+      await this.delay(500);
       if (nameToken !== this.nameToken || emailToken !== this.emailToken) break;
 
-      // descanso breve sin texto
       this.animatedPlaceholder = '';
       this.animatedNamePlaceholder = '';
       await this.delay(1200);
@@ -293,7 +292,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.registerCharacterIndex = (this.registerCharacterIndex + 1) % this.registerCharacters.length;
     }
 
-    // limpiar al salir
     this.animatedPlaceholder = '';
     this.animatedNamePlaceholder = '';
   }
@@ -303,7 +301,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (this.isTyping) return;
     this.isTyping = true;
 
-    // escribir char a char, abortable
     for (let i = 0; i <= text.length; i++) {
       if (token !== this.emailToken) break;
       this.animatedPlaceholder = text.substring(0, i);
@@ -316,7 +313,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.delay(speed);
     }
 
-    // si se canceló, no tocar flags
     if (token === this.emailToken) this.isTyping = false;
   }
 
@@ -324,7 +320,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (this.isDeletingEmail) return;
     this.isDeletingEmail = true;
 
-    // snapshot del texto actual para evitar "reapariciones"
     const starting = this.animatedPlaceholder || text;
 
     for (let i = starting.length; i >= 0; i--) {
@@ -377,37 +372,95 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // --- Focus handlers ---
   onEmailFocus() { this.userIsTyping = true; }
-  onEmailBlur()  { setTimeout(() => { this.userIsTyping = false; }, 1000); }
-  onNameFocus()  { this.userIsTypingName = true; }
-  onNameBlur()   { setTimeout(() => { this.userIsTypingName = false; }, 1000); }
+  onEmailBlur() { setTimeout(() => { this.userIsTyping = false; }, 1000); }
+  onNameFocus() { this.userIsTypingName = true; }
+  onNameBlur() { setTimeout(() => { this.userIsTypingName = false; }, 1000); }
 
-  // --- Login/Register ---
+  // ===== Login/Register (actualizados con el nuevo servicio) =====
+  
   async submitLogin() {
-    this.errorLogin = null; this.loadingLogin = true;
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      this.errorLogin = 'Por favor, completa todos los campos correctamente';
+      return;
+    }
+
+    this.errorLogin = null;
+    this.loadingLogin = true;
+
     try {
       const { email, password } = this.loginForm.getRawValue();
-      if (!email || !password) throw new Error('auth.errors.missingFields');
+      if (!email || !password) {
+        throw new Error('Email y contraseña son requeridos');
+      }
+
+      // ← Usar el nuevo servicio de auth
       await firstValueFrom(this.auth.login({ email, password }));
+
+      // Ocultar panel con animación
       this.hiding = true;
-      setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 180);
+      setTimeout(() => {
+        this.showAuthPanel = false;
+        this.hiding = false;
+        // Navegar a home o dashboard
+        this.router.navigateByUrl('/');
+      }, 180);
+
     } catch (e: any) {
-      this.errorLogin = e?.message || 'auth.errors.loginFailed';
-    } finally { this.loadingLogin = false; }
+      console.error('[Home] Login error:', e);
+      this.errorLogin = e?.message || 'Error al iniciar sesión';
+    } finally {
+      this.loadingLogin = false;
+    }
   }
 
   async submitRegister() {
-    this.errorRegister = null; this.loadingRegister = true;
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      
+      // Mostrar error específico según el problema
+      const passwordControl = this.registerForm.get('password');
+      if (passwordControl?.hasError('pattern')) {
+        this.errorRegister = 'La contraseña debe contener al menos: una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&)';
+      } else {
+        this.errorRegister = 'Por favor, completa todos los campos correctamente';
+      }
+      return;
+    }
+
+    this.errorRegister = null;
+    this.loadingRegister = true;
+
     try {
       const { username, email, password } = this.registerForm.getRawValue();
-      if (!username || !email || !password) throw new Error('auth.errors.missingFields');
+      if (!username || !email || !password) {
+        throw new Error('Todos los campos son requeridos');
+      }
+
+      // ← Registrar con el nuevo servicio
       await firstValueFrom(this.auth.register({ username, email, password }));
+
+      // Auto-login después del registro
       await firstValueFrom(this.auth.login({ email, password }));
+
+      // Ocultar panel con animación
       this.hiding = true;
-      setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 180);
+      setTimeout(() => {
+        this.showAuthPanel = false;
+        this.hiding = false;
+        // Navegar a home
+        this.router.navigateByUrl('/');
+      }, 180);
+
     } catch (e: any) {
-      this.errorRegister = e?.message || 'auth.errors.registerFailed';
-    } finally { this.loadingRegister = false; }
+      console.error('[Home] Register error:', e);
+      this.errorRegister = e?.message || 'Error al registrarse';
+    } finally {
+      this.loadingRegister = false;
+    }
   }
 
-  goStore() { this.router.navigateByUrl('/tienda'); }
+  goStore() {
+    this.router.navigateByUrl('/tienda');
+  }
 }

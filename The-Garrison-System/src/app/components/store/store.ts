@@ -1,19 +1,11 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '../../services/product/product';
 import { ProductImageService } from '../../services/product-image/product-image';
+import { AuthService } from '../../services/auth/auth';
 import { ApiResponse, ProductDTO } from '../../models/product/product.model';
-import { TranslateModule } from '@ngx-translate/core'; // ⬅️ AÑADIR
-
-/**
- * StoreComponent
- *
- * Catálogo de productos con búsqueda, carrito local (localStorage) y animación "fly to cart".
- * Decisiones clave:
- * - Las imágenes se superponen en front vía ProductImageService (no dependen del backend).
- * - El carrito se mantiene en `localStorage` (LS_KEY) y se expone como API de lectura (items/count/total).
- * - Efecto visual de agregado al carrito: clon de imagen o burbuja que "vuela" al FAB del carrito.
- */
+import { TranslateModule } from '@ngx-translate/core';
 
 type CartItem = {
   id: number;
@@ -26,7 +18,7 @@ type CartItem = {
 @Component({
   selector: 'app-store',
   standalone: true,
-  imports: [CommonModule, TranslateModule], // ⬅️ AÑADIR
+  imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './store.html',
   styleUrls: ['./store.scss'],
 })
@@ -34,6 +26,8 @@ export class StoreComponent implements OnInit {
   // --- Inyección ---
   private productsSrv = inject(ProductService);
   private imgSvc = inject(ProductImageService, { optional: true as any });
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   // --- Estado base ---
   loading = signal(false);
@@ -51,6 +45,11 @@ export class StoreComponent implements OnInit {
   // --- Drawer de carrito ---
   showCart = signal(false);
   toggleCartDrawer() { this.showCart.set(!this.showCart()); }
+
+  // --- ✅ Validación de compra ---
+  canPurchase = computed(() => this.authService.canPurchase());
+  isEmailVerified = computed(() => this.authService.user()?.emailVerified ?? false);
+  profileCompleteness = computed(() => this.authService.profileCompleteness());
 
   // --- Carrito en localStorage ---
   private LS_KEY = 'cart.v1';
@@ -89,13 +88,12 @@ export class StoreComponent implements OnInit {
     this.productsSrv.getAllProducts().subscribe({
       next: (r: ApiResponse<ProductDTO[]> | ProductDTO[]) => {
         const data = Array.isArray(r) ? r : (r as any).data;
-        // superponemos las imágenes locales (solo front)
         const overlay = this.imgSvc?.overlay?.bind(this.imgSvc) ?? ((arr: ProductDTO[]) => arr);
         this.products.set(overlay(data ?? []));
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'store.errors.load'); // i18n sugerida
+        this.error.set(err?.error?.message ?? 'store.errors.load');
         this.loading.set(false);
       },
     });
@@ -180,6 +178,19 @@ export class StoreComponent implements OnInit {
     this.pulseCart();
   }
 
+  // --- ✅ Ir al checkout con validación ---
+  goToCheckout() {
+    if (!this.canPurchase()) {
+      // No hacer nada, el botón ya está deshabilitado
+      // El mensaje se muestra en el template
+      return;
+    }
+    
+    // TODO: Implementar navegación al checkout
+    console.log('Ir al checkout con:', this.cart.items());
+    // this.router.navigate(['/checkout']);
+  }
+
   // --- UX: agregar desde card con animación ---
   onAddClick(ev: MouseEvent, p: ProductDTO, imgEl?: HTMLImageElement) {
     this.add(p);
@@ -258,7 +269,7 @@ export class StoreComponent implements OnInit {
   // Pequeño "bump" del botón del carrito (para feedback)
   private pulseCart(): void {
     this.bumpSig.set(false);
-    void document.body.offsetWidth; // fuerza repaint
+    void document.body.offsetWidth;
     this.bumpSig.set(true);
     setTimeout(() => this.bumpSig.set(false), 350);
   }

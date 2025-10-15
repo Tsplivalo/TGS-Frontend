@@ -1,76 +1,41 @@
-import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER, inject } from '@angular/core';
+// src/app/app.config.ts
+import { ApplicationConfig, provideZoneChangeDetection, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { credentialsInterceptor } from './interceptors/credentials.interceptor';
-import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
-import { AuthService } from './services/auth/auth';
+import { authInterceptor } from './interceptors/auth.interceptor';
 
-import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
-import { HttpTranslateLoader } from './i18n/translate-loader';
+// TranslateModule
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 
-export function translateLoaderFactory(http: HttpClient): TranslateLoader {
+// ✅ TU LOADER PERSONALIZADO (en lugar del de @ngx-translate/http-loader)
+import { HttpTranslateLoader } from '../app/i18n/translate-loader';
+
+// Factory usando TU loader
+export function createTranslateLoader(http: HttpClient) {
   return new HttpTranslateLoader(http);
-}
-
-// Detecta lenguaje del navegador de forma segura (fallback 'en')
-function detectBrowserLang(): 'en' | 'es' {
-  if (typeof navigator === 'undefined') return 'en';
-  const base = (navigator.language || 'en').split('-')[0];
-  return (base === 'es' || base === 'en') ? base : 'en';
-}
-
-function initI18nFactory(ts: TranslateService) {
-  return () => {
-    const lang = detectBrowserLang();
-    ts.setDefaultLang('en');
-    ts.use(lang);
-  };
-}
-
-// Hidrata sesión desde cookie en el bootstrap (llama /api/users/me)
-function initAuthFactory() {
-  return () => {
-    const auth = inject(AuthService);
-    auth.fetchMe();
-  };
 }
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-
-    // HTTP + Interceptores (credenciales primero, errores después)
-    provideHttpClient(withInterceptors([credentialsInterceptor, authErrorInterceptor])),
-
-    // Servicios singleton
-    AuthService,
-
-    // i18n (ngx-translate) con loader HTTP
+    
+    // ⚠️ IMPORTANTE: HttpClient ANTES de TranslateModule
+    provideHttpClient(
+      withInterceptors([authInterceptor])
+    ),
+    
+    // ✅ TranslateModule con TU loader personalizado
     importProvidersFrom(
       TranslateModule.forRoot({
-        defaultLanguage: 'en',
+        defaultLanguage: 'es',
         loader: {
           provide: TranslateLoader,
-          useFactory: translateLoaderFactory,
-          deps: [HttpClient],
-        },
+          useFactory: createTranslateLoader,
+          deps: [HttpClient]
+        }
       })
-    ),
-
-    // Inicializador de idioma
-    {
-      provide: APP_INITIALIZER,
-      multi: true,
-      useFactory: initI18nFactory,
-      deps: [TranslateService],
-    },
-    // Inicializador de sesión (me)
-    {
-      provide: APP_INITIALIZER,
-      multi: true,
-      useFactory: initAuthFactory,
-      deps: [],
-    },
-  ],
+    )
+  ]
 };

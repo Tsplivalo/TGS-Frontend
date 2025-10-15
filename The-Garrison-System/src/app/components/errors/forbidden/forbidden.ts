@@ -1,48 +1,94 @@
+// src/app/pages/error/forbidden/forbidden.component.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  standalone: true,
   selector: 'app-forbidden',
+  standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <section class="forbidden">
-      <div class="card">
-        <h1>Acceso denegado</h1>
-        <p>No tenés permisos para ver esta página.</p>
+    <div class="error-container">
+      <div class="error-content">
+        <div class="error-code">403</div>
+        <h1>Acceso Denegado</h1>
+        <p class="error-message">
+          No tienes permisos para acceder a esta página.
+        </p>
         <div class="actions">
-          <a routerLink="/" class="btn">Ir al inicio</a>
-          <a routerLink="/tienda" class="btn btn-alt">Ir a la tienda</a>
+          <a routerLink="/" class="btn btn-primary">Volver al inicio</a>
+          <a routerLink="/account" class="btn btn-secondary">Ver mi cuenta</a>
         </div>
       </div>
-    </section>
+    </div>
   `,
   styles: [`
-    .forbidden{
-      min-height:calc(100dvh - 120px);
-      display:grid; place-items:center; padding:1.5rem;
+    .error-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+      padding: 2rem;
+      text-align: center;
     }
-    .card{
-      max-width:560px; width:100%;
-      background:rgba(30,41,59,.55);
-      backdrop-filter: blur(12px);
-      border:1px solid rgba(255,255,255,.18);
-      border-radius:16px; padding:1.5rem;
-      box-shadow:0 16px 36px rgba(0,0,0,.35);
-      color:#fff; text-align:center;
+
+    .error-content {
+      max-width: 500px;
     }
-    h1{ margin:0 0 .5rem; font-size:1.6rem; }
-    p{ opacity:.9; margin:0 0 1.25rem; }
-    .actions{ display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap; }
-    .btn{
-      display:inline-block; padding:.6rem 1rem; border-radius:10px;
-      border:1px solid rgba(255,255,255,.22); color:#fff; text-decoration:none;
-      background:rgba(255,255,255,.08);
+
+    .error-code {
+      font-size: 6rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 1rem;
     }
-    .btn:hover{ background:rgba(255,255,255,.14); transform: translateY(-1px); }
-    .btn-alt{ background:transparent; }
-    .btn-alt:hover{ background:rgba(255,255,255,.08); }
+
+    h1 {
+      font-size: 2rem;
+      margin: 0 0 1rem 0;
+      color: var(--text);
+    }
+
+    .error-message {
+      color: var(--muted);
+      font-size: 1.125rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
   `]
 })
 export class ForbiddenComponent {}

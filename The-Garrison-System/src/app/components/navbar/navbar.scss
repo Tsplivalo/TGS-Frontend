@@ -7,7 +7,6 @@
   --glass-bg-hover: rgba(255, 255, 255, .16);
   --dropdown-bg: rgba(12, 18, 32, .6);
   --accent: #60a5fa;
-  /* NUEVO: se usaba en el pill de Tienda */
   --danger: #ef4444;
   --danger-text: #fca5a5;
 }
@@ -35,7 +34,6 @@
   text-decoration: none;
 }
 
-/* 👉 separación sutil del brand respecto al menú izquierdo */
 .brand--separated {
   padding-right: 1rem;
   margin-right: .5rem;
@@ -52,13 +50,6 @@
   text-shadow: 0 1px 0 rgba(0, 0, 0, .25);
 }
 
-.brand-accent {
-  font-weight: 800;
-  margin-left: 1px;
-  color: #ffffff;
-  opacity: 1;
-}
-
 /* ====== Menú ====== */
 .menu {
   position: relative;
@@ -69,10 +60,8 @@
   margin: 0;
   padding: 0;
   z-index: 5;
-  /* por encima del glass-indicator */
 }
 
-/* 👉 menú izquierdo con un poquito más de aire */
 .menu--left {
   gap: .6rem;
 }
@@ -131,7 +120,7 @@
   transform: scaleX(1);
 }
 
-/* Píldora de vidrio deslizante (INICIO ⇆ GESTIÓN) */
+/* Píldora de vidrio deslizante */
 .glass-indicator {
   position: absolute;
   border-radius: .9rem;
@@ -208,13 +197,27 @@
   position: relative;
 }
 
-.dropdown__item a {
+.dropdown__item a,
+.dropdown__item button {
   width: 100%;
   padding: .6rem .7rem;
   border-radius: .6rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
 }
 
-.dropdown__item a:hover {
+.dropdown__item a:hover,
+.dropdown__item button:hover {
   background: rgba(255, 255, 255, 0.07);
 }
 
@@ -231,28 +234,6 @@
 .menu--right .menu__item--dropdown>.dropdown {
   right: 0;
   left: auto;
-}
-
-/* Unificar estilo de <a> y <button> dentro del dropdown */
-.dropdown__item a,
-.dropdown__item button {
-  width: 100%;
-  padding: .6rem .7rem;
-  border-radius: .6rem;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  line-height: 1;
-  text-align: left;
-  cursor: pointer;
-  transition: background .15s ease, color .15s ease;
-}
-
-.dropdown__item a:hover,
-.dropdown__item button:hover {
-  background: rgba(255, 255, 255, 0.07);
 }
 
 /* Divider */
@@ -321,7 +302,6 @@
   transform: translateX(6px);
   transition: opacity .18s ease, transform .18s ease;
   z-index: 12;
-  /* por encima del dropdown padre */
   min-width: 220px;
 }
 
@@ -343,50 +323,6 @@
   transform: rotate(90deg);
 }
 
-/* ====== Pill especial para “Tienda” ====== */
-.menu__item--store>a {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, .12);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)),
-    rgba(20, 22, 28, .35);
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .06);
-  font-weight: 700;
-  position: relative;
-  overflow: hidden;
-}
-
-.menu__item--store>a:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--border), var(--accent) 32%);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .08);
-}
-
-.menu__item--store>a .underline {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 6px;
-  height: 2px;
-  background: color-mix(in srgb, var(--accent), #fff 15%);
-  opacity: 0;
-  transform: scaleX(0.2);
-  transform-origin: left;
-  transition: transform .2s ease, opacity .2s ease;
-}
-
-.menu__item--store>a:hover .underline,
-.menu__item--store>a.active .underline {
-  opacity: .9;
-  transform: scaleX(1);
-}
-
 /* ====== Estados activos de grupos (Gestión / Inbox) ====== */
 .menu__item--dropdown .dropdown__toggle .chevron {
   transition: transform .15s ease;
@@ -394,24 +330,6 @@
 
 .menu__item--dropdown .dropdown__toggle.active .chevron {
   transform: rotate(180deg);
-}
-
-/* ====== Responsivo ====== */
-@media (max-width: 720px) {
-  .nav__content {
-    gap: .75rem;
-  }
-
-  .menu--left {
-    gap: .4rem;
-    flex-wrap: wrap;
-  }
-
-  /* Los flyouts se apilan a la izquierda si no entra el ancho */
-  .dropdown--inner {
-    left: auto;
-    right: calc(100% + .4rem);
-  }
 }
 
 /* ===== Selector de idioma con banderas SVG embebidas ===== */
@@ -436,7 +354,7 @@
 </svg>");
 }
 
-/* 🇬🇧 United Kingdom (simplificado) */
+/* 🇬🇧 United Kingdom */
 .flag-en {
   background-image: url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'>\
@@ -450,15 +368,10 @@
 </g></svg>");
 }
 
-/* Ajustes visuales del toggle de idioma */
 .lang-toggle {
   display: inline-flex;
   align-items: center;
   gap: .45rem;
-}
-
-.lang-label {
-  font-weight: 600;
 }
 
 .lang-code {
@@ -466,7 +379,7 @@
   letter-spacing: .5px;
 }
 
-/* Badge genérico (cuando no es icon-only) */
+/* Badge genérico */
 .badge {
   margin-left: .4rem;
   padding: .15rem .4rem;
@@ -477,7 +390,7 @@
   font-weight: 800;
 }
 
-/* ====== Material Symbols hardening ====== */
+/* ====== Material Symbols ====== */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined' !important;
   font-weight: normal;
@@ -492,8 +405,6 @@
   direction: ltr;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* variaciones */
   font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }
 
@@ -506,17 +417,14 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  /* para posicionar el badge */
 }
 
-/* Tamaño y ajuste del ícono de inbox */
 .inbox-icon {
   font-size: 22px;
   line-height: 1;
   transform: translateY(1px);
 }
 
-/* Badge arriba a la derecha en modo icon-only */
 .dropdown__toggle.icon-only .badge {
   position: absolute;
   top: -6px;
@@ -534,38 +442,157 @@
   box-shadow: 0 0 0 2px rgba(12, 18, 32, .6);
 }
 
-/* Evitar subrayado largo en botón de icono */
 .dropdown__toggle.icon-only .underline {
   left: 8px;
   right: 8px;
 }
 
-/* Ícono de cuenta en el botón */
+/* Ícono de cuenta */
 .account-icon {
   font-size: 22px;
   line-height: 1;
   transform: translateY(1px);
 }
 
-/* Cabecera dentro del dropdown de usuario */
-.dropdown__item--header .dropdown__header {
-  padding: .6rem .7rem;
+/* ✅ Badge de perfil incompleto */
+.profile-incomplete-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 28px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.65rem;
   font-weight: 700;
-  color: var(--text-strong);
-  cursor: default;
-  user-select: text;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f59e0b;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(12, 18, 32, .6);
 }
 
-/* ====== Despliegue diagonal (hacia abajo con leve desplazamiento lateral) ====== */
+/* ✅ DROPDOWN DE USUARIO MEJORADO */
+.dropdown--user {
+  min-width: 260px;
+}
 
-/* base común */
+/* ✅ Cabecera simplificada - solo nombre */
+.dropdown__item--header {
+  pointer-events: none;
+
+  .dropdown__header {
+    padding: .8rem .7rem .5rem;
+
+    .user-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-strong);
+      display: block;
+    }
+  }
+}
+
+/* ✅ Barra de progreso del perfil */
+.dropdown__item--progress {
+  pointer-events: none;
+  padding: 0 .7rem .6rem;
+
+  .profile-status {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+
+    .status-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, .15);
+      border-radius: 999px;
+      overflow: hidden;
+
+      .status-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #f59e0b, #eab308);
+        border-radius: 999px;
+        transition: width .3s ease;
+
+        &.complete {
+          background: linear-gradient(90deg, #10b981, #059669);
+        }
+      }
+    }
+
+    .status-text {
+      font-size: .75rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+  }
+}
+
+/* ✅ Alerta de email no verificado */
+.dropdown__item--warning {
+  pointer-events: auto;
+  padding: 0 .5rem;
+
+  .warning-message {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    padding: .6rem;
+    background: rgba(245, 158, 11, 0.15);
+    border-left: 3px solid #f59e0b;
+    border-radius: .5rem;
+    font-size: .8rem;
+    color: #fbbf24;
+
+    .verify-link {
+      color: #fcd34d;
+      font-weight: 700;
+      text-decoration: underline;
+
+      &:hover {
+        color: #fde047;
+      }
+    }
+  }
+}
+
+/* ✅ Roles del usuario */
+.dropdown__item--info {
+  pointer-events: none;
+
+  .user-roles {
+    padding: .5rem .7rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
+
+    .roles-label {
+      font-size: .75rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .role-badge {
+      font-size: .7rem;
+      padding: .2rem .5rem;
+      background: rgba(96, 165, 250, 0.2);
+      color: #93c5fd;
+      border-radius: .4rem;
+      font-weight: 700;
+      border: 1px solid rgba(96, 165, 250, 0.3);
+    }
+  }
+}
+
+/* ====== Despliegue diagonal ====== */
 .dropdown--diag {
-  /* arranca un poco desplazado en diagonal */
   transform: translate(10px, 10px);
   transition: opacity .18s ease, transform .18s ease;
 }
 
-/* cuando abre (hover/focus) anulamos el desplazamiento */
 .menu__item--dropdown:focus-within>.dropdown--diag,
 .menu__item--dropdown:hover>.dropdown--diag {
   display: block;
@@ -573,7 +600,6 @@
   transform: translate(0, 0);
 }
 
-/* Variante: el dropdown está en el menú de la derecha => que salga hacia abajo y levemente a la IZQUIERDA */
 .menu--right .menu__item--dropdown>.dropdown--diag {
   right: 0;
   left: auto;
@@ -585,7 +611,6 @@
   transform: translate(0, 0);
 }
 
-/* Opcional: mantener un pequeño "puente" para que no se corte el hover entre botón y panel */
 .dropdown--diag::before {
   content: "";
   position: absolute;
@@ -593,23 +618,10 @@
   left: 0;
   right: 0;
   height: 10px;
-  /* área fantasma entre botón y panel */
 }
 
-/* En pantallas chicas, reducí el offset para que no se vaya afuera */
-@media (max-width: 720px) {
-  .dropdown--diag {
-    transform: translate(6px, 8px);
-  }
-
-  .menu--right .menu__item--dropdown>.dropdown--diag {
-    transform: translate(-6px, 8px);
-  }
-}
-
-/* ====== Submenú Sociedad: despliegue diagonal hacia abajo ====== */
+/* ====== Submenú Sociedad: despliegue diagonal ====== */
 .dropdown--inner-diag {
-  /* abre debajo y levemente a la derecha del item */
   top: calc(100% + .5rem);
   left: .75rem;
   right: auto;
@@ -618,7 +630,6 @@
   transition: opacity .18s ease, transform .18s ease;
 }
 
-/* Mostrar en hover/focus del contenedor */
 .dropdown__item--sub:focus-within>.dropdown--inner-diag,
 .dropdown__item--sub:hover>.dropdown--inner-diag {
   display: block;
@@ -626,15 +637,40 @@
   transform: translate(0, 0);
 }
 
-/* Evitar corte del flyout */
 .menu__item--dropdown {
   overflow: visible;
 }
 
-/* Responsive: mover un poco menos a la derecha en pantallas chicas */
+/* ====== Responsivo ====== */
 @media (max-width: 720px) {
+  .nav__content {
+    gap: .75rem;
+  }
+
+  .menu--left {
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+
+  .dropdown--inner {
+    left: auto;
+    right: calc(100% + .4rem);
+  }
+
+  .dropdown--diag {
+    transform: translate(6px, 8px);
+  }
+
+  .menu--right .menu__item--dropdown>.dropdown--diag {
+    transform: translate(-6px, 8px);
+  }
+
   .dropdown--inner-diag {
     left: .4rem;
     transform: translate(4px, 6px);
+  }
+
+  .dropdown--user {
+    min-width: 240px;
   }
 }

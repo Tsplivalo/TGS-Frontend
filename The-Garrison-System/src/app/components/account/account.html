@@ -1,79 +1,136 @@
-<!--
-  Account template
-
-  - Muestra perfil y permite editar campos no sensibles.
-  - Accesibilidad: labels asociadas a inputs (for/id), regiones con aria-live,
-    atributos autocomplete, inputmode y type adecuados.
-  - Mantiene el enfoque en el submit y deshabilita el botón mientras guarda.
--->
+<!-- account.component.html -->
 <section class="account stack-lg">
   <header>
-    <h2 id="account-title">{{ 'account.title' | translate }}</h2>
+    <h2 id="account-title">Mi Cuenta</h2>
+    <div class="profile-stats" *ngIf="me()">
+      <span class="completeness" [class.complete]="profileCompleteness() === 100">
+        {{ profileCompleteness() }}% completo
+      </span>
+      <span class="verified" *ngIf="me()?.emailVerified">✓ Email verificado</span>
+    </div>
   </header>
 
-  <!-- Estado de carga (anunciado a lectores de pantalla) -->
+  <!-- Estado de carga -->
   <div class="muted" *ngIf="loading()" role="status" aria-live="polite">
-    {{ 'account.loading' | translate }}
+    Cargando perfil...
   </div>
 
-  <!-- Errores (anunciados inmediatamente) -->
+  <!-- Mensaje para completar perfil -->
+  <div class="info-banner" *ngIf="showCompleteProfileMessage() && !hasPersonalInfo()" role="alert">
+    <strong>⚠️ Completa tu perfil</strong>
+    <p>Necesitas completar tu información personal para acceder a esta función.</p>
+  </div>
+
+  <!-- Sugerencias de perfil -->
+  <div class="suggestions" *ngIf="!loading() && me() && profileCompleteness() < 100">
+    <h3>Mejora tu perfil</h3>
+    <ul>
+      <li *ngFor="let suggestion of getProfileSuggestions()">{{ suggestion }}</li>
+    </ul>
+  </div>
+
+  <!-- Requisitos para comprar -->
+  <div class="requirements" *ngIf="!loading() && me() && !canPurchase()">
+    <h3>Para realizar compras necesitas:</h3>
+    <ul>
+      <li *ngFor="let req of getPurchaseRequirements()">{{ req }}</li>
+    </ul>
+  </div>
+
+  <!-- Errores -->
   <div class="error" *ngIf="error() as e" role="alert" aria-live="assertive">
     {{ e }}
   </div>
 
-  <!-- Mensajes OK (tono informativo) -->
+  <!-- Mensajes de éxito -->
   <div class="ok" *ngIf="ok() as m" role="status" aria-live="polite">
     {{ m }}
   </div>
 
-  <!--
-    Usamos template-driven + FormData en TS. El form tiene #formEl para pasarlo a save().
-    Se definen name="…" coherentes con el backend y ids para asociar label/for.
-  -->
+  <!-- Formulario de perfil -->
   <form #formEl *ngIf="!loading() && me()" (submit)="save(formEl); $event.preventDefault()"
     aria-labelledby="account-title" novalidate>
 
     <div class="grid">
+      <!-- Username (solo lectura si ya está establecido) -->
       <label for="f-username">
-        <span>{{ 'account.fields.username' | translate }}</span>
-        <input id="f-username" name="username" [value]="me()?.['username'] || ''" autocomplete="username"
-          maxlength="64" />
+        <span>Usuario</span>
+        <input id="f-username" name="username" [value]="me()?.username || ''" autocomplete="username" disabled
+          maxlength="100" />
       </label>
 
+      <!-- Email (siempre solo lectura) -->
       <label for="f-email">
-        <span>{{ 'account.fields.email' | translate }}</span>
-        <input id="f-email" type="email" [value]="me()?.['email'] || ''" autocomplete="email" disabled />
+        <span>Email</span>
+        <input id="f-email" type="email" [value]="me()?.email || ''" autocomplete="email" disabled />
       </label>
 
-      <label for="f-firstName">
-        <span>{{ 'account.fields.firstName' | translate }}</span>
-        <input id="f-firstName" name="firstName" [value]="me()?.['firstName'] || ''" autocomplete="given-name"
-          maxlength="64" />
+      <!-- DNI (solo editable si no tiene información personal) -->
+      <label for="f-dni">
+        <span>DNI *</span>
+        <input id="f-dni" name="dni" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
+          [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" autocomplete="off" maxlength="10"
+          minlength="7" placeholder="12345678" />
       </label>
 
-      <label for="f-lastName">
-        <span>{{ 'account.fields.lastName' | translate }}</span>
-        <input id="f-lastName" name="lastName" [value]="me()?.['lastName'] || ''" autocomplete="family-name"
-          maxlength="64" />
+      <!-- Nombre completo -->
+      <label for="f-name">
+        <span>Nombre completo *</span>
+        <input id="f-name" name="name" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
+          [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" autocomplete="name" maxlength="100"
+          placeholder="Juan Pérez" />
       </label>
 
+      <!-- Teléfono -->
       <label for="f-phone">
-        <span>{{ 'account.fields.phone' | translate }}</span>
-        <input id="f-phone" name="phone" [value]="me()?.['phone'] || ''" type="tel" inputmode="tel" autocomplete="tel"
-          maxlength="24" />
+        <span>Teléfono *</span>
+        <input id="f-phone" name="phone" [value]="me()?.hasPersonalInfo ? '••••••••' : ''" type="tel" inputmode="tel"
+          autocomplete="tel" [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" maxlength="24"
+          placeholder="+54 9 11 1234-5678" />
       </label>
 
+      <!-- Dirección -->
       <label class="wide" for="f-address">
-        <span>{{ 'account.fields.address' | translate }}</span>
-        <input id="f-address" name="address" [value]="me()?.['address'] || ''" autocomplete="street-address"
-          maxlength="140" />
+        <span>Dirección *</span>
+        <input id="f-address" name="address" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
+          autocomplete="street-address" [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo"
+          maxlength="200" placeholder="Av. Siempre Viva 123" />
       </label>
     </div>
 
+    <!-- Botones de acción -->
     <div class="actions">
-      <button type="submit" [disabled]="saving()" [attr.aria-busy]="saving() ? 'true' : null">
-        {{ 'account.save' | translate }}
+      <!-- Mostrar botón solo si NO tiene información personal -->
+      <button type="submit" *ngIf="!me()?.hasPersonalInfo" [disabled]="saving()"
+        [attr.aria-busy]="saving() ? 'true' : null">
+        {{ saving() ? 'Guardando...' : 'Completar perfil' }}
       </button>
+
+      <!-- Mensaje informativo si ya tiene datos -->
+      <p class="info-text" *ngIf="me()?.hasPersonalInfo">
+        ℹ️ Los datos personales no pueden modificarse una vez completados.
+      </p>
     </div>
   </form>
+
+  <!-- Información adicional -->
+  <div class="info-section" *ngIf="me()">
+    <h3>Información de la cuenta</h3>
+    <dl>
+      <dt>Estado de la cuenta:</dt>
+      <dd>{{ me()?.isActive ? '✓ Activa' : '✗ Inactiva' }}</dd>
+
+      <dt>Email verificado:</dt>
+      <dd>{{ me()?.emailVerified ? '✓ Sí' : '✗ No' }}</dd>
+
+      <dt>Roles:</dt>
+      <dd>{{ me()?.roles?.join(', ') || 'N/A' }}</dd>
+
+      <dt>Última sesión:</dt>
+      <dd>{{ me()?.lastLoginAt ? (me()!.lastLoginAt | date:'medium') : 'N/A' }}</dd>
+
+      <dt>Miembro desde:</dt>
+      <dd>{{ me()?.createdAt | date:'longDate' }}</dd>
+    </dl>
+  </div>
 </section>
