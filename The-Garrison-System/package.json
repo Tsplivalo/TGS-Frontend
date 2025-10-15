@@ -1,24 +1,37 @@
 {
   "name": "the-garrison-system",
   "version": "0.0.0",
+  "private": true,
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
-    "build": "ng build",
+    "build": "ng build --configuration=production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+
+    "test": "ng test --watch=false --code-coverage",
+    "test:unit": "pnpm test",
+    "test:unit:ui": "ng test",
+    "coverage:open": "npx http-server coverage -p 9090 -o",
+
+    "serve:dist": "http-server ./dist -p 4200 -c-1",
+    "build:serve": "pnpm build && pnpm serve:dist",
+
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+
+   "perf": "pnpm build && lhci collect --staticDistDir=dist/The-Garrison-System --url=/index.html --numberOfRuns=1 && lhci upload --target=temporary-public-storage",
+    
+    "lint:security": "eslint --ext .ts src --max-warnings=0"
   },
   "prettier": {
     "overrides": [
       {
         "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
+        "options": { "parser": "angular" }
       }
     ]
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "^20.1.3",
     "@angular/common": "^20.1.3",
@@ -38,13 +51,25 @@
     "@angular/build": "^20.1.3",
     "@angular/cli": "^20.1.3",
     "@angular/compiler-cli": "^20.1.0",
+
+    "@playwright/test": "^1.46.0",
+    "@axe-core/playwright": "^4.9.1",
+    "axe-core": "^4.9.1",
+
+    "lighthouse": "^13.0.0",
+    "@lhci/cli": "^0.15.1",
+    "http-server": "^14.1.1",
+
+    "eslint": "^9.9.0",
+    "eslint-plugin-security": "^3.0.1",
+
+    "typescript": "~5.8.2",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.8.2"
+    "karma-jasmine-html-reporter": "~2.1.0"
   }
 }
