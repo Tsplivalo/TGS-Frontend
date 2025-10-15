@@ -2,7 +2,7 @@ export interface ShelbyCouncilDTO {
   id: number;
   partner: { dni: string; name: string } | null;
   decision: { id: number; description: string } | null;
-  joinDate?: string;   // ISO
+  joinDate: string;   // ISO string
   role?: string | null;
   notes?: string | null;
 }
@@ -10,17 +10,29 @@ export interface ShelbyCouncilDTO {
 export interface CreateShelbyCouncilDTO {
   partnerDni: string;
   decisionId: number;
-  joinDate?: string;   // yyyy-MM-dd
+  joinDate?: string;   // ISO datetime string
   role?: string;
   notes?: string;
 }
 
 export interface PatchShelbyCouncilDTO {
-  partnerDni?: string;
-  decisionId?: number;
-  joinDate?: string;
+  joinDate?: string;   // ISO datetime string
   role?: string;
   notes?: string;
 }
 
-export interface ApiResponse<T> { data: T; message?: string; }
+// Estructura de respuesta del backend
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface ApiResponse<T> { 
+  data: T; 
+  message?: string; 
+}

@@ -7,21 +7,9 @@ import {
   MonthlyReviewDTO,
   CreateMonthlyReviewDTO,
   PatchMonthlyReviewDTO,
-  SalesStatsItem
+  ReviewStatus
 } from '../../models/monthly-review/monthly-review.model';
 
-/**
- * Componente: MonthlyReview
- *
- * - Presenta un listado de revisiones mensuales con filtros por año/mes.
- * - Muestra estadísticas agregadas (por producto) para el período filtrado.
- * - Incluye formulario de crear/editar (manejado externamente con un panel colapsable en el HTML).
- * - Estado 100% reactivo usando Signals (items, stats, loading, error, etc.).
- *
- * Notas:
- * - Este componente es standalone y declara sus imports.
- * - La persistencia se hace vía MonthlyReviewService (HTTP).
- */
 @Component({
   selector: 'app-monthly-review',
   standalone: true,
@@ -30,134 +18,87 @@ import {
   styleUrls: ['./monthly-review.scss'],
 })
 export class MonthlyReviewComponent implements OnInit {
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Inyección de dependencias
-  // ─────────────────────────────────────────────────────────────────────────────
   private fb  = inject(FormBuilder);
   private srv = inject(MonthlyReviewService);
   private tr  = inject(TranslateService);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Estado base (Signals)
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /** Lista de revisiones cargadas desde backend. */
+  // Estado
   items   = signal<MonthlyReviewDTO[]>([]);
-
-  /** Estadísticas agregadas (por producto) en el período filtrado. */
-  stats   = signal<SalesStatsItem[]>([]);
-
-  /** Bandera de carga para deshabilitar acciones y mostrar “Cargando…”. */
+  statistics = signal<any>(null);
   loading = signal(false);
-
-  /** Último mensaje de error (o null si no hay error). */
   error   = signal<string | null>(null);
-
-  /** Controla la visibilidad del panel crear/editar (colapsable en la vista). */
   isNewOpen = signal(false);
-
-  /** `true` cuando se está editando un registro existente. */
   isEdit    = signal(false);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Filtros de vista
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /** Año seleccionado para filtrar (por defecto, el año actual). */
+  // Filtros
   fYear  = signal<number>(new Date().getFullYear());
-
-  /** Mes seleccionado (1-12) o null para “todos”. */
   fMonth = signal<number | null>(null);
+  fStatus = signal<ReviewStatus | null>(null);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Formulario reactivo
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * FormGroup de crear/editar.
-   * - reviewedByDni: DNI del socio revisor (requerido, min 6).
-   * - year/month: período de la revisión (con validaciones mínimas).
-   * - reviewDate: fecha ISO (yyyy-MM-dd) apta para <input type="date">.
-   * - status: enum de estado (PENDING por defecto).
-   * - observations/recommendations: campos de texto libres.
-   */
+  // Formulario
   form = this.fb.group({
     id: this.fb.control<number | null>(null),
-    reviewedByDni: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
+    partnerDni: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
     year:  this.fb.nonNullable.control(new Date().getFullYear(), [Validators.required, Validators.min(2000)]),
     month: this.fb.nonNullable.control(new Date().getMonth() + 1, [Validators.required, Validators.min(1), Validators.max(12)]),
-    reviewDate: this.fb.control<string | null>(null),
-    status: this.fb.control<'PENDING'|'IN_REVIEW'|'COMPLETED'|'APPROVED'|'REJECTED' | null>('PENDING'),
+    reviewDate: this.fb.control<string | null>(this.todayISO()),
+    status: this.fb.control<ReviewStatus>('PENDING'),
     observations: this.fb.control<string | null>(null),
     recommendations: this.fb.control<string | null>(null),
   });
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Ciclo de vida
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /** Al iniciar: cargar listado y estadísticas del período por defecto. */
   ngOnInit(): void {
     this.load();
-    this.loadStats();
+    this.loadStatistics();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Derivados (computed)
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Lista filtrada por año/mes.
-   * Si `fMonth` es null, no filtra por mes.
-   */
+  // Lista filtrada por año/mes/status
   filtered = computed(() => {
     const y = this.fYear();
     const m = this.fMonth();
-    return this.items().filter(it => (y ? it.year === y : true) && (m ? it.month === m : true));
+    const s = this.fStatus();
+    
+    return this.items().filter(it => {
+      const matchYear = y ? it.year === y : true;
+      const matchMonth = m ? it.month === m : true;
+      const matchStatus = s ? it.status === s : true;
+      return matchYear && matchMonth && matchStatus;
+    });
   });
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Acciones de UI
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Alterna la apertura del panel crear/editar.
-   * Si se cierra, resetea el formulario (modo “nuevo”).
-   */
+  // UI Actions
   toggleNew(): void {
     const open = !this.isNewOpen();
     this.isNewOpen.set(open);
     if (!open) this.new();
   }
 
-  /**
-   * Limpia el formulario a valores por defecto y pone el modo en “crear”.
-   */
   new(): void {
     this.isEdit.set(false);
     this.form.reset({
       id: null,
-      reviewedByDni: '',
+      partnerDni: '',
       year: new Date().getFullYear(),
       month: new Date().getMonth() + 1,
-      reviewDate: null,
+      reviewDate: this.todayISO(),
       status: 'PENDING',
       observations: null,
       recommendations: null,
     });
   }
 
-  /**
-   * Carga en el formulario los datos del registro a editar y abre el panel.
-   */
   edit(it: MonthlyReviewDTO): void {
     this.isEdit.set(true);
+    
+    // Convertir ISO datetime a date para el input
+    const reviewDate = it.reviewDate ? it.reviewDate.substring(0, 10) : this.todayISO();
+    
     this.form.patchValue({
       id: it.id,
-      reviewedByDni: it.reviewedBy?.dni ?? '',
+      partnerDni: it.reviewedBy?.dni ?? '',
       year: it.year,
       month: it.month,
-      reviewDate: it.reviewDate?.substring(0, 10) ?? null,
+      reviewDate: reviewDate,
       status: it.status,
       observations: it.observations ?? null,
       recommendations: it.recommendations ?? null,
@@ -165,94 +106,141 @@ export class MonthlyReviewComponent implements OnInit {
     this.isNewOpen.set(true);
   }
 
-  /**
-   * Guarda el formulario:
-   * - si `isEdit` es false → crea;
-   * - si `isEdit` es true  → actualiza.
-   * Maneja loading, errores y refresco de lista/estadísticas.
-   */
   save(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) { 
+      this.form.markAllAsTouched(); 
+      return; 
+    }
+
     this.loading.set(true);
+    this.error.set(null);
+
     const { id, ...rest } = this.form.getRawValue();
 
     if (!this.isEdit()) {
-      const payload = rest as CreateMonthlyReviewDTO;
+      // CREAR - convertir date a ISO datetime
+      const payload: CreateMonthlyReviewDTO = {
+        year: rest.year,
+        month: rest.month,
+        partnerDni: rest.partnerDni,
+        reviewDate: rest.reviewDate ? this.toISODateTime(rest.reviewDate) : undefined,
+        status: rest.status ?? undefined,
+        observations: rest.observations ?? undefined,
+        recommendations: rest.recommendations ?? undefined,
+      };
+
       this.srv.create(payload).subscribe({
         next: () => {
           this.new();
           this.isNewOpen.set(false);
           this.load();
-          this.loadStats();
+          this.loadStatistics();
         },
         error: (e) => {
-          this.error.set(e?.error?.message ?? (this.tr.instant('monthlyReview.errorCreate') || 'Error creando'));
+          const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorCreate')) || 'Error al crear';
+          this.error.set(errorMsg);
           this.loading.set(false);
         }
       });
     } else {
-      const payload = rest as PatchMonthlyReviewDTO;
+      // ACTUALIZAR
+      const payload: PatchMonthlyReviewDTO = {
+        reviewDate: rest.reviewDate ? this.toISODateTime(rest.reviewDate) : undefined,
+        status: rest.status ?? undefined,
+        observations: rest.observations ?? undefined,
+        recommendations: rest.recommendations ?? undefined,
+      };
+
       this.srv.update(id!, payload).subscribe({
         next: () => {
           this.new();
           this.isNewOpen.set(false);
           this.load();
-          this.loadStats();
+          this.loadStatistics();
         },
         error: (e) => {
-          this.error.set(e?.error?.message ?? (this.tr.instant('monthlyReview.errorSave') || 'Error guardando'));
+          const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorSave')) || 'Error al guardar';
+          this.error.set(errorMsg);
           this.loading.set(false);
         }
       });
     }
   }
 
-  /**
-   * Elimina una revisión tras confirmar. Luego recarga listado y estadísticas.
-   */
   delete(it: MonthlyReviewDTO): void {
     const msg = this.tr.instant('monthlyReview.confirmDelete') || '¿Eliminar revisión?';
     if (!confirm(msg)) return;
 
-    this.srv.delete(it.id).subscribe({
-      next: () => { this.load(); this.loadStats(); },
-      error: (e) => {
-        this.error.set(e?.error?.message ?? (this.tr.instant('monthlyReview.errorDelete') || 'No se pudo eliminar.'));
-      }
-    });
-  }
-
-  /**
-   * trackBy para *ngFor: mejora rendimiento usando el id como identidad.
-   */
-  trackById = (_: number, it: MonthlyReviewDTO) => it.id;
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Carga de datos
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /** Carga el listado completo desde el servicio. */
-  private load(): void {
     this.loading.set(true);
-    this.srv.list().subscribe({
-      next: (res) => { this.items.set(res.data ?? []); this.loading.set(false); },
-      error: (e)  => {
-        this.error.set(e?.error?.message ?? (this.tr.instant('monthlyReview.errorLoad') || 'Error cargando'));
+    this.srv.delete(it.id).subscribe({
+      next: () => { 
+        this.load();
+        this.loadStatistics();
+      },
+      error: (e) => {
+        const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorDelete')) || 'No se pudo eliminar.';
+        this.error.set(errorMsg);
         this.loading.set(false);
       }
     });
   }
 
-  /**
-   * Carga estadísticas para el período actual de filtros.
-   * `m` puede ser undefined para “todos los meses” del año.
-   */
-  loadStats(): void {
-    const y = this.fYear();
-    const m = this.fMonth() ?? undefined;
-    this.srv.stats(y, m, 'product').subscribe({
-      next: (res) => this.stats.set(res.data ?? []),
-      error: () => {}
+  // Aplicar filtros y recargar estadísticas
+  applyFilters(): void {
+    this.loadStatistics();
+  }
+
+  trackById = (_: number, it: MonthlyReviewDTO) => it.id;
+
+  // Carga de datos
+  private load(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    // Usar limit alto para traer todos los registros
+    this.srv.list({ limit: 1000 }).subscribe({
+      next: (res) => { 
+        this.items.set(res.data ?? []); 
+        this.loading.set(false); 
+      },
+      error: (e) => {
+        const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorLoad')) || 'Error al cargar';
+        this.error.set(errorMsg);
+        this.loading.set(false);
+      }
     });
+  }
+
+  private loadStatistics(): void {
+    const year = this.fYear();
+    const month = this.fMonth() ?? undefined;
+
+    this.srv.statistics({ year, month, groupBy: 'product' }).subscribe({
+      next: (res) => {
+        this.statistics.set(res.data);
+      },
+      error: () => {
+        this.statistics.set(null);
+      }
+    });
+  }
+
+  // Helpers
+  private todayISO(): string {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }
+
+  private toISODateTime(dateStr: string): string {
+    if (dateStr.includes('T')) return dateStr;
+    return `${dateStr}T10:00:00Z`;
+  }
+
+  // Para usar en el template
+  formatCurrency(value: number | undefined): string {
+    if (value === undefined || value === null) return '$0.00';
+    return `$${value.toFixed(2)}`;
   }
 }

@@ -1,26 +1,29 @@
 export interface ClandestineAgreementDTO {
   id: number;
-  description: string;
+  description?: string;
   agreementDate: string; // ISO date
-  status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   shelbyCouncil?: { id: number } | null;
+  admin?: { dni: string; name: string } | null;
   authority?: { dni: string; name: string; rank?: string } | null;
 }
 
 export interface CreateClandestineAgreementDTO {
-  description: string;
-  agreementDate: string; // yyyy-MM-dd
-  status?: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+  description?: string;
+  agreementDate?: string; // yyyy-MM-dd o ISO
+  status?: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
   shelbyCouncilId: number;
+  adminDni: string;
   authorityDni: string;
 }
 
-export interface PatchClandestineAgreementDTO {
+export interface UpdateClandestineAgreementDTO {
   description?: string;
-  agreementDate?: string; // yyyy-MM-dd
-  status?: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
-  shelbyCouncilId?: number;
-  authorityDni?: string;
+  agreementDate?: string; // yyyy-MM-dd o ISO
+  status?: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 }
 
-export interface ApiResponse<T> { data: T; message?: string; }
+export interface ApiResponse<T> { 
+  data: T; 
+  message?: string; 
+}

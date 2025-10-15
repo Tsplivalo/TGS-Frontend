@@ -1,10 +1,14 @@
 <section class="stack-lg">
+  <!-- CARD PRINCIPAL -->
   <div class="glass-dark card stack-md">
+    <!-- HEADER -->
     <header class="header">
-      <h2 class="title">{{ 'monthlyReview.title' | translate }}</h2>
+      <h2 class="title">{{ 'monthlyReview.title' | translate : {} : 'Revisiones Mensuales' }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
-          {{ isNewOpen() ? ('common.close' | translate) : ('monthlyReview.buttons.new' | translate) }}
+          {{ isNewOpen()
+          ? ('common.close' | translate : {} : 'Cerrar')
+          : ('monthlyReview.buttons.new' | translate : {} : '+ Nueva Revisión') }}
         </button>
       </div>
     </header>
@@ -12,71 +16,131 @@
     <!-- FILTROS -->
     <section class="filters">
       <label class="label">
-        <span class="label-text">{{ 'monthlyReview.filters.year' | translate }}</span>
-        <input class="input" type="number" [ngModel]="fYear()" (ngModelChange)="fYear.set($event); loadStats()" />
+        <span class="label-text">{{ 'monthlyReview.filters.year' | translate : {} : 'Año' }}</span>
+        <input class="input" type="number" [value]="fYear()"
+          (input)="fYear.set(+$any($event.target).value); applyFilters()"
+          [attr.aria-label]="'monthlyReview.filters.year' | translate : {} : 'Año'" />
       </label>
+
       <label class="label">
-        <span class="label-text">{{ 'monthlyReview.filters.month' | translate }}</span>
-        <input class="input" type="number" [ngModel]="fMonth()" (ngModelChange)="fMonth.set($event); loadStats()" />
+        <span class="label-text">{{ 'monthlyReview.filters.month' | translate : {} : 'Mes (1-12)' }}</span>
+        <input class="input" type="number" [value]="fMonth()"
+          (input)="fMonth.set($any($event.target).value ? +$any($event.target).value : null); applyFilters()"
+          [placeholder]="'monthlyReview.filters.monthPlaceholder' | translate : {} : 'Todos'"
+          [attr.aria-label]="'monthlyReview.filters.month' | translate : {} : 'Mes'" />
+      </label>
+
+      <label class="label">
+        <span class="label-text">{{ 'monthlyReview.filters.status' | translate : {} : 'Estado' }}</span>
+        <select class="input" [value]="fStatus() || ''" (change)="fStatus.set($any($event.target).value || null)">
+          <option value="">{{ 'common.all' | translate : {} : 'Todos' }}</option>
+          <option value="PENDING">{{ 'status.PENDING' | translate : {} : 'Pendiente' }}</option>
+          <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate : {} : 'En Revisión' }}</option>
+          <option value="COMPLETED">{{ 'status.COMPLETED' | translate : {} : 'Completado' }}</option>
+          <option value="APPROVED">{{ 'status.APPROVED' | translate : {} : 'Aprobado' }}</option>
+          <option value="REJECTED">{{ 'status.REJECTED' | translate : {} : 'Rechazado' }}</option>
+        </select>
       </label>
     </section>
 
-    <!-- STATS -->
-    <section class="subsection">
-      <h3 class="sub-title">{{ 'monthlyReview.stats.title' | translate }}</h3>
-      <ul class="stats" *ngIf="stats().length; else emptyStats">
-        <li *ngFor="let s of stats()">
-          <strong>{{ s.label }}</strong>
-          — ${{ s.totalAmount }} ({{ s.totalCount }} {{ 'monthlyReview.table.totalCount' | translate }})
-        </li>
-      </ul>
-      <ng-template #emptyStats>
-        <div class="muted">{{ 'monthlyReview.stats.empty' | translate }}</div>
-      </ng-template>
+    <!-- ESTADÍSTICAS -->
+    <section class="subsection" *ngIf="statistics() as stats">
+      <h3 class="sub-title">{{ 'monthlyReview.stats.title' | translate : {} : 'Estadísticas del Período' }}</h3>
+
+      <div class="stats" *ngIf="stats.summary">
+        <div>
+          <strong>{{ 'monthlyReview.stats.period' | translate : {} : 'Período' }}:</strong>
+          {{ stats.period }}
+        </div>
+        <div>
+          <strong>{{ 'monthlyReview.stats.totalSales' | translate : {} : 'Total Ventas' }}:</strong>
+          {{ stats.summary.totalSales }}
+        </div>
+        <div>
+          <strong>{{ 'monthlyReview.stats.totalAmount' | translate : {} : 'Monto Total' }}:</strong>
+          {{ formatCurrency(stats.summary.totalAmount) }}
+        </div>
+        <div>
+          <strong>{{ 'monthlyReview.stats.averageAmount' | translate : {} : 'Promedio' }}:</strong>
+          {{ formatCurrency(stats.summary.averageAmount) }}
+        </div>
+      </div>
+
+      <!-- Datos agrupados (por producto) -->
+      <div *ngIf="stats.groupedData && stats.groupedData.length > 0" style="margin-top: var(--sp-4);">
+        <h4 class="sub-title" style="font-size: 1rem;">
+          {{ 'monthlyReview.stats.byProduct' | translate : {} : 'Por Producto' }}
+        </h4>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>{{ 'monthlyReview.stats.productName' | translate : {} : 'Producto' }}</th>
+                <th class="right">{{ 'monthlyReview.stats.quantity' | translate : {} : 'Cantidad' }}</th>
+                <th class="right">{{ 'monthlyReview.stats.amount' | translate : {} : 'Monto' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of stats.groupedData">
+                <td>{{ item.productName || item.productId }}</td>
+                <td class="right">{{ item.totalQuantitySold }}</td>
+                <td class="right">{{ formatCurrency(item.totalAmount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <!-- MENSAJES -->
     <div class="error" *ngIf="error() as err">
-      <strong>{{ 'common.error' | translate }}</strong>: {{ err }}
+      <strong>{{ 'common.error' | translate : {} : 'Error' }}</strong>: {{ err }}
     </div>
-    <!-- (no tenés monthlyReview.loading en JSON; podés dejarlo fijo o crear la clave) -->
-    <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
+    <div class="muted" *ngIf="loading()">
+      {{ 'monthlyReview.loading' | translate : {} : 'Cargando...' }}
+    </div>
 
-    <!-- LISTADO -->
+    <!-- LISTADO DE REVISIONES -->
     <section class="subsection">
-      <h3 class="sub-title">{{ 'monthlyReview.list' | translate }}</h3>
+      <h3 class="sub-title">{{ 'monthlyReview.list' | translate : {} : 'Listado de Revisiones' }}</h3>
 
       <div class="table-wrap" *ngIf="filtered().length; else emptyState">
         <table class="table">
           <thead>
             <tr>
-              <th style="width:80px;">ID</th>
-              <th style="width:120px;">{{ 'monthlyReview.table.period' | translate }}</th>
-              <th style="width:140px;">{{ 'monthlyReview.table.status' | translate }}</th>
-              <th>{{ 'monthlyReview.table.reviewer' | translate }}</th>
-              <th style="width:140px;">{{ 'monthlyReview.table.date' | translate }}</th>
-              <th style="width:140px;">{{ 'monthlyReview.table.totalAmount' | translate }}</th>
-              <th style="width:120px;">{{ 'monthlyReview.table.totalCount' | translate }}</th>
-              <th class="right" style="width:180px;">{{ 'common.edit' | translate }}</th>
+              <th style="width:60px;">ID</th>
+              <th style="width:140px;">{{ 'monthlyReview.table.period' | translate : {} : 'Período' }}</th>
+              <th style="width:120px;">{{ 'monthlyReview.table.status' | translate : {} : 'Estado' }}</th>
+              <th>{{ 'monthlyReview.table.reviewer' | translate : {} : 'Revisor' }}</th>
+              <th style="width:120px;">{{ 'monthlyReview.table.date' | translate : {} : 'Fecha' }}</th>
+              <th class="right" style="width:120px;">{{ 'monthlyReview.table.totalAmount' | translate : {} : 'Monto' }}
+              </th>
+              <th class="right" style="width:100px;">{{ 'monthlyReview.table.totalCount' | translate : {} : 'Ventas' }}
+              </th>
+              <th class="right" style="width:160px;">{{ 'common.actions' | translate : {} : 'Acciones' }}</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let it of filtered(); trackBy: trackById">
               <td>#{{ it.id }}</td>
-              <td>{{ it.month }}/{{ it.year }}</td>
-              <td><span class="badge {{ it.status }}">{{ it.status }}</span></td>
-              <td>{{ it.reviewedBy?.dni }} — {{ it.reviewedBy?.name }}</td>
+              <td>{{ it.period || (it.month + '/' + it.year) }}</td>
+              <td>
+                <span class="badge {{ it.status }}">{{ it.status }}</span>
+              </td>
+              <td>{{ it.reviewedBy?.name || it.reviewedBy?.dni || '—' }}</td>
               <td>{{ it.reviewDate | date:'yyyy-MM-dd' }}</td>
-              <td class="right">{{ it.totalSalesAmount ?? 0 }}</td>
-              <td class="right">{{ it.totalSalesCount ?? 0 }}</td>
+              <td class="right">{{ formatCurrency(it.totalSalesAmount) }}</td>
+              <td class="right">{{ it.totalSalesCount || 0 }}</td>
               <td class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
-                  [title]="'common.edit' | translate">
-                  ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                  [attr.aria-label]="'common.edit' | translate : {} : 'Editar'"
+                  [attr.title]="'common.edit' | translate : {} : 'Editar'">
+                  ✏️ <span class="sr-only">{{ 'common.edit' | translate : {} : 'Editar' }}</span>
                 </button>
                 <button class="btn danger btn--icon" type="button" (click)="delete(it)"
-                  [title]="'common.delete' | translate">
-                  🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                  [attr.aria-label]="'common.delete' | translate : {} : 'Eliminar'"
+                  [attr.title]="'common.delete' | translate : {} : 'Eliminar'">
+                  🗑️ <span class="sr-only">{{ 'common.delete' | translate : {} : 'Eliminar' }}</span>
                 </button>
               </td>
             </tr>
@@ -84,74 +148,98 @@
         </table>
       </div>
 
+      <!-- Empty state -->
       <ng-template #emptyState>
-        <div class="empty empty-state">
-          <h3>{{ 'monthlyReview.emptyTitle' | translate }}</h3>
-          <p class="muted">{{ 'monthlyReview.emptyHint' | translate }}</p>
+        <div class="empty-state">
+          <h3>{{ 'monthlyReview.emptyTitle' | translate : {} : 'No hay revisiones' }}</h3>
+          <p class="muted">
+            {{ 'monthlyReview.emptyHint' | translate : {} : 'Probá ajustar los filtros o creá una nueva revisión.' }}
+          </p>
         </div>
       </ng-template>
     </section>
   </div>
 
-  <!-- FORM -->
+  <!-- PANEL COLAPSABLE: CREAR/EDITAR -->
   <div class="collapsible" [class.open]="isNewOpen()">
     <div class="collapsible__content glass-dark card">
       <div class="header">
         <h2 class="title">
-          {{ isEdit()
-          ? ('monthlyReview.form.titleEdit' | translate:{ id: form.value.id })
-          : ('monthlyReview.form.titleCreate' | translate) }}
+          {{
+          isEdit()
+          ? ('monthlyReview.form.titleEdit' | translate : { id: form.value.id } : ('Editar #' + form.value.id))
+          : ('monthlyReview.form.titleCreate' | translate : {} : 'Crear Revisión Mensual')
+          }}
         </h2>
       </div>
 
       <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
+        <!-- DNI del Socio Revisor -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.reviewedByDni' | translate }}</span>
-          <input class="input" type="text" formControlName="reviewedByDni" />
+          <span>{{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'DNI del Socio' }}</span>
+          <input class="input" type="text" formControlName="partnerDni"
+            [attr.aria-label]="'monthlyReview.form.fields.partnerDni' | translate : {} : 'DNI del Socio'" />
+          <small class="error" *ngIf="form.controls.partnerDni.invalid && form.controls.partnerDni.touched">
+            {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'DNI requerido (mín. 6 caracteres)' }}
+          </small>
         </label>
 
+        <!-- Año -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.year' | translate }}</span>
-          <input class="input" type="number" formControlName="year" />
+          <span>{{ 'monthlyReview.form.fields.year' | translate : {} : 'Año' }}</span>
+          <input class="input" type="number" formControlName="year"
+            [attr.aria-label]="'monthlyReview.form.fields.year' | translate : {} : 'Año'" />
         </label>
 
+        <!-- Mes -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.month' | translate }}</span>
-          <input class="input" type="number" formControlName="month" />
+          <span>{{ 'monthlyReview.form.fields.month' | translate : {} : 'Mes (1-12)' }}</span>
+          <input class="input" type="number" formControlName="month" min="1" max="12"
+            [attr.aria-label]="'monthlyReview.form.fields.month' | translate : {} : 'Mes'" />
         </label>
 
+        <!-- Fecha de Revisión -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.reviewDate' | translate }}</span>
-          <input class="input" type="date" formControlName="reviewDate" />
+          <span>{{ 'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisión' }}</span>
+          <input class="input" type="date" formControlName="reviewDate"
+            [attr.aria-label]="'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisión'" />
         </label>
 
+        <!-- Estado -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.status' | translate }}</span>
+          <span>{{ 'monthlyReview.form.fields.status' | translate : {} : 'Estado' }}</span>
           <select class="input" formControlName="status">
-            <option value="PENDING">{{ 'status.PENDING' | translate }}</option>
-            <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate }}</option>
-            <option value="COMPLETED">{{ 'status.COMPLETED' | translate }}</option>
-            <option value="APPROVED">{{ 'status.APPROVED' | translate }}</option>
-            <option value="REJECTED">{{ 'status.REJECTED' | translate }}</option>
+            <option value="PENDING">{{ 'status.PENDING' | translate : {} : 'Pendiente' }}</option>
+            <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate : {} : 'En Revisión' }}</option>
+            <option value="COMPLETED">{{ 'status.COMPLETED' | translate : {} : 'Completado' }}</option>
+            <option value="APPROVED">{{ 'status.APPROVED' | translate : {} : 'Aprobado' }}</option>
+            <option value="REJECTED">{{ 'status.REJECTED' | translate : {} : 'Rechazado' }}</option>
           </select>
         </label>
 
+        <!-- Observaciones -->
         <label class="label col-2">
-          <span>{{ 'monthlyReview.form.fields.observations' | translate }}</span>
-          <textarea class="input" rows="2" formControlName="observations"></textarea>
+          <span>{{ 'monthlyReview.form.fields.observations' | translate : {} : 'Observaciones' }}</span>
+          <textarea class="input" rows="3" formControlName="observations"
+            [placeholder]="'monthlyReview.form.placeholders.observations' | translate : {} : 'Observaciones sobre las ventas del período...'"></textarea>
         </label>
 
+        <!-- Recomendaciones -->
         <label class="label col-2">
-          <span>{{ 'monthlyReview.form.fields.recommendations' | translate }}</span>
-          <textarea class="input" rows="2" formControlName="recommendations"></textarea>
+          <span>{{ 'monthlyReview.form.fields.recommendations' | translate : {} : 'Recomendaciones' }}</span>
+          <textarea class="input" rows="3" formControlName="recommendations"
+            [placeholder]="'monthlyReview.form.placeholders.recommendations' | translate : {} : 'Recomendaciones o acciones a tomar...'"></textarea>
         </label>
 
+        <!-- Botones de acción -->
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+            {{ isEdit()
+            ? ('common.save' | translate : {} : 'Guardar')
+            : ('common.create' | translate : {} : 'Crear') }}
           </button>
           <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'common.cancel' | translate }}
+            {{ 'monthlyReview.buttons.clear' | translate : {} : 'Limpiar' }}
           </button>
         </div>
       </form>

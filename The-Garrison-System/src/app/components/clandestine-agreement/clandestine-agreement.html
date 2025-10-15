@@ -21,7 +21,7 @@
 
     <!-- MENSAJES -->
     <div class="error" *ngIf="error() as err"><strong>Error:</strong> {{ err }}</div>
-    <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
+    <div class="muted" *ngIf="loading()">{{ 'common.loading' | translate }}</div>
 
     <!-- LISTADO -->
     <section class="subsection">
@@ -33,21 +33,23 @@
             <tr>
               <th style="width:80px;">ID</th>
               <th style="width:120px;">{{ 'clandestineAgreement.table.shelbyCouncil' | translate }}</th>
+              <th>{{ 'clandestineAgreement.table.admin' | translate }}</th>
               <th>{{ 'clandestineAgreement.table.authority' | translate }}</th>
               <th style="width:140px;">{{ 'clandestineAgreement.table.date' | translate }}</th>
-              <th style="width:140px;">{{ 'clandestineAgreement.table.status' | translate }}</th>
+              <th style="width:120px;">{{ 'clandestineAgreement.table.status' | translate }}</th>
               <th>{{ 'clandestineAgreement.table.description' | translate }}</th>
-              <th class="right" style="width:160px;">{{ 'common.edit' | translate }}</th>
+              <th class="right" style="width:160px;">{{ 'common.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let it of filtered(); trackBy: trackById">
               <td>#{{ it.id }}</td>
               <td>{{ it.shelbyCouncil?.id }}</td>
+              <td>{{ it.admin?.dni }} — {{ it.admin?.name }}</td>
               <td>{{ it.authority?.dni }} — {{ it.authority?.name }}</td>
               <td>{{ it.agreementDate | date:'yyyy-MM-dd' }}</td>
               <td><span class="badge {{ it.status }}">{{ ('status.' + it.status) | translate }}</span></td>
-              <td class="truncate">{{ it.description }}</td>
+              <td class="truncate">{{ it.description || '—' }}</td>
               <td class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
                   [title]="'common.edit' | translate">
@@ -85,36 +87,56 @@
       </div>
 
       <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
+        <!-- SHELBY COUNCIL -->
         <label class="label">
-          <span>{{ 'clandestineAgreement.form.fields.shelbyCouncilId' | translate }}</span>
-          <input class="input" type="number" formControlName="shelbyCouncilId" />
+          <span>{{ 'clandestineAgreement.form.fields.shelbyCouncilId' | translate }} *</span>
+          <input class="input" type="number" formControlName="shelbyCouncilId" [disabled]="isEdit()" />
+          <small class="muted" *ngIf="isEdit()">
+            {{ 'clandestineAgreement.form.hints.cannotChangeRelations' | translate }}
+          </small>
         </label>
 
+        <!-- ADMIN DNI -->
         <label class="label">
-          <span>{{ 'clandestineAgreement.form.fields.authorityDni' | translate }}</span>
-          <input class="input" type="text" formControlName="authorityDni" />
+          <span>{{ 'clandestineAgreement.form.fields.adminDni' | translate }} *</span>
+          <input class="input" type="text" formControlName="adminDni" [disabled]="isEdit()" />
+          <small class="muted" *ngIf="isEdit()">
+            {{ 'clandestineAgreement.form.hints.cannotChangeRelations' | translate }}
+          </small>
         </label>
 
+        <!-- AUTHORITY DNI -->
+        <label class="label">
+          <span>{{ 'clandestineAgreement.form.fields.authorityDni' | translate }} *</span>
+          <input class="input" type="text" formControlName="authorityDni" [disabled]="isEdit()" />
+          <small class="muted" *ngIf="isEdit()">
+            {{ 'clandestineAgreement.form.hints.cannotChangeRelations' | translate }}
+          </small>
+        </label>
+
+        <!-- AGREEMENT DATE -->
         <label class="label">
           <span>{{ 'clandestineAgreement.form.fields.agreementDate' | translate }}</span>
           <input class="input" type="date" formControlName="agreementDate" />
         </label>
 
-        <label class="label col-2">
-          <span>{{ 'clandestineAgreement.form.fields.description' | translate }}</span>
-          <textarea class="input" rows="2" formControlName="description"></textarea>
-        </label>
-
+        <!-- STATUS -->
         <label class="label">
           <span>{{ 'clandestineAgreement.form.fields.status' | translate }}</span>
           <select class="input" formControlName="status">
-            <option value="PENDING">{{ 'status.PENDING' | translate }}</option>
             <option value="ACTIVE">{{ 'status.ACTIVE' | translate }}</option>
-            <option value="EXPIRED">{{ 'status.EXPIRED' | translate }}</option>
+            <option value="COMPLETED">{{ 'status.COMPLETED' | translate }}</option>
             <option value="CANCELLED">{{ 'status.CANCELLED' | translate }}</option>
           </select>
         </label>
 
+        <!-- DESCRIPTION -->
+        <label class="label col-2">
+          <span>{{ 'clandestineAgreement.form.fields.description' | translate }}</span>
+          <textarea class="input" rows="3" formControlName="description"></textarea>
+        </label>
+
+        <!-- ACTIONS -->
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
             {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}

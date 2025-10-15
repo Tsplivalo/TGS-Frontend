@@ -17,23 +17,28 @@ import { ClientDTO, ApiResponse as ApiCliResp } from '../../models/client/client
 
 import { forkJoin } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { HttpClient } from '@angular/common/http';
 
 /**
- * SaleComponent
- *
- * Crea ventas con múltiples líneas, mostrando un listado filtrable y calculando totales
- * aun cuando el backend use distintas formas de retorno (amount/total/subtotales). Usa
- * signals para estado, formularios reactivos, y i18n para errores.
+ * SaleComponent - CORREGIDO
+ * 
+ * Crea ventas con múltiples líneas, requiriendo clientDni Y distributorDni.
  */
 
 type SaleForm = {
   id: FormControl<number | null>;
   clientDni: FormControl<string | null>;
+  distributorDni: FormControl<string | null>; // ← NUEVO: requerido por backend
   productId: FormControl<number | null>;
   quantity: FormControl<number>;
 };
 
 type Line = { productId: number | null; quantity: number; filter?: string };
+
+interface DistributorDTO {
+  dni: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-sale',
@@ -45,6 +50,7 @@ type Line = { productId: number | null; quantity: number; filter?: string };
 export class SaleComponent implements OnInit {
   // --- Inyección ---
   private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
   private saleSrv = inject(SaleService);
   private prodSrv = inject(ProductService);
   private cliSrv = inject(ClientService);
@@ -54,6 +60,7 @@ export class SaleComponent implements OnInit {
   sales = signal<SaleDTO[]>([]);
   products = signal<ProductDTO[]>([]);
   clients = signal<ClientDTO[]>([]);
+  distributors = signal<DistributorDTO[]>([]); // ← NUEVO
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
@@ -65,6 +72,7 @@ export class SaleComponent implements OnInit {
   // --- Filtros de selects ---
   productFilter = '';
   clientFilter = '';
+  distributorFilter = ''; // ← NUEVO
 
   // --- Líneas de la venta en edición ---
   lines = signal<Line[]>([{ productId: null, quantity: 1, filter: '' }]);
@@ -72,7 +80,12 @@ export class SaleComponent implements OnInit {
   // --- Form reactivo (cabecera) ---
   form: FormGroup<SaleForm> = this.fb.group<SaleForm>({
     id: this.fb.control<number | null>(null),
-    clientDni: this.fb.control<string | null>(null, { validators: [Validators.required, Validators.minLength(6)] }),
+    clientDni: this.fb.control<string | null>(null, { 
+      validators: [Validators.required, Validators.minLength(6)] 
+    }),
+    distributorDni: this.fb.control<string | null>(null, { 
+      validators: [Validators.required, Validators.minLength(6)] // ← NUEVO: requerido
+    }),
     productId: this.fb.control<number | null>(null, { validators: [Validators.min(1)] }),
     quantity: this.fb.nonNullable.control(1, { validators: [Validators.min(1)] }),
   });
@@ -83,25 +96,70 @@ export class SaleComponent implements OnInit {
 
   // Expuesto al template
   get clientControl() { return this.form.controls.clientDni; }
+  get distributorControl() { return this.form.controls.distributorDni; }
 
   // --- Ciclo de vida ---
   ngOnInit(): void {
-    // Carga catálogo (productos + clientes) antes de traer ventas
     this.loading.set(true);
     this.error.set(null);
 
+    // ✅ Cargar productos, clientes Y distributores
     forkJoin({
       prods: this.prodSrv.getAllProducts(),
       clis: this.cliSrv.getAllClients(),
+      dists: this.http.get<any>('/api/distributors'),
     }).subscribe({
-      next: (res: { prods: ApiProdResp<ProductDTO[]> | any; clis: ApiCliResp<ClientDTO[]> | any }) => {
-        const productList = (res.prods?.data ?? res.prods?.products ?? []) as ProductDTO[];
-        const clientList  = (res.clis?.data  ?? res.clis?.clients  ?? []) as ClientDTO[];
+      next: (res: { 
+        prods: ApiProdResp<ProductDTO[]> | any; 
+        clis: ApiCliResp<ClientDTO[]> | any;
+        dists: any;
+      }) => {
+        // Normalizar productos
+        let productList: ProductDTO[] = [];
+        if (Array.isArray(res.prods)) {
+          productList = res.prods;
+        } else if (res.prods?.data && Array.isArray(res.prods.data)) {
+          productList = res.prods.data;
+        } else if (res.prods?.products && Array.isArray(res.prods.products)) {
+          productList = res.prods.products;
+        }
+
+        // Normalizar clientes
+        let clientList: ClientDTO[] = [];
+        if (Array.isArray(res.clis)) {
+          clientList = res.clis;
+        } else if (res.clis?.data && Array.isArray(res.clis.data)) {
+          clientList = res.clis.data;
+        } else if (res.clis?.clients && Array.isArray(res.clis.clients)) {
+          clientList = res.clis.clients;
+        }
+
+        // Normalizar distribuidores
+        let distributorList: DistributorDTO[] = [];
+        if (Array.isArray(res.dists)) {
+          distributorList = res.dists;
+        } else if (res.dists?.data && Array.isArray(res.dists.data)) {
+          distributorList = res.dists.data;
+        } else if (res.dists?.distributors && Array.isArray(res.dists.distributors)) {
+          distributorList = res.dists.distributors;
+        }
+        
+        console.log('📦 Products loaded:', productList.length, productList);
+        console.log('👥 Clients loaded:', clientList.length, clientList);
+        console.log('🚚 Distributors loaded:', distributorList.length, distributorList);
+        
         this.products.set(productList);
         this.clients.set(clientList);
+        this.distributors.set(distributorList);
+        
+        console.log('✅ Products signal set:', this.products());
+        
         this.loadSales();
       },
-      error: () => { this.loadSales(); }
+      error: (err) => { 
+        console.error('❌ Error loading catalog:', err);
+        this.loadSales(); 
+      }
     });
   }
 
@@ -130,26 +188,36 @@ export class SaleComponent implements OnInit {
     const q = (this.fText || '').toLowerCase().trim();
     const dni = (this.fClientDni || '').trim();
     return this.sales().filter(v => {
-      const saleDescription = (v.product && v.product.description) ? v.product.description.toLowerCase() : '';
-      let hasText = (!q) || saleDescription.includes(q) || String(v.id).includes(q);
-      if (!hasText && v.details && v.details.length) {
-        for (const d of v.details) {
-          const dd = this.detailDescription(d).toLowerCase();
-          if (dd.includes(q)) { hasText = true; break; }
-        }
-      }
-      const matchDni = !dni || (v.client && v.client.dni ? v.client.dni.includes(dni) : false);
+      const saleDescription = (v.details && v.details.length) 
+        ? v.details.map(d => this.detailDescription(d)).join(' ').toLowerCase()
+        : '';
+      const hasText = (!q) || saleDescription.includes(q) || String(v.id).includes(q);
+      const matchDni = !dni || (v.client?.dni ? v.client.dni.includes(dni) : false);
       return (q ? hasText : true) && matchDni;
     });
   });
 
-  filteredProductsBy = (filter: string) => {
+  // Método para filtrar productos (NO usar computed porque necesita parámetro)
+  filteredProductsBy(filter: string): ProductDTO[] {
+    const allProds = this.products();
     const q = (filter || '').toLowerCase().trim();
-    if (!q) return this.products();
-    return this.products().filter(p =>
-      String(p.id).includes(q) || ((p.description || '').toLowerCase().includes(q))
-    );
-  };
+    
+    console.log('🔍 filteredProductsBy called. Total products:', allProds.length, 'Filter:', q);
+    
+    if (!q || q === '') {
+      console.log('✅ No filter, returning all', allProds.length, 'products');
+      return allProds;
+    }
+    
+    const filtered = allProds.filter(p => {
+      const matchId = String(p.id).includes(q);
+      const matchDesc = (p.description || '').toLowerCase().includes(q);
+      return matchId || matchDesc;
+    });
+    
+    console.log('✅ Filtered to', filtered.length, 'products');
+    return filtered;
+  }
 
   filteredClients = computed(() => {
     const q = (this.clientFilter || '').toLowerCase().trim();
@@ -160,11 +228,20 @@ export class SaleComponent implements OnInit {
     );
   });
 
+  // ← NUEVO: Filtro de distribuidores
+  filteredDistributors = computed(() => {
+    const q = (this.distributorFilter || '').toLowerCase().trim();
+    if (!q) return this.distributors();
+    return this.distributors().filter(d =>
+      (d.dni || '').toLowerCase().includes(q) ||
+      (d.name || '').toLowerCase().includes(q)
+    );
+  });
+
   // --- Data fetching ---
   loadSales() {
     this.saleSrv.getAllSales().subscribe({
-      next: (res: ApiSaleResp<SaleDTO[]> | any) => {
-        const list = (res?.data ?? res?.sales ?? []) as SaleDTO[];
+      next: (list: SaleDTO[]) => {
         this.sales.set(list);
         this.loading.set(false);
       },
@@ -175,15 +252,10 @@ export class SaleComponent implements OnInit {
     });
   }
 
-  // --- Agregados y descripciones ---
+  // --- Helpers ---
   sumQuantities(v: SaleDTO): number {
     const details = this.getDetails(v) ?? [];
-    let total = 0;
-    for (let i = 0; i < details.length; i++) {
-      const quantity = Number((details[i] as any)?.quantity);
-      if (Number.isFinite(quantity)) total += quantity;
-    }
-    return total;
+    return details.reduce((sum, d) => sum + (Number(d.quantity) || 0), 0);
   }
 
   private getProdById(id: number | null | undefined): ProductDTO | undefined {
@@ -193,7 +265,7 @@ export class SaleComponent implements OnInit {
 
   detailDescription(d: SaleDetailDTO): string {
     if (d?.product?.description) return d.product.description;
-    const pid = (d as any)?.productId ?? (d as any)?.product?.id ?? null;
+    const pid = d.productId ?? (d as any)?.product?.id ?? null;
     if (pid != null) {
       const p = this.products().find(x => x.id === Number(pid));
       if (p?.description) return p.description;
@@ -207,33 +279,39 @@ export class SaleComponent implements OnInit {
     if (typeof sub === 'number' && Number.isFinite(sub)) return sub / (Number(d.quantity) || 1);
     if (d.product && typeof d.product.price === 'number') return d.product.price;
     const p = this.getProdById(d.productId);
-    const raw = p && (p as any).price;
-    const num = typeof raw === 'string' ? Number(raw) : (typeof raw === 'number' ? raw : 0);
-    return Number.isFinite(num) ? num : 0;
+    return p?.price ?? 0;
   }
 
-  getClient(v: SaleDTO): SaleClientDTO | null { return v.client ? v.client : null; }
+  getClient(v: SaleDTO): SaleClientDTO | null { return v.client ?? null; }
   hasDetails(v: SaleDTO): boolean { return !!(v.details && v.details.length > 0); }
-  getDetails(v: SaleDTO): SaleDetailDTO[] { return v.details ? v.details : []; }
-  getProductDesc(v: SaleDTO): string {
-    if (v.product && typeof v.product.description === 'string') return v.product.description;
-    const p = v.product?.id ? this.getProdById(v.product.id) : undefined;
-    return p?.description ?? '—';
-  }
+  getDetails(v: SaleDTO): SaleDetailDTO[] { return v.details ?? []; }
+  getProductDesc(v: SaleDTO): string { return '—'; } // Legacy, no se usa
 
-  // --- Validaciones de entrada ---
+  // --- Validaciones ---
   private clientExists(dni: string | null): boolean {
     if (!dni) return false;
     return this.clients().some(c => (c.dni || '') === dni);
   }
 
+  private distributorExists(dni: string | null): boolean {
+    if (!dni) return false;
+    return this.distributors().some(d => (d.dni || '') === dni);
+  }
+
   private buildCreatePayload(): CreateSaleDTO {
-    const dni = String(this.clientControl.value || '').trim();
+    const clientDni = String(this.clientControl.value || '').trim();
+    const distributorDni = String(this.distributorControl.value || '').trim();
+    
     const details: SaleDetailDTO[] = this.lines().map(l => ({
       productId: Number(l.productId),
       quantity: Number(l.quantity),
     }));
-    return { clientDni: dni, details };
+
+    return { 
+      clientDni, 
+      distributorDni, // ← NUEVO: requerido
+      details 
+    };
   }
 
   private validateLines(lines: Line[]): string | null {
@@ -249,43 +327,40 @@ export class SaleComponent implements OnInit {
     return null;
   }
 
-  // Total de una venta compatible con distintos esquemas ({amount}|{total}|subtotales)
+  // Total de una venta
   calculateTotal(v: SaleDTO): number {
-    const candidates = [(v as any).amount, (v as any).saleAmount, (v as any).total];
-    for (const x of candidates) {
-      if (typeof x === 'number' && Number.isFinite(x)) return x;
-      if (typeof x === 'string' && x.trim() !== '' && Number.isFinite(Number(x))) return Number(x);
-    }
+    // Priorizar saleAmount que devuelve el backend
+    if (typeof v.saleAmount === 'number') return v.saleAmount;
+    if (typeof v.amount === 'number') return v.amount;
+    if (typeof v.total === 'number') return v.total;
+
+    // Calcular desde detalles
     if (v.details && v.details.length) {
-      let sum = 0;
-      for (const d of v.details) {
+      return v.details.reduce((sum, d) => {
         const sub = (d as any).subtotal;
-        if (typeof sub === 'number' && Number.isFinite(sub)) sum += sub;
-        else {
-          const price = this.detailPrice(d);
-          const quantity = Number(d.quantity) || 0;
-          sum += price * quantity;
-        }
-      }
-      return sum;
+        if (typeof sub === 'number') return sum + sub;
+        const price = this.detailPrice(d);
+        const quantity = Number(d.quantity) || 0;
+        return sum + (price * quantity);
+      }, 0);
     }
-    let price = 0;
-    if (v.product && typeof v.product.price === 'number') price = v.product.price;
-    else if (v.product?.id) {
-      const p = this.getProdById(v.product.id);
-      const raw = p && (p as any).price;
-      price = typeof raw === 'string' ? Number(raw) : (typeof raw === 'number' ? raw : 0);
-    }
-    const quantity = typeof v.quantity === 'number' ? v.quantity : Number((v as any).quantity) || 0;
-    return (Number.isFinite(price) ? price : 0) * quantity;
+
+    return 0;
   }
 
   // --- Form helpers ---
   new() {
-    this.form.reset({ id: null, clientDni: null, productId: null, quantity: 1 });
+    this.form.reset({ 
+      id: null, 
+      clientDni: null, 
+      distributorDni: null, 
+      productId: null, 
+      quantity: 1 
+    });
     this.lines.set([{ productId: null, quantity: 1, filter: '' }]);
     this.submitted.set(false);
     this.error.set(null);
+    this.isNewOpen = false;
   }
 
   addLine() {
@@ -293,6 +368,7 @@ export class SaleComponent implements OnInit {
     arr.push({ productId: null, quantity: 1, filter: '' });
     this.lines.set(arr);
   }
+
   removeLine(idx: number) {
     const arr = [...this.lines()];
     arr.splice(idx, 1);
@@ -303,23 +379,40 @@ export class SaleComponent implements OnInit {
   // --- Guardado (create) ---
   save() {
     this.submitted.set(true);
-    const dni = this.clientControl.value;
-
-    if (!this.clientExists(dni)) {
+    
+    // ✅ Validar cliente
+    const clientDni = this.clientControl.value;
+    if (!this.clientExists(clientDni)) {
       this.error.set(this.t.instant('sales.err.clientMissing'));
       this.clientControl.markAsTouched();
       return;
     }
 
+    // ✅ Validar distribuidor
+    const distributorDni = this.distributorControl.value;
+    if (!this.distributorExists(distributorDni)) {
+      this.error.set(this.t.instant('sales.err.distributorMissing'));
+      this.distributorControl.markAsTouched();
+      return;
+    }
+
+    // ✅ Validar líneas
     const errLines = this.validateLines(this.lines());
-    if (errLines) { this.error.set(errLines); return; }
+    if (errLines) { 
+      this.error.set(errLines); 
+      return; 
+    }
 
     this.loading.set(true);
     this.error.set(null);
 
     const payload = this.buildCreatePayload();
+    
     this.saleSrv.createSale(payload).subscribe({
-      next: () => { this.new(); this.loadSales(); },
+      next: () => { 
+        this.new(); 
+        this.loadSales(); 
+      },
       error: (err) => {
         const msg = err?.error?.message || this.t.instant('sales.err.create');
         this.error.set(msg);

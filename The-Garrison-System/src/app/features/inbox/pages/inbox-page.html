@@ -1,0 +1,39 @@
+<div class="inbox-page">
+  <div *ngIf="loading" class="loading">Cargando...</div>
+
+  <div *ngIf="!loading && user" class="inbox-layout">
+    <aside class="inbox-sidebar">
+      <nav class="inbox-navigation">
+        <button class="nav-item" [class.active]="activeSection === 'role-requests'"
+          (click)="setActiveSection('role-requests')">
+          <span class="icon">📋</span>
+          <span class="text">Solicitudes de Rol</span>
+        </button>
+
+        <button *ngIf="isAdmin" class="nav-item" [class.active]="activeSection === 'email-verification'"
+          (click)="setActiveSection('email-verification')">
+          <span class="icon">📧</span>
+          <span class="text">Verificación de Email</span>
+        </button>
+      </nav>
+    </aside>
+
+    <main class="inbox-content">
+      <ng-container *ngIf="activeSection === 'role-requests'">
+        <app-admin-role-requests-inbox *ngIf="isAdmin">
+        </app-admin-role-requests-inbox>
+
+        <app-user-role-requests-inbox *ngIf="!isAdmin" [currentRoles]="user.roles"
+          [hasCompleteProfile]="hasCompleteProfile">
+        </app-user-role-requests-inbox>
+      </ng-container>
+
+      <ng-container *ngIf="activeSection === 'email-verification' && isAdmin">
+        <div class="coming-soon">
+          <h3>Verificación de Email</h3>
+          <p>Esta sección estará disponible próximamente</p>
+        </div>
+      </ng-container>
+    </main>
+  </div>
+</div>

@@ -1,7 +1,6 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import {
   ApiResponse,
   SaleDTO,
@@ -12,69 +11,80 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class SaleService {
-  private readonly apiPlural = '/api/sales';
-  private readonly apiSingular = '/api/sale';
+  private http = inject(HttpClient);
+  private base = '/api/sales';
 
-  constructor(private http: HttpClient) {}
-
-  // ===== Helpers with fallback plural⇄singular =====
-  private getAllBase(url: string) {
-    return this.http.get<ApiResponse<SaleDTO[]>>(url);
-  }
-  getAllSales(): Observable<ApiResponse<SaleDTO[]>> {
-    return this.getAllBase(this.apiPlural).pipe(
-      catchError((err: HttpErrorResponse) =>
-        err.status === 404 ? this.getAllBase(this.apiSingular) : throwError(() => err)
-      )
+  /** GET /api/sales - Obtiene todas las ventas */
+  getAllSales(): Observable<SaleDTO[]> {
+    return this.http.get<ApiResponse<SaleDTO[]>>(this.base).pipe(
+      map((res: any) => {
+        // El backend puede devolver {data: [...]} o directamente [...]
+        if (Array.isArray(res)) return res;
+        if (res?.data && Array.isArray(res.data)) return res.data;
+        return [];
+      })
     );
   }
 
-  private postBase(url: string, body: any) {
-    return this.http.post<ApiResponse<SaleDTO>>(url, body);
-  }
-  createSale(body: CreateSaleDTO): Observable<ApiResponse<SaleDTO>> {
-    // Normalize types
-    const details = (body.details || []).map((d: SaleDetailDTO) => ({
-      productId: Number(d.productId),
-      quantity: Number(d.quantity),
-    }));
-
-    const payload: CreateSaleDTO = {
-      clientDni: String(body.clientDni).trim(),
-      details,
-    };
-
-    return this.postBase(this.apiPlural, payload).pipe(
-      catchError((err: HttpErrorResponse) =>
-        err.status === 404 ? this.postBase(this.apiSingular, payload) : throwError(() => err)
-      )
+  /** GET /api/sales/:id - Obtiene una venta por ID */
+  getSale(id: number): Observable<SaleDTO> {
+    return this.http.get<ApiResponse<SaleDTO>>(`${this.base}/${id}`).pipe(
+      map((res: any) => {
+        if (res?.data) return res.data;
+        return res;
+      })
     );
   }
 
-  private patchBase(url: string, id: number, body: any) {
-    return this.http.patch<ApiResponse<SaleDTO>>(`${url}/${id}`, body);
-  }
-  updateSale(id: number, body: UpdateSaleDTO): Observable<ApiResponse<SaleDTO>> {
-    const payload: UpdateSaleDTO = {};
-    if (body.clientDni != null) payload.clientDni = String(body.clientDni).trim();
-
-    if (body.details != null) {
-      payload.details = body.details.map(d => ({
+  /** POST /api/sales - Crea una nueva venta */
+  createSale(payload: CreateSaleDTO): Observable<ApiResponse<SaleDTO>> {
+    // ✅ Normalizar datos antes de enviar
+    const normalizedPayload: CreateSaleDTO = {
+      clientDni: String(payload.clientDni).trim(),
+      distributorDni: String(payload.distributorDni).trim(), // ← REQUERIDO
+      details: (payload.details || []).map((d: SaleDetailDTO) => ({
         productId: Number(d.productId),
         quantity: Number(d.quantity),
-      }));
-    }
-    // Compat: if your back still accepts productId/quantity in PATCH
-    if (body.productId != null) payload.productId = Number(body.productId);
-    if (body.quantity != null) payload.quantity = Number(body.quantity);
+      })),
+      person: payload.person ? {
+        name: String(payload.person.name).trim(),
+        email: String(payload.person.email).trim(),
+        phone: payload.person.phone ? String(payload.person.phone).trim() : undefined,
+        address: payload.person.address ? String(payload.person.address).trim() : undefined,
+      } : undefined,
+    };
 
-    return this.patchBase(this.apiPlural, id, payload).pipe(
-      catchError((err: HttpErrorResponse) =>
-        err.status === 404 ? this.patchBase(this.apiSingular, id, payload) : throwError(() => err)
-      )
-    );
+    return this.http.post<ApiResponse<SaleDTO>>(this.base, normalizedPayload);
   }
 
+  /** PATCH /api/sales/:id - Actualiza una venta (reasignar distribuidor/autoridad) */
+  updateSale(id: number, payload: UpdateSaleDTO): Observable<ApiResponse<SaleDTO>> {
+    return this.http.patch<ApiResponse<SaleDTO>>(`${this.base}/${id}`, payload);
+  }
 
-  
+  /** DELETE /api/sales/:id - Elimina una venta */
+  deleteSale(id: number): Observable<ApiResponse<unknown>> {
+    return this.http.delete<ApiResponse<unknown>>(`${this.base}/${id}`);
+  }
+
+  /** GET /api/sales/search - Búsqueda avanzada */
+  searchSales(params: {
+    q?: string;
+    by?: 'client' | 'distributor' | 'zone';
+    date?: string;
+    type?: 'exact' | 'before' | 'after' | 'between';
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<SaleDTO[]> {
+    return this.http.get<ApiResponse<SaleDTO[]>>(`${this.base}/search`, { 
+      params: params as any 
+    }).pipe(
+      map((res: any) => {
+        if (Array.isArray(res)) return res;
+        if (res?.data && Array.isArray(res.data)) return res.data;
+        return [];
+      })
+    );
+  }
 }

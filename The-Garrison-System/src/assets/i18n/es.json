@@ -141,7 +141,9 @@
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Eliminar",
-    "error": "Error"
+    "error": "Error",
+    "all": "Todos",
+    "actions": "Acciones"
   },
   "clients": {
     "title": "Clientes",
@@ -569,7 +571,8 @@
   },
 
   "shelbyCouncil": {
-    "title": "Consejo Shelby",
+"title": "Consejo Shelby",
+    "loading": "Cargando...",
     "filters": {
       "search": "Buscar",
       "searchPlaceholder": "Socio, decisión, id"
@@ -594,79 +597,113 @@
       "save": "Guardar",
       "cancel": "Cancelar",
       "clear": "Limpiar"
-    }
+    },
+    "errorCreate": "No se pudo crear",
+    "errorSave": "No se pudo guardar",
+    "errorLoad": "No se pudo cargar",
+    "errorDelete": "No se pudo eliminar",
+    "confirmDelete": "¿Eliminar este registro?" 
   },
 
   "monthlyReview": {
-    "title": "Revisiones mensuales",
-    "filters": { "year": "Año", "month": "Mes (1-12)" },
-    "stats": { "title": "Estadísticas (por producto)", "empty": "Sin datos para el período." },
-    "list": "Listado",
+    "title": "Revisiones Mensuales",
+    "loading": "Cargando...",
+    "filters": { 
+      "year": "Año", 
+      "month": "Mes (1-12)",
+      "monthPlaceholder": "Todos",
+      "status": "Estado"
+    },
+    "stats": { 
+      "title": "Estadísticas del Período", 
+      "empty": "Sin datos para el período seleccionado.",
+      "period": "Período",
+      "totalSales": "Total Ventas",
+      "totalAmount": "Monto Total",
+      "averageAmount": "Promedio",
+      "byProduct": "Por Producto",
+      "productName": "Producto",
+      "quantity": "Cantidad",
+      "amount": "Monto"
+    },
+    "list": "Listado de Revisiones",
     "emptyTitle": "No hay revisiones",
     "emptyHint": "Ajustá los filtros o creá una nueva revisión.",
     "table": {
       "id": "ID",
-      "period": "Periodo",
+      "period": "Período",
       "status": "Estado",
       "reviewer": "Revisor",
       "date": "Fecha",
-      "totalAmount": "Total $",
+      "totalAmount": "Monto",
       "totalCount": "Ventas"
     },
     "form": {
-      "titleCreate": "Crear revisión",
-      "titleEdit": "Editar #{{id}}",
+      "titleCreate": "Crear Revisión Mensual",
+      "titleEdit": "Editar Revisión #{{id}}",
       "fields": {
-        "reviewedByDni": "DNI revisor (socio)",
+        "partnerDni": "DNI del Socio",
         "year": "Año",
         "month": "Mes",
-        "reviewDate": "Fecha de revisión",
+        "reviewDate": "Fecha de Revisión",
         "status": "Estado",
         "observations": "Observaciones",
         "recommendations": "Recomendaciones"
+      },
+      "placeholders": {
+        "observations": "Observaciones sobre las ventas del período...",
+        "recommendations": "Recomendaciones o acciones a tomar..."
+      },
+      "errors": {
+          "partnerDni": "DNI del socio requerido (mín. 6 caracteres)"
+        }
       }
     },
-    "buttons": {
-      "new": "+ Nueva",
-      "close": "Cerrar",
-      "create": "Crear",
-      "save": "Guardar",
-      "clear": "Limpiar",
-      "cancel": "Cancelar"
-    }
-  },
-
-  "clandestineAgreement": {
-    "title": "Acuerdos clandestinos",
-    "filters": { "search": "Buscar", "searchPlaceholder": "Descripción, autoridad, id" },
-    "list": "Listado",
-    "emptyTitle": "No hay acuerdos",
-    "emptyHint": "Ajustá los filtros o creá un nuevo acuerdo.",
-    "table": {
-      "id": "ID",
-      "shelbyCouncil": "Consejo Shelby",
-      "authority": "Autoridad",
-      "date": "Fecha",
-      "status": "Estado",
-      "description": "Descripción"
-    },
-    "form": {
-      "titleCreate": "Crear acuerdo",
-      "titleEdit": "Editar acuerdo #{{id}}",
-      "fields": {
-        "shelbyCouncilId": "ID Consejo Shelby",
-        "authorityDni": "DNI autoridad",
-        "agreementDate": "Fecha del acuerdo",
-        "description": "Descripción",
-        "status": "Estado"
+  
+  
+    "clandestineAgreement": {
+      "title": "Acuerdos Clandestinos",
+      "list": "Lista de Acuerdos",
+      "emptyTitle": "No hay acuerdos clandestinos",
+      "emptyHint": "Crea un nuevo acuerdo para comenzar",
+      "confirmDelete": "¿Estás seguro de eliminar este acuerdo clandestino?",
+      
+      "buttons": {
+        "new": "Nuevo Acuerdo",
+        "clear": "Limpiar Formulario"
+      },
+      
+      "filters": {
+        "search": "Buscar",
+        "searchPlaceholder": "Buscar por ID, descripción, admin, autoridad..."
+      },
+      
+      "table": {
+        "shelbyCouncil": "Consejo Shelby",
+        "admin": "Administrador",
+        "authority": "Autoridad",
+        "date": "Fecha Acuerdo",
+        "status": "Estado",
+        "description": "Descripción"
+      },
+      
+      "form": {
+        "titleCreate": "Crear Nuevo Acuerdo Clandestino",
+        "titleEdit": "Editar Acuerdo #{{id}}",
+        
+        "fields": {
+          "shelbyCouncilId": "ID Consejo Shelby",
+          "adminDni": "DNI del Administrador",
+          "authorityDni": "DNI de la Autoridad",
+          "agreementDate": "Fecha del Acuerdo",
+          "description": "Descripción del Acuerdo",
+          "status": "Estado"
+        },
+        
+        "hints": {
+          "cannotChangeRelations": "Las relaciones no pueden modificarse después de crear el acuerdo"
+        }
       }
-    },
-    "buttons": {
-      "new": "+ Nuevo",
-      "create": "Crear",
-      "save": "Guardar",
-      "clear": "Limpiar",
-      "cancel": "Cancelar"
+      
     }
-  }
 }

@@ -1,36 +1,72 @@
+// src/app/models/bribe/bribe.model.ts
+
+/**
+ * DTO del soborno que coincide con la respuesta del backend
+ */
 export interface BribeDTO {
   id: number;
   amount: number;
   paid: boolean;
-  creationDate?: string;
-
-  // Relationships (your backend populates authority and sale)
-  authority?: { id: string | number; dni?: string; name?: string } | null;
-  authorityId?: string | number | null;
-  authorityDni?: string | null; // we keep it for UI compatibility
-
-  sale?: { id: number } | null;
-  saleId?: number | null;
+  creationDate: string;
+  authority: {
+    dni: string;
+    name: string;
+  };
+  sale: {
+    id: number;
+  };
 }
 
+/**
+ * DTO para crear un soborno
+ */
 export interface CreateBribeDTO {
-  // 👇 the backend expects these names
   amount: number;
-  authorityId: string | number; // ID of Authority, not DNI
+  authorityId: number;
   saleId: number;
-  paid?: boolean;
 }
 
+/**
+ * DTO para actualizar un soborno
+ */
 export interface UpdateBribeDTO {
   amount?: number;
-  authorityId?: string | number;
-  saleId?: number;
-  paid?: boolean;
-  // if your backend allows touching the date:
-  creationDate?: string;
 }
 
+/**
+ * DTO para marcar sobornos como pagados
+ */
+export interface PayBribesDTO {
+  ids: number | number[];
+}
+
+/**
+ * Respuesta al pagar sobornos
+ */
+export interface PayBribesResponse {
+  paid: Array<{
+    id: number;
+    paid: boolean;
+  }>;
+  summary: {
+    totalRequested: number;
+    successfullyPaid: number;
+    notFound: number;
+  };
+  notFoundIds?: number[];
+}
+
+/**
+ * Estructura de respuesta estándar del API
+ */
 export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
   data: T;
-  message?: string;
+  metadata?: {
+    total?: number;
+    page?: number;
+    limit?: number;
+    totalPages?: number;
+  };
 }

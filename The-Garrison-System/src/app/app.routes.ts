@@ -19,10 +19,9 @@ export const routes: Routes = [
   },
 
   // ====== GESTIÓN ======
-  // Admin ve todo:
   { path: 'producto', loadComponent: () => import('./components//product/product.js').then(m => m.ProductComponent),
     canMatch: [authGuard, roleGuard],
-    data: { roles: ['ADMIN','ADMINISTRATOR','SOCIO','DISTRIBUIDOR'] } }, // todos los que ven gestión lo ven
+    data: { roles: ['ADMIN','ADMINISTRATOR','SOCIO','DISTRIBUIDOR'] } },
   { path: 'cliente', loadComponent: () => import('./components/client/client.js').then(m => m.ClientComponent),
     canMatch: [authGuard, roleGuard],
     data: { roles: ['ADMIN','ADMINISTRATOR','DISTRIBUIDOR'] } },
@@ -60,15 +59,23 @@ export const routes: Routes = [
   { path: 'admin', loadComponent: () => import('./components/admin/admin.js').then(m => m.AdminComponent),
     canMatch: [authGuard, roleGuard], data: { roles: ['ADMIN','ADMINISTRATOR'] } },
 
-  // ====== Bandeja ======
+  // ====== INBOX (NUEVO - Unificado) ======
+  { 
+    path: 'inbox', 
+    loadComponent: () => import('./features/inbox/pages/inbox-page').then(m => m.InboxPageComponent),
+    canActivate: [authGuard]
+    // El componente se encarga internamente de mostrar vista admin o usuario
+  },
+
+  // ====== Bandeja (RUTAS VIEJAS - Mantener por compatibilidad o eliminar) ======
   // Admin
-  { path: 'solicitudes-rol', loadComponent: () => import('./features/inbox/admin-role-request.js').then(m => m.AdminRoleRequestsComponent),
+  { path: 'solicitudes-rol', loadComponent: () => import('./features/inbox/components/role-requests/admin-role-requests-inbox.js').then(m => m.AdminRoleRequestsInboxComponent),
     canMatch: [authGuard, roleGuard], data: { roles: ['ADMIN','ADMINISTRATOR'] } },
-  { path: 'verificacion-mail', loadComponent: () => import('./features/inbox/email-verification.js').then(m => m.EmailVerificationComponent),
+  { path: 'verificacion-mail', loadComponent: () => import('./features/inbox/email-verification/email-verification').then(m => m.EmailVerificationComponent),
     canMatch: [authGuard, roleGuard], data: { roles: ['ADMIN','ADMINISTRATOR'] } },
   // Cliente base: su propia solicitud
-  { path: 'mi-solicitud-rol', loadComponent: () => import('./components/role-request/role-request.js').then(m => m.RoleRequestComponent),
-    canMatch: [authGuard, roleGuard], data: { onlyClientBase: true } },
+  //{ path: 'mi-solicitud-rol', loadComponent: () => import('./components/role-request/role-request.js').then(m => m.RoleRequestComponent),
+  //  canMatch: [authGuard, roleGuard], data: { onlyClientBase: true } },
 
   // Cuenta
   { path: 'mi-cuenta', loadComponent: () => import('./components/account/account.js').then(m => m.AccountComponent),

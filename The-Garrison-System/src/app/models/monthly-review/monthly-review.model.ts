@@ -4,6 +4,7 @@ export interface MonthlyReviewDTO {
   id: number;
   year: number;
   month: number;        // 1-12
+  period: string;       // "January 2025"
   reviewDate: string;   // ISO
   status: ReviewStatus;
   totalSalesAmount?: number;
@@ -11,36 +12,55 @@ export interface MonthlyReviewDTO {
   reviewedBy?: { dni: string; name: string } | null;
   observations?: string | null;
   recommendations?: string | null;
+  createdAt: string;    // ISO
+  updatedAt: string;    // ISO
 }
 
 export interface CreateMonthlyReviewDTO {
   year: number;
   month: number;
-  reviewDate?: string;      // yyyy-MM-dd
+  partnerDni: string;           // Cambio clave: el backend espera "partnerDni"
+  reviewDate?: string;          // ISO datetime string (YYYY-MM-DDTHH:mm:ssZ)
   status?: ReviewStatus;
   observations?: string;
   recommendations?: string;
-  reviewedByDni: string;
 }
 
 export interface PatchMonthlyReviewDTO {
-  year?: number;
-  month?: number;
-  reviewDate?: string;
+  reviewDate?: string;          // ISO datetime string
   status?: ReviewStatus;
   observations?: string;
   recommendations?: string;
-  reviewedByDni?: string;
 }
 
-export interface SalesStatsQuery {
-  year: number;
-  month?: number;
-  groupBy?: 'distributor' | 'product' | 'client' | 'day' | 'zone';
+// Estructura de respuesta paginada del backend
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
-export interface SalesStatsItem {
-  label: string;
-  totalAmount: number;
-  totalCount: number;
+
+// Estructura de estadísticas del backend
+export interface SalesStatisticsResponse {
+  period: string;
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  summary: {
+    totalSales: number;
+    totalAmount: number;
+    averageAmount: number;
+  };
+  groupedData?: any[];
 }
-export interface ApiResponse<T> { data: T; message?: string; }
+
+export interface ApiResponse<T> { 
+  data: T; 
+  message?: string; 
+  success?: boolean;
+}

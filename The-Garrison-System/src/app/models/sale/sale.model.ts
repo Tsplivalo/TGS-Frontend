@@ -1,6 +1,14 @@
+// ============================================
+// MODELOS DE VENTA - CORREGIDOS
+// Sincronizado con backend
+// ============================================
+
 export interface SaleClientDTO {
   dni: string;
   name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
 }
 
 export interface SaleProductDTO {
@@ -13,46 +21,54 @@ export interface SaleProductDTO {
 export interface SaleDetailDTO {
   productId: number;
   quantity: number;
-  // expanded
+  // expanded info (viene del backend en GET)
   product?: SaleProductDTO;
-  // ⬇️ the backend calculates this
   subtotal?: number;
 }
 
 export interface SaleDTO {
   id: number;
   date?: string;
+  saleDate?: string; // backend usa "saleDate"
   client?: SaleClientDTO | null;
+  distributor?: {
+    dni: string;
+    name?: string;
+  };
+  authority?: {
+    dni: string;
+    name?: string;
+  };
 
-  // legacy 1 line
-  product?: SaleProductDTO | null;
-  quantity?: number | null;
-
-  // multi items
+  // multi items (lo que usa el backend)
   details?: SaleDetailDTO[];
 
-  // ⬇️ possible totals
-  amount?: number;        // if the backend's toDTO calls it "amount"
-  saleAmount?: number;   // if the toDTO leaves it as "saleAmount"
-
-  // old compat
+  // Totales posibles
+  amount?: number;
+  saleAmount?: number;
   total?: number;
 }
 
+// DTO para CREAR venta (lo que espera el backend)
 export interface CreateSaleDTO {
   clientDni: string;
-  details: SaleDetailDTO[]; // required
+  distributorDni: string; // ← REQUERIDO por el backend
+  details: SaleDetailDTO[];
+  person?: {
+    name: string;
+    email: string;
+    phone?: string;
+    address?: string;
+  };
 }
 
+// DTO para ACTUALIZAR venta
 export interface UpdateSaleDTO {
-  clientDni?: string;
-  details?: SaleDetailDTO[];
-  // optional compat
-  productId?: number;
-  quantity?: number;
+  distributorDni?: string;
+  authorityDni?: string | null;
 }
 
 export interface ApiResponse<T> {
-  data: T;
+  data?: T;
   message?: string;
 }

@@ -88,7 +88,17 @@
       "integrations": { "title": "Integrations & API", "detail": "Connect systems and automate without friction." }
     }
   },
-  "common": { "close": "Close", "create": "Create", "save": "Save", "cancel": "Cancel", "edit": "Edit", "delete": "Delete", "error": "Error" },
+  "common": { 
+    "close": "Close", 
+    "create": "Create", 
+    "save": "Save", 
+    "cancel": "Cancel", 
+    "edit": "Edit", 
+    "delete": "Delete", 
+    "error": "Error",
+    "all": "All",
+    "actions": "Actions"
+  },
 
   "clients": {
     "title": "Clients",
@@ -170,7 +180,6 @@
     "errorUpdate": "Partner could not be updated.",
     "errorDelete": "Partner could not be deleted."
   },
-
 
   "sales": {
     "title": "Sales",
@@ -332,7 +341,7 @@
     "loading": "Loading distributors...",
     "filters": { "search": "Search", "searchPh": "DNI, name, email, zone" },
     "table": { "dni": "DNI", "name": "Name", "phone": "Phone", "email": "Email", "zone": "Zone", "products": "Products", "actions": "Actions" },
-    "empty": { "title": "No distributors", "desc": "Create the first one with “+ New distributor”." },
+    "empty": { "title": "No distributors", "desc": "Create the first one with new button" },
     "form": {
       "newTitle": "New distributor",
       "editTitle": "Edit distributor {{dni}}",
@@ -439,7 +448,7 @@
     "my": {
       "title": "My requests",
       "emptyTitle": "You have no requests",
-      "emptyHint": "Create a new one with the “+ New” button."
+      "emptyHint": "Create a new one with the new button."
     },
     "pending": {
       "title": "Pending (admin)",
@@ -472,6 +481,7 @@
 
   "shelbyCouncil": {
     "title": "Shelby Council",
+    "loading": "Loading...",
     "filters": {
       "search": "Search",
       "searchPlaceholder": "Partner, decision, id"
@@ -496,14 +506,36 @@
       "save": "Save",
       "cancel": "Cancel",
       "clear": "Clear"
-    }
+    },
+    "errorCreate": "Could not create",
+    "errorSave": "Could not save",
+    "errorLoad": "Could not load",
+    "errorDelete": "Could not delete",
+    "confirmDelete": "Delete this entry?"
   },
 
   "monthlyReview": {
-    "title": "Monthly reviews",
-    "filters": { "year": "Year", "month": "Month (1-12)" },
-    "stats": { "title": "Statistics (by product)", "empty": "No data for the selected period." },
-    "list": "List",
+    "title": "Monthly Reviews",
+    "loading": "Loading...",
+    "filters": { 
+      "year": "Year", 
+      "month": "Month (1-12)",
+      "monthPlaceholder": "All",
+      "status": "Status"
+    },
+    "stats": { 
+      "title": "Period Statistics", 
+      "empty": "No data for the selected period.",
+      "period": "Period",
+      "totalSales": "Total Sales",
+      "totalAmount": "Total Amount",
+      "averageAmount": "Average",
+      "byProduct": "By Product",
+      "productName": "Product",
+      "quantity": "Quantity",
+      "amount": "Amount"
+    },
+    "list": "List of Reviews",
     "emptyTitle": "No reviews",
     "emptyHint": "Adjust filters or create a new review.",
     "table": {
@@ -512,20 +544,27 @@
       "status": "Status",
       "reviewer": "Reviewer",
       "date": "Date",
-      "totalAmount": "Total $",
+      "totalAmount": "Amount",
       "totalCount": "Sales"
     },
     "form": {
-      "titleCreate": "Create review",
-      "titleEdit": "Edit #{{id}}",
+      "titleCreate": "Create Monthly Review",
+      "titleEdit": "Edit Review #{{id}}",
       "fields": {
-        "reviewedByDni": "Reviewer DNI (partner)",
+        "partnerDni": "Partner DNI",
         "year": "Year",
         "month": "Month",
-        "reviewDate": "Review date",
+        "reviewDate": "Review Date",
         "status": "Status",
         "observations": "Observations",
         "recommendations": "Recommendations"
+      },
+      "placeholders": {
+        "observations": "Observations about the period's sales...",
+        "recommendations": "Recommendations or action items..."
+      },
+      "errors": {
+        "partnerDni": "Partner DNI required (min. 6 characters)"
       }
     },
     "buttons": {
@@ -535,32 +574,56 @@
       "save": "Save",
       "clear": "Clear",
       "cancel": "Cancel"
-    }
+    },
+    "errorCreate": "Could not create review",
+    "errorSave": "Could not save review",
+    "errorLoad": "Could not load reviews",
+    "errorDelete": "Could not delete review",
+    "confirmDelete": "Delete this review?"
   },
 
   "clandestineAgreement": {
-    "title": "Clandestine agreements",
-    "filters": { "search": "Search", "searchPlaceholder": "Description, authority, id" },
-    "list": "List",
-    "emptyTitle": "No agreements",
-    "emptyHint": "Adjust filters or create a new agreement.",
-    "table": {
-      "id": "ID",
-      "shelbyCouncil": "Shelby Council",
-      "authority": "Authority",
-      "date": "Date",
-      "status": "Status",
-      "description": "Description"
-    },
-    "form": {
-      "titleCreate": "Create agreement",
-      "titleEdit": "Edit agreement #{{id}}",
-      "fields": {
-        "shelbyCouncilId": "Shelby Council ID",
-        "authorityDni": "Authority DNI",
-        "agreementDate": "Agreement date",
-        "description": "Description",
-        "status": "Status"
+    "title": "Clandestine Agreements",
+      "list": "Agreements List",
+      "emptyTitle": "No clandestine agreements",
+      "emptyHint": "Create a new agreement to get started",
+      "confirmDelete": "Are you sure you want to delete this clandestine agreement?",
+      
+      "buttons": {
+        "new": "New Agreement",
+        "clear": "Clear Form"
+      },
+      
+      "filters": {
+        "search": "Search",
+        "searchPlaceholder": "Search by ID, description, admin, authority..."
+      },
+      
+      "table": {
+        "shelbyCouncil": "Shelby Council",
+        "admin": "Administrator",
+        "authority": "Authority",
+        "date": "Agreement Date",
+        "status": "Status",
+        "description": "Description"
+      },
+      
+      "form": {
+        "titleCreate": "Create New Clandestine Agreement",
+        "titleEdit": "Edit Agreement #{{id}}",
+        
+        "fields": {
+          "shelbyCouncilId": "Shelby Council ID",
+          "adminDni": "Administrator DNI",
+          "authorityDni": "Authority DNI",
+          "agreementDate": "Agreement Date",
+          "description": "Agreement Description",
+          "status": "Status"
+        },
+        
+        "hints": {
+          "cannotChangeRelations": "Relationships cannot be changed after creating the agreement"
+        }
       }
     },
     "buttons": {
@@ -571,4 +634,3 @@
       "cancel": "Cancel"
     }
   }
-}

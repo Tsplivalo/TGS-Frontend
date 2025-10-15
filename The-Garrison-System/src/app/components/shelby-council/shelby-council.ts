@@ -1,44 +1,14 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ShelbyCouncilService } from '../../services/shelby-council/shelby-council';
+import {
+  ShelbyCouncilDTO,
+  CreateShelbyCouncilDTO,
+  PatchShelbyCouncilDTO
+} from '../../models/shelby-council/shelby-council.model';
 
-/**
- * Datos mínimos de un socio (partner) relacionados a un registro del Consejo.
- */
-type Partner = { dni: string; name?: string | null };
-
-/**
- * Datos mínimos de una decisión (decision) asociada a un registro del Consejo.
- */
-type Decision = { id: number; description?: string | null };
-
-/**
- * DTO principal para filas del Consejo Shelby.
- * Representa lo que mostramos/guardamos desde el formulario y el listado.
- */
-export interface ShelbyCouncilDTO {
-  id: number;
-  partner?: Partner | null;
-  decision?: Decision | null;
-  /**
-   * Fecha en formato ISO (yyyy-MM-dd) apto para <input type="date">
-   */
-  joinDate: string;
-  role: string;
-  notes?: string | null;
-}
-
-/**
- * Componente: Consejo Shelby
- *
- * - Usa **Signals** para estado reactivo (loading, error, filtros, etc.).
- * - Un **formulario reactivo** para crear/editar registros.
- * - Un **listado filtrable** con trackBy para eficiencia.
- * - Un **colapsable** controlado por `isNewOpen` para abrir/cerrar el panel de edición/alta.
- *
- * Nota: Este componente es **standalone** y declara sus propios imports.
- */
 @Component({
   selector: 'app-shelby-council',
   standalone: true,
@@ -46,74 +16,44 @@ export interface ShelbyCouncilDTO {
   templateUrl: './shelby-council.html',
   styleUrls: ['./shelby-council.scss'],
 })
-export class ShelbyCouncilComponent {
-  // Inyección de FormBuilder usando la API de `inject` (Angular v15+)
-  private fb = inject(FormBuilder);
+export class ShelbyCouncilComponent implements OnInit {
+  private fb  = inject(FormBuilder);
+  private srv = inject(ShelbyCouncilService);
+  private tr  = inject(TranslateService);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Estado base (Signals)
-  // ─────────────────────────────────────────────────────────────────────────────
+  // Estado
+  items   = signal<ShelbyCouncilDTO[]>([]);
+  loading = signal(false);
+  error   = signal<string | null>(null);
+  isNewOpen = signal(false);
+  isEdit    = signal(false);
 
-  /** Estado de carga para bloquear acciones y mostrar "Cargando..." */
-  readonly loading = signal(false);
+  // Filtros
+  fText = signal<string>('');
+  fPartnerDni = signal<string>('');
+  fDecisionId = signal<number | null>(null);
 
-  /** Último mensaje de error (o null si no hay error) */
-  readonly error   = signal<string | null>(null);
-
-  /** Controla si el panel de crear/editar está abierto (colapsable) */
-  readonly isNewOpen = signal(false);
-
-  /** ID del registro en edición; si es null, el formulario está en modo "crear" */
-  readonly editId    = signal<number | null>(null);
-
-  /** Texto de filtro libre aplicado al listado */
-  readonly fText = signal<string>('');
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Datos
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Fuente de datos en memoria (ejemplo).
-   * Integrá tu servicio real para persistencia (HTTP) y refrescá este signal.
-   */
-  readonly data = signal<ShelbyCouncilDTO[]>([]);
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Formulario Reactivo
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /**
-   * FormGroup con validaciones mínimas.
-   * - partnerDni/decisionId/role required
-   * - joinDate se setea con `today()` para facilitar el alta.
-   */
-  readonly form = this.fb.group({
-    partnerDni: ['', [Validators.required]],
-    decisionId: [null as number | null, [Validators.required]],
-    joinDate:   [this.today(), [Validators.required]],
-    role:       ['', [Validators.required]],
-    notes:      [''],
+  // Formulario
+  form = this.fb.group({
+    id: this.fb.control<number | null>(null),
+    partnerDni: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
+    decisionId: this.fb.nonNullable.control<number | null>(null, [Validators.required]),
+    joinDate: this.fb.control<string | null>(this.todayISO()),
+    role: this.fb.control<string | null>(null),
+    notes: this.fb.control<string | null>(null),
   });
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Derivados (computed)
-  // ─────────────────────────────────────────────────────────────────────────────
+  ngOnInit(): void {
+    this.load();
+  }
 
-  /** `true` si estamos editando un registro existente (editId !== null). */
-  readonly isEdit = computed(() => this.editId() !== null);
+  // Lista filtrada por texto local
+  filtered = computed(() => {
+    const q = this.fText().toLowerCase().trim();
+    if (!q) return this.items();
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Listado / Filtro
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /** Aplica filtro de texto contra varias columnas combinadas. */
-  filtered(): ShelbyCouncilDTO[] {
-    const q = (this.fText() || '').toLowerCase().trim();
-    if (!q) return this.data();
-
-    return this.data().filter(it => {
-      const txt = [
+    return this.items().filter(it => {
+      const searchText = [
         it.id,
         it.partner?.dni,
         it.partner?.name,
@@ -121,109 +61,155 @@ export class ShelbyCouncilComponent {
         it.decision?.description,
         it.role,
       ].join(' ').toLowerCase();
-      return txt.includes(q);
+      
+      return searchText.includes(q);
     });
-  }
+  });
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  //                              Acciones de UI
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  /** Abre/cierra el panel de alta/edición (resetea al cerrar). */
+  // UI Actions
   toggleNew(): void {
     const open = !this.isNewOpen();
     this.isNewOpen.set(open);
     if (!open) this.new();
   }
 
-  /** Limpia el formulario y vuelve a modo "crear". */
   new(): void {
-    this.editId.set(null);
+    this.isEdit.set(false);
     this.form.reset({
+      id: null,
       partnerDni: '',
       decisionId: null,
-      joinDate: this.today(),
-      role: '',
-      notes: '',
+      joinDate: this.todayISO(),
+      role: null,
+      notes: null,
     });
   }
 
-  /** Carga un registro en el formulario y abre el panel en modo edición. */
   edit(it: ShelbyCouncilDTO): void {
-    this.editId.set(it.id);
-
+    this.isEdit.set(true);
+    
+    // Convertir ISO datetime a date para el input
+    const joinDate = it.joinDate ? it.joinDate.substring(0, 10) : this.todayISO().substring(0, 10);
+    
     this.form.patchValue({
-      partnerDni: it.partner?.dni ?? '',
-      decisionId: it.decision?.id ?? null,
-      joinDate: it.joinDate ?? this.today(),
-      role: it.role ?? '',
-      notes: it.notes ?? '',
+      id: it.id,
+      partnerDni: (it.partner?.dni ?? ''),
+      decisionId: (it.decision?.id ?? null),
+      joinDate: joinDate,
+      role: (it.role ?? null),
+      notes: (it.notes ?? null),
     });
-
     this.isNewOpen.set(true);
   }
 
-  /**
-   * Guarda el formulario (in-memory en este ejemplo).
-   * En backend real: llamar servicio, manejar errores y loading.
-   */
-  async save(): Promise<void> {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+  save(): void {
+    if (this.form.invalid) { 
+      this.form.markAllAsTouched(); 
+      return; 
+    }
 
     this.loading.set(true);
     this.error.set(null);
 
-    try {
-      const v = this.form.getRawValue();
+    const { id, ...rest } = this.form.getRawValue();
 
-      const payload: ShelbyCouncilDTO = {
-        id: this.editId() ?? this.nextId(),
-        partner:  { dni: v.partnerDni!, name: null },
-        decision: { id: Number(v.decisionId), description: null },
-        joinDate: v.joinDate!,
-        role:     v.role!,
-        notes:    v.notes || null,
+    if (!this.isEdit()) {
+      // CREAR - convertir date a ISO datetime
+      const payload: CreateShelbyCouncilDTO = {
+        partnerDni: rest.partnerDni,
+        decisionId: rest.decisionId!,
+        joinDate: rest.joinDate ? this.toISODateTime(rest.joinDate) : undefined,
+        role: rest.role ?? undefined,
+        notes: rest.notes ?? undefined,
       };
 
-      if (this.editId() === null) {
-        this.data.set([payload, ...this.data()]);
-      } else {
-        this.data.set(this.data().map(x => (x.id === payload.id ? payload : x)));
-      }
+      this.srv.create(payload).subscribe({
+        next: () => {
+          this.new();
+          this.isNewOpen.set(false);
+          this.load();
+        },
+        error: (e) => {
+          const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorCreate')) || 'Error al crear';
+          this.error.set(errorMsg);
+          this.loading.set(false);
+        }
+      });
+    } else {
+      // ACTUALIZAR
+      const payload: PatchShelbyCouncilDTO = {
+        joinDate: rest.joinDate ? this.toISODateTime(rest.joinDate) : undefined,
+        role: rest.role ?? undefined,
+        notes: rest.notes ?? undefined,
+      };
 
-      this.isNewOpen.set(false);
-      this.new();
-
-    } catch (e: any) {
-      this.error.set(e?.message ?? 'No se pudo guardar');
-    } finally {
-      this.loading.set(false);
+      this.srv.update(id!, payload).subscribe({
+        next: () => {
+          this.new();
+          this.isNewOpen.set(false);
+          this.load();
+        },
+        error: (e) => {
+          const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorSave')) || 'Error al guardar';
+          this.error.set(errorMsg);
+          this.loading.set(false);
+        }
+      });
     }
   }
 
-  /** Elimina el registro (in-memory). */
   delete(it: ShelbyCouncilDTO): void {
-    this.data.set(this.data().filter(x => x.id !== it.id));
+    const msg = this.tr.instant('shelbyCouncil.confirmDelete') || '¿Eliminar registro?';
+    if (!confirm(msg)) return;
+
+    this.loading.set(true);
+    this.srv.delete(it.id).subscribe({
+      next: () => { 
+        this.load(); 
+      },
+      error: (e) => {
+        const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorDelete')) || 'No se pudo eliminar.';
+        this.error.set(errorMsg);
+        this.loading.set(false);
+      }
+    });
   }
 
-  /** trackBy para *ngFor por ID. */
   trackById = (_: number, it: ShelbyCouncilDTO) => it.id;
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Helpers internos
-  // ─────────────────────────────────────────────────────────────────────────────
+  // Carga de datos - usa el endpoint correcto con paginación
+  private load(): void {
+    this.loading.set(true);
+    this.error.set(null);
 
-  /** Hoy en formato yyyy-MM-dd. */
-  private today(): string {
+    // Usamos limit alto para traer todos los registros (o implementar paginación real)
+    this.srv.list({ limit: 1000 }).subscribe({
+      next: (res) => { 
+        this.items.set(res.data ?? []); 
+        this.loading.set(false); 
+      },
+      error: (e) => {
+        const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorLoad')) || 'Error al cargar';
+        this.error.set(errorMsg);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  // Helper: fecha ISO actual (YYYY-MM-DD)
+  private todayISO(): string {
     const d = new Date();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     return `${d.getFullYear()}-${mm}-${dd}`;
   }
 
-  /** Próximo ID incremental (sólo para modo in-memory). */
-  private nextId(): number {
-    const max = this.data().reduce((m, it) => Math.max(m, it.id), 0);
-    return max + 1;
+  // Helper: convertir fecha YYYY-MM-DD a ISO datetime
+  private toISODateTime(dateStr: string): string {
+    // Si ya es ISO completo, retornar
+    if (dateStr.includes('T')) return dateStr;
+    
+    // Agregar hora por defecto (10:00:00)
+    return `${dateStr}T10:00:00Z`;
   }
 }

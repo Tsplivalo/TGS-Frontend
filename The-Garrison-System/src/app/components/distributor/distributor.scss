@@ -141,6 +141,12 @@
   border-radius: 10px;
 }
 
+.hint {
+  font-size: 12px;
+  color: #ff6b6b;
+  margin-top: 4px;
+}
+
 /* ===========================================
    Filtros
 =========================================== */
@@ -156,7 +162,6 @@
   gap: 4px;
 }
 
-/* menos gap */
 .label-text {
   font-size: 13px;
   color: var(--muted);
@@ -180,18 +185,6 @@
 .textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(195, 164, 98, .12);
-}
-
-.input[multiple],
-.select[multiple] {
-  padding-block: 8px;
-  background-clip: padding-box;
-}
-
-.input option,
-.select option {
-  background: transparent;
-  color: var(--text);
 }
 
 /* ===========================================
@@ -267,40 +260,6 @@
   text-align: right;
 }
 
-.truncate {
-  display: inline-block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ===========================================
-   Badges
-=========================================== */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-}
-
-.badge-warn {
-  background: rgba(195, 164, 98, .15);
-  border-color: rgba(195, 164, 98, .5);
-}
-
-.badge-danger {
-  background: rgba(139, 46, 46, .15);
-  border-color: rgba(139, 46, 46, .5);
-}
-
-.badge-ok {
-  background: rgba(63, 125, 99, .15);
-  border-color: rgba(63, 125, 99, .5);
-}
-
 /* ===========================================
    Empty state
 =========================================== */
@@ -326,11 +285,9 @@
 =========================================== */
 .form-grid {
   display: grid;
-  /* 4 cols en desktop, compactas */
   grid-template-columns: repeat(4, minmax(220px, 1fr));
   column-gap: 20px;
   row-gap: 14px;
-  /* ← antes era var(--sp-5) */
 }
 
 @media (max-width: 1200px) {
@@ -362,22 +319,71 @@
   }
 }
 
-.form-grid .hint {
-  font-size: 12px;
-  color: var(--danger);
-}
-
-.switch {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .form-actions {
   grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
   gap: var(--sp-3);
+}
+
+/* ===========================================
+   Grid de productos con checkboxes
+=========================================== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.checkbox-label:hover {
+  background: rgba(195, 164, 98, 0.1);
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.checkbox-label span {
+  font-size: 14px;
+  user-select: none;
+}
+
+/* Scroll personalizado para el grid de productos */
+.products-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.products-grid::-webkit-scrollbar-track {
+  background: var(--bg-elev);
+  border-radius: 4px;
+}
+
+.products-grid::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.products-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
 /* ===========================================
@@ -433,78 +439,15 @@
   color: #fff;
 }
 
-/* =========================================================
-   Campos específicos (Dirección, Zona, Productos)
-   - Altura: Dirección/Zona = como DNI (~42px)
-   - Productos: altura cómoda + contenedor redimensionable
-========================================================= */
-
-/* Igualar ancho al base */
-.input[formcontrolname="address"],
-.input[formcontrolname="zoneId"],
-select.input[formcontrolname="zoneId"],
-.input[formcontrolname="productsIds"],
-select.input[formcontrolname="productsIds"] {
-  min-width: 220px;
-  max-width: none;
-  width: 100%;
-}
-
-/* Altura consistente (como DNI) */
-.input[formcontrolname="address"] {
-  height: 42px;
-  min-height: 0 !important;
-  padding-block: 10px;
-}
-
-/* Select de Zona: misma altura que DNI */
-select.input[formcontrolname="zoneId"] {
-  height: 42px;
-  min-height: 0 !important;
-  padding-block: 8px;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image:
-    linear-gradient(45deg, currentColor 70%, transparent 71%),
-    linear-gradient(315deg, currentColor 70%, transparent 71%);
-  background-size: 6px 6px, 6px 6px;
-  background-position: right 14px center, right 8px center;
-  background-repeat: no-repeat;
-  padding-right: 28px;
-}
-
-/* Contenedor redimensionable para Productos */
-.multi-resize {
-  resize: vertical;
-  /* podés arrastrar la esquina */
-  overflow: auto;
-  min-height: 140px;
-  /* cómodo pero más chico que antes */
-  max-height: 360px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-panel);
-}
-
-/* El select ocupa el alto del contenedor y no dibuja bordes dobles */
-.multi-resize>select.input {
-  height: 100% !important;
-  min-height: 100% !important;
-  border: 0 !important;
-  background: transparent;
-  padding: 8px 10px;
-}
-
-/* Que Productos ocupe 2 columnas en desktop para equilibrar */
-label[for="productsIds"],
-label:has(select[formcontrolname="productsIds"]) {
-  grid-column: span 2;
-}
-
-@media (max-width: 900px) {
-
-  label[for="productsIds"],
-  label:has(select[formcontrolname="productsIds"]) {
-    grid-column: span 1;
-  }
+/* Ocultar texto accesible visualmente */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

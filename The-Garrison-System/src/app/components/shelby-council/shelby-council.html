@@ -54,8 +54,8 @@
           <tbody>
             <tr *ngFor="let it of filtered(); trackBy: trackById">
               <td>#{{ it.id }}</td>
-              <td>{{ it.partner?.dni }} — {{ it.partner?.name || '—' }}</td>
-              <td>{{ it.decision?.id }} — {{ it.decision?.description || '—' }}</td>
+              <td>{{ it.partner?.dni }} – {{ it.partner?.name || '—' }}</td>
+              <td>{{ it.decision?.id }} – {{ it.decision?.description || '—' }}</td>
               <td>{{ it.joinDate | date:'yyyy-MM-dd' }}</td>
               <td>{{ it.role }}</td>
               <td class="right">
@@ -94,7 +94,7 @@
         <h2 class="title">
           {{
           isEdit()
-          ? ('shelbyCouncil.form.titleEdit' | translate : { id: editId() } : ('Editar #'+editId()))
+          ? ('shelbyCouncil.form.titleEdit' | translate : { id: form.value.id } : ('Editar #'+form.value.id))
           : ('shelbyCouncil.form.titleCreate' | translate : {} : 'Crear registro')
           }}
         </h2>

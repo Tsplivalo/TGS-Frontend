@@ -1,0 +1,89 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RoleRequestService } from '../../services/role-request';
+import { RoleRequest, RequestStatus } from '../../models/role-request.model';
+import { Role } from '../../../../models/user/user.model';
+import { RoleRequestCardComponent } from './role-request-card';
+import { RoleRequestReviewModalComponent } from './role-request-review-modal';
+
+@Component({
+  selector: 'app-admin-role-requests-inbox',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RoleRequestCardComponent, RoleRequestReviewModalComponent],
+  templateUrl: './admin-role-requests-inbox.html',
+  styleUrls: ['./role-requests.scss']
+})
+export class AdminRoleRequestsInboxComponent implements OnInit {
+  requests: RoleRequest[] = [];
+  filteredRequests: RoleRequest[] = [];
+  loading: boolean = true;
+  error: string | null = null;
+
+  statusFilter: RequestStatus | 'ALL' = RequestStatus.PENDING;
+  roleFilter: Role | 'ALL' = 'ALL';
+  reviewingRequest: RoleRequest | null = null;
+
+  RequestStatus = RequestStatus;
+  Role = Role;
+
+  constructor(private roleRequestService: RoleRequestService) {}
+
+  ngOnInit(): void {
+    this.loadRequests();
+  }
+
+  async loadRequests(): Promise<void> {
+    try {
+      this.loading = true;
+      this.error = null;
+
+      const response = await this.roleRequestService.searchRequests({
+        page: 1,
+        limit: 100,
+      });
+
+      this.requests = response.data;
+      this.applyFilters();
+    } catch (err: any) {
+      this.error = err.error?.message || 'Error al cargar las solicitudes';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  applyFilters(): void {
+    let filtered = [...this.requests];
+
+    if (this.statusFilter !== 'ALL') {
+      filtered = filtered.filter((req) => req.status === this.statusFilter);
+    }
+
+    if (this.roleFilter !== 'ALL') {
+      filtered = filtered.filter((req) => req.requestedRole === this.roleFilter);
+    }
+
+    this.filteredRequests = filtered;
+  }
+
+  onFilterChange(): void {
+    this.applyFilters();
+  }
+
+  openReviewModal(request: RoleRequest): void {
+    this.reviewingRequest = request;
+  }
+
+  closeReviewModal(): void {
+    this.reviewingRequest = null;
+  }
+
+  async handleReviewComplete(): Promise<void> {
+    this.closeReviewModal();
+    await this.loadRequests();
+  }
+
+  get pendingCount(): number {
+    return this.requests.filter((r) => r.status === RequestStatus.PENDING).length;
+  }
+}

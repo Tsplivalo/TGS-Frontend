@@ -1,0 +1,64 @@
+<div class="admin-role-requests-inbox">
+  <div class="inbox-header">
+    <div>
+      <h2>Solicitudes de Rol</h2>
+      <p class="subtitle">Revisa y gestiona las solicitudes de roles especiales</p>
+    </div>
+
+    <div *ngIf="pendingCount > 0" class="pending-badge">
+      <span class="count">{{ pendingCount }}</span>
+      <span class="label">Pendientes</span>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">Cargando solicitudes...</div>
+
+  <div *ngIf="error && !loading" class="error-message">
+    <span class="icon">❌</span>
+    {{ error }}
+    <button class="btn-link" (click)="loadRequests()">Reintentar</button>
+  </div>
+
+  <div *ngIf="!loading" class="filters-bar">
+    <div class="filter-group">
+      <label for="statusFilter">Estado:</label>
+      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+        <option value="ALL">Todos</option>
+        <option [value]="RequestStatus.PENDING">Pendientes</option>
+        <option [value]="RequestStatus.APPROVED">Aprobadas</option>
+        <option [value]="RequestStatus.REJECTED">Rechazadas</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="roleFilter">Rol:</label>
+      <select id="roleFilter" [(ngModel)]="roleFilter" (change)="onFilterChange()" class="filter-select">
+        <option value="ALL">Todos</option>
+        <option [value]="Role.PARTNER">Socio</option>
+        <option [value]="Role.DISTRIBUTOR">Distribuidor</option>
+        <option [value]="Role.AUTHORITY">Autoridad</option>
+      </select>
+    </div>
+
+    <button class="btn btn-secondary btn-sm" (click)="loadRequests()">
+      <span class="icon">🔄</span>
+      Actualizar
+    </button>
+  </div>
+
+  <div *ngIf="!loading && !error && filteredRequests.length === 0" class="empty-state">
+    <div class="empty-icon">📭</div>
+    <h3>No hay solicitudes</h3>
+    <p>No se encontraron solicitudes con los filtros seleccionados</p>
+  </div>
+
+  <div *ngIf="!loading && !error && filteredRequests.length > 0" class="requests-list">
+    <app-role-request-card *ngFor="let request of filteredRequests" [request]="request" [isAdmin]="true"
+      (review)="openReviewModal(request)">
+    </app-role-request-card>
+  </div>
+
+  <app-role-request-review-modal *ngIf="reviewingRequest" [request]="reviewingRequest" (close)="closeReviewModal()"
+    (reviewComplete)="handleReviewComplete()">
+  </app-role-request-review-modal>
+</div>

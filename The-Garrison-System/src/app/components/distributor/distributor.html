@@ -48,8 +48,8 @@
               <td>{{ d.zone?.name || ('#' + (d.zone?.id ?? d.zoneId ?? '')) }}</td>
               <td class="right">{{ d.products?.length || 0 }}</td>
               <td class="right">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(d)" [attr.aria-label]="'common.edit' | translate"
-                  [attr.title]="'common.edit' | translate">
+                <button class="btn ghost btn--icon" type="button" (click)="edit(d)"
+                  [attr.aria-label]="'common.edit' | translate" [attr.title]="'common.edit' | translate">
                   ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
                 </button>
 
@@ -58,7 +58,6 @@
                   🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
                 </button>
               </td>
-
             </tr>
           </tbody>
         </table>
@@ -87,62 +86,84 @@
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid form-grid--compact">
         <div class="error" *ngIf="error()">{{ error() }}</div>
 
+        <!-- DNI -->
         <label class="label">
-          <span>{{ 'distributors.form.dni' | translate }}</span>
-          <input class="input" formControlName="dni" [readonly]="isEdit()"
+          <span>{{ 'distributors.form.dni' | translate }} *</span>
+          <input class="input" formControlName="dni" [attr.readonly]="isEdit() ? true : null"
             [placeholder]="'distributors.form.dniPh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.dni.invalid">{{ 'distributors.form.err.dni' |
-            translate }}</small>
+          <small class="hint" *ngIf="submitted() && form.controls.dni.invalid">
+            {{ 'distributors.form.err.dni' | translate }}
+          </small>
         </label>
 
+        <!-- Nombre -->
         <label class="label">
-          <span>{{ 'distributors.form.name' | translate }}</span>
+          <span>{{ 'distributors.form.name' | translate }} *</span>
           <input class="input" formControlName="name" [placeholder]="'distributors.form.namePh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.name.invalid">{{ 'distributors.form.err.name' |
-            translate }}</small>
+          <small class="hint" *ngIf="submitted() && form.controls.name.invalid">
+            {{ 'distributors.form.err.name' | translate }}
+          </small>
         </label>
 
+        <!-- Teléfono -->
         <label class="label">
-          <span>{{ 'distributors.form.phone' | translate }}</span>
+          <span>{{ 'distributors.form.phone' | translate }} *</span>
           <input class="input" formControlName="phone" [placeholder]="'distributors.form.phonePh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.phone.invalid">{{ 'distributors.form.err.phone' |
-            translate }}</small>
+          <small class="hint" *ngIf="submitted() && form.controls.phone.invalid">
+            {{ 'distributors.form.err.phone' | translate }}
+          </small>
         </label>
 
+        <!-- Email -->
         <label class="label">
-          <span>{{ 'distributors.form.email' | translate }}</span>
+          <span>{{ 'distributors.form.email' | translate }} *</span>
           <input class="input" type="email" formControlName="email"
             [placeholder]="'distributors.form.emailPh' | translate" />
-          <small class="hint" *ngIf="submitted() && form.controls.email.invalid">{{ 'distributors.form.err.email' |
-            translate }}</small>
+          <small class="hint" *ngIf="submitted() && form.controls.email.invalid">
+            {{ 'distributors.form.err.email' | translate }}
+          </small>
         </label>
 
+        <!-- Dirección -->
         <label class="label">
-          <span>{{ 'distributors.form.address' | translate }}</span>
+          <span>{{ 'distributors.form.address' | translate }} *</span>
           <input class="input" formControlName="address" [placeholder]="'distributors.form.addressPh' | translate" />
+          <small class="hint" *ngIf="submitted() && form.controls.address.invalid">
+            {{ 'distributors.form.err.address' | translate }}
+          </small>
         </label>
 
+        <!-- Zona -->
         <label class="label">
-          <span>{{ 'distributors.form.zone' | translate }}</span>
+          <span>{{ 'distributors.form.zone' | translate }} *</span>
           <select class="input" formControlName="zoneId">
             <option [ngValue]="null">{{ 'distributors.form.chooseZone' | translate }}</option>
             <option *ngFor="let z of zones()" [ngValue]="z.id">{{ z.name }}</option>
           </select>
-          <small class="hint" *ngIf="submitted() && form.controls.zoneId.invalid">{{ 'distributors.form.err.zone' |
-            translate }}</small>
+          <small class="hint" *ngIf="submitted() && form.controls.zoneId.invalid">
+            {{ 'distributors.form.err.zone' | translate }}
+          </small>
         </label>
 
-        <label class="label col-2">
+        <!-- Productos (Checkboxes en lugar de select múltiple) -->
+        <div class="label col-2">
           <span>{{ 'distributors.form.products' | translate }}</span>
-          <div class="multi-resize">
-            <select class="input" formControlName="productsIds" multiple>
-              <option *ngFor="let p of products()" [ngValue]="p.id">
-                #{{ p.id }} — {{ p.description }}
-              </option>
-            </select>
+          <div class="products-grid">
+            @for (p of products(); track p.id) {
+            <label class="checkbox-label">
+              <input type="checkbox" [value]="p.id" [checked]="isProductSelected(p.id)"
+                (change)="toggleProduct(p.id, $event)" />
+              <span>#{{ p.id }} — {{ p.description }}</span>
+            </label>
+            }
+            @if (products().length === 0) {
+            <span class="muted">{{ 'distributors.form.noProducts' | translate }}</span>
+            }
           </div>
-          <small class="hint">{{ 'distributors.form.multiHint' | translate }}</small>
-        </label>
+          <small class="muted">
+            {{ 'distributors.form.multiHint' | translate }}
+          </small>
+        </div>
 
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">

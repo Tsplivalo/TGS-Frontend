@@ -1,32 +1,48 @@
-// src/app/models/distributor/distributor.model.ts
-export type ApiResponse<T = any> = { message?: string; success?: boolean; data?: T } | T;
+// ============================================
+// MODELOS DE DISTRIBUIDOR - VERIFICADOS
+// Sincronizado con backend
+// ============================================
 
-export type DistributorDTO = {
+export type ApiResponse<T = any> = { 
+  message?: string; 
+  success?: boolean; 
+  data?: T 
+} | T;
+
+export interface DistributorDTO {
   dni: string;
   name: string;
   phone: string;
   email: string;
   address?: string;
   zoneId?: number | null;
-  zone?: { id: number; name: string } | null;
-  products?: Array<{ id: number; description: string }>;
-};
+  zone?: { 
+    id: number; 
+    name: string;
+    isHeadquarters?: boolean;
+  } | null;
+  products?: Array<{ 
+    id: number; 
+    description: string;
+  }>;
+  sales?: any[]; // Opcional, solo viene en detailed
+}
 
-export type CreateDistributorDTO = {
+export interface CreateDistributorDTO {
   dni: string;
   name: string;
   phone: string;
   email: string;
   address?: string;
-  zoneId: number;                
-  productsIds?: number[];        
-};
+  zoneId: number; // ← Backend lo transforma de string a number
+  productsIds?: number[];
+}
 
-export type PatchDistributorDTO = Partial<{
-  name: string;
-  phone: string;
-  email: string;
-  address: string;
-  zoneId: number;
-  productsIds: number[];
-}>;
+export interface PatchDistributorDTO {
+  name?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  zoneId?: number; // ← Backend lo transforma de string a number
+  productsIds?: number[];
+}
