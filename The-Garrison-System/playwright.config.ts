@@ -4,6 +4,7 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
   retries: 1,
+  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }], ['junit', { outputFile: 'playwright-report/results.xml' }]],
   expect: { timeout: 5_000 },
   use: {
     baseURL: 'http://localhost:4200',
@@ -16,4 +17,5 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
+  workers: 2,
 });

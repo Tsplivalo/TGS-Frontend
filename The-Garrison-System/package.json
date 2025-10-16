@@ -15,8 +15,10 @@
     "build:serve": "pnpm build && pnpm serve:dist",
     "lint:security": "eslint --ext .ts src --max-warnings=0",
     "e2e": "playwright test",
+    "e2e:ci": "playwright test --reporter=list,junit",
     "e2e:headed": "playwright test --headed",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "lhci:ci": "lhci autorun --config=./lighthouserc.json"
   },
   "prettier": {
     "overrides": [

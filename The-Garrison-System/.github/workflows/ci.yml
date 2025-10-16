@@ -1,0 +1,220 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, final-testing ]
+  pull_request:
+    branches: [ main, develop, final-testing ]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      node-cache: ${{ steps.cache-npm.outputs.cache-hit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+        working-directory: The-Garrison-System
+
+  unit:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+        working-directory: The-Garrison-System
+      - name: Run unit tests with coverage
+        run: npm run test:ci
+        working-directory: The-Garrison-System
+      - name: Upload coverage summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: The-Garrison-System/coverage
+      - name: Generate coverage summary
+        if: always()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: The-Garrison-System/coverage/lcov.info
+          badge: true
+          format: markdown
+          output: both
+      - name: Add coverage summary to PR
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coverage-report
+          path: code-coverage-results.md
+
+  e2e:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+        working-directory: The-Garrison-System
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        working-directory: The-Garrison-System
+      - name: Build and test e2e
+        working-directory: The-Garrison-System
+        run: |
+          npm run build
+          npx start-server-and-test 'npm run serve:dist' http://localhost:4200 'npm run e2e'
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: The-Garrison-System/playwright-report
+      - name: Publish JUnit test report
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: The-Garrison-System/playwright-report/results.xml
+
+  a11y:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+        working-directory: The-Garrison-System
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        working-directory: The-Garrison-System
+      - name: Build and run a11y tests
+        working-directory: The-Garrison-System
+        run: |
+          npm run build
+          npx start-server-and-test 'npm run serve:dist' http://localhost:4200 "npx playwright test e2e/a11y.login.spec.ts"
+      - name: Upload a11y report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-report
+          path: The-Garrison-System/playwright-report
+
+  performance:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+        working-directory: The-Garrison-System
+      - name: Build and run Lighthouse CI
+        working-directory: The-Garrison-System
+        run: |
+          npm run build
+          npx start-server-and-test 'npm run serve:dist' http://localhost:4200 'npm run lhci:ci'
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lhci-report
+          path: The-Garrison-System/.lighthouseci
+
+  load:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+        working-directory: The-Garrison-System
+      - name: Build and serve
+        working-directory: The-Garrison-System
+        run: |
+          npm run build
+          nohup npx http-server ./dist -p 4200 -c-1 > /dev/null 2>&1 &
+          npx wait-on http://localhost:4200
+      - name: Run k6 smoke test
+        run: |
+          docker run --rm --network host -v ${{ github.workspace }}/The-Garrison-System/perf:/scripts grafana/k6 run /scripts/k6-smoke.js
+      - name: Upload k6 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results
+          path: The-Garrison-System/perf/results/*
+
+  security:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+        working-directory: The-Garrison-System
+      - name: Static analysis (eslint security)
+        working-directory: The-Garrison-System
+        run: npm run lint:security
+
+  dast:
+    needs: [setup]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+        working-directory: The-Garrison-System
+      - name: Build and serve
+        working-directory: The-Garrison-System
+        run: |
+          npm run build
+          nohup npx http-server ./dist -p 4200 -c-1 > /dev/null 2>&1 &
+          npx wait-on http://localhost:4200
+      - name: Run OWASP ZAP Baseline Scan
+        run: docker run --rm --network host -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://localhost:4200 -r zap_report.html -m 1
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap_report.html
+
+  notify:
+    needs: [unit, e2e, a11y, performance, load, security, dast]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Slack notification on failure
+        if: env.SLACK_WEBHOOK != ''
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\": \"CI failed for ${{ github.repository }} on ${GITHUB_REF_NAME}. Details: ${GITHUB_RUN_URL}\"}" ${SLACK_WEBHOOK}
+
+

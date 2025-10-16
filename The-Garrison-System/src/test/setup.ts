@@ -9,3 +9,5 @@ beforeEach(async () => {
     imports: [HttpClientTestingModule, RouterTestingModule],
   }).compileComponents();
 });
+// a11y matchers for unit/integration tests
+import 'jasmine-axe';
