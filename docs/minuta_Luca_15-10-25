@@ -1,0 +1,87 @@
+📝 Minuta de Trabajo — The Garrison System (Frontend)
+
+Fecha: 15/10/2025
+Responsable: Luca Delprato
+Módulo: The-Garrison-System (Frontend)
+Duración de jornada: jornada completa
+
+1️⃣ Objetivo del día
+
+Completar la configuración integral del entorno de testing en el frontend de The Garrison System, garantizando cobertura funcional, compatibilidad con CI y cumplimiento de las normas de accesibilidad básicas (a11y).
+Se decidió pausar la sección E2E (Playwright) para priorizar la estabilización del entorno unit/integration.
+
+2️⃣ Actividades realizadas
+🧩 Testing unitario e integración
+
+Se configuró Karma + Jasmine con thresholds de cobertura obligatorios.
+
+Se corrigieron los paths y errores en las specs principales:
+
+auth.service.spec.ts
+
+product.spec.ts
+
+product-list.integration.spec.ts
+
+sale.spec.ts
+
+authority.spec.ts
+
+Todos los tests unitarios e integrados se ejecutan correctamente (20/20 en verde).
+
+Se validó el correcto funcionamiento de pnpm test, pnpm test:watch y pnpm test:ci.
+
+⚙️ Configuraciones técnicas
+
+Se reescribió karma.conf.js optimizado para ChromeHeadless con reporter coverage + lcov.
+
+Se ajustaron scripts en package.json:
+
+test, test:watch, test:ci, coverage:open.
+
+Se añadió soporte estable para @angular-devkit/build-angular y plugins de cobertura.
+
+🔐 Refactor AuthService
+
+Se reimplementó AuthService completo con mejoras:
+
+Enum Role real (ADMIN, CLIENT, PARTNER, DISTRIBUTOR, AUTHORITY).
+
+Métodos adicionales: hasAnyRole, isAuthenticated, completeProfile, initialize.
+
+Manejo robusto de logout (observable + router.navigate).
+
+Señales (signal) para estado reactivo de sesión.
+
+Compatibilidad con guards y componentes que usan roles o estados de usuario.
+
+🧠 Accesibilidad (a11y)
+
+Se corrigieron warnings de aria-role y roles no permitidos en el menú principal.
+
+Se validó que no existan violaciones críticas o serias en /login (E2E paused, pero test validado manualmente).
+
+🧱 Infraestructura CI/CD
+
+Se verificó compatibilidad con el workflow de GitHub Actions (FE CI) existente.
+
+Las tareas unit_integration y perf_security pueden ejecutarse sin dependencias E2E.
+
+3️⃣ Resultados finales
+
+✅ Tests unitarios e integrados: 100% funcionales
+✅ Cobertura: ~42% líneas / >70% módulos clave
+✅ AuthService: refactor completo, estable
+✅ Karma + Jasmine: configurados correctamente
+✅ Accesibilidad base (login): validada
+⏸ E2E (Playwright): pausado para siguiente iteración
+
+4️⃣ Próximos pasos
+
+Backend Testing: implementar Vitest + Supertest para validar controladores y servicios.
+
+Reanudar E2E: una vez disponibles endpoints reales del backend.
+
+Subir cobertura mínima a ≥80%.
+
+Integrar reportes de cobertura en CI (artifacts GitHub).
