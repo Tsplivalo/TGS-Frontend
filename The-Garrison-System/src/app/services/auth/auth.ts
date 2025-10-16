@@ -26,10 +26,10 @@ const API_URL = '';
 export interface AuthResponse {
   success: boolean;        // Indica si la operación fue exitosa
   message: string;         // Mensaje descriptivo de la respuesta
-  data: User;             // Datos del usuario autenticado
-  meta: {                 // Metadatos de la respuesta
-    timestamp: string;    // Timestamp de la respuesta
-    statusCode: number;   // Código de estado HTTP
+  data: User;              // Datos del usuario autenticado
+  meta: {                  // Metadatos de la respuesta
+    timestamp: string;     // Timestamp de la respuesta
+    statusCode: number;    // Código de estado HTTP
   };
 }
 
@@ -71,7 +71,7 @@ export class AuthService {
   private readonly userSignal = signal<User | null>(null);
 
   // Señales computadas derivadas del estado del usuario
-  readonly user = this.userSignal.asReadonly();                    // Usuario actual (solo lectura)
+  readonly user = this.userSignal.asReadonly();                         // Usuario actual (solo lectura)
   readonly isAuthenticated = computed(() => this.userSignal() !== null); // Estado de autenticación
   readonly currentRoles = computed(() => this.userSignal()?.roles ?? []); // Roles del usuario actual
 
@@ -99,33 +99,32 @@ export class AuthService {
     if (user.emailVerified) completedFields++;
 
     // 4. Información personal completa (DNI, nombre, teléfono, dirección)
-    if (user.hasPersonalInfo) completedFields++;
+    if ((user as any).hasPersonalInfo) completedFields++;
 
     // 5. Verificación de cuenta por admin
     // ✅ Los admins se consideran auto-verificados
-    if (user.isVerified || user.roles.includes(Role.ADMIN)) {
+    if ((user as any).isVerified || (user.roles ?? []).includes(Role.ADMIN)) {
       completedFields++;
     }
 
     // 6. Cuenta activa
-    if (user.isActive) completedFields++;
+    if ((user as any).isActive) completedFields++;
 
     return Math.round((completedFields / totalFields) * 100);
   });
 
   // Señales computadas para estado específico del perfil
-  readonly hasPersonalInfo = computed(() => this.userSignal()?.hasPersonalInfo ?? false);
-  readonly emailVerified = computed(() => this.userSignal()?.emailVerified ?? false);
-  readonly isVerified = computed(() => this.userSignal()?.isVerified ?? false);
+  readonly hasPersonalInfo = computed(() => (this.userSignal() as any)?.hasPersonalInfo ?? false);
+  readonly emailVerified   = computed(() => this.userSignal()?.emailVerified ?? false);
+  readonly isVerified      = computed(() => (this.userSignal() as any)?.isVerified ?? false);
 
   // BehaviorSubject para compatibilidad con código que usa observables
   private userSubject = new BehaviorSubject<User | null>(null);
-  public user$ = this.userSubject.asObservable();
+  public  user$       = this.userSubject.asObservable();
 
   constructor() {
     console.log('[AuthService] Initialized with API:', API_URL);
   }
-
 
   /**
    * Inicializa el estado de autenticación verificando si hay una sesión activa
@@ -140,11 +139,10 @@ export class AuthService {
         console.log('[AuthService] Session restored:', user);
       },
       error: (err) => {
-        console.log('[AuthService] No active session:', err.message);
+        console.log('[AuthService] No active session:', err?.message || err);
       }
     });
   }
-
 
   /**
    * Autentica un usuario con email y contraseña
@@ -168,6 +166,7 @@ export class AuthService {
         console.log('[AuthService] Login successful, user:', user);
         this.setUser(user);
       }),
+      // ⬇️ Importante: no “tragamos” el 403 ni otros; subimos status+code+message
       catchError(this.handleError.bind(this))
     );
   }
@@ -203,7 +202,7 @@ export class AuthService {
       catchError(err => {
         this.clearUser();
         this.router.navigate(['/login']);
-        return of(undefined);
+        return of(undefined as any);
       })
     );
   }
@@ -228,7 +227,6 @@ export class AuthService {
       })
     );
   }
-
 
   me(): Observable<User> {
     console.log('[AuthService] Fetching current user');
@@ -271,7 +269,6 @@ export class AuthService {
     );
   }
 
-
   private setUser(user: User | null): void {
     console.log('[AuthService] Setting user:', user);
     this.userSignal.set(user);
@@ -282,7 +279,6 @@ export class AuthService {
     console.log('[AuthService] Clearing user');
     this.setUser(null);
   }
-
 
   hasRole(role: Role): boolean {
     return this.currentRoles().includes(role);
@@ -302,65 +298,83 @@ export class AuthService {
     return this.hasRole(Role.ADMIN);
   }
 
-  canPurchase(): boolean {
-    const user = this.userSignal();
-    if (!user) return false;
+canPurchase(): boolean {
+  const user = this.userSignal();
+  if (!user) return false;
 
-    // Verificar que el email esté verificado Y que tenga información personal
-    // Los admins se consideran auto-verificados
-    const isVerifiedUser = user.isVerified || user.roles.includes(Role.ADMIN);
-    return user.emailVerified && user.hasPersonalInfo && isVerifiedUser;
+  // ✅ Los admins pueden comprar sin restricciones
+  if ((user.roles ?? []).includes(Role.ADMIN)) {
+    return true;
   }
 
-  getProfileSuggestions(): string[] {
-    const user = this.userSignal();
-    const suggestions: string[] = [];
+  // ✅ CORRECCIÓN: Solo verificar emailVerified (no isVerified)
+  // isVerified es verificación manual del admin, que es opcional
+  const hasVerifiedEmail = !!user.emailVerified;
+  const hasPersonalInfo = !!(user as any).hasPersonalInfo;
 
-    if (!user) return suggestions;
+  console.log('[AuthService] canPurchase check:', {
+    hasVerifiedEmail,
+    hasPersonalInfo,
+    result: hasVerifiedEmail && hasPersonalInfo
+  });
 
-    if (!user.emailVerified) {
-      suggestions.push('✉️ Verifica tu email haciendo clic en el enlace que te enviamos');
-    }
+  return hasVerifiedEmail && hasPersonalInfo;
+}
 
-    if (!user.hasPersonalInfo) {
-      suggestions.push('📝 Completa tu información personal (DNI, nombre, teléfono, dirección)');
-    }
+getPurchaseRequirements(): string[] {
+  const user = this.userSignal();
+  const requirements: string[] = [];
 
-    // No mostrar sugerencia de verificación para admins
-    if (!user.isVerified && !user.roles.includes(Role.ADMIN)) {
-      suggestions.push('✅ Solicita la verificación de tu cuenta a un administrador');
-    }
+  if (!user) return requirements;
 
-    if (!user.isActive) {
-      suggestions.push('⚠️ Tu cuenta está inactiva. Contacta al soporte');
-    }
-
-    return suggestions;
+  // ✅ Solo verificar emailVerified
+  if (!user.emailVerified) {
+    requirements.push('✉️ Verificar tu dirección de email');
   }
 
-  getPurchaseRequirements(): string[] {
-    const user = this.userSignal();
-    const requirements: string[] = [];
-
-    if (!user) return requirements;
-
-    if (!user.emailVerified) {
-      requirements.push('✉️ Verificar tu dirección de email');
-    }
-
-    if (!user.hasPersonalInfo) {
-      requirements.push('📝 Completar tu información personal (DNI, nombre, teléfono, dirección)');
-    }
-
-    // No mostrar requisito de verificación para admins
-    if (!user.isVerified && !user.roles.includes(Role.ADMIN)) {
-      requirements.push('✅ Solicitar verificación de cuenta a un administrador');
-    }
-
-    return requirements;
+  if (!(user as any).hasPersonalInfo) {
+    requirements.push('📝 Completar tu información personal (DNI, nombre, teléfono, dirección)');
   }
 
+  return requirements;
+}
 
+/**
+ * Obtiene sugerencias para completar el perfil
+ */
+getProfileSuggestions(): string[] {
+  const user = this.userSignal();
+  const suggestions: string[] = [];
+
+  if (!user) return suggestions;
+
+  if (!user.emailVerified) {
+    suggestions.push('✉️ Verifica tu email haciendo clic en el enlace que te enviamos');
+  }
+
+  if (!(user as any).hasPersonalInfo) {
+    suggestions.push('📝 Completa tu información personal (DNI, nombre, teléfono, dirección)');
+  }
+
+  // ✅ isVerified es opcional, no lo mostramos como requisito para compras
+  if (!(user as any).isVerified && !(user.roles ?? []).includes(Role.ADMIN)) {
+    suggestions.push('ℹ️ Puedes solicitar verificación manual de cuenta para beneficios adicionales');
+  }
+
+  if (!(user as any).isActive) {
+    suggestions.push('⚠️ Tu cuenta está inactiva. Contacta al soporte');
+  }
+
+  return suggestions;
+}
+
+  /**
+   * Manejo de errores centralizado.
+   * 
+   * ✔️ Mantiene un mensaje legible para la UI
+   * ✔️ Propaga también { status, code } para que el caller pueda distinguir casos
+   *    como 403 "EMAIL_VERIFICATION_REQUIRED" y mostrar el banner de verificación.
+   */
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Ha ocurrido un error';
 
@@ -379,10 +393,12 @@ export class AuthService {
       } else if (error.status === 401) {
         errorMessage = 'Credenciales inválidas o sesión expirada';
       } else if (error.status === 403) {
-        if (error.error?.errors?.[0]?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+        // Preservar el código específico si viene del backend
+        const code = error.error?.errors?.[0]?.code || error.error?.code;
+        if (code === 'EMAIL_VERIFICATION_REQUIRED') {
           errorMessage = 'Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
         } else {
-          errorMessage = 'No tienes permisos para realizar esta acción';
+          errorMessage = error.error?.message || 'No tienes permisos para realizar esta acción';
         }
       } else if (error.status === 409) {
         errorMessage = error.error?.message || 'Conflicto: el recurso ya existe';
@@ -393,7 +409,14 @@ export class AuthService {
       }
     }
 
-    console.error('[AuthService] Error:', errorMessage);
-    return throwError(() => new Error(errorMessage));
+    // ⬇️ Propagamos un objeto con status+code+message (además del message legible)
+    const normalized = {
+      status: error.status,
+      code: error.error?.errors?.[0]?.code || error.error?.code,
+      message: errorMessage
+    };
+
+    console.error('[AuthService] Error:', normalized);
+    return throwError(() => normalized);
   }
 }

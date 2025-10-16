@@ -1,174 +1,103 @@
-// src/app/services/email-verification/email.verification.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable, catchError, throwError } from 'rxjs';
 
-export interface VerificationResponse {
+export type VerificationStatusResponse = {
   success: boolean;
-  message: string;
+  message?: string;
+  email?: string;
+  verified?: boolean;
+  verifiedAt?: string;
   data?: {
+    success?: boolean;
     email?: string;
     verifiedAt?: string;
-    emailSent?: boolean;
-    expiresAt?: string;
   };
-}
+  code?: string;
+  statusCode?: number;
+  errors?: Array<{
+    field: string;
+    message: string;
+    code: string;
+  }>;
+};
 
-export interface VerificationStatus {
-  email: string;
-  status: 'pending' | 'verified' | 'expired';
-  verifiedAt?: string;
-  expiresAt: string;
-  createdAt: string;
-}
+export type ResendResponse = {
+  success: boolean;
+  message?: string;
+  cooldownSeconds?: number;
+};
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class EmailVerificationService {
-  private readonly http = inject(HttpClient);
-  private readonly API_URL = '/api/email-verification';
+  private http = inject(HttpClient);
+  private base = '/api/email-verification';
 
   /**
-   * Verifica el token de email (público - desde el link del email)
-   * GET /api/email-verification/verify/:token
+   * ✅ CORREGIDO: El backend solo expone GET /verify/:token
+   * No hay POST /verify, así que solo usamos GET
    */
-  verifyToken(token: string): Observable<VerificationResponse> {
-    return this.http.get<VerificationResponse>(
-      `${this.API_URL}/verify/${token}`
-    ).pipe(
-      catchError(this.handleError)
-    );
+  verifyToken(token: string): Observable<VerificationStatusResponse> {
+    return this.http
+      .get<VerificationStatusResponse>(`${this.base}/verify/${encodeURIComponent(token)}`, {
+        withCredentials: true // ✅ CRÍTICO: Enviar cookies de sesión
+      })
+      .pipe(catchError((err) => throwError(() => this.normalizeError(err))));
   }
 
-  /**
-   * Solicita verificación de email (requiere autenticación)
-   * POST /api/email-verification/request
-   * El backend obtiene el email del usuario autenticado automáticamente
-   */
-  requestVerification(): Observable<VerificationResponse> {
-    return this.http.post<VerificationResponse>(
-      `${this.API_URL}/request`,
-      {}
-    ).pipe(
-      catchError(this.handleError)
-    );
+  /** Reenviar verificación (usuario logueado) */
+  resendVerification(): Observable<ResendResponse> {
+    return this.http
+      .post<ResendResponse>(`${this.base}/resend`, {}, { withCredentials: true })
+      .pipe(catchError((err) => throwError(() => this.normalizeError(err))));
   }
 
-  /**
-   * Reenvía el email de verificación para usuario autenticado
-   * POST /api/email-verification/resend
-   */
-  resendVerification(): Observable<VerificationResponse> {
-    return this.http.post<VerificationResponse>(
-      `${this.API_URL}/resend`,
-      {}
-    ).pipe(
-      catchError(this.handleError)
-    );
+  /** Reenviar verificación (público, con email) */
+  resendForUnverified(email: string): Observable<ResendResponse> {
+    return this.http
+      .post<ResendResponse>(`${this.base}/resend-unverified`, { email }, { withCredentials: true })
+      .pipe(catchError((err) => throwError(() => this.normalizeError(err))));
   }
 
-  /**
-   * Reenvía verificación para usuarios NO autenticados (público)
-   * POST /api/email-verification/resend-unverified
-   * Usado cuando el usuario intenta login pero no ha verificado su email
-   */
-  resendForUnverified(email: string): Observable<VerificationResponse> {
-    return this.http.post<VerificationResponse>(
-      `${this.API_URL}/resend-unverified`,
-      { email }
-    ).pipe(
-      catchError(this.handleError)
-    );
+  /** Estado (público) */
+  status(email: string): Observable<VerificationStatusResponse> {
+    return this.http
+      .get<VerificationStatusResponse>(`${this.base}/status/${encodeURIComponent(email)}`, {
+        withCredentials: true
+      })
+      .pipe(catchError((err) => throwError(() => this.normalizeError(err))));
   }
 
-  /**
-   * Obtiene el estado de verificación de un email (público)
-   * GET /api/email-verification/status/:email
-   */
-  getStatus(email: string): Observable<VerificationStatus> {
-    return this.http.get<{ success: boolean; data: VerificationStatus }>(
-      `${this.API_URL}/status/${email}`
-    ).pipe(
-      map(response => response.data),
-      catchError(this.handleError)
-    );
+  // ==== Helpers de detección para la UI ====
+  isEmailVerificationError(err: any): boolean {
+    const status = err?.status || err?.error?.status;
+    const code = err?.code || err?.error?.code || err?.error?.errors?.[0]?.code;
+    const msg = (err?.message || err?.error?.message || '').toString().toLowerCase();
+    return status === 403 ||
+           code === 'EMAIL_VERIFICATION_REQUIRED' ||
+           msg.includes('verify') || msg.includes('verific');
   }
 
-  /**
-   * Maneja errores HTTP de forma consistente
-   */
-  private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'Ha ocurrido un error';
-
-    if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      // Error del lado del servidor
-      if (error.error?.message) {
-        errorMessage = error.error.message;
-      } else if (error.status === 0) {
-        errorMessage = 'No se pudo conectar con el servidor';
-      } else if (error.status === 429) {
-        errorMessage = 'Demasiadas solicitudes. Por favor espera 2 minutos.';
-      } else if (error.status === 401) {
-        errorMessage = 'Debes iniciar sesión para realizar esta acción';
-      } else if (error.status === 403) {
-        errorMessage = 'No tienes permisos para realizar esta acción';
-      } else if (error.status === 404) {
-        errorMessage = 'No se encontró la solicitud de verificación';
-      } else if (error.status === 409) {
-        // Usar el mensaje específico del backend para conflictos
-        errorMessage = error.error?.message || 'Email ya verificado o solicitud duplicada';
-      }
-    }
-
-    console.error('[EmailVerificationService] Error:', error);
-    return throwError(() => ({
-      ...error,
-      message: errorMessage
-    }));
+  isCooldownError(err: any): boolean {
+    const code = err?.code || err?.error?.code || err?.error?.errors?.[0]?.code;
+    const msg = (err?.message || err?.error?.message || '').toString().toLowerCase();
+    return code === 'COOLDOWN' || code === 'VERIFICATION_COOLDOWN_ACTIVE' ||
+           msg.includes('cooldown') || msg.includes('2 minutos') || msg.includes('2 minutes');
   }
 
-  /**
-   * Verifica si un error es de tipo "email no verificado"
-   */
-  isEmailVerificationError(error: any): boolean {
-    return error?.status === 403 && 
-           error?.error?.errors?.[0]?.code === 'EMAIL_VERIFICATION_REQUIRED';
+  isAlreadyVerifiedError(err: any): boolean {
+    const code = err?.code || err?.error?.code || err?.error?.errors?.[0]?.code;
+    const msg = (err?.message || err?.error?.message || '').toString().toLowerCase();
+    return code === 'ALREADY_VERIFIED' || code === 'EMAIL_ALREADY_VERIFIED' ||
+           msg.includes('already verified') || msg.includes('ya está verificado') ||
+           msg.includes('ya verificado');
   }
 
-  /**
-   * Verifica si un error es de cooldown activo
-   */
-  isCooldownError(error: any): boolean {
-    return error?.status === 409 && 
-           error?.error?.errors?.[0]?.code === 'VERIFICATION_COOLDOWN_ACTIVE';
-  }
-
-  /**
-   * Verifica si el email ya está verificado
-   */
-  isAlreadyVerifiedError(error: any): boolean {
-    return error?.status === 409 && 
-           error?.error?.errors?.[0]?.code === 'EMAIL_ALREADY_VERIFIED';
-  }
-
-  /**
-   * Verifica si el token ha expirado
-   */
-  isTokenExpiredError(error: any): boolean {
-    return error?.status === 400 && 
-           error?.error?.errors?.[0]?.code === 'TOKEN_EXPIRED';
-  }
-
-  /**
-   * Verifica si es un error de propiedad del email
-   */
-  isEmailOwnershipError(error: any): boolean {
-    return error?.status === 403 && 
-           error?.error?.errors?.[0]?.code === 'EMAIL_OWNERSHIP_VIOLATION';
+  private normalizeError(err: any) {
+    return {
+      status: err?.status,
+      code: err?.error?.errors?.[0]?.code || err?.error?.code,
+      message: err?.error?.message || err?.message || 'Error'
+    };
   }
 }

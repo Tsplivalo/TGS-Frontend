@@ -80,6 +80,27 @@
             (click)="$event.stopPropagation()">
             <h2>{{ 'auth.register.title' | translate }}</h2>
 
+            <!-- ✅ Banner de verificación en REGISTRO (idéntico al de login) -->
+            <div class="verification-banner" *ngIf="needsEmailVerification()" role="alert">
+              <div class="banner-icon">⚠️</div>
+              <div class="banner-content">
+                <div class="banner-header">
+                  <strong>Verificá tu email</strong>
+                  <button type="button" class="banner-close" (click)="needsEmailVerification.set(false)"
+                    aria-label="Cerrar" title="Cerrar mensaje">✕</button>
+                </div>
+                <p class="banner-text">
+                  Te enviamos un correo con el enlace de verificación. Revisá tu bandeja de entrada.
+                </p>
+
+                <div class="banner-success" *ngIf="emailSent()">
+                  <span class="success-icon">✓</span>
+                  Email de verificación enviado correctamente
+                </div>
+
+              </div>
+            </div>
+
             <label>
               <span>{{ 'auth.fields.username' | translate }}</span>
               <input type="text" formControlName="username"
@@ -113,7 +134,7 @@
       </div>
     </section>
 
-    <!-- DERECHA: Branding / Hero -->
+    <!-- DERECHA: Brand / Bienvenida -->
     <section class="brand-plain" [class.is-logged]="isLoggedIn() && !showAuthPanel" aria-label="Branding">
       <div class="welcome-badge" *ngIf="isLoggedIn() && !showAuthPanel">
         <span class="wave" aria-hidden="true">👋</span>
@@ -144,16 +165,15 @@
       <div class="intro-grid">
         <button class="intro-card" type="button" *ngFor="let it of introItems; let i = index"
           (click)="toggleFlip(i, $event)" (keydown)="onCardKey(i, $event)" [class.expanded]="flipped.has(i)"
-          [attr.aria-expanded]="flipped.has(i) ? 'true' : 'false'" [attr.aria-label]="(it.titleKey | translate)">
-          <div class="card-surface">
-            <header class="card-head">
-              <span class="tiny-logo" aria-hidden="true"></span>
-              <h4 class="card-title">{{ it.titleKey | translate }}</h4>
-              <span class="chev" aria-hidden="true"></span>
-            </header>
-
-            <div class="card-detail">
-              <p class="detail">{{ it.detailKey | translate }}</p>
+          [attr.aria-expanded]="flipped.has(i)">
+          <div class="front">
+            <h4>{{ it.titleKey | translate }}</h4>
+            <p>{{ it.detailKey | translate }}</p>
+          </div>
+          <div class="back">
+            <div class="back-inner">
+              <h5>{{ it.titleKey | translate }}</h5>
+              <p>{{ it.detailKey | translate }}</p>
             </div>
           </div>
         </button>

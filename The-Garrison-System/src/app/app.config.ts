@@ -11,7 +11,7 @@ import { ApplicationConfig, provideZoneChangeDetection, importProvidersFrom } fr
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
-import { authInterceptor } from './interceptors/auth.interceptor';
+import { authInterceptor } from './interceptors/auth.interceptor'; // <- Interceptor FUNCIONAL
 
 // Módulos para internacionalización
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
@@ -49,7 +49,9 @@ export const appConfig: ApplicationConfig = {
     // Configuración de HTTP client con interceptor de autenticación
     // IMPORTANTE: HttpClient debe estar disponible antes de TranslateModule
     provideHttpClient(
-      withInterceptors([authInterceptor])
+      withInterceptors([
+        authInterceptor, // <- usa el interceptor funcional exportado desde ./interceptors/auth.interceptor
+      ])
     ),
 
     // Configuración del módulo de traducciones con loader personalizado

@@ -1,254 +1,421 @@
-// src/app/pages/email-verification/email-verification.component.ts
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
-import { EmailVerificationService } from '../services/email.verification.js';
-import { AuthService } from '../../../services/auth/auth.js'
-
-type VerificationState = 'idle' | 'verifying' | 'success' | 'error';
+import { ActivatedRoute, Router } from '@angular/router';
+import { EmailVerificationService } from '../services/email.verification';
+import { AuthService } from '../../../services/auth/auth';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
-  selector: 'app-email-verification',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './email-verification.html',
-  styleUrls: ['./email-verification.scss'],
-})
-export class EmailVerificationComponent implements OnInit, OnDestroy {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly emailService = inject(EmailVerificationService);
-  private readonly auth = inject(AuthService);
-  private readonly destroy$ = new Subject<void>();
+  selector: 'app-email-verification',
+  imports: [CommonModule],
+  template: `
+  <div class="verification-container">
+    <div class="verification-shell">
+      
+      <!-- Estado: Verificando -->
+      <div *ngIf="state() === 'verifying'" class="state-box">
+        <div class="spinner"></div>
+        <h2 class="state-title">Verificando tu email</h2>
+        <p class="state-text muted">Esto solo tomará un momento...</p>
+      </div>
 
-  // Estado de la verificación
-  state = signal<VerificationState>('idle');
-  message = signal('Verificando tu email...');
-  
-  // Control de reenvío
-  canResend = signal(false);
-  resendCooldown = signal(0);
-  resending = signal(false);
-  
-  // Token actual
-  private currentToken: string | null = null;
-  private cooldownInterval?: ReturnType<typeof setInterval>;
+      <!-- Estado: Éxito -->
+      <div *ngIf="state() === 'ok'" class="state-box">
+        <div class="success-icon">✓</div>
+        <h2 class="state-title">¡Email verificado!</h2>
+        <p class="state-text">Tu dirección de email ha sido verificada correctamente.</p>
+        <div class="badge badge-success" *ngIf="autoLoggedIn()">
+          ✓ Sesión iniciada automáticamente
+        </div>
+        <p class="state-text muted" *ngIf="!autoLoggedIn()">
+          Redirigiendo al inicio...
+        </p>
+      </div>
 
-  ngOnInit(): void {
-    // Escuchar cambios en los parámetros de la ruta
-    this.route.params
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        const token = params['token'];
-        if (token && token !== this.currentToken) {
-          this.currentToken = token;
-          this.verifyToken(token);
-        }
-      });
+      <!-- Estado: Error -->
+      <div *ngIf="state() === 'error'" class="state-box">
+        <div class="error-icon">✕</div>
+        <h2 class="state-title">Error de verificación</h2>
+        <div class="error-message">{{ message() }}</div>
+        <button class="btn btn-primary" (click)="goHome()">
+          🏠 Ir al inicio
+        </button>
+      </div>
 
-    // También verificar query params por compatibilidad
-    this.route.queryParams
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        const token = params['token'];
-        if (token && !this.currentToken) {
-          this.currentToken = token;
-          this.verifyToken(token);
-        }
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.clearCooldown();
-  }
-
-  /**
-   * Verifica el token de email
-   */
-  private verifyToken(token: string): void {
-    this.state.set('verifying');
-    this.message.set('Verificando tu email...');
-
-    this.emailService.verifyToken(token)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.handleVerificationSuccess(response);
-          } else {
-            this.handleVerificationError(response.message);
-          }
-        },
-        error: (error) => {
-          this.handleVerificationError(error.message);
-        }
-      });
-  }
-
-  /**
-   * Maneja verificación exitosa
-   */
-  private handleVerificationSuccess(response: any): void {
-    this.state.set('success');
-    this.message.set('¡Email verificado correctamente! 🎉');
-    
-    // Si el usuario está autenticado, actualizar sus datos
-    if (this.auth.isAuthenticated()) {
-      // Podrías agregar un método en AuthService para refrescar el usuario
-      // this.auth.refreshUser();
+    </div>
+  </div>
+  `,
+  styles: [`
+    /* ===== VARIABLES (heredadas del sistema) ===== */
+    :host {
+      --text: #e5e7eb;
+      --text-strong: #ffffff;
+      --muted: #9aa0a6;
+      --bg-elev: #141414;
+      --bg-panel: #0e0f11;
+      --border: #2c2c2c;
+      --accent: #c3a462;
+      --success: #4a8d72;
+      --danger: #a94545;
+      --radius: 12px;
+      --shadow: 0 10px 28px rgba(0, 0, 0, .45);
     }
 
-    // Redirigir al home después de 3 segundos
-    setTimeout(() => {
-      this.router.navigate(['/'], { 
-        queryParams: { verified: 'true' } 
-      });
-    }, 3000);
-  }
-
-  /**
-   * Maneja errores de verificación
-   */
-  private handleVerificationError(errorMessage: string): void {
-    this.state.set('error');
-    
-    // Personalizar mensaje según el tipo de error
-    if (errorMessage.includes('expired') || errorMessage.includes('expirado')) {
-      this.message.set('Este enlace de verificación ha expirado. Solicita uno nuevo.');
-      this.canResend.set(true);
-    } else if (errorMessage.includes('already verified') || errorMessage.includes('ya ha sido verificado')) {
-      this.message.set('Este email ya ha sido verificado. Puedes iniciar sesión normalmente.');
-      this.canResend.set(false);
-    } else if (errorMessage.includes('not found') || errorMessage.includes('no encontrad')) {
-      this.message.set('Token de verificación no válido o no encontrado.');
-      this.canResend.set(true);
-    } else {
-      this.message.set(errorMessage || 'Error al verificar el email.');
-      this.canResend.set(true);
-    }
-  }
-
-  /**
-   * Reenvía el email de verificación
-   */
-  resend(): void {
-    if (!this.canResend() || this.resending()) {
-      return;
+    /* ===== CONTAINER ===== */
+    .verification-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
 
-    this.resending.set(true);
-    this.message.set('Enviando nuevo email de verificación...');
-
-    // Intentar obtener el email del usuario autenticado
-    const user = this.auth.user();
-    const userEmail = user?.email;
-
-    if (userEmail) {
-      // Usuario autenticado: usar endpoint autenticado
-      this.emailService.resendVerification()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            this.handleResendSuccess();
-          },
-          error: (error) => {
-            this.handleResendError(error);
-          }
-        });
-    } else {
-      // Usuario no autenticado: mostrar mensaje
-      this.resending.set(false);
-      this.message.set('Por favor, inicia sesión para reenviar el email de verificación.');
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 2000);
+    /* ===== SHELL (Glass Dark) ===== */
+    .verification-shell {
+      max-width: 500px;
+      width: 100%;
+      background: rgba(0, 0, 0, .408);
+      border: 1px solid rgba(255, 255, 255, .247);
+      border-radius: 12px;
+      backdrop-filter: blur(18px) saturate(120%);
+      -webkit-backdrop-filter: blur(18px) saturate(120%);
+      padding: 2rem 1.5rem;
+      color: var(--text-strong);
+      box-shadow:
+        inset 1px 1px 2px rgba(255, 255, 255, .371),
+        inset -1px -1px 2px rgba(0, 0, 0, .4),
+        0 10px 28px rgba(0, 0, 0, .645);
+      animation: fadeIn 0.3s ease-out;
     }
-  }
 
-  /**
-   * Maneja reenvío exitoso
-   */
-  private handleResendSuccess(): void {
-    this.resending.set(false);
-    this.message.set('¡Email de verificación enviado! Revisa tu bandeja de entrada.');
-    this.state.set('idle');
-    this.canResend.set(false);
-    this.startCooldown();
-  }
-
-  /**
-   * Maneja error en reenvío
-   */
-  private handleResendError(error: any): void {
-    this.resending.set(false);
-    
-    if (this.emailService.isCooldownError(error)) {
-      this.message.set('Debes esperar 2 minutos antes de solicitar otro email.');
-      this.startCooldown();
-    } else if (this.emailService.isAlreadyVerifiedError(error)) {
-      this.message.set('Tu email ya está verificado. Puedes iniciar sesión normalmente.');
-      this.canResend.set(false);
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 2000);
-    } else {
-      this.message.set(error.message || 'Error al reenviar el email.');
-    }
-  }
-
-  /**
-   * Inicia el cooldown de 2 minutos
-   */
-  private startCooldown(): void {
-    this.resendCooldown.set(120); // 2 minutos
-    this.canResend.set(false);
-
-    this.cooldownInterval = setInterval(() => {
-      const current = this.resendCooldown();
-      if (current <= 1) {
-        this.clearCooldown();
-        this.canResend.set(true);
-      } else {
-        this.resendCooldown.set(current - 1);
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
       }
-    }, 1000);
-  }
-
-  /**
-   * Limpia el intervalo de cooldown
-   */
-  private clearCooldown(): void {
-    if (this.cooldownInterval) {
-      clearInterval(this.cooldownInterval);
-      this.cooldownInterval = undefined;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    this.resendCooldown.set(0);
+
+    /* ===== STATE BOX ===== */
+    .state-box {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* ===== SPINNER ===== */
+    .spinner {
+      margin: 0 auto;
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(195, 164, 98, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== ICONS ===== */
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(74, 141, 114, 0.2);
+      border: 2px solid var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: var(--success);
+      animation: scaleIn 0.4s cubic-bezier(0.25, 0.6, 0.3, 1);
+    }
+
+    .error-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(169, 69, 69, 0.2);
+      border: 2px solid var(--danger);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: var(--danger);
+      animation: scaleIn 0.4s cubic-bezier(0.25, 0.6, 0.3, 1);
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* ===== TYPOGRAPHY ===== */
+    .state-title {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-strong);
+      font-family: 'Google Sans Code', sans-serif;
+      letter-spacing: 0.2px;
+    }
+
+    .state-text {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .state-text.muted {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    /* ===== ERROR MESSAGE ===== */
+    .error-message {
+      padding: 0.75rem 1rem;
+      border: 1px solid color-mix(in srgb, var(--danger), transparent 40%);
+      background: color-mix(in srgb, var(--danger), transparent 88%);
+      color: #ffeaea;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ===== BADGE ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-success {
+      background: rgba(63, 125, 99, .15);
+      border-color: rgba(63, 125, 99, .5);
+      color: #b8e6d3;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn {
+      display: inline-flex;
+      font-family: 'Google Sans Code';
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 16px;
+      height: 40px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+      text-decoration: none;
+      background: #a68b4f;
+      color: #1a1308;
+      box-shadow: 0 4px 12px rgba(166, 139, 79, .45),
+        inset 0 1px 0 rgba(255, 255, 255, .15);
+      transition: transform .1s ease, box-shadow .2s ease, background .2s ease;
+      position: relative;
+      white-space: nowrap;
+      font-weight: 700;
+      margin-top: 0.5rem;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .12), transparent 50%);
+      pointer-events: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      background: #b89a5e;
+      box-shadow: 0 6px 18px rgba(166, 139, 79, .55),
+        inset 0 1px 0 rgba(255, 255, 255, .2);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      background: #8f7440;
+      box-shadow: 0 2px 8px rgba(166, 139, 79, .4),
+        inset 0 1px 0 rgba(255, 255, 255, .1);
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .45),
+        inset 0 1px 0 rgba(255, 255, 255, .2);
+    }
+
+    .btn-primary::before {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .15), transparent 50%);
+    }
+
+    .btn-primary:hover {
+      background: #3b82f6;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, .55),
+        inset 0 1px 0 rgba(255, 255, 255, .25);
+    }
+
+    .btn-primary:active {
+      background: #1d4ed8;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+      .verification-shell {
+        padding: 1.5rem 1rem;
+      }
+
+      .state-title {
+        font-size: 1.25rem;
+      }
+    }
+  `]
+})
+export class EmailVerificationComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private ev = inject(EmailVerificationService);
+  private auth = inject(AuthService);
+
+  state = signal<'verifying' | 'ok' | 'error'>('verifying');
+  message = signal<string>('');
+  autoLogged = signal<boolean>(false);
+
+  ngOnInit() {
+    const token = this.route.snapshot.paramMap.get('token') || '';
+    console.log('[EmailVerification] Token recibido:', token);
+    
+    if (token) {
+      this.run(token);
+    } else {
+      this.state.set('error');
+      this.message.set('Token no proporcionado en la URL');
+    }
   }
 
-  /**
-   * Formatea el tiempo de cooldown (MM:SS)
-   */
-  getCooldownText(): string {
-    const seconds = this.resendCooldown();
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  autoLoggedIn() { return this.autoLogged(); }
+
+  async run(token: string) {
+    try {
+      console.log('[EmailVerification] Verificando token...');
+
+      // 1️⃣ Verificar token
+      const verifyRes = await firstValueFrom(this.ev.verifyToken(token));
+      console.log('[EmailVerification] Respuesta:', verifyRes);
+
+      // ✅ Verificar si fue exitosa
+      const isSuccess = verifyRes?.success === true || verifyRes?.data?.success === true;
+      
+      if (!isSuccess) {
+        throw {
+          message: verifyRes?.message || 'Verificación fallida',
+          code: verifyRes?.code || verifyRes?.errors?.[0]?.code,
+          status: verifyRes?.statusCode || 400
+        };
+      }
+
+      console.log('[EmailVerification] ✅ Email verificado en el backend');
+
+      // 2️⃣ Intentar auto-login con credenciales guardadas
+      const raw = localStorage.getItem('pendingAuth');
+      if (raw) {
+        try {
+          const { email, password } = JSON.parse(raw);
+          console.log('[EmailVerification] Intentando auto-login para:', email);
+          
+          await firstValueFrom(this.auth.login({ email, password }));
+          
+          this.autoLogged.set(true);
+          localStorage.removeItem('pendingAuth');
+          console.log('[EmailVerification] ✅ Auto-login exitoso');
+        } catch (loginError: any) {
+          console.warn('[EmailVerification] Auto-login falló:', loginError?.message);
+        }
+      } else {
+        console.log('[EmailVerification] No hay pendingAuth');
+      }
+
+      // 3️⃣ Éxito
+      this.state.set('ok');
+      
+      setTimeout(() => {
+        console.log('[EmailVerification] Redirigiendo a home');
+        this.router.navigateByUrl('/');
+      }, 2000);
+
+    } catch (e: any) {
+      console.error('[EmailVerification] Error:', e);
+      
+      let errorMsg = e?.message || 'Token inválido o expirado';
+      
+      // ✅ Detectar "ya verificado" - tratarlo como éxito
+      const alreadyVerified = 
+        e?.message?.toLowerCase().includes('already verified') ||
+        e?.message?.toLowerCase().includes('ya verificado') ||
+        e?.message?.toLowerCase().includes('ya está verificado') ||
+        e?.code === 'EMAIL_ALREADY_VERIFIED';
+      
+      if (alreadyVerified) {
+        console.log('[EmailVerification] Email ya verificado - tratando como éxito');
+        
+        // Intentar auto-login de todos modos
+        const raw = localStorage.getItem('pendingAuth');
+        if (raw) {
+          try {
+            const { email, password } = JSON.parse(raw);
+            await firstValueFrom(this.auth.login({ email, password }));
+            this.autoLogged.set(true);
+            localStorage.removeItem('pendingAuth');
+          } catch {}
+        }
+        
+        this.state.set('ok');
+        setTimeout(() => this.router.navigateByUrl('/'), 2000);
+        return;
+      }
+      
+      // Otros errores
+      if (e?.status === 400) {
+        if (e?.message?.includes('expired') || e?.message?.includes('expirado')) {
+          errorMsg = 'Este enlace ha expirado. Solicita uno nuevo desde el login.';
+        }
+      } else if (e?.status === 404) {
+        errorMsg = 'Token no encontrado. Solicita uno nuevo desde el login.';
+      }
+      
+      this.message.set(errorMsg);
+      this.state.set('error');
+    }
   }
 
-  /**
-   * Navega al login
-   */
-  goToLogin(): void {
-    this.router.navigate(['/login']);
-  }
-
-  /**
-   * Navega al home
-   */
-  goToHome(): void {
-    this.router.navigate(['/']);
+  goHome() { 
+    this.router.navigateByUrl('/'); 
   }
 }
