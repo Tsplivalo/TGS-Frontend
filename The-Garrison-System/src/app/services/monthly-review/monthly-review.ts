@@ -21,6 +21,7 @@ export class MonthlyReviewService {
    * Backend route: GET /api/monthly-reviews/search
    * Query params: year, month, status, partnerDni, page, limit
    */
+// En monthly-review.service.ts
   search(params?: {
     year?: number;
     month?: number;
@@ -31,16 +32,31 @@ export class MonthlyReviewService {
   }): Observable<PaginatedResponse<MonthlyReviewDTO>> {
     let httpParams = new HttpParams();
     
-    if (params?.year) httpParams = httpParams.set('year', params.year.toString());
-    if (params?.month) httpParams = httpParams.set('month', params.month.toString());
-    if (params?.status) httpParams = httpParams.set('status', params.status);
-    if (params?.partnerDni) httpParams = httpParams.set('partnerDni', params.partnerDni);
-    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    // Solo agregar si existen
+    if (params?.year !== undefined && params.year !== null) {
+      httpParams = httpParams.set('year', params.year.toString());
+    }
+    if (params?.month !== undefined && params.month !== null) {
+      httpParams = httpParams.set('month', params.month.toString());
+    }
+    if (params?.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
+    if (params?.partnerDni) {
+      httpParams = httpParams.set('partnerDni', params.partnerDni);
+    }
+    if (params?.page !== undefined && params.page !== null) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params?.limit !== undefined && params.limit !== null) {
+      httpParams = httpParams.set('limit', params.limit.toString());
+    }
+
+    console.log('🔍 Search params:', httpParams.toString());
 
     return this.http.get<PaginatedResponse<MonthlyReviewDTO>>(
       `${this.apiUrl}/search`,
-      { params: httpParams }
+      httpParams.toString() ? { params: httpParams } : {}
     );
   }
 
@@ -54,8 +70,19 @@ export class MonthlyReviewService {
   }): Observable<PaginatedResponse<MonthlyReviewDTO>> {
     let httpParams = new HttpParams();
     
-    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    // Solo agregar parámetros si tienen valores válidos
+    if (params?.page !== undefined && params.page !== null && params.page > 0) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params?.limit !== undefined && params.limit !== null && params.limit > 0) {
+      httpParams = httpParams.set('limit', params.limit.toString());
+    }
+
+    const url = httpParams.toString() 
+      ? `${this.apiUrl}?${httpParams.toString()}` 
+      : this.apiUrl;
+
+    console.log('📋 List URL:', url);
 
     return this.http.get<PaginatedResponse<MonthlyReviewDTO>>(
       this.apiUrl,
@@ -73,10 +100,24 @@ export class MonthlyReviewService {
     month?: number;
     groupBy?: 'distributor' | 'product' | 'client' | 'day' | 'zone';
   }): Observable<ApiResponse<SalesStatisticsResponse>> {
-    let httpParams = new HttpParams().set('year', params.year.toString());
+    let httpParams = new HttpParams();
     
-    if (params.month) httpParams = httpParams.set('month', params.month.toString());
-    if (params.groupBy) httpParams = httpParams.set('groupBy', params.groupBy);
+    // year es requerido
+    if (!params.year || isNaN(params.year)) {
+      throw new Error('Year is required for statistics');
+    }
+    
+    httpParams = httpParams.set('year', params.year.toString());
+    
+    if (params.month !== undefined && params.month !== null) {
+      httpParams = httpParams.set('month', params.month.toString());
+    }
+    if (params.groupBy) {
+      httpParams = httpParams.set('groupBy', params.groupBy);
+    }
+
+    const url = `${this.apiUrl}/statistics?${httpParams.toString()}`;
+    console.log('📊 Statistics URL:', url);
 
     return this.http.get<ApiResponse<SalesStatisticsResponse>>(
       `${this.apiUrl}/statistics`,
@@ -97,6 +138,7 @@ export class MonthlyReviewService {
    * Backend route: POST /api/monthly-reviews
    */
   create(payload: CreateMonthlyReviewDTO): Observable<ApiResponse<MonthlyReviewDTO>> {
+    console.log('➕ Creating monthly review:', payload);
     return this.http.post<ApiResponse<MonthlyReviewDTO>>(this.apiUrl, payload);
   }
 
@@ -105,6 +147,7 @@ export class MonthlyReviewService {
    * Backend route: PATCH /api/monthly-reviews/:id
    */
   update(id: number, payload: PatchMonthlyReviewDTO): Observable<ApiResponse<MonthlyReviewDTO>> {
+    console.log('✏️ Updating monthly review:', id, payload);
     return this.http.patch<ApiResponse<MonthlyReviewDTO>>(
       `${this.apiUrl}/${id}`,
       payload
@@ -116,6 +159,7 @@ export class MonthlyReviewService {
    * Backend route: DELETE /api/monthly-reviews/:id
    */
   delete(id: number): Observable<ApiResponse<void>> {
+    console.log('🗑️ Deleting monthly review:', id);
     return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
   }
 }

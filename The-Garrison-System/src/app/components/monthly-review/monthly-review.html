@@ -7,8 +7,8 @@
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
           {{ isNewOpen()
-          ? ('common.close' | translate : {} : 'Cerrar')
-          : ('monthlyReview.buttons.new' | translate : {} : '+ Nueva Revisión') }}
+          ? ('Cerrar' | translate : {} : 'Cerrar')
+          : ('Nueva Revisión' | translate : {} : 'Nueva Revisión') }}
         </button>
       </div>
     </header>
@@ -133,14 +133,12 @@
               <td class="right">{{ it.totalSalesCount || 0 }}</td>
               <td class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
-                  [attr.aria-label]="'common.edit' | translate : {} : 'Editar'"
                   [attr.title]="'common.edit' | translate : {} : 'Editar'">
-                  ✏️ <span class="sr-only">{{ 'common.edit' | translate : {} : 'Editar' }}</span>
+                  ✏️
                 </button>
                 <button class="btn danger btn--icon" type="button" (click)="delete(it)"
-                  [attr.aria-label]="'common.delete' | translate : {} : 'Eliminar'"
                   [attr.title]="'common.delete' | translate : {} : 'Eliminar'">
-                  🗑️ <span class="sr-only">{{ 'common.delete' | translate : {} : 'Eliminar' }}</span>
+                  🗑️
                 </button>
               </td>
             </tr>
@@ -174,26 +172,33 @@
       </div>
 
       <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
-        <!-- DNI del Socio Revisor -->
+        <!-- DNI del Socio Revisor - SELECT AMIGABLE -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'DNI del Socio' }}</span>
-          <input class="input" type="text" formControlName="partnerDni"
-            [attr.aria-label]="'monthlyReview.form.fields.partnerDni' | translate : {} : 'DNI del Socio'" />
+          <span>{{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'Socio Revisor' }} *</span>
+          <select class="input" formControlName="partnerDni">
+            <option value="" disabled>— Seleccioná un socio —</option>
+            <option *ngFor="let p of partners()" [value]="p.dni">
+              {{ p.dni }} — {{ p.name }}
+            </option>
+          </select>
+          <small class="muted" *ngIf="!partners().length && !loading()">
+            No hay socios disponibles. Creá uno primero.
+          </small>
           <small class="error" *ngIf="form.controls.partnerDni.invalid && form.controls.partnerDni.touched">
-            {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'DNI requerido (mín. 6 caracteres)' }}
+            {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'Socio requerido' }}
           </small>
         </label>
 
         <!-- Año -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.year' | translate : {} : 'Año' }}</span>
+          <span>{{ 'monthlyReview.form.fields.year' | translate : {} : 'Año' }} *</span>
           <input class="input" type="number" formControlName="year"
             [attr.aria-label]="'monthlyReview.form.fields.year' | translate : {} : 'Año'" />
         </label>
 
         <!-- Mes -->
         <label class="label">
-          <span>{{ 'monthlyReview.form.fields.month' | translate : {} : 'Mes (1-12)' }}</span>
+          <span>{{ 'monthlyReview.form.fields.month' | translate : {} : 'Mes (1-12)' }} *</span>
           <input class="input" type="number" formControlName="month" min="1" max="12"
             [attr.aria-label]="'monthlyReview.form.fields.month' | translate : {} : 'Mes'" />
         </label>
@@ -235,11 +240,11 @@
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
             {{ isEdit()
-            ? ('common.save' | translate : {} : 'Guardar')
-            : ('common.create' | translate : {} : 'Crear') }}
+            ? ('Guardar' | translate : {} : 'Guardar')
+            : ('Crear' | translate : {} : 'Crear') }}
           </button>
           <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'monthlyReview.buttons.clear' | translate : {} : 'Limpiar' }}
+            {{ 'Limpiar' | translate : {} : 'Limpiar' }}
           </button>
         </div>
       </form>

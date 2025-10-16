@@ -2,7 +2,8 @@
 import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AuthService, Role } from '../../../services/auth/auth'; 
+import { AuthService } from '../../../services/auth/auth';
+import { Role } from '../../../models/user/user.model';
 import { AdminRoleRequestsInboxComponent } from '../components/role-requests/admin-role-requests-inbox';
 import { UserRoleRequestsInboxComponent } from '../components/role-requests/user-role-requests-inbox';
 

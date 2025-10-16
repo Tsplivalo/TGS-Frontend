@@ -11,6 +11,43 @@
           <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" (click)="$event.stopPropagation()">
             <h2>{{ 'auth.login.title' | translate }}</h2>
 
+            <!-- ✅ NUEVO: Banner de verificación mejorado -->
+            <div class="verification-banner" *ngIf="needsEmailVerification()" role="alert">
+              <div class="banner-icon">⚠️</div>
+              <div class="banner-content">
+                <div class="banner-header">
+                  <strong>Email no verificado</strong>
+                  <button type="button" class="banner-close" (click)="needsEmailVerification.set(false)"
+                    aria-label="Cerrar" title="Cerrar mensaje">
+                    ✕
+                  </button>
+                </div>
+                <p class="banner-text">
+                  Debes verificar tu email antes de poder acceder. Revisa tu bandeja de entrada.
+                </p>
+
+                <!-- Mensaje de éxito cuando se envía el email -->
+                <div class="banner-success" *ngIf="emailSent()">
+                  <span class="success-icon">✓</span>
+                  Email de verificación enviado correctamente
+                </div>
+
+                <!-- Botón de reenvío -->
+                <button type="button" class="btn-resend" (click)="resendVerificationEmailFromHome()"
+                  [disabled]="resendingEmail() || emailSent()">
+                  <span *ngIf="!resendingEmail() && !emailSent()">
+                    Reenviar email de verificación
+                  </span>
+                  <span *ngIf="resendingEmail()" class="loading-text">
+                    Enviando<span class="dots">...</span>
+                  </span>
+                  <span *ngIf="emailSent() && !resendingEmail()">
+                    ✓ Enviado
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <label>
               <span>{{ 'auth.fields.email' | translate }}</span>
               <input type="email" formControlName="email" [attr.placeholder]="emailAnimOn() ? animatedPlaceholder : ''"
@@ -27,7 +64,7 @@
 
             <button type="submit" [disabled]="loadingLogin">{{ 'auth.login.submit' | translate }}</button>
 
-            <p class="auth-error" *ngIf="errorLogin">
+            <p class="auth-error" *ngIf="errorLogin && !needsEmailVerification()">
               {{ errorLogin | translate }}
             </p>
           </form>

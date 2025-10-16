@@ -7,7 +7,7 @@
       <h2 class="title">{{ 'product.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ isNewOpen ? ('product.close' | translate) : ('product.new' | translate) }}
+          {{ isNewOpen ? 'Cerrar' : 'Nuevo Producto' }}
         </button>
       </div>
     </header>
@@ -51,7 +51,7 @@
               <th style="width:140px;">{{ 'product.fields.price' | translate }}</th>
               <th style="width:120px;">{{ 'product.fields.stock' | translate }}</th>
               <th style="width:120px;">{{ 'product.fields.illegal' | translate }}</th>
-              <th style="width:200px;" class="right">Acciones</th>
+              <th style="width:140px;" class="right">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -75,12 +75,12 @@
               </td>
               <td class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(p)"
-                  [attr.aria-label]="'common.edit' | translate" [attr.title]="'common.edit' | translate">
+                  [attr.title]="'common.edit' | translate">
                   ✏️
                 </button>
 
                 <button class="btn danger btn--icon" type="button" (click)="delete(p.id)" [disabled]="loading()"
-                  [attr.aria-label]="'common.delete' | translate" [attr.title]="'common.delete' | translate">
+                  [attr.title]="'common.delete' | translate">
                   🗑️
                 </button>
               </td>
@@ -111,7 +111,7 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-        <!-- ✅ DESCRIPCIÓN (3-50 chars) -->
+        <!-- DESCRIPCIÓN (3-50 chars) -->
         <label class="label">
           <span>{{ 'product.fields.description' | translate }} *</span>
           <input class="input" formControlName="description" [placeholder]="'product.fields.description' | translate"
@@ -121,7 +121,7 @@
           </small>
         </label>
 
-        <!-- ✅ DETALLE (3-200 chars) - NUEVO CAMPO REQUERIDO -->
+        <!-- DETALLE (3-200 chars) -->
         <label class="label col-2">
           <span>{{ 'product.fields.detail' | translate }} *</span>
           <textarea class="input" formControlName="detail"
@@ -184,10 +184,10 @@
 
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ editId() == null ? ('product.create' | translate) : ('product.save' | translate) }}
+            {{ editId() == null ? 'Crear' : 'Guardar' }}
           </button>
           <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'product.cancel' | translate }}
+            Cancelar
           </button>
         </div>
       </form>

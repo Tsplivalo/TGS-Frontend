@@ -2,12 +2,21 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { forkJoin } from 'rxjs';
+
+// Services
 import { ShelbyCouncilService } from '../../services/shelby-council/shelby-council';
+import { PartnerService } from '../../services/partner/partner';
+import { DecisionService } from '../../services/decision/decision';
+
+// Models
 import {
   ShelbyCouncilDTO,
   CreateShelbyCouncilDTO,
   PatchShelbyCouncilDTO
 } from '../../models/shelby-council/shelby-council.model';
+import { PartnerDTO } from '../../models/partner/partner.model';
+import { DecisionDTO } from '../../models/decision/decision.model';
 
 @Component({
   selector: 'app-shelby-council',
@@ -19,32 +28,44 @@ import {
 export class ShelbyCouncilComponent implements OnInit {
   private fb  = inject(FormBuilder);
   private srv = inject(ShelbyCouncilService);
+  private partnerSrv = inject(PartnerService);
+  private decisionSrv = inject(DecisionService);
   private tr  = inject(TranslateService);
 
   // Estado
   items   = signal<ShelbyCouncilDTO[]>([]);
   loading = signal(false);
   error   = signal<string | null>(null);
+  success = signal<string | null>(null);
   isNewOpen = signal(false);
   isEdit    = signal(false);
 
+  // ✅ Datos para selects
+  partners = signal<PartnerDTO[]>([]);
+  decisions = signal<DecisionDTO[]>([]);
+
   // Filtros
   fText = signal<string>('');
-  fPartnerDni = signal<string>('');
-  fDecisionId = signal<number | null>(null);
 
-  // Formulario
+  // Formulario con validaciones mejoradas
   form = this.fb.group({
     id: this.fb.control<number | null>(null),
-    partnerDni: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
-    decisionId: this.fb.nonNullable.control<number | null>(null, [Validators.required]),
-    joinDate: this.fb.control<string | null>(this.todayISO()),
-    role: this.fb.control<string | null>(null),
-    notes: this.fb.control<string | null>(null),
+    partnerDni: this.fb.control<string>('', [
+      Validators.required, 
+      Validators.minLength(6),
+      Validators.pattern(/^[0-9]+$/)
+    ]),
+    decisionId: this.fb.control<number | null>(null, [
+      Validators.required,
+      Validators.min(1)
+    ]),
+    joinDate: this.fb.control<string>(this.todayISO(), [Validators.required]),
+    role: this.fb.control<string>(''),
+    notes: this.fb.control<string>(''),
   });
 
   ngOnInit(): void {
-    this.load();
+    this.loadAll();
   }
 
   // Lista filtrada por texto local
@@ -70,7 +91,11 @@ export class ShelbyCouncilComponent implements OnInit {
   toggleNew(): void {
     const open = !this.isNewOpen();
     this.isNewOpen.set(open);
-    if (!open) this.new();
+    if (!open) {
+      this.new();
+    } else {
+      this.clearMessages();
+    }
   }
 
   new(): void {
@@ -80,120 +105,187 @@ export class ShelbyCouncilComponent implements OnInit {
       partnerDni: '',
       decisionId: null,
       joinDate: this.todayISO(),
-      role: null,
-      notes: null,
+      role: '',
+      notes: '',
     });
+    // Re-habilitar campos
+    this.form.get('partnerDni')?.enable();
+    this.form.get('decisionId')?.enable();
+    this.clearMessages();
   }
 
   edit(it: ShelbyCouncilDTO): void {
     this.isEdit.set(true);
     
     // Convertir ISO datetime a date para el input
-    const joinDate = it.joinDate ? it.joinDate.substring(0, 10) : this.todayISO().substring(0, 10);
+    const joinDate = it.joinDate ? it.joinDate.substring(0, 10) : this.todayISO();
     
     this.form.patchValue({
       id: it.id,
-      partnerDni: (it.partner?.dni ?? ''),
-      decisionId: (it.decision?.id ?? null),
+      partnerDni: it.partner?.dni ?? '',
+      decisionId: it.decision?.id ?? null,
       joinDate: joinDate,
-      role: (it.role ?? null),
-      notes: (it.notes ?? null),
+      role: it.role ?? '',
+      notes: it.notes ?? '',
     });
+
+    // Deshabilitar campos que no se pueden editar
+    this.form.get('partnerDni')?.disable();
+    this.form.get('decisionId')?.disable();
+
     this.isNewOpen.set(true);
+    this.clearMessages();
   }
 
   save(): void {
     if (this.form.invalid) { 
-      this.form.markAllAsTouched(); 
+      this.form.markAllAsTouched();
+      this.error.set(this.tr.instant('shelbyCouncil.formInvalid') || 'Por favor completa los campos requeridos');
       return; 
     }
 
     this.loading.set(true);
-    this.error.set(null);
+    this.clearMessages();
 
     const { id, ...rest } = this.form.getRawValue();
 
     if (!this.isEdit()) {
-      // CREAR - convertir date a ISO datetime
+      // CREAR
       const payload: CreateShelbyCouncilDTO = {
-        partnerDni: rest.partnerDni,
+        partnerDni: rest.partnerDni!,
         decisionId: rest.decisionId!,
         joinDate: rest.joinDate ? this.toISODateTime(rest.joinDate) : undefined,
-        role: rest.role ?? undefined,
-        notes: rest.notes ?? undefined,
+        role: rest.role || undefined,
+        notes: rest.notes || undefined,
       };
 
       this.srv.create(payload).subscribe({
         next: () => {
+          this.success.set(this.tr.instant('shelbyCouncil.successCreate') || 'Registro creado exitosamente');
           this.new();
           this.isNewOpen.set(false);
-          this.load();
+          this.loadAll();
+          setTimeout(() => this.clearMessages(), 3000);
         },
         error: (e) => {
-          const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorCreate')) || 'Error al crear';
-          this.error.set(errorMsg);
-          this.loading.set(false);
+          this.handleError(e, 'shelbyCouncil.errorCreate', 'Error al crear el registro');
         }
       });
     } else {
       // ACTUALIZAR
       const payload: PatchShelbyCouncilDTO = {
         joinDate: rest.joinDate ? this.toISODateTime(rest.joinDate) : undefined,
-        role: rest.role ?? undefined,
-        notes: rest.notes ?? undefined,
+        role: rest.role || undefined,
+        notes: rest.notes || undefined,
       };
 
       this.srv.update(id!, payload).subscribe({
         next: () => {
+          this.success.set(this.tr.instant('shelbyCouncil.successUpdate') || 'Registro actualizado exitosamente');
           this.new();
           this.isNewOpen.set(false);
-          this.load();
+          this.loadAll();
+          setTimeout(() => this.clearMessages(), 3000);
         },
         error: (e) => {
-          const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorSave')) || 'Error al guardar';
-          this.error.set(errorMsg);
-          this.loading.set(false);
+          this.handleError(e, 'shelbyCouncil.errorSave', 'Error al actualizar el registro');
         }
       });
     }
   }
 
   delete(it: ShelbyCouncilDTO): void {
-    const msg = this.tr.instant('shelbyCouncil.confirmDelete') || '¿Eliminar registro?';
+    const msg = this.tr.instant('shelbyCouncil.confirmDelete', { 
+      partner: it.partner?.name || it.partner?.dni,
+      decision: it.decision?.description || `#${it.decision?.id}`
+    }) || `¿Eliminar la relación entre ${it.partner?.name} y la decisión #${it.decision?.id}?`;
+    
     if (!confirm(msg)) return;
 
     this.loading.set(true);
+    this.clearMessages();
+
     this.srv.delete(it.id).subscribe({
       next: () => { 
-        this.load(); 
+        this.success.set(this.tr.instant('shelbyCouncil.successDelete') || 'Registro eliminado exitosamente');
+        this.loadAll();
+        setTimeout(() => this.clearMessages(), 3000);
       },
       error: (e) => {
-        const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorDelete')) || 'No se pudo eliminar.';
-        this.error.set(errorMsg);
-        this.loading.set(false);
+        this.handleError(e, 'shelbyCouncil.errorDelete', 'No se pudo eliminar el registro');
       }
     });
   }
 
   trackById = (_: number, it: ShelbyCouncilDTO) => it.id;
 
-  // Carga de datos - usa el endpoint correcto con paginación
-  private load(): void {
-    this.loading.set(true);
-    this.error.set(null);
+  // Getters para validación del formulario
+  get partnerDniInvalid(): boolean {
+    const control = this.form.get('partnerDni');
+    return !!(control?.invalid && control?.touched);
+  }
 
-    // Usamos limit alto para traer todos los registros (o implementar paginación real)
-    this.srv.list({ limit: 1000 }).subscribe({
-      next: (res) => { 
-        this.items.set(res.data ?? []); 
-        this.loading.set(false); 
+  get decisionIdInvalid(): boolean {
+    const control = this.form.get('decisionId');
+    return !!(control?.invalid && control?.touched);
+  }
+
+  get joinDateInvalid(): boolean {
+    const control = this.form.get('joinDate');
+    return !!(control?.invalid && control?.touched);
+  }
+
+  /**
+   * ✅ Carga paralela de TODOS los datos necesarios
+   * - Consejos Shelby
+   * - Partners
+   * - Decisions
+   */
+  private loadAll(): void {
+    this.loading.set(true);
+    this.clearMessages();
+
+    forkJoin({
+      councils: this.srv.list(),
+      partners: this.partnerSrv.list(),
+      decisions: this.decisionSrv.getAll()
+    }).subscribe({
+      next: (res) => {
+        // Consejos
+        this.items.set(res.councils.data ?? []);
+        
+        // Partners
+        this.partners.set(res.partners.data ?? []);
+        
+        // Decisions
+        this.decisions.set(res.decisions ?? []);
+        
+        this.loading.set(false);
       },
       error: (e) => {
-        const errorMsg = (e?.error?.message ?? this.tr.instant('shelbyCouncil.errorLoad')) || 'Error al cargar';
-        this.error.set(errorMsg);
-        this.loading.set(false);
+        this.handleError(e, 'shelbyCouncil.errorLoad', 'Error al cargar los registros');
       }
     });
+  }
+
+  private handleError(e: any, translationKey: string, defaultMsg: string): void {
+    let errorMsg = defaultMsg;
+    
+    if (e?.error?.message) {
+      errorMsg = e.error.message;
+    } else if (e?.error?.errors && Array.isArray(e.error.errors)) {
+      errorMsg = e.error.errors.map((err: any) => err.message).join(', ');
+    } else {
+      errorMsg = this.tr.instant(translationKey) || defaultMsg;
+    }
+    
+    this.error.set(errorMsg);
+    this.loading.set(false);
+  }
+
+  private clearMessages(): void {
+    this.error.set(null);
+    this.success.set(null);
   }
 
   // Helper: fecha ISO actual (YYYY-MM-DD)
@@ -209,7 +301,7 @@ export class ShelbyCouncilComponent implements OnInit {
     // Si ya es ISO completo, retornar
     if (dateStr.includes('T')) return dateStr;
     
-    // Agregar hora por defecto (10:00:00)
-    return `${dateStr}T10:00:00Z`;
+    // Agregar hora por defecto (10:00:00 UTC)
+    return `${dateStr}T10:00:00.000Z`;
   }
 }

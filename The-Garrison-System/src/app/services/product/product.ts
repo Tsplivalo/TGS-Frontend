@@ -1,3 +1,9 @@
+/**
+ * Servicio de gestión de productos
+ * 
+ * Este servicio proporciona métodos para realizar operaciones CRUD
+ * sobre productos en el sistema, incluyendo búsqueda y filtrado.
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
@@ -8,57 +14,98 @@ import {
   UpdateProductDTO,
 } from '../../models/product/product.model';
 
+/**
+ * Servicio para gestión de productos
+ * 
+ * Proporciona métodos para crear, leer, actualizar y eliminar productos,
+ * así como funcionalidades de búsqueda y filtrado avanzado.
+ */
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private http = inject(HttpClient);
   private base = '/api/products';
 
-  /** GET /api/products - Obtiene todos los productos */
+  /**
+   * Obtiene todos los productos disponibles
+   * 
+   * GET /api/products - Lista completa de productos
+   * @returns Observable con array de productos
+   */
   getAllProducts(): Observable<ProductDTO[]> {
     return this.http.get<ApiResponse<ProductDTO[]>>(this.base).pipe(
       map((res: any) => ('data' in res ? res.data : res) as ProductDTO[])
     );
   }
 
-  /** Alias opcional */
-  list(): Observable<ProductDTO[]> { 
-    return this.getAllProducts(); 
+  /**
+   * Alias para getAllProducts() - proporciona una interfaz más simple
+   * @returns Observable con array de productos
+   */
+  list(): Observable<ProductDTO[]> {
+    return this.getAllProducts();
   }
 
-  /** GET /api/products/:id - Obtiene un producto por ID */
+  /**
+   * Obtiene un producto específico por su ID
+   * 
+   * GET /api/products/:id - Producto individual
+   * @param id - ID del producto a obtener
+   * @returns Observable con los datos del producto
+   */
   getProduct(id: number): Observable<ProductDTO> {
     return this.http.get<ApiResponse<ProductDTO>>(`${this.base}/${id}`).pipe(
       map((res: any) => ('data' in res ? res.data : res) as ProductDTO)
     );
   }
 
-  /** POST /api/products - Crea un nuevo producto */
+  /**
+   * Crea un nuevo producto en el sistema
+   * 
+   * POST /api/products - Creación de producto
+   * @param payload - Datos del producto a crear
+   * @returns Observable con la respuesta de la API
+   */
   createProduct(payload: CreateProductDTO): Observable<ApiResponse<ProductDTO>> {
-    // ✅ NO enviar imageUrl al backend (se maneja en front con ProductImageService)
-    const { imageUrl, ...clean } = payload as any;
-    return this.http.post<ApiResponse<ProductDTO>>(this.base, clean);
+    return this.http.post<ApiResponse<ProductDTO>>(this.base, payload);
   }
 
-  /** PATCH /api/products/:id - Actualiza un producto */
+  /**
+   * Actualiza un producto existente
+   * 
+   * PATCH /api/products/:id - Actualización parcial
+   * @param id - ID del producto a actualizar
+   * @param payload - Datos a actualizar
+   * @returns Observable con la respuesta de la API
+   */
   updateProduct(id: number, payload: UpdateProductDTO): Observable<ApiResponse<ProductDTO>> {
-    // ✅ NO enviar imageUrl al backend
-    const { imageUrl, ...clean } = payload as any;
-    return this.http.patch<ApiResponse<ProductDTO>>(`${this.base}/${id}`, clean);
+    return this.http.patch<ApiResponse<ProductDTO>>(`${this.base}/${id}`, payload);
   }
 
-  /** DELETE /api/products/:id - Elimina un producto */
+  /**
+   * Elimina un producto del sistema
+   * 
+   * DELETE /api/products/:id - Eliminación de producto
+   * @param id - ID del producto a eliminar
+   * @returns Observable con la respuesta de la API
+   */
   deleteProduct(id: number): Observable<ApiResponse<unknown>> {
     return this.http.delete<ApiResponse<unknown>>(`${this.base}/${id}`);
   }
 
-  /** GET /api/products/search - Búsqueda avanzada */
+  /**
+   * Realiza búsqueda avanzada de productos
+   * 
+   * GET /api/products/search - Búsqueda con filtros
+   * @param params - Parámetros de búsqueda y filtrado
+   * @returns Observable con array de productos filtrados
+   */
   searchProducts(params: {
-    q?: string;
-    by?: 'description' | 'legal';
-    min?: number;
-    max?: number;
-    page?: number;
-    limit?: number;
+    q?: string;                    // Término de búsqueda
+    by?: 'description' | 'legal';  // Campo por el cual buscar
+    min?: number;                  // Precio mínimo
+    max?: number;                  // Precio máximo
+    page?: number;                 // Página para paginación
+    limit?: number;                // Límite de resultados por página
   }): Observable<ProductDTO[]> {
     return this.http.get<ApiResponse<ProductDTO[]>>(`${this.base}/search`, { params: params as any }).pipe(
       map((res: any) => ('data' in res ? res.data : res) as ProductDTO[])

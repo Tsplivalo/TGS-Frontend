@@ -2,13 +2,20 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { forkJoin } from 'rxjs';
+
+// Services
 import { MonthlyReviewService } from '../../services/monthly-review/monthly-review';
+import { PartnerService } from '../../services/partner/partner';
+
+// Models
 import {
   MonthlyReviewDTO,
   CreateMonthlyReviewDTO,
   PatchMonthlyReviewDTO,
   ReviewStatus
 } from '../../models/monthly-review/monthly-review.model';
+import { PartnerDTO } from '../../models/partner/partner.model';
 
 @Component({
   selector: 'app-monthly-review',
@@ -20,6 +27,7 @@ import {
 export class MonthlyReviewComponent implements OnInit {
   private fb  = inject(FormBuilder);
   private srv = inject(MonthlyReviewService);
+  private partnerSrv = inject(PartnerService);
   private tr  = inject(TranslateService);
 
   // Estado
@@ -30,6 +38,9 @@ export class MonthlyReviewComponent implements OnInit {
   isNewOpen = signal(false);
   isEdit    = signal(false);
 
+  // ✅ Datos para select
+  partners = signal<PartnerDTO[]>([]);
+
   // Filtros
   fYear  = signal<number>(new Date().getFullYear());
   fMonth = signal<number | null>(null);
@@ -38,9 +49,9 @@ export class MonthlyReviewComponent implements OnInit {
   // Formulario
   form = this.fb.group({
     id: this.fb.control<number | null>(null),
-    partnerDni: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
-    year:  this.fb.nonNullable.control(new Date().getFullYear(), [Validators.required, Validators.min(2000)]),
-    month: this.fb.nonNullable.control(new Date().getMonth() + 1, [Validators.required, Validators.min(1), Validators.max(12)]),
+    partnerDni: this.fb.control<string>('', [Validators.required, Validators.minLength(6)]),
+    year:  this.fb.control<number>(new Date().getFullYear(), [Validators.required, Validators.min(2000)]),
+    month: this.fb.control<number>(new Date().getMonth() + 1, [Validators.required, Validators.min(1), Validators.max(12)]),
     reviewDate: this.fb.control<string | null>(this.todayISO()),
     status: this.fb.control<ReviewStatus>('PENDING'),
     observations: this.fb.control<string | null>(null),
@@ -48,8 +59,7 @@ export class MonthlyReviewComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.load();
-    this.loadStatistics();
+    this.loadAll();
   }
 
   // Lista filtrada por año/mes/status
@@ -120,23 +130,32 @@ export class MonthlyReviewComponent implements OnInit {
     if (!this.isEdit()) {
       // CREAR - convertir date a ISO datetime
       const payload: CreateMonthlyReviewDTO = {
-        year: rest.year,
-        month: rest.month,
-        partnerDni: rest.partnerDni,
-        reviewDate: rest.reviewDate ? this.toISODateTime(rest.reviewDate) : undefined,
-        status: rest.status ?? undefined,
-        observations: rest.observations ?? undefined,
-        recommendations: rest.recommendations ?? undefined,
+        year: rest.year!,
+        month: rest.month!,
+        partnerDni: rest.partnerDni!,
+        // Solo incluir reviewDate si existe y no está vacío
+        ...(rest.reviewDate && rest.reviewDate.trim() !== '' && {
+          reviewDate: this.toISODateTime(rest.reviewDate)
+        }),
+        ...(rest.status && { status: rest.status }),
+        ...(rest.observations && rest.observations.trim() !== '' && {
+          observations: rest.observations
+        }),
+        ...(rest.recommendations && rest.recommendations.trim() !== '' && {
+          recommendations: rest.recommendations
+        }),
       };
+
+      console.log('📤 Payload CREATE:', payload);
 
       this.srv.create(payload).subscribe({
         next: () => {
           this.new();
           this.isNewOpen.set(false);
-          this.load();
-          this.loadStatistics();
+          this.loadAll();
         },
         error: (e) => {
+          console.error('❌ Error CREATE:', e);
           const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorCreate')) || 'Error al crear';
           this.error.set(errorMsg);
           this.loading.set(false);
@@ -145,20 +164,28 @@ export class MonthlyReviewComponent implements OnInit {
     } else {
       // ACTUALIZAR
       const payload: PatchMonthlyReviewDTO = {
-        reviewDate: rest.reviewDate ? this.toISODateTime(rest.reviewDate) : undefined,
-        status: rest.status ?? undefined,
-        observations: rest.observations ?? undefined,
-        recommendations: rest.recommendations ?? undefined,
+        ...(rest.reviewDate && rest.reviewDate.trim() !== '' && {
+          reviewDate: this.toISODateTime(rest.reviewDate)
+        }),
+        ...(rest.status && { status: rest.status }),
+        ...(rest.observations !== null && rest.observations !== undefined && {
+          observations: rest.observations
+        }),
+        ...(rest.recommendations !== null && rest.recommendations !== undefined && {
+          recommendations: rest.recommendations
+        }),
       };
+
+      console.log('📤 Payload UPDATE:', payload);
 
       this.srv.update(id!, payload).subscribe({
         next: () => {
           this.new();
           this.isNewOpen.set(false);
-          this.load();
-          this.loadStatistics();
+          this.loadAll();
         },
         error: (e) => {
+          console.error('❌ Error UPDATE:', e);
           const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorSave')) || 'Error al guardar';
           this.error.set(errorMsg);
           this.loading.set(false);
@@ -174,8 +201,7 @@ export class MonthlyReviewComponent implements OnInit {
     this.loading.set(true);
     this.srv.delete(it.id).subscribe({
       next: () => { 
-        this.load();
-        this.loadStatistics();
+        this.loadAll();
       },
       error: (e) => {
         const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorDelete')) || 'No se pudo eliminar.';
@@ -192,19 +218,34 @@ export class MonthlyReviewComponent implements OnInit {
 
   trackById = (_: number, it: MonthlyReviewDTO) => it.id;
 
-  // Carga de datos
-  private load(): void {
+  /**
+   * ✅ Carga paralela de TODOS los datos necesarios
+   * - Revisiones mensuales
+   * - Partners
+   * - Estadísticas
+   */
+  private loadAll(): void {
     this.loading.set(true);
     this.error.set(null);
 
-    // Usar limit alto para traer todos los registros
-    this.srv.list({ limit: 1000 }).subscribe({
-      next: (res) => { 
-        this.items.set(res.data ?? []); 
-        this.loading.set(false); 
+    forkJoin({
+      reviews: this.srv.search(),
+      partners: this.partnerSrv.list()
+    }).subscribe({
+      next: (res) => {
+        // Revisiones
+        this.items.set(res.reviews.data ?? []);
+        
+        // Partners
+        this.partners.set(res.partners.data ?? []);
+        
+        this.loading.set(false);
+        
+        // Cargar estadísticas después
+        this.loadStatistics();
       },
       error: (e) => {
-        const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorLoad')) || 'Error al cargar';
+        const errorMsg = e?.error?.message || 'Error al cargar datos';
         this.error.set(errorMsg);
         this.loading.set(false);
       }
@@ -215,11 +256,22 @@ export class MonthlyReviewComponent implements OnInit {
     const year = this.fYear();
     const month = this.fMonth() ?? undefined;
 
+    // Validar que year sea un número válido antes de hacer la petición
+    if (!year || isNaN(year) || year < 2000) {
+      console.warn('⚠️ Año inválido para estadísticas:', year);
+      this.statistics.set(null);
+      return;
+    }
+
+    console.log('📊 Loading statistics:', { year, month, groupBy: 'product' });
+
     this.srv.statistics({ year, month, groupBy: 'product' }).subscribe({
       next: (res) => {
+        console.log('✅ Statistics loaded:', res.data);
         this.statistics.set(res.data);
       },
-      error: () => {
+      error: (e) => {
+        console.error('❌ Error loading statistics:', e);
         this.statistics.set(null);
       }
     });
@@ -234,8 +286,19 @@ export class MonthlyReviewComponent implements OnInit {
   }
 
   private toISODateTime(dateStr: string): string {
+    // Si ya tiene formato ISO completo, devolverlo
     if (dateStr.includes('T')) return dateStr;
-    return `${dateStr}T10:00:00Z`;
+    
+    // Validar que la fecha sea válida
+    const date = new Date(dateStr + 'T12:00:00.000Z');
+    if (isNaN(date.getTime())) {
+      // Si la fecha no es válida, usar la fecha actual
+      console.warn('⚠️ Fecha inválida, usando fecha actual');
+      return new Date().toISOString();
+    }
+    
+    // Agregar hora del mediodía UTC para evitar problemas de zona horaria
+    return dateStr + 'T12:00:00.000Z';
   }
 
   // Para usar en el template

@@ -367,28 +367,78 @@
     },
     "err": { "zoneIdInvalid": "El ID de la zona debe ser un número válido mayor a 0." }
   },
+  
   "bribes": {
-    "title": "Sobornos",
-    "empty": "Sin sobornos",
-    "filters": { "search": "Buscar", "searchPh": "id, id de venta, id de autoridad" },
+    "title": "Gestión de Sobornos",
+    "new": "+ Nuevo Soborno",
+    "newTitle": "Crear Nuevo Soborno",
+    "editTitle": "Editar Soborno",
+    "loading": "Cargando sobornos...",
+    "noResults": "No se encontraron sobornos",
+    "confirmPay": "¿Confirmar el pago de este soborno?",
+    "confirmDelete": "¿Eliminar este soborno? Esta acción no se puede deshacer.",
+    
+    "filters": {
+      "search": "Buscar",
+      "searchPh": "Buscar por ID, monto, autoridad...",
+      "paid": "Estado de Pago",
+      "paid_all": "Todos",
+      "paid_yes": "Pagados",
+      "paid_no": "Pendientes",
+      "dateType": "Tipo de Fecha",
+      "dateType_all": "Todas las fechas",
+      "dateType_exact": "Fecha exacta",
+      "dateType_before": "Antes de",
+      "dateType_after": "Después de",
+      "dateType_between": "Entre fechas",
+      "date": "Fecha",
+      "endDate": "Fecha Final"
+    },
+    
     "table": {
       "id": "ID",
-      "sale": "Venta",
-      "authority": "Autoridad",
       "amount": "Monto",
-      "paid": "Pagado",
-      "date": "Fecha",
-      "actions": "Acciones"
+      "authority": "Autoridad",
+      "sale": "Venta",
+      "paid": "Estado",
+      "date": "Fecha de Creación"
     },
-    "actions": { "markPaid": "Marcar como pagado" },
-    "yes": "Sí",
-    "no": "No",
-    "err": { "completeAll": "Completá todos los campos.", "noChanges": "No hay cambios para guardar." },
-    "errorLoad": "No se pudieron cargar los sobornos.",
-    "errorCreate": "No se pudo crear.",
-    "errorUpdate": "No se pudo actualizar.",
-    "errorMarkPaid": "No se pudo marcar como pagado."
+    
+    "status": {
+      "paid": "Pagado",
+      "pending": "Pendiente"
+    },
+    
+    "actions": {
+      "pay": "Marcar como Pagado"
+    },
+    
+    "form": {
+      "amount": "Monto",
+      "amountPh": "Ingrese el monto del soborno",
+      "authority": "ID de Autoridad",
+      "authorityPh": "Ingrese el ID de la autoridad",
+      "sale": "ID de Venta",
+      "salePh": "Ingrese el ID de la venta",
+      "editNote": "Nota: Solo se puede editar el monto. La autoridad y venta no pueden modificarse."
+    },
+    
+    "errors": {
+      "amountRequired": "El monto es requerido",
+      "authorityIdRequired": "El ID de autoridad es requerido",
+      "saleIdRequired": "El ID de venta es requerido",
+      "minValue": "El valor mínimo es {{min}}",
+      "invalid": "Valor inválido"
+    },
+    
+    "errorLoad": "Error al cargar los sobornos",
+    "errorSearch": "Error al buscar sobornos",
+    "errorCreate": "Error al crear el soborno",
+    "errorSave": "Error al guardar el soborno",
+    "errorPay": "Error al procesar el pago",
+    "errorDelete": "Error al eliminar el soborno"
   },
+  
   "decisions": {
     "title": "Decisiones estratégicas",
     "new": "Nueva",
@@ -661,49 +711,54 @@
     },
   
   
-    "clandestineAgreement": {
-      "title": "Acuerdos Clandestinos",
-      "list": "Lista de Acuerdos",
-      "emptyTitle": "No hay acuerdos clandestinos",
-      "emptyHint": "Crea un nuevo acuerdo para comenzar",
-      "confirmDelete": "¿Estás seguro de eliminar este acuerdo clandestino?",
       
-      "buttons": {
-        "new": "Nuevo Acuerdo",
-        "clear": "Limpiar Formulario"
-      },
-      
-      "filters": {
-        "search": "Buscar",
-        "searchPlaceholder": "Buscar por ID, descripción, admin, autoridad..."
-      },
-      
-      "table": {
-        "shelbyCouncil": "Consejo Shelby",
-        "admin": "Administrador",
-        "authority": "Autoridad",
-        "date": "Fecha Acuerdo",
-        "status": "Estado",
-        "description": "Descripción"
-      },
-      
-      "form": {
-        "titleCreate": "Crear Nuevo Acuerdo Clandestino",
-        "titleEdit": "Editar Acuerdo #{{id}}",
+      "clandestineAgreement": {
+        "title": "Acuerdos Clandestinos",
+        "list": "Listado de Acuerdos",
+        "emptyTitle": "No hay acuerdos clandestinos",
+        "emptyHint": "Utiliza el botón 'Nuevo' para crear el primer acuerdo clandestino",
+        "confirmDelete": "¿Eliminar este acuerdo clandestino?",
         
-        "fields": {
-          "shelbyCouncilId": "ID Consejo Shelby",
-          "adminDni": "DNI del Administrador",
-          "authorityDni": "DNI de la Autoridad",
-          "agreementDate": "Fecha del Acuerdo",
-          "description": "Descripción del Acuerdo",
-          "status": "Estado"
+        "buttons": {
+          "new": "Nuevo",
+          "clear": "Limpiar"
         },
         
-        "hints": {
-          "cannotChangeRelations": "Las relaciones no pueden modificarse después de crear el acuerdo"
+        "filters": {
+          "search": "Buscar",
+          "searchPlaceholder": "Buscar por ID, DNI, nombre o descripción..."
+        },
+        
+        "table": {
+          "shelbyCouncil": "Consejo Shelby",
+          "admin": "Administrador",
+          "authority": "Autoridad",
+          "date": "Fecha del Acuerdo",
+          "status": "Estado",
+          "description": "Descripción"
+        },
+        
+        "form": {
+          "titleCreate": "Crear Nuevo Acuerdo Clandestino",
+          "titleEdit": "Editar Acuerdo #{{id}}",
+          
+          "fields": {
+            "shelbyCouncilId": "ID Consejo Shelby",
+            "adminDni": "DNI Administrador",
+            "authorityDni": "DNI Autoridad",
+            "agreementDate": "Fecha del Acuerdo",
+            "status": "Estado",
+            "description": "Descripción"
+          },
+          
+          "hints": {
+            "cannotChangeRelations": "No se pueden modificar las relaciones en modo edición"
+          }
         }
       }
       
+      
     }
-}
+    
+  
+

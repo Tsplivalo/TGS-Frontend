@@ -2,12 +2,23 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { forkJoin } from 'rxjs';
+
+// Servicios
 import { ClandestineAgreementService } from '../../services/clandestine-agreement/clandestine-agreement';
+import { AuthorityService } from '../../services/authority/authority';
+import { AdminService } from '../../services/admin/admin';
+import { ShelbyCouncilService } from '../../services/shelby-council/shelby-council';
+
+// Modelos
 import {
   ClandestineAgreementDTO,
   CreateClandestineAgreementDTO,
   UpdateClandestineAgreementDTO
 } from '../../models/clandestine-agreement/clandestine-agreement.model';
+import { AuthorityDTO } from '../../models/authority/authority.model';
+import { AdminDTO } from '../../models/admin/admin.model';
+import { ShelbyCouncilDTO } from '../../models/shelby-council/shelby-council.model';
 
 @Component({
   selector: 'app-clandestine-agreement',
@@ -19,8 +30,12 @@ import {
 export class ClandestineAgreementComponent implements OnInit {
   private fb  = inject(FormBuilder);
   private srv = inject(ClandestineAgreementService);
+  private authSrv = inject(AuthorityService);
+  private adminSrv = inject(AdminService);
+  private councilSrv = inject(ShelbyCouncilService);
   private tr  = inject(TranslateService);
 
+  // Estado
   items   = signal<ClandestineAgreementDTO[]>([]);
   loading = signal(false);
   error   = signal<string | null>(null);
@@ -30,18 +45,23 @@ export class ClandestineAgreementComponent implements OnInit {
 
   fText = signal('');
 
+  //  Datos reales desde la API
+  authorities = signal<AuthorityDTO[]>([]);
+  admins = signal<AdminDTO[]>([]);
+  councils = signal<ShelbyCouncilDTO[]>([]);
+
   form = this.fb.group({
     id:              this.fb.control<number | null>(null),
     shelbyCouncilId: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
-    adminDni:        this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
-    authorityDni:    this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
+    adminDni:        this.fb.control<string>('', [Validators.required, Validators.minLength(6)]),
+    authorityDni:    this.fb.control<string>('', [Validators.required, Validators.minLength(6)]),
     agreementDate:   this.fb.control<string | null>(null),
-    description:     this.fb.nonNullable.control(''),
+    description:     this.fb.control<string>(''),
     status:          this.fb.control<'ACTIVE'|'COMPLETED'|'CANCELLED'>('ACTIVE'),
   });
 
   ngOnInit(): void { 
-    this.load(); 
+    this.loadAll(); 
   }
 
   filtered = computed(() => {
@@ -75,6 +95,7 @@ export class ClandestineAgreementComponent implements OnInit {
       description: '',
       status: 'ACTIVE'
     });
+    this.isNewOpen.set(true);
   }
 
   edit(it: ClandestineAgreementDTO): void {
@@ -104,11 +125,17 @@ export class ClandestineAgreementComponent implements OnInit {
 
     if (!this.isEdit()) {
       // CREAR NUEVO ACUERDO
+      // ✅ Convertir fecha YYYY-MM-DD a ISO datetime
+      let agreementDateISO: string | undefined;
+      if (rest.agreementDate) {
+        agreementDateISO = new Date(rest.agreementDate + 'T00:00:00.000Z').toISOString();
+      }
+
       const payload: CreateClandestineAgreementDTO = {
         shelbyCouncilId: rest.shelbyCouncilId!,
-        adminDni: rest.adminDni,
-        authorityDni: rest.authorityDni,
-        agreementDate: rest.agreementDate || undefined,
+        adminDni: rest.adminDni!,
+        authorityDni: rest.authorityDni!,
+        agreementDate: agreementDateISO,
         description: rest.description || undefined,
         status: rest.status || 'ACTIVE',
       };
@@ -117,7 +144,7 @@ export class ClandestineAgreementComponent implements OnInit {
         next: () => { 
           this.new(); 
           this.isNewOpen.set(false); 
-          this.load(); 
+          this.loadAll(); 
         },
         error: (e) => { 
           this.error.set(e?.error?.message ?? 'Error creando acuerdo'); 
@@ -126,9 +153,14 @@ export class ClandestineAgreementComponent implements OnInit {
       });
     } else {
       // ACTUALIZAR ACUERDO EXISTENTE
-      // Solo enviamos los campos que se pueden actualizar
+      // ✅ Convertir fecha YYYY-MM-DD a ISO datetime
+      let agreementDateISO: string | undefined;
+      if (rest.agreementDate) {
+        agreementDateISO = new Date(rest.agreementDate + 'T00:00:00.000Z').toISOString();
+      }
+
       const payload: UpdateClandestineAgreementDTO = {
-        agreementDate: rest.agreementDate || undefined,
+        agreementDate: agreementDateISO,
         description: rest.description || undefined,
         status: rest.status || undefined,
       };
@@ -137,7 +169,7 @@ export class ClandestineAgreementComponent implements OnInit {
         next: () => { 
           this.new(); 
           this.isNewOpen.set(false); 
-          this.load(); 
+          this.loadAll(); 
         },
         error: (e) => { 
           this.error.set(e?.error?.message ?? 'Error actualizando acuerdo'); 
@@ -153,7 +185,7 @@ export class ClandestineAgreementComponent implements OnInit {
     
     this.loading.set(true);
     this.srv.delete(it.id).subscribe({ 
-      next: () => this.load(),
+      next: () => this.loadAll(),
       error: (e) => {
         this.error.set(e?.error?.message ?? 'Error eliminando');
         this.loading.set(false);
@@ -163,17 +195,32 @@ export class ClandestineAgreementComponent implements OnInit {
 
   trackById = (_: number, it: ClandestineAgreementDTO) => it.id;
 
-  private load(): void {
+  /**
+   * ✅ Carga paralela de TODOS los datos necesarios
+   * - Acuerdos clandestinos
+   * - Autoridades
+   * - Administradores
+   * - Consejos Shelby
+   */
+  private loadAll(): void {
     this.loading.set(true);
     this.error.set(null);
     
-    this.srv.list().subscribe({
+    forkJoin({
+      agreements: this.srv.list(),
+      authorities: this.authSrv.getAllAuthorities(),
+      admins: this.adminSrv.list(),
+      councils: this.councilSrv.list()
+    }).subscribe({
       next: (res) => { 
-        this.items.set(res.data ?? []); 
+        this.items.set(res.agreements.data ?? []); 
+        this.authorities.set(res.authorities.data ?? []);
+        this.admins.set(res.admins.data ?? []);
+        this.councils.set(res.councils.data ?? []);
         this.loading.set(false); 
       },
       error: (e) => { 
-        this.error.set(e?.error?.message ?? 'Error cargando acuerdos'); 
+        this.error.set(e?.error?.message ?? 'Error cargando datos'); 
         this.loading.set(false); 
       }
     });

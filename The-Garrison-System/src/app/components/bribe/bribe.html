@@ -6,7 +6,7 @@
       <h2>{{ 'bribes.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ (isNewOpen ? 'common.close' : 'bribes.new') | translate }}
+          {{ (isNewOpen ? 'Cerrar' : 'Nuevo Soborno') | translate }}
         </button>
       </div>
     </div>
@@ -67,7 +67,7 @@
             <th>{{ 'bribes.table.sale' | translate }}</th>
             <th class="center">{{ 'bribes.table.paid' | translate }}</th>
             <th>{{ 'bribes.table.date' | translate }}</th>
-            <th></th>
+            <th class="right">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -88,14 +88,15 @@
             </td>
             <td>{{ b.creationDate | date:'dd/MM/yyyy HH:mm' }}</td>
             <td class="right">
-              <button class="btn success" (click)="markAsPaid(b)" [disabled]="b.paid" *ngIf="!b.paid">
-                {{ 'bribes.actions.pay' | translate }}
+              <button class="btn success btn--icon" (click)="markAsPaid(b)" [disabled]="b.paid" *ngIf="!b.paid"
+                [attr.title]="'bribes.actions.pay' | translate">
+                ✅
               </button>
-              <button class="btn ghost" (click)="edit(b)">
-                {{ 'common.edit' | translate }}
+              <button class="btn ghost btn--icon" (click)="edit(b)" [attr.title]="'common.edit' | translate">
+                ✏️
               </button>
-              <button class="btn danger" (click)="delete(b.id)">
-                {{ 'common.delete' | translate }}
+              <button class="btn danger btn--icon" (click)="delete(b.id)" [attr.title]="'common.delete' | translate">
+                🗑️
               </button>
             </td>
           </tr>
@@ -128,19 +129,36 @@
           </small>
         </label>
 
+        <!-- AUTHORITY - SELECT AMIGABLE (usa DNI como string) -->
         <label class="label" *ngIf="editId() === null">
           <span>{{ 'bribes.form.authority' | translate }} *</span>
-          <input class="input" type="number" formControlName="authorityId"
-            [placeholder]="'bribes.form.authorityPh' | translate" [class.error-input]="hasError('authorityId')" />
+          <select class="input" formControlName="authorityId" [class.error-input]="hasError('authorityId')">
+            <option [ngValue]="null" disabled>— Seleccioná una autoridad —</option>
+            <option *ngFor="let auth of authorities()" [ngValue]="auth.dni">
+              {{ auth.dni }} — {{ auth.name }}<ng-container *ngIf="auth.rank"> ({{ auth.rank }})</ng-container>
+            </option>
+          </select>
+          <small class="muted" *ngIf="!authorities().length && !loading()">
+            No hay autoridades disponibles. Creá una primero.
+          </small>
           <small class="error-text" *ngIf="hasError('authorityId')">
             {{ getErrorMessage('authorityId') }}
           </small>
         </label>
 
+        <!-- SALE - SELECT AMIGABLE -->
         <label class="label" *ngIf="editId() === null">
           <span>{{ 'bribes.form.sale' | translate }} *</span>
-          <input class="input" type="number" formControlName="saleId" [placeholder]="'bribes.form.salePh' | translate"
-            [class.error-input]="hasError('saleId')" />
+          <select class="input" formControlName="saleId" [class.error-input]="hasError('saleId')">
+            <option [ngValue]="null" disabled>— Seleccioná una venta —</option>
+            <option *ngFor="let sale of sales()" [ngValue]="sale.id">
+              Venta #{{ sale.id }}<ng-container *ngIf="sale.client && sale.client.name"> — Cliente: {{ sale.client.name
+                }}</ng-container>
+            </option>
+          </select>
+          <small class="muted" *ngIf="!sales().length && !loading()">
+            No hay ventas disponibles. Creá una primero.
+          </small>
           <small class="error-text" *ngIf="hasError('saleId')">
             {{ getErrorMessage('saleId') }}
           </small>
@@ -154,10 +172,10 @@
 
         <div class="right" style="grid-column: 1 / -1;">
           <button class="btn success" type="submit" [disabled]="loading() || form.invalid">
-            {{ (editId() == null ? 'common.create' : 'common.save') | translate }}
+            {{ (editId() == null ? 'Crear' : 'Guardar') | translate }}
           </button>
           <button class="btn ghost" type="button" (click)="toggleNew()">
-            {{ 'common.cancel' | translate }}
+            {{ 'Cancelar' | translate }}
           </button>
         </div>
       </form>

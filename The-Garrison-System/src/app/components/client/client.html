@@ -6,7 +6,7 @@
       <h2>{{ 'clients.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ (isNewOpen ? 'common.close' : 'clients.new') | translate }}
+          {{ isNewOpen ? '✖️ Cerrar' : '➕ Nuevo Cliente' }}
         </button>
       </div>
     </div>
@@ -45,7 +45,7 @@
             <th>{{ 'clients.table.address' | translate }}</th>
             <th>{{ 'clients.table.phone' | translate }}</th>
             <th class="center">{{ 'clients.table.purchases' | translate }}</th>
-            <th></th>
+            <th class="right">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -57,11 +57,11 @@
             <td>{{ c.phone || '—' }}</td>
             <td class="center">{{ getPurchaseCount(c) }}</td>
             <td class="right">
-              <button class="btn ghost" (click)="edit(c)">
-                {{ 'common.edit' | translate }}
+              <button class="btn ghost btn--icon" (click)="edit(c)" [attr.title]="'common.edit' | translate">
+                ✏️
               </button>
-              <button class="btn danger" (click)="delete(c.dni)">
-                {{ 'common.delete' | translate }}
+              <button class="btn danger btn--icon" (click)="delete(c.dni)" [attr.title]="'common.delete' | translate">
+                🗑️
               </button>
             </td>
           </tr>
@@ -128,10 +128,10 @@
 
         <div class="right" style="grid-column: 1 / -1;">
           <button class="btn success" type="submit" [disabled]="loading() || form.invalid">
-            {{ (editDni() == null ? 'common.create' : 'common.save') | translate }}
+            {{ editDni() == null ? '💾 Crear' : '💾 Guardar' }}
           </button>
           <button class="btn ghost" type="button" (click)="toggleNew()">
-            {{ 'common.cancel' | translate }}
+            ✖️ Cancelar
           </button>
         </div>
       </form>

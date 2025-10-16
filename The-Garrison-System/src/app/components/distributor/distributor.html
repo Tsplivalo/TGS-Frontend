@@ -5,7 +5,7 @@
       <h2 class="title">{{ 'distributors.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="new()">
-          {{ 'distributors.new' | translate }}
+          {{ 'Nuevo Distribuidor' | translate }}
         </button>
       </div>
     </header>
@@ -36,7 +36,7 @@
               <th style="width:220px">{{ 'distributors.table.email' | translate }}</th>
               <th style="width:160px">{{ 'distributors.table.zone' | translate }}</th>
               <th style="width:120px" class="right">{{ 'distributors.table.products' | translate }}</th>
-              <th style="width:220px" class="right">{{ 'distributors.table.actions' | translate }}</th>
+              <th style="width:160px" class="right">{{ 'distributors.table.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -49,13 +49,13 @@
               <td class="right">{{ d.products?.length || 0 }}</td>
               <td class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(d)"
-                  [attr.aria-label]="'common.edit' | translate" [attr.title]="'common.edit' | translate">
-                  ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                  [attr.title]="'common.edit' | translate">
+                  ✏️
                 </button>
 
                 <button class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
-                  [attr.aria-label]="'common.delete' | translate" [attr.title]="'common.delete' | translate">
-                  🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                  [attr.title]="'common.delete' | translate">
+                  🗑️
                 </button>
               </td>
             </tr>
@@ -167,10 +167,10 @@
 
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+            {{ isEdit() ? ('Guardar' | translate) : ('Crear' | translate) }}
           </button>
           <button class="btn ghost" type="button" (click)="cancel()" [disabled]="loading()">
-            {{ 'common.cancel' | translate }}
+            {{ 'Cancelar' | translate }}
           </button>
         </div>
       </form>

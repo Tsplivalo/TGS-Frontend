@@ -10,6 +10,20 @@
     </div>
   </header>
 
+  <!-- ⚠️ Banner de verificación de email -->
+  <div class="verification-banner" *ngIf="!loading() && me() && !me()?.emailVerified" role="alert">
+    <div class="banner-content">
+      <div class="banner-icon">⚠️</div>
+      <div class="banner-text">
+        <strong>Email no verificado</strong>
+        <p>Revisa tu bandeja de entrada y haz clic en el enlace de verificación que te enviamos.</p>
+      </div>
+      <button class="btn-resend" (click)="resendVerificationEmail()" [disabled]="resendingEmail()" type="button">
+        {{ resendingEmail() ? 'Enviando...' : 'Reenviar email' }}
+      </button>
+    </div>
+  </div>
+
   <!-- Estado de carga -->
   <div class="muted" *ngIf="loading()" role="status" aria-live="polite">
     Cargando perfil...

@@ -1,17 +1,36 @@
+/**
+ * Componente de página principal
+ * 
+ * Este componente representa la página de inicio de la aplicación y proporciona:
+ * - Panel de autenticación (login/registro) con animaciones
+ * - Información sobre las características del sistema
+ * - Navegación hacia la tienda para usuarios autenticados
+ * - Gestión de estados de autenticación y verificación de email
+ */
 import { Component, computed, effect, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { EmailVerificationService } from '../../features/inbox/services/email.verification';
 
 // Servicios propios
-import { AuthService } from '../../services/auth/auth'; // ← Actualizado
+import { AuthService } from '../../services/auth/auth';
 
 // i18n (solo pipe)
 import { TranslateModule } from '@ngx-translate/core';
 
+/**
+ * Tipo para elementos de introducción con claves de traducción
+ */
 type IntroItem = { titleKey: string; detailKey: string };
 
+/**
+ * Componente de página principal
+ * 
+ * Standalone component que maneja la autenticación, registro y
+ * presentación de características del sistema.
+ */
 @Component({
   standalone: true,
   selector: 'app-home',
@@ -20,22 +39,41 @@ type IntroItem = { titleKey: string; detailKey: string };
   styleUrls: ['./home.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  // --- Inyección ---
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private emailVerificationService = inject(EmailVerificationService);
 
-  // --- Estado auth (usando el nuevo servicio) ---
-  readonly isLoggedIn = computed(() => this.auth.isAuthenticated()); // ← Actualizado
-  readonly user = computed(() => this.auth.user()); // ← Actualizado
+  /**
+   * Estado de autenticación usando el servicio actualizado
+   */
+  readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
+  readonly user = computed(() => this.auth.user());
 
-  // --- UI auth panel ---
+  /**
+   * Estados para verificación de email
+   */
+  needsEmailVerification = signal(false);
+  resendingEmail = signal(false);
+  emailSent = signal(false);
+
+
+  /**
+   * Control de visibilidad del panel de autenticación
+   */
   showAuthPanel = true;
-  entering = false;
-  hiding = false;
+  entering = false;  // Estado de entrada con animación
+  hiding = false;    // Estado de salida con animación
 
-  // --- Modo (login | register) ---
+  /**
+   * Modo del panel de autenticación (login o registro)
+   */
   mode = signal<'login' | 'register'>('login');
+
+  /**
+   * Cambia el modo del panel y reinicia las animaciones
+   * @param m - Nuevo modo: 'login' o 'register'
+   */
   setMode(m: 'login' | 'register') {
     this.mode.set(m);
     this.restartAnimationForMode();
@@ -377,7 +415,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   onNameBlur() { setTimeout(() => { this.userIsTypingName = false; }, 1000); }
 
   // ===== Login/Register (actualizados con el nuevo servicio) =====
-  
+
   async submitLogin() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -385,7 +423,10 @@ export class HomeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Limpiar estados previos
     this.errorLogin = null;
+    this.needsEmailVerification.set(false);
+    this.emailSent.set(false);
     this.loadingLogin = true;
 
     try {
@@ -394,30 +435,90 @@ export class HomeComponent implements OnInit, OnDestroy {
         throw new Error('Email y contraseña son requeridos');
       }
 
-      // ← Usar el nuevo servicio de auth
       await firstValueFrom(this.auth.login({ email, password }));
 
-      // Ocultar panel con animación
+      // Login exitoso: ocultar panel con animación
       this.hiding = true;
       setTimeout(() => {
         this.showAuthPanel = false;
         this.hiding = false;
-        // Navegar a home o dashboard
         this.router.navigateByUrl('/');
       }, 180);
 
-    } catch (e: any) {
-      console.error('[Home] Login error:', e);
-      this.errorLogin = e?.message || 'Error al iniciar sesión';
+    } catch (error: any) {
+      console.error('[Home] Login error:', error);
+
+      // ✅ Detectar error de verificación de email usando el servicio
+      if (this.emailVerificationService.isEmailVerificationError(error)) {
+        this.needsEmailVerification.set(true);
+        this.errorLogin = 'Debes verificar tu email antes de iniciar sesión.';
+      }
+      // Otros errores comunes
+      else if (error?.status === 401) {
+        this.errorLogin = 'Email o contraseña incorrectos';
+      }
+      else if (error?.status === 404) {
+        this.errorLogin = 'Usuario no encontrado';
+      }
+      else {
+        this.errorLogin = error?.message || 'Error al iniciar sesión';
+      }
     } finally {
       this.loadingLogin = false;
+    }
+  }
+
+  // Método mejorado para reenviar verificación desde home
+  async resendVerificationEmailFromHome() {
+    const email = this.loginForm.get('email')?.value;
+    if (!email) {
+      this.errorLogin = 'Por favor ingresa tu email';
+      return;
+    }
+
+    this.resendingEmail.set(true);
+    this.errorLogin = null;
+    this.emailSent.set(false);
+
+    try {
+      const response = await firstValueFrom(
+        this.emailVerificationService.resendForUnverified(email)
+      );
+
+      if (response.success) {
+        this.emailSent.set(true);
+        this.errorLogin = null;
+        // Opcional: Mostrar mensaje de éxito
+        console.log('[Home] Email de verificación enviado correctamente');
+      } else {
+        this.errorLogin = response.message || 'No se pudo enviar el email.';
+      }
+    } catch (err: any) {
+      console.error('[Home] Resend error:', err);
+
+      // Usar los helpers del servicio para detectar errores específicos
+      if (this.emailVerificationService.isCooldownError(err)) {
+        this.errorLogin = 'Por favor espera 2 minutos antes de reenviar el email.';
+      }
+      else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
+        this.errorLogin = 'Tu email ya está verificado. Intenta iniciar sesión.';
+        this.needsEmailVerification.set(false);
+      }
+      else if (err.status === 404) {
+        this.errorLogin = 'Usuario no encontrado con este email.';
+      }
+      else {
+        this.errorLogin = err.message || 'Error al enviar el email de verificación.';
+      }
+    } finally {
+      this.resendingEmail.set(false);
     }
   }
 
   async submitRegister() {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
-      
+
       // Mostrar error específico según el problema
       const passwordControl = this.registerForm.get('password');
       if (passwordControl?.hasError('pattern')) {

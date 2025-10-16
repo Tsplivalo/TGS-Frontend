@@ -5,7 +5,7 @@
       <h2 class="title">{{ 'clandestineAgreement.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
-          {{ isNewOpen() ? ('common.close' | translate) : ('clandestineAgreement.buttons.new' | translate) }}
+          {{ isNewOpen() ? ('Cerrar' | translate) : ('Nuevo Acuerdo' | translate) }}
         </button>
       </div>
     </header>
@@ -52,12 +52,12 @@
               <td class="truncate">{{ it.description || '—' }}</td>
               <td class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
-                  [title]="'common.edit' | translate">
-                  ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                  [attr.title]="'common.edit' | translate">
+                  ✏️
                 </button>
                 <button class="btn danger btn--icon" type="button" (click)="delete(it)"
-                  [title]="'common.delete' | translate">
-                  🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                  [attr.title]="'common.delete' | translate">
+                  🗑️
                 </button>
               </td>
             </tr>
@@ -90,27 +90,61 @@
         <!-- SHELBY COUNCIL -->
         <label class="label">
           <span>{{ 'clandestineAgreement.form.fields.shelbyCouncilId' | translate }} *</span>
-          <input class="input" type="number" formControlName="shelbyCouncilId" [disabled]="isEdit()" />
+          <select class="input" formControlName="shelbyCouncilId" [disabled]="isEdit()">
+            <option [ngValue]="null" disabled>— Seleccioná un consejo —</option>
+            <option *ngFor="let c of councils()" [ngValue]="c.id">
+              Consejo #{{ c.id }}
+            </option>
+          </select>
+          <small class="muted" *ngIf="!councils().length && !loading()">
+            No hay consejos disponibles. Creá uno primero.
+          </small>
           <small class="muted" *ngIf="isEdit()">
             {{ 'clandestineAgreement.form.hints.cannotChangeRelations' | translate }}
           </small>
+          <small class="hint error"
+            *ngIf="form.controls.shelbyCouncilId.invalid && form.controls.shelbyCouncilId.touched">
+            Campo requerido
+          </small>
         </label>
 
-        <!-- ADMIN DNI -->
+        <!-- ADMIN -->
         <label class="label">
           <span>{{ 'clandestineAgreement.form.fields.adminDni' | translate }} *</span>
-          <input class="input" type="text" formControlName="adminDni" [disabled]="isEdit()" />
+          <select class="input" formControlName="adminDni" [disabled]="isEdit()">
+            <option value="" disabled>— Seleccioná un administrador —</option>
+            <option *ngFor="let a of admins()" [value]="a.dni">
+              {{ a.dni }} — {{ a.name }}
+            </option>
+          </select>
+          <small class="muted" *ngIf="!admins().length && !loading()">
+            No hay administradores disponibles. Creá uno primero.
+          </small>
           <small class="muted" *ngIf="isEdit()">
             {{ 'clandestineAgreement.form.hints.cannotChangeRelations' | translate }}
           </small>
+          <small class="hint error" *ngIf="form.controls.adminDni.invalid && form.controls.adminDni.touched">
+            Campo requerido
+          </small>
         </label>
 
-        <!-- AUTHORITY DNI -->
+        <!-- AUTHORITY -->
         <label class="label">
           <span>{{ 'clandestineAgreement.form.fields.authorityDni' | translate }} *</span>
-          <input class="input" type="text" formControlName="authorityDni" [disabled]="isEdit()" />
+          <select class="input" formControlName="authorityDni" [disabled]="isEdit()">
+            <option value="" disabled>— Seleccioná una autoridad —</option>
+            <option *ngFor="let a of authorities()" [value]="a.dni">
+              {{ a.dni }} — {{ a.name }}
+            </option>
+          </select>
+          <small class="muted" *ngIf="!authorities().length && !loading()">
+            No hay autoridades disponibles. Creá una primero.
+          </small>
           <small class="muted" *ngIf="isEdit()">
             {{ 'clandestineAgreement.form.hints.cannotChangeRelations' | translate }}
+          </small>
+          <small class="hint error" *ngIf="form.controls.authorityDni.invalid && form.controls.authorityDni.touched">
+            Campo requerido
           </small>
         </label>
 
@@ -139,10 +173,10 @@
         <!-- ACTIONS -->
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+            {{ isEdit() ? ('Guardar' | translate) : ('Crear' | translate) }}
           </button>
           <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'clandestineAgreement.buttons.clear' | translate }}
+            {{ 'Limpiar' | translate }}
           </button>
         </div>
       </form>

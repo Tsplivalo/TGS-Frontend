@@ -2,13 +2,23 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
+
+// Services
 import { BribeService } from '../../services/bribe/bribe';
+import { AuthorityService } from '../../services/authority/authority';
+import { SaleService } from '../../services/sale/sale';
+
+// Models
 import { 
   ApiResponse, 
   BribeDTO, 
   CreateBribeDTO, 
   UpdateBribeDTO 
 } from '../../models/bribe/bribe.model';
+import { AuthorityDTO } from '../../models/authority/authority.model';
+import { SaleDTO } from '../../models/sale/sale.model';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 /**
@@ -29,6 +39,8 @@ export class BribeComponent implements OnInit {
   // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(BribeService);
+  private authSrv = inject(AuthorityService);
+  private saleSrv = inject(SaleService);
   private t = inject(TranslateService);
 
   // --- Estado ---
@@ -37,6 +49,10 @@ export class BribeComponent implements OnInit {
   bribes = signal<BribeDTO[]>([]);
   editId = signal<number | null>(null);
   isNewOpen = false;
+
+  // ✅ Datos para selects
+  authorities = signal<AuthorityDTO[]>([]);
+  sales = signal<SaleDTO[]>([]);
 
   // --- Filtros ---
   fText = signal('');
@@ -71,29 +87,46 @@ export class BribeComponent implements OnInit {
   // --- Form reactivo ---
   form = this.fb.group({
     amount: [null as number | null, [Validators.required, Validators.min(0)]],
-    authorityId: [null as number | null, [Validators.required]],
+    authorityId: [null as string | null, [Validators.required]], // ✅ String (DNI)
     saleId: [null as number | null, [Validators.required]],
   });
 
   // --- Ciclo de vida ---
   ngOnInit(): void {
-    this.load();
+    this.loadAll();
   }
 
   // --- Data fetching ---
-  load() {
+  /**
+   * ✅ Carga paralela de TODOS los datos necesarios
+   * - Sobornos
+   * - Autoridades
+   * - Ventas
+   */
+  loadAll() {
     this.loading.set(true);
     this.error.set(null);
 
-    // Si hay filtros activos, usar search
-    if (this.fPaid !== 'all' || this.fDateType !== 'all') {
-      this.search();
-      return;
-    }
+    // Si hay filtros activos en sobornos, usar search
+    const bribesRequest = (this.fPaid !== 'all' || this.fDateType !== 'all')
+      ? this.getBribesFiltered()
+      : this.srv.getAllBribes();
 
-    this.srv.getAllBribes().subscribe({
-      next: (r: ApiResponse<BribeDTO[]>) => {
-        this.bribes.set(r.data ?? []);
+    forkJoin({
+      bribes: bribesRequest,
+      authorities: this.authSrv.getAllAuthorities(),
+      sales: this.saleSrv.getAllSales()
+    }).subscribe({
+      next: (res) => {
+        // Sobornos
+        this.bribes.set(Array.isArray(res.bribes) ? res.bribes : res.bribes.data ?? []);
+        
+        // Autoridades
+        this.authorities.set(res.authorities.data ?? []);
+        
+        // Ventas
+        this.sales.set(res.sales ?? []);
+        
         this.loading.set(false);
       },
       error: (err) => {
@@ -104,27 +137,23 @@ export class BribeComponent implements OnInit {
     });
   }
 
-  // --- Búsqueda con filtros ---
-  search() {
-    this.loading.set(true);
-    this.error.set(null);
-
+  /**
+   * Helper para obtener sobornos filtrados
+   */
+  private getBribesFiltered() {
     const paid = this.fPaid === 'all' ? undefined : this.fPaid;
     const date = this.fDateType !== 'all' && this.fDate ? this.fDate : undefined;
     const type = this.fDateType !== 'all' ? this.fDateType : undefined;
     const endDate = this.fDateType === 'between' && this.fEndDate ? this.fEndDate : undefined;
 
-    this.srv.searchBribes(paid, date, type, endDate).subscribe({
-      next: (r: ApiResponse<BribeDTO[]>) => {
-        this.bribes.set(r.data ?? []);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        const msg = err?.error?.message || this.t.instant('bribes.errorSearch');
-        this.error.set(msg);
-        this.loading.set(false);
-      }
-    });
+    return this.srv.searchBribes(paid, date, type, endDate);
+  }
+
+  /**
+   * Wrapper para recargar cuando cambian filtros
+   */
+  load() {
+    this.loadAll();
   }
 
   // --- UI helpers ---
@@ -142,6 +171,9 @@ export class BribeComponent implements OnInit {
       authorityId: null,
       saleId: null,
     });
+    // Re-habilitar campos
+    this.form.get('authorityId')?.enable();
+    this.form.get('saleId')?.enable();
     this.error.set(null);
   }
 
@@ -174,7 +206,7 @@ export class BribeComponent implements OnInit {
 
     this.srv.payBribes([bribe.id]).subscribe({
       next: () => {
-        this.load();
+        this.loadAll();
       },
       error: (err) => {
         const msg = err?.error?.message || this.t.instant('bribes.errorPay');
@@ -193,7 +225,7 @@ export class BribeComponent implements OnInit {
 
     this.srv.deleteBribe(id).subscribe({
       next: () => {
-        this.load();
+        this.loadAll();
       },
       error: (err) => {
         const msg = err?.error?.message || this.t.instant('bribes.errorDelete');
@@ -226,7 +258,7 @@ export class BribeComponent implements OnInit {
         next: () => {
           this.resetForm();
           this.isNewOpen = false;
-          this.load();
+          this.loadAll();
         },
         error: (err) => {
           const msg = err?.error?.message || this.t.instant('bribes.errorSave');
@@ -238,7 +270,7 @@ export class BribeComponent implements OnInit {
       // Crear nuevo soborno
       const createData: CreateBribeDTO = {
         amount: Number(value.amount!),
-        authorityId: Number(value.authorityId!),
+        authorityId: String(value.authorityId!), // ✅ Enviar como string (DNI)
         saleId: Number(value.saleId!),
       };
 
@@ -246,7 +278,7 @@ export class BribeComponent implements OnInit {
         next: () => {
           this.resetForm();
           this.isNewOpen = false;
-          this.load();
+          this.loadAll();
         },
         error: (err) => {
           const msg = err?.error?.message || this.t.instant('bribes.errorCreate');

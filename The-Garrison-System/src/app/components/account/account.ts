@@ -1,10 +1,12 @@
 // src/app/pages/account/account.component.ts
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../services/auth/auth';
+import { EmailVerificationService } from '../../features/inbox/services/email.verification.js';
 
 @Component({
   selector: 'app-account',
@@ -13,9 +15,11 @@ import { AuthService } from '../../services/auth/auth';
   templateUrl: './account.html',
   styleUrls: ['./account.scss'],
 })
-export class AccountComponent implements OnInit {
-  readonly auth = inject(AuthService);
+export class AccountComponent implements OnInit, OnDestroy {
+  private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly emailVerificationService = inject(EmailVerificationService);
+  private readonly destroy$ = new Subject<void>();
 
   // Estado local
   loading = signal(false);
@@ -23,8 +27,16 @@ export class AccountComponent implements OnInit {
   error = signal<string | null>(null);
   ok = signal<string | null>(null);
   
+  // Estado de verificación de email
+  resendingEmail = signal(false);
+  emailSent = signal(false);
+  
   // Flag para mostrar mensaje de completar perfil
   showCompleteProfileMessage = signal(false);
+
+  // Cooldown para reenvío
+  private cooldownInterval?: ReturnType<typeof setInterval>;
+  resendCooldown = signal(0);
 
   // Señales computadas
   me = computed(() => this.auth.user());
@@ -42,6 +54,12 @@ export class AccountComponent implements OnInit {
     this.fetchMe();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.clearCooldown();
+  }
+
   /**
    * Obtiene el perfil del usuario
    */
@@ -49,15 +67,17 @@ export class AccountComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.auth.me().subscribe({
-      next: () => {
-        this.loading.set(false);
-      },
-      error: (e: HttpErrorResponse) => {
-        this.loading.set(false);
-        this.handleError(e, 'Error al cargar el perfil');
-      },
-    });
+    this.auth.me()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+        },
+        error: (e: HttpErrorResponse) => {
+          this.loading.set(false);
+          this.handleError(e, 'Error al cargar el perfil');
+        },
+      });
   }
 
   /**
@@ -112,24 +132,104 @@ export class AccountComponent implements OnInit {
       name,
       phone,
       address
-    }).subscribe({
-      next: (user) => {
-        this.saving.set(false);
-        this.ok.set('¡Perfil completado exitosamente! 🎉');
-        this.showCompleteProfileMessage.set(false);
-        
-        // Limpiar mensaje después de 3 segundos
-        setTimeout(() => {
-          if (this.ok() === '¡Perfil completado exitosamente! 🎉') {
-            this.ok.set(null);
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          this.saving.set(false);
+          this.ok.set('¡Perfil completado exitosamente! 🎉');
+          this.showCompleteProfileMessage.set(false);
+          
+          // Limpiar mensaje después de 3 segundos
+          setTimeout(() => {
+            if (this.ok() === '¡Perfil completado exitosamente! 🎉') {
+              this.ok.set(null);
+            }
+          }, 3000);
+        },
+        error: (e: HttpErrorResponse) => {
+          this.saving.set(false);
+          this.handleError(e, 'Error al completar el perfil');
+        }
+      });
+  }
+
+  /**
+   * Reenvía el email de verificación
+   */
+  resendVerificationEmail(): void {
+    const user = this.me();
+    if (!user) return;
+
+    this.resendingEmail.set(true);
+    this.error.set(null);
+    this.ok.set(null);
+    this.emailSent.set(false);
+
+    this.emailVerificationService.resendVerification()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.resendingEmail.set(false);
+          if (response.success) {
+            this.emailSent.set(true);
+            this.ok.set('✉️ Email de verificación enviado. Revisa tu bandeja de entrada.');
+            this.startCooldown();
+            
+            // Limpiar mensaje después de 5 segundos
+            setTimeout(() => {
+              if (this.ok()?.includes('Email de verificación enviado')) {
+                this.ok.set(null);
+              }
+            }, 5000);
+          } else {
+            this.error.set(response.message || 'No se pudo enviar el email.');
           }
-        }, 3000);
-      },
-      error: (e: HttpErrorResponse) => {
-        this.saving.set(false);
-        this.handleError(e, 'Error al completar el perfil');
+        },
+        error: (err: HttpErrorResponse) => {
+          this.resendingEmail.set(false);
+          
+          // Usar helpers del servicio para detectar errores específicos
+          if (this.emailVerificationService.isCooldownError(err)) {
+            this.error.set('Por favor espera 2 minutos antes de reenviar el email.');
+            this.startCooldown();
+          } else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
+            this.error.set('Tu email ya está verificado.');
+            this.emailSent.set(false);
+          } else {
+            const errorMsg = err.error?.message || 'Error al enviar el email de verificación.';
+            this.error.set(errorMsg);
+          }
+        }
+      });
+  }
+
+  /**
+   * Inicia el cooldown de 2 minutos
+   */
+  private startCooldown(): void {
+    this.resendCooldown.set(120); // 2 minutos
+
+    this.cooldownInterval = setInterval(() => {
+      const current = this.resendCooldown();
+      if (current <= 1) {
+        this.clearCooldown();
+      } else {
+        this.resendCooldown.set(current - 1);
       }
-    });
+    }, 1000);
+  }
+
+  /**
+   * Limpia el intervalo de cooldown
+   */
+  private clearCooldown(): void {
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+      this.cooldownInterval = undefined;
+    }
+    this.resendCooldown.set(0);
+    this.emailSent.set(false);
   }
 
   /**

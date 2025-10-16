@@ -198,12 +198,16 @@ export class ProductComponent implements OnInit {
     const raw = this.form.getRawValue();
     const img = raw.imageUrl?.trim() || null;
 
-    // ✅ No enviar imageUrl al backend (solo front)
-    const { imageUrl: _ignore, ...clean } = raw as any;
-
     if (this.editId() == null) {
-      // CREATE
-      const dtoCreate: CreateProductDTO = clean;
+      // CREATE - Construir DTO explícitamente (NO enviar imageUrl al backend)
+      const dtoCreate: CreateProductDTO = {
+        description: raw.description,
+        detail: raw.detail,
+        price: raw.price,
+        stock: raw.stock,
+        isIllegal: raw.isIllegal
+      };
+
       this.srv.createProduct(dtoCreate).subscribe({
         next: (res: any) => {
           const created = ('data' in res ? res.data : res) as ProductDTO | null;
@@ -219,9 +223,16 @@ export class ProductComponent implements OnInit {
         }
       });
     } else {
-      // UPDATE
+      // UPDATE - Construir DTO explícitamente (NO enviar imageUrl al backend)
       const id = this.editId()!;
-      const dtoUpdate: UpdateProductDTO = clean;
+      const dtoUpdate: UpdateProductDTO = {
+        description: raw.description,
+        detail: raw.detail,
+        price: raw.price,
+        stock: raw.stock,
+        isIllegal: raw.isIllegal
+      };
+
       this.srv.updateProduct(id, dtoUpdate).subscribe({
         next: _ => {
           this.imgSvc.set(id, img);

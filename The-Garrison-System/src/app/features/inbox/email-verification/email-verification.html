@@ -1,28 +1,78 @@
-<section class="ev-pane">
-  <header class="ev-pane__header">
-    <h1>Verificación de email</h1>
-  </header>
+<section class="verification-page">
+  <div class="verification-card">
 
-  <!-- Estados -->
-  <div *ngIf="state() === 'idle'" class="ev-box">
-    Pegá el link de verificación que recibiste por correo o hacé clic en el botón del email.
+    <!-- ========================================
+         ESTADO: VERIFICANDO
+         ======================================== -->
+    <div *ngIf="state() === 'verifying'" class="state-container verifying">
+      <div class="spinner"></div>
+      <h2>Verificando tu email...</h2>
+      <p>Por favor espera mientras procesamos tu solicitud.</p>
+    </div>
+
+    <!-- ========================================
+         ESTADO: ÉXITO
+         ======================================== -->
+    <div *ngIf="state() === 'success'" class="state-container success">
+      <div class="icon success-icon">✓</div>
+      <h2>¡Email verificado!</h2>
+      <p>{{ message() }}</p>
+      <p class="redirect-text">Serás redirigido al inicio en unos segundos...</p>
+      <div class="actions">
+        <button (click)="goToHome()" class="btn-primary" type="button">
+          Ir al inicio ahora
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================
+         ESTADO: ERROR
+         ======================================== -->
+    <div *ngIf="state() === 'error'" class="state-container error">
+      <div class="icon error-icon">✗</div>
+      <h2>Error de verificación</h2>
+      <p class="error-message">{{ message() }}</p>
+
+      <div class="actions">
+        <!-- Botón de reenvío si está disponible -->
+        <button *ngIf="canResend()" (click)="resend()" [disabled]="resending() || resendCooldown() > 0"
+          class="btn-secondary" type="button">
+          <span *ngIf="!resending() && resendCooldown() === 0">
+            Reenviar email de verificación
+          </span>
+          <span *ngIf="resending()" class="loading-dots">
+            Enviando<span>.</span><span>.</span><span>.</span>
+          </span>
+          <span *ngIf="resendCooldown() > 0 && !resending()">
+            Espera {{ getCooldownText() }}
+          </span>
+        </button>
+
+        <!-- Mensaje de cooldown si no puede reenviar -->
+        <p *ngIf="resendCooldown() > 0 && !canResend()" class="cooldown-text">
+          Podrás reenviar en {{ getCooldownText() }}
+        </p>
+
+        <!-- Botón de login -->
+        <button (click)="goToLogin()" class="btn-link" type="button">
+          Volver al login
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================
+         ESTADO: IDLE (esperando o procesando)
+         ======================================== -->
+    <div *ngIf="state() === 'idle'" class="state-container idle">
+      <div class="icon idle-icon">📧</div>
+      <h2>Verificación de email</h2>
+      <p>{{ message() }}</p>
+      <div class="actions">
+        <button (click)="goToLogin()" class="btn-link" type="button">
+          Volver al login
+        </button>
+      </div>
+    </div>
+
   </div>
-
-  <div *ngIf="state() === 'verifying'" class="ev-box ev-box--info">
-    Verificando token…
-  </div>
-
-  <div *ngIf="state() === 'ok'" class="ev-box ev-box--ok">
-    ¡Tu email fue verificado correctamente! <span class="ev-msg" *ngIf="message()">{{ message() }}</span>
-  </div>
-
-  <div *ngIf="state() === 'error'" class="ev-box ev-box--bad">
-    No se pudo verificar el token. <span class="ev-msg" *ngIf="message()">{{ message() }}</span>
-  </div>
-
-  <!-- Acciones -->
-  <footer class="ev-actions">
-    <button class="btn" (click)="resend()">Reenviar verificación</button>
-    <a routerLink="/" class="btn">Ir al inicio</a>
-  </footer>
 </section>

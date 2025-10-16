@@ -6,22 +6,21 @@
       <h2>{{ 'topics.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="new()">
-          {{ 'topics.new' | translate }}
+          {{ 'Nueva Temática' | translate }}
         </button>
       </div>
     </div>
 
-  <input class="input" [placeholder]="'topics.filters.searchPh' | translate" [(ngModel)]="filterText"
-    [ngModelOptions]="{ standalone: true }" (keydown.enter)="$event.preventDefault()"
-    [attr.aria-label]="'topics.a11y.searchLabel' | translate" />
-
+    <input class="input" [placeholder]="'topics.filters.searchPh' | translate" [(ngModel)]="filterText"
+      [ngModelOptions]="{ standalone: true }" (keydown.enter)="$event.preventDefault()"
+      [attr.aria-label]="'topics.a11y.searchLabel' | translate" />
 
     <div class="table-wrap">
       <table class="table" *ngIf="filtered().length; else empty">
         <colgroup>
           <col style="width:100px" />
           <col />
-          <col style="width:220px" />
+          <col style="width:160px" />
         </colgroup>
 
         <thead>
@@ -37,17 +36,16 @@
             <td>#{{ t.id }}</td>
             <td><span class="truncate">{{ t.description }}</span></td>
             <td class="right">
-              <button class="btn ghost btn--icon" type="button" (click)="edit(t)" [attr.aria-label]="'common.edit' | translate"
+              <button class="btn ghost btn--icon" type="button" (click)="edit(t)"
                 [attr.title]="'common.edit' | translate">
-                ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                ✏️
               </button>
 
               <button class="btn danger btn--icon" type="button" (click)="delete(t.id)"
-                [attr.aria-label]="'common.delete' | translate" [attr.title]="'common.delete' | translate">
-                🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                [attr.title]="'common.delete' | translate">
+                🗑️
               </button>
             </td>
-
           </tr>
         </tbody>
       </table>
@@ -82,10 +80,10 @@
 
       <div class="right form-actions">
         <button class="btn success" type="submit" [disabled]="form.invalid || loading()" [attr.aria-busy]="loading()">
-          {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+          {{ isEdit() ? ('Guardar' | translate) : ('Crear' | translate) }}
         </button>
         <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-          {{ 'common.cancel' | translate }}
+          {{ 'Cancelar' | translate }}
         </button>
       </div>
     </form>

@@ -11,7 +11,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { AuthService, Role } from '../../services/auth/auth'; 
+import { AuthService } from '../../services/auth/auth'; 
+import { Role } from '../../models/user/user.model';
 import { I18nService } from '../../services/i18n/i18n.js';
 import { TranslateModule } from '@ngx-translate/core';
 

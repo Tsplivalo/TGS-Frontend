@@ -16,22 +16,23 @@ export class ShelbyCouncilService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Lista todos los registros con paginación y filtros opcionales
-   * Backend route: GET /api/shelby-council (método getAllConsejosShelby)
-   * Query params: page, limit, partnerDni, decisionId
+   * Lista todos los registros con paginación
+   * Backend route: GET /api/shelby-council
+   * IMPORTANTE: Este endpoint NO acepta filtros, solo page/limit
    */
   list(params?: {
     page?: number;
     limit?: number;
-    partnerDni?: string;
-    decisionId?: number;
   }): Observable<PaginatedResponse<ShelbyCouncilDTO>> {
     let httpParams = new HttpParams();
     
-    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
-    if (params?.partnerDni) httpParams = httpParams.set('partnerDni', params.partnerDni);
-    if (params?.decisionId) httpParams = httpParams.set('decisionId', params.decisionId.toString());
+    // Solo agregamos page y limit si están definidos
+    if (params?.page) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params?.limit) {
+      httpParams = httpParams.set('limit', params.limit.toString());
+    }
 
     return this.http.get<PaginatedResponse<ShelbyCouncilDTO>>(
       this.apiUrl, 
@@ -42,9 +43,9 @@ export class ShelbyCouncilService {
   /**
    * Busca registros con filtros específicos
    * Backend route: GET /api/shelby-council/search
-   * Query params: partnerDni, decisionId, page, limit
+   * Este SÍ acepta filtros: partnerDni, decisionId, page, limit
    */
-  search(params?: {
+  search(params: {
     partnerDni?: string;
     decisionId?: number;
     page?: number;
@@ -52,10 +53,18 @@ export class ShelbyCouncilService {
   }): Observable<PaginatedResponse<ShelbyCouncilDTO>> {
     let httpParams = new HttpParams();
     
-    if (params?.partnerDni) httpParams = httpParams.set('partnerDni', params.partnerDni);
-    if (params?.decisionId) httpParams = httpParams.set('decisionId', params.decisionId.toString());
-    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params.partnerDni) {
+      httpParams = httpParams.set('partnerDni', params.partnerDni);
+    }
+    if (params.decisionId) {
+      httpParams = httpParams.set('decisionId', params.decisionId.toString());
+    }
+    if (params.page) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params.limit) {
+      httpParams = httpParams.set('limit', params.limit.toString());
+    }
 
     return this.http.get<PaginatedResponse<ShelbyCouncilDTO>>(
       `${this.apiUrl}/search`, 
