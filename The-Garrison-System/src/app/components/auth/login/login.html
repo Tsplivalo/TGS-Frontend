@@ -11,7 +11,7 @@
     </label>
 
     <div class="actions">
-      <button class="btn btn-primary" type="submit" [disabled]="loading">Entrar</button>
+      <button class="btn btn-primary" type="submit" [disabled]="loading" data-testid="login-btn">Entrar</button>
     </div>
 
     <div class="error" *ngIf="error">{{ error }}</div>

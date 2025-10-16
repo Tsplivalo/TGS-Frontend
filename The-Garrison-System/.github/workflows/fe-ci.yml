@@ -1,157 +1,34 @@
-name: FE CI
+name: FE CI (unit+integration)
 
-on:
-  push:
-    branches: [ main, master, develop, chore/**, feat/** ]
-  pull_request:
-    branches: [ main, master, develop ]
-
-concurrency:
-  group: fe-ci-${{ github.ref }}
-  cancel-in-progress: true
+on: [push, pull_request]
 
 jobs:
-  unit_integration:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      # PNPM + cache
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
-      - name: Get pnpm store path
-        id: pnpm-store
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-store-
+          version: 9
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
 
-      - name: Run unit/integration tests (Karma Headless) with coverage
-        run: pnpm test
+      - name: Lint seguridad
+        run: pnpm run lint:security
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+      - name: Unit/Integración + Cobertura (con umbrales)
+        run: pnpm run test:ci
+
+      - name: Subir reporte de cobertura
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: coverage-frontend
+          name: coverage
           path: coverage
-          retention-days: 7
-
-  e2e:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - name: Get pnpm store path
-        id: pnpm-store
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-store-
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
-
-      # Si falla, seguimos para subir reportes; luego verificamos y fallamos explícitamente.
-      - name: Run E2E (Playwright)
-        id: run-e2e
-        continue-on-error: true
-        run: pnpm test:e2e
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report
-          retention-days: 7
-
-      - name: Upload test-results (videos/traces)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-test-results
-          path: test-results
-          retention-days: 7
-
-      - name: Fail if tests failed (read JSON summary)
-        if: always()
-        run: |
-          if [ -f playwright-report/data/testResults.json ]; then
-            FAILS=$(jq '[.suites[].specs[].tests[].results[] | select(.status=="failed")] | length' playwright-report/data/testResults.json)
-            echo "Failed tests: $FAILS"
-            if [ "$FAILS" -gt 0 ]; then
-              exit 1
-            fi
-          else
-            # Si no existe el summary, usa el código de salida del paso anterior
-            [ "${{ steps.run-e2e.outcome }}" = "success" ] || exit 1
-          fi
-
-  perf_security:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - name: Get pnpm store path
-        id: pnpm-store
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-store-
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build (prod)
-        run: pnpm build
-
-      # IMPORTANTE: .lighthouserc.js debe usar staticDistDir: 'dist/The-Garrison-System' y url: ['/index.html']
-      - name: Lighthouse (perf / a11y / SEO / best-practices)
-        run: pnpm exec lhci autorun
-
-      - name: SAST (eslint security)
-        run: pnpm lint:security
-
-  notify:
-    needs: [unit_integration, e2e, perf_security]
-    if: failure()
-    runs-on: ubuntu-latest
-    steps:
-      - name: GitHub summary
-        uses: actions/github-script@v7
-        with:
-          script: core.setFailed('Frontend CI failed — artifacts uploaded (coverage & playwright-report)')

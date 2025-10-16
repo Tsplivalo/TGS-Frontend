@@ -5,37 +5,31 @@ module.exports = function (config) {
     plugins: [
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
-      require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma'),
+      require('@angular-devkit/build-angular/plugins/karma')
     ],
 
-    
-    files: [{ pattern: './src/test/setup.ts', watched: false }],
+    client: {
+      clearContext: false // deja visible el resultado de Jasmine en el navegador
+    },
 
-    reporters: ['progress', 'kjhtml', 'coverage'],
+    reporters: ['progress', 'coverage'],
 
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage'),
+      subdir: '.',
       reporters: [
-        { type: 'html' },
-        { type: 'lcovonly' },
-        { type: 'text-summary' }
+        { type: 'html' },          // reporte visual (coverage/index.html)
+        { type: 'text-summary' },  // resumen en consola
+        { type: 'json' },          // detalle por archivo
+        { type: 'json-summary' }   // <-- necesario para check-coverage.cjs
       ],
-    
-      check: {
-        global: {
-          statements: 80,
-          branches: 80,
-          functions: 80,
-          lines: 80,
-        },
-      },
+      fixWebpackSourcePaths: true
     },
 
     browsers: ['ChromeHeadless'],
     singleRun: true,
-
-    
+    restartOnFileChange: false
   });
 };
+

@@ -3,19 +3,17 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
-  fullyParallel: true,
   retries: 1,
-  reporter: [['list'], ['html', { outputFolder: 'playwright-report' }]],
+  expect: { timeout: 5_000 },
   use: {
-    baseURL: process.env.E2E_BASE_URL || 'http://localhost:4200',
+    baseURL: 'http://localhost:4200',
+    serviceWorkers: 'block',   // <- clave para que page.route intercepte
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure'
+    video: 'retain-on-failure',
+    actionTimeout: 10_000,
+    navigationTimeout: 15_000,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: process.env.E2E_NO_SERVER ? undefined : {
-    command: 'pnpm build:serve',
-    url: 'http://localhost:4200',
-    reuseExistingServer: !process.env.CI
-  }
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+  ],
 });
