@@ -6,7 +6,7 @@
       <h2>{{ 'sales.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ (isNewOpen ? 'common.close' : 'sales.new') | translate }}
+          {{ (isNewOpen ? 'Cerrar' : 'Nueva Venta') | translate }}
         </button>
       </div>
     </div>
@@ -31,19 +31,27 @@
             <th>{{ 'sales.table.id' | translate }}</th>
             <th>{{ 'sales.table.date' | translate }}</th>
             <th>{{ 'sales.table.client' | translate }}</th>
+            <th>{{ 'sales.table.distributor' | translate }}</th>
             <th>{{ 'sales.table.products' | translate }}</th>
             <th>{{ 'sales.table.quantity' | translate }}</th>
-            <th class="left">{{ 'sales.table.total' | translate }}</th>
+            <th class="right">{{ 'sales.table.total' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @for (v of filteredSales(); track v.id) {
           <tr>
-            <td>{{ v.id }}</td>
-            <td>{{ v.date | date:'short' }}</td>
+            <td>#{{ v.id }}</td>
+            <td>{{ (v.saleDate || v.date) | date:'short' }}</td>
             <td>
               @if (getClient(v); as cli) {
               {{ cli.dni }} - {{ cli.name || ('sales.client' | translate) }}
+              } @else {
+              —
+              }
+            </td>
+            <td>
+              @if (v.distributor) {
+              {{ v.distributor.dni }} - {{ v.distributor.name }}
               } @else {
               —
               }
@@ -59,15 +67,12 @@
                 }
               </div>
               } @else {
-              {{ getProductDesc(v) }}
+              —
               }
             </td>
 
             <!-- Total quantity -->
-            <td>
-              @if (hasDetails(v)) { {{ sumQuantities(v) }} }
-              @else { {{ (typeof v.quantity === 'number') ? v.quantity : 0 }} }
-            </td>
+            <td>{{ sumQuantities(v) }}</td>
 
             <!-- Total -->
             <td class="right">{{ calculateTotal(v) | currency:'ARS' }}</td>
@@ -75,7 +80,7 @@
           }
           @if (filteredSales().length === 0) {
           <tr>
-            <td colspan="6" class="center muted">{{ 'sales.noResults' | translate }}</td>
+            <td colspan="7" class="center muted">{{ 'sales.noResults' | translate }}</td>
           </tr>
           }
         </tbody>
@@ -97,7 +102,7 @@
 
         <!-- Client -->
         <label class="label">
-          <span>{{ 'sales.form.client' | translate }}</span>
+          <span>{{ 'sales.form.client' | translate }} *</span>
           <input class="input" [placeholder]="'sales.form.clientFilterPh' | translate" maxlength="8"
             [(ngModel)]="clientFilter" [ngModelOptions]="{standalone: true}" name="fltClient" />
 
@@ -108,13 +113,37 @@
             }
           </select>
           <small class="muted">{{ 'sales.form.clientHint' | translate }}</small>
+          <small class="hint" *ngIf="clientControl.invalid && clientControl.touched">
+            {{ 'sales.form.clientRequired' | translate : {} : 'Cliente requerido' }}
+          </small>
+        </label>
+
+        <!-- Distributor - NUEVO CAMPO REQUERIDO -->
+        <label class="label">
+          <span>{{ 'sales.form.distributor' | translate }} *</span>
+          <input class="input"
+            [placeholder]="'sales.form.distributorFilterPh' | translate : {} : 'Buscar por DNI o nombre'" maxlength="8"
+            [(ngModel)]="distributorFilter" [ngModelOptions]="{standalone: true}" name="fltDistributor" />
+
+          <select class="input" formControlName="distributorDni">
+            <option [ngValue]="null" disabled>{{ 'sales.form.chooseDistributor' | translate : {} : 'Elegí un
+              distribuidor' }}</option>
+            @for (d of filteredDistributors(); track d.dni) {
+            <option [ngValue]="d.dni">{{ d.dni }} - {{ d.name }}</option>
+            }
+          </select>
+          <small class="muted">{{ 'sales.form.distributorHint' | translate : {} : 'Seleccioná el distribuidor que
+            gestiona esta venta' }}</small>
+          <small class="hint" *ngIf="distributorControl.invalid && distributorControl.touched">
+            {{ 'sales.form.distributorRequired' | translate : {} : 'Distribuidor requerido' }}
+          </small>
         </label>
 
         <div class="subheader">{{ 'sales.form.products' | translate }}</div>
 
         @for (l of lines(); track $index; let i = $index) {
-        <div class="line">
-          <div class="line__row">
+        <div class="linea" style="grid-column: 1 / -1;">
+          <div class="linea__row">
             <div class="linea__cell">
               <label class="label">
                 <span>{{ 'sales.form.searchProduct' | translate }}</span>
@@ -123,7 +152,7 @@
               </label>
             </div>
 
-            <div class="line__cell">
+            <div class="linea__cell">
               <label class="label">
                 <span>{{ 'sales.form.product' | translate }}</span>
                 <select class="input" [(ngModel)]="l.productId" [ngModelOptions]="{standalone: true}"
@@ -135,11 +164,20 @@
                     currency:'ARS' }}
                   </option>
                   }
+                  @empty {
+                  <option disabled>No hay productos disponibles</option>
+                  }
                 </select>
+                <small class="muted" *ngIf="products().length === 0">
+                  ⚠️ No se cargaron productos. Total: {{ products().length }}
+                </small>
+                <small class="muted" *ngIf="products().length > 0">
+                  ✅ {{ filteredProductsBy(l.filter || '').length }} productos disponibles
+                </small>
               </label>
             </div>
 
-            <div class="line__cell sm">
+            <div class="linea__cell sm">
               <label class="label">
                 <span>{{ 'sales.form.quantity' | translate }}</span>
                 <input class="input" type="number" min="1" step="1" [attr.max]="getStock(l.productId) || null"
@@ -149,9 +187,9 @@
               </label>
             </div>
 
-            <div class="line__cell actions">
-              <button class="btn danger" type="button" (click)="removeLine(i)">
-                {{ 'sales.form.remove' | translate }}
+            <div class="linea__cell actions">
+              <button class="btn danger btn--icon" type="button" (click)="removeLine(i)" title="Eliminar línea">
+                🗑️
               </button>
             </div>
           </div>
@@ -165,14 +203,15 @@
         </div>
 
         <div class="right" style="grid-column: 1 / -1;">
-          <button class="btn success" type="submit" [disabled]="loading()">
+          <button class="btn success" type="submit" [disabled]="loading() || form.invalid">
             {{ 'sales.form.create' | translate }}
           </button>
-          <button class="btn ghost" type="button" (click)="new()">
-            {{ 'common.cancel' | translate }}
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
+            {{ 'Cancelar' | translate }}
           </button>
         </div>
       </form>
     </div>
   </div>
+
 </section>

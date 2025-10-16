@@ -11,10 +11,49 @@
           <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" (click)="$event.stopPropagation()">
             <h2>{{ 'auth.login.title' | translate }}</h2>
 
+            <!-- ✅ NUEVO: Banner de verificación mejorado -->
+            <div class="verification-banner" *ngIf="needsEmailVerification()" role="alert">
+              <div class="banner-icon">⚠️</div>
+              <div class="banner-content">
+                <div class="banner-header">
+                  <strong>Email no verificado</strong>
+                  <button type="button" class="banner-close" (click)="needsEmailVerification.set(false)"
+                    aria-label="Cerrar" title="Cerrar mensaje">
+                    ✕
+                  </button>
+                </div>
+                <p class="banner-text">
+                  Debes verificar tu email antes de poder acceder. Revisa tu bandeja de entrada.
+                </p>
+
+                <!-- Mensaje de éxito cuando se envía el email -->
+                <div class="banner-success" *ngIf="emailSent()">
+                  <span class="success-icon">✓</span>
+                  Email de verificación enviado correctamente
+                </div>
+
+                <!-- Botón de reenvío -->
+                <button type="button" class="btn-resend" (click)="resendVerificationEmailFromHome()"
+                  [disabled]="resendingEmail() || emailSent()">
+                  <span *ngIf="!resendingEmail() && !emailSent()">
+                    Reenviar email de verificación
+                  </span>
+                  <span *ngIf="resendingEmail()" class="loading-text">
+                    Enviando<span class="dots">...</span>
+                  </span>
+                  <span *ngIf="emailSent() && !resendingEmail()">
+                    ✓ Enviado
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <label>
               <span>{{ 'auth.fields.email' | translate }}</span>
-              <input type="email" formControlName="email" placeholder="{{ 'auth.placeholders.email' | translate }}"
-                autocomplete="email" required />
+              <input type="email" formControlName="email" [attr.placeholder]="emailAnimOn() ? animatedPlaceholder : ''"
+                [attr.data-anim]="emailAnimOn() ? 'on' : 'off'" autocomplete="email" required
+                [class.star-wars-placeholder]="emailAnimOn()" (focus)="mode() === 'login' ? onEmailFocus() : null"
+                (blur)="mode() === 'login' ? onEmailBlur() : null" />
             </label>
 
             <label>
@@ -25,7 +64,7 @@
 
             <button type="submit" [disabled]="loadingLogin">{{ 'auth.login.submit' | translate }}</button>
 
-            <p class="auth-error" *ngIf="errorLogin">
+            <p class="auth-error" *ngIf="errorLogin && !needsEmailVerification()">
               {{ errorLogin | translate }}
             </p>
           </form>
@@ -43,14 +82,19 @@
 
             <label>
               <span>{{ 'auth.fields.username' | translate }}</span>
-              <input type="text" formControlName="username" placeholder="{{ 'auth.placeholders.username' | translate }}"
-                autocomplete="username" required />
+              <input type="text" formControlName="username"
+                [attr.placeholder]="nameAnimOn() ? animatedNamePlaceholder : ''"
+                [attr.data-anim]="nameAnimOn() ? 'on' : 'off'" autocomplete="username" required
+                [class.star-wars-placeholder]="nameAnimOn()" (focus)="mode() === 'register' ? onNameFocus() : null"
+                (blur)="mode() === 'register' ? onNameBlur() : null" />
             </label>
 
             <label>
               <span>{{ 'auth.fields.email' | translate }}</span>
-              <input type="email" formControlName="email" placeholder="{{ 'auth.placeholders.email' | translate }}"
-                autocomplete="email" required />
+              <input type="email" formControlName="email" [attr.placeholder]="emailAnimOn() ? animatedPlaceholder : ''"
+                [attr.data-anim]="emailAnimOn() ? 'on' : 'off'" autocomplete="email" required
+                [class.star-wars-placeholder]="emailAnimOn()" (focus)="mode() === 'register' ? onEmailFocus() : null"
+                (blur)="mode() === 'register' ? onEmailBlur() : null" />
             </label>
 
             <label>
@@ -85,7 +129,6 @@
       </div>
 
       <p class="tagline">{{ 'home.tagline' | translate }}</p>
-
     </section>
   </div>
 

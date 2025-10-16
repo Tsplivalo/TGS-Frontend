@@ -1,88 +1,182 @@
+// src/app/pages/auth/register/register.component.ts
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../services/auth/auth';
 
-/**
- * RegisterComponent
- *
- * Formulario de registro con validación fuerte de contraseña, manejo de estados de carga/errores
- * y navegación al login tras el alta. Comentarios centrados en decisiones de diseño y puntos de
- * mantenimiento (regex de password, normalización de inputs, i18n de errores).
- */
-
-/**
- * Reglas de contraseña:
- * - Mínimo 8 caracteres
- * - >= 1 minúscula, 1 mayúscula, 1 número y 1 símbolo
- * - Sin espacios en blanco (\S)
- * Nota: el set de símbolos incluye el punto '.' (escapado en el regex final).
- */
-const SYMBOLS = String.raw`!@#$%^&*(),.?":{}|<>_\-+=;'/\\\[\]~`;
-const PASSWORD_REGEX = new RegExp(
-  // lookaheads para exigir cada tipo + sin espacios y longitud mínima
-  `^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[${SYMBOLS}])\\S{8,}$`
-);
-
 @Component({
-  standalone: true,
   selector: 'app-register',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslateModule],
   templateUrl: './register.html',
   styleUrls: ['./register.scss']
 })
 export class RegisterComponent {
-  // --- Inyección de dependencias ---
-  private fb    = inject(FormBuilder);
-  private auth  = inject(AuthService);
-  private router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  // --- Estado UI ---
-  loading = false;                // bloquea submit y muestra feedback
-  errorMsg: string | null = null; // clave i18n o texto plano de API
-  showPassword = false;           // alterna visibilidad del password input
+  loading = false;
+  error: string | null = null;
 
-  // --- Form reactivo ---
   form = this.fb.group({
-    username: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
+    username: ['', [
+      Validators.required,
+      Validators.minLength(2),
+      Validators.maxLength(100)
+    ]],
+    email: ['', [
+      Validators.required,
+      Validators.email
+    ]],
     password: ['', [
       Validators.required,
-      Validators.pattern(PASSWORD_REGEX), // aplica las reglas definidas arriba
+      Validators.minLength(8),
+      this.passwordValidator
     ]],
   });
 
-  // Acceso directo a los controles (útil en template/TS)
-  get f() { return this.form.controls; }
+  /**
+   * Validador personalizado para la contraseña
+   * Debe contener: mayúscula, minúscula, número y carácter especial
+   */
+  private passwordValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
 
-  // Mostrar/ocultar contraseña (UI/UX)
-  toggleShowPassword() { this.showPassword = !this.showPassword; }
+    const hasUpperCase = /[A-Z]/.test(value);
+    const hasLowerCase = /[a-z]/.test(value);
+    const hasNumeric = /[0-9]/.test(value);
+    const hasSpecialChar = /[@$!%*?&]/.test(value);
 
-  // --- Submit: registro de usuario ---
-  submit() {
-    // Evita envíos inválidos o repetidos
-    if (this.form.invalid || this.loading) return;
+    const passwordValid = hasUpperCase && hasLowerCase && hasNumeric && hasSpecialChar;
+
+    if (!passwordValid) {
+      return {
+        passwordStrength: {
+          message: 'La contraseña debe contener al menos: una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&)'
+        }
+      };
+    }
+
+    return null;
+  }
+
+  submit(): void {
+    // Validar formulario
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.showValidationErrors();
+      return;
+    }
+
     this.loading = true;
-    this.errorMsg = null;
+    this.error = null;
 
-    // Normaliza inputs: trim de email/username; password se envía tal cual
-    const payload = {
-      username: this.f.username.value!.trim(),
-      email: this.f.email.value!.trim(),
-      password: this.f.password.value!,
-    };
+    const { username, email, password } = this.form.getRawValue();
 
-    this.auth.register(payload).subscribe({
-      next: () => this.router.navigateByUrl('/login'), // ir a login tras éxito
-      error: (e) => {
-        // Intenta mapear formatos de error comunes; fallback i18n sugerido
-        const apiMsg =
-          e?.error?.message || e?.error?.mensaje || e?.error?.error ||
-          (Array.isArray(e?.error?.errores) && e.error.errores[0]?.message) ||
-          e?.message;
-        this.errorMsg = apiMsg ? String(apiMsg) : 'auth.errors.registerFailed';
+    this.auth.register({
+      username: username!,
+      email: email!,
+      password: password!
+    }).subscribe({
+      next: () => {
+        console.log('[Register] Success, attempting auto-login...');
+        
+        // Intentar auto-login después del registro
+        this.auth.login({
+          email: email!,
+          password: password!
+        }).subscribe({
+          next: (user) => {
+            this.loading = false;
+            console.log('[Register] Auto-login success:', user);
+            this.router.navigateByUrl('/');
+          },
+          error: (err) => {
+            this.loading = false;
+            console.error('[Register] Auto-login failed:', err);
+            // Si falla el auto-login, redirigir a login manual
+            this.router.navigate(['/login'], {
+              queryParams: { message: 'Registro exitoso. Por favor, inicia sesión.' }
+            });
+          }
+        });
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.message || 'No se pudo registrar';
+        console.error('[Register] Error:', err);
       }
-    }).add(() => this.loading = false); // libera estado al finalizar
+    });
+  }
+
+  /**
+   * Muestra errores de validación específicos
+   */
+  private showValidationErrors(): void {
+    const usernameControl = this.form.get('username');
+    const emailControl = this.form.get('email');
+    const passwordControl = this.form.get('password');
+
+    if (usernameControl?.errors) {
+      if (usernameControl.errors['required']) {
+        this.error = 'El nombre de usuario es requerido';
+      } else if (usernameControl.errors['minlength']) {
+        this.error = 'El nombre de usuario debe tener al menos 2 caracteres';
+      }
+      return;
+    }
+
+    if (emailControl?.errors) {
+      if (emailControl.errors['required']) {
+        this.error = 'El email es requerido';
+      } else if (emailControl.errors['email']) {
+        this.error = 'El email no es válido';
+      }
+      return;
+    }
+
+    if (passwordControl?.errors) {
+      if (passwordControl.errors['required']) {
+        this.error = 'La contraseña es requerida';
+      } else if (passwordControl.errors['minlength']) {
+        this.error = 'La contraseña debe tener al menos 8 caracteres';
+      } else if (passwordControl.errors['passwordStrength']) {
+        this.error = passwordControl.errors['passwordStrength'].message;
+      }
+      return;
+    }
+  }
+
+  /**
+   * Obtiene el mensaje de error para un campo específico
+   */
+  getFieldError(fieldName: string): string | null {
+    const control = this.form.get(fieldName);
+    if (!control || !control.touched || !control.errors) {
+      return null;
+    }
+
+    const errors = control.errors;
+    if (errors['required']) return 'Este campo es requerido';
+    if (errors['email']) return 'Email inválido';
+    if (errors['minlength']) {
+      return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
+    }
+    if (errors['passwordStrength']) {
+      return errors['passwordStrength'].message;
+    }
+
+    return 'Campo inválido';
+  }
+
+  /**
+   * Limpia el mensaje de error
+   */
+  clearError(): void {
+    this.error = null;
   }
 }

@@ -80,11 +80,31 @@
     </ul>
 
     <footer class="cart-drawer__footer">
+      <!-- ✅ Alerta si no puede comprar -->
+      <div class="cart-purchase-alert" *ngIf="!canPurchase()">
+        <div class="alert alert--warning">
+          <span class="alert__icon">⚠️</span>
+          <div class="alert__content">
+            <strong>No puedes comprar aún</strong>
+            <p *ngIf="!isEmailVerified()">
+              Verifica tu email para poder realizar compras.
+              <a routerLink="/verify-email" (click)="toggleCartDrawer()">Verificar ahora</a>
+            </p>
+            <p *ngIf="isEmailVerified() && profileCompleteness() < 100">
+              Completa tu perfil al {{ profileCompleteness() }}% para poder comprar.
+              <a routerLink="/mi-cuenta" (click)="toggleCartDrawer()">Completar perfil</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="cart-drawer__total">
         <span>{{ 'store.cart.total' | translate }}</span>
         <strong>$ {{ cart.total() | number:'1.2-2' }}</strong>
       </div>
-      <button class="btn btn--accent" type="button">
+
+      <button class="btn btn--accent" type="button" [disabled]="!canPurchase() || cart.count() === 0"
+        [class.btn--disabled]="!canPurchase() || cart.count() === 0" (click)="goToCheckout()">
         {{ 'store.cart.goToCheckout' | translate }}
       </button>
     </footer>
@@ -92,3 +112,5 @@
 
   <div class="cart-backdrop" *ngIf="showCart()" (click)="toggleCartDrawer()"></div>
 </section>
+
+<!-- Nota: Agregar RouterModule a los imports del componente si no está -->

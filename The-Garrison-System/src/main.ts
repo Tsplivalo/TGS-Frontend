@@ -1,11 +1,24 @@
-// src/main.ts
+/**
+ * Punto de entrada principal de la aplicación Angular
+ * 
+ * Este archivo es responsable de inicializar la aplicación Angular con:
+ * - La configuración principal definida en app.config.ts
+ * - El componente raíz de la aplicación
+ * - Manejo de errores durante el bootstrap
+ */
 import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app';
 import { appConfig } from './app/app.config';
-import { AuthService } from './app/services/auth/auth';
+import { AppComponent } from './app/app';
 
-bootstrapApplication(AppComponent, appConfig).then(ref => {
-  const injector = ref.injector;
-  const auth = injector.get(AuthService);
-  auth.fetchMe(); // intenta hidratar sesión desde cookie
-});
+/**
+ * Inicializa la aplicación Angular
+ * 
+ * Utiliza la nueva API de standalone components de Angular para bootstrapping
+ * sin necesidad de módulos NgModule. La configuración incluye:
+ * - Router con lazy loading
+ * - HTTP client con interceptores
+ * - Sistema de internacionalización
+ * - Detección de cambios optimizada
+ */
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));

@@ -1,66 +1,127 @@
+// src/app/services/bribe/bribe.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import {
-  ApiResponse,
-  BribeDTO,
-  CreateBribeDTO,
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { 
+  ApiResponse, 
+  BribeDTO, 
+  CreateBribeDTO, 
   UpdateBribeDTO,
+  PayBribesDTO,
+  PayBribesResponse
 } from '../../models/bribe/bribe.model';
 
 @Injectable({ providedIn: 'root' })
 export class BribeService {
-  private readonly apiPlural = '/api/bribes';
+  private readonly apiUrl = '/api/bribes';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  // ===== LIST =====
-  list(): Observable<BribeDTO[] | ApiResponse<BribeDTO[]>> {
-    return this.http.get<BribeDTO[] | ApiResponse<BribeDTO[]>>(this.apiPlural);
+  /**
+   * Obtiene todos los sobornos con paginación opcional
+   */
+  getAllBribes(page?: number, limit?: number): Observable<ApiResponse<BribeDTO[]>> {
+    let params = new HttpParams();
+    if (page) params = params.set('page', page.toString());
+    if (limit) params = params.set('limit', limit.toString());
+    
+    return this.http.get<ApiResponse<BribeDTO[]>>(this.apiUrl, { 
+      params,
+      withCredentials: true 
+    });
   }
 
-  // ===== CREATE =====
-  create(body: CreateBribeDTO): Observable<BribeDTO | ApiResponse<BribeDTO>> {
-    const payload = {
-      amount: Number(body.amount),
-      authorityId: String(body.authorityId),
-      saleId: Number(body.saleId),
-      paid: !!body.paid,
-    };
-    return this.http.post<BribeDTO | ApiResponse<BribeDTO>>(this.apiPlural, payload);
+  /**
+   * Busca sobornos con múltiples criterios
+   * @param paid - Estado de pago: 'true' | 'false'
+   * @param date - Fecha ISO 8601
+   * @param type - Tipo de búsqueda: 'exact' | 'before' | 'after' | 'between'
+   * @param endDate - Fecha final (solo para type='between')
+   */
+  searchBribes(
+    paid?: 'true' | 'false',
+    date?: string,
+    type?: 'exact' | 'before' | 'after' | 'between',
+    endDate?: string,
+    page?: number,
+    limit?: number
+  ): Observable<ApiResponse<BribeDTO[]>> {
+    let params = new HttpParams();
+    if (paid) params = params.set('paid', paid);
+    if (date) params = params.set('date', date);
+    if (type) params = params.set('type', type);
+    if (endDate) params = params.set('endDate', endDate);
+    if (page) params = params.set('page', page.toString());
+    if (limit) params = params.set('limit', limit.toString());
+
+    return this.http.get<ApiResponse<BribeDTO[]>>(`${this.apiUrl}/search`, { 
+      params,
+      withCredentials: true 
+    });
   }
 
-  // ===== UPDATE PARCIAL (si tu backend tuviera PATCH /bribes/:id genérico) =====
-  // Mantengo por compatibilidad para otros campos NO relacionados a "paid".
-  update(id: number, body: UpdateBribeDTO): Observable<BribeDTO | ApiResponse<BribeDTO>> {
-    const payload: any = {};
-    if ('amount' in body && body.amount != null) payload.amount = Number(body.amount);
-    if ('authorityId' in body && body.authorityId != null) payload.authorityId = String(body.authorityId);
-    if ('saleId' in body && body.saleId != null) payload.saleId = Number(body.saleId);
-    if ('creationDate' in body && (body as any).creationDate != null) payload.creationDate = (body as any).creationDate;
-
-    return this.http.patch<BribeDTO | ApiResponse<BribeDTO>>(`${this.apiPlural}/${id}`, payload);
+  /**
+   * Obtiene un soborno por ID
+   */
+  getBribeById(id: number): Observable<ApiResponse<BribeDTO>> {
+    return this.http.get<ApiResponse<BribeDTO>>(
+      `${this.apiUrl}/${id}`, 
+      { withCredentials: true }
+    );
   }
 
-  // ===== PAY (UNO) =====
-  payOne(id: number) {
-    // El schema de pay acepta { ids } incluso en :id/pay; enviarlo es seguro.
-    return this.http.patch<{ message: string }>(`${this.apiPlural}/${id}/pay`, { ids: id });
+  /**
+   * Crea un nuevo soborno
+   */
+  createBribe(data: CreateBribeDTO): Observable<ApiResponse<BribeDTO>> {
+    return this.http.post<ApiResponse<BribeDTO>>(
+      this.apiUrl, 
+      data, 
+      { withCredentials: true }
+    );
   }
 
-  // ===== PAY (VARIOS) =====
-  payMany(ids: number[]) {
-    return this.http.patch<{ message: string }>(`${this.apiPlural}/pay`, { ids });
+  /**
+   * Actualiza un soborno existente (PATCH - parcial)
+   * Nota: El backend solo permite actualizar el campo 'amount'
+   */
+  updateBribe(id: number, data: UpdateBribeDTO): Observable<ApiResponse<BribeDTO>> {
+    return this.http.patch<ApiResponse<BribeDTO>>(
+      `${this.apiUrl}/${id}`, 
+      data, 
+      { withCredentials: true }
+    );
   }
 
-  // ===== PAY POR AUTORIDAD (si usás el flujo por DNI) =====
-  payFromAuthority(dni: string, ids: number | number[]) {
-    return this.http.patch<{ message: string }>(`${this.apiPlural}/${dni}/pay`, { ids });
+  /**
+   * Marca múltiples sobornos como pagados
+   */
+  payBribes(ids: number[]): Observable<ApiResponse<PayBribesResponse>> {
+    return this.http.patch<ApiResponse<PayBribesResponse>>(
+      `${this.apiUrl}/pay`,
+      { ids },
+      { withCredentials: true }
+    );
   }
 
-  // ===== DELETE =====
-  delete(id: number) {
-    return this.http.delete<{ message: string }>(`${this.apiPlural}/${id}`);
+  /**
+   * Marca sobornos de una autoridad específica como pagados
+   */
+  payBribesByAuthority(dni: string, ids: number[]): Observable<ApiResponse<PayBribesResponse>> {
+    return this.http.patch<ApiResponse<PayBribesResponse>>(
+      `${this.apiUrl}/${dni}/pay`,
+      { ids },
+      { withCredentials: true }
+    );
+  }
+
+  /**
+   * Elimina un soborno por ID
+   */
+  deleteBribe(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(
+      `${this.apiUrl}/${id}`, 
+      { withCredentials: true }
+    );
   }
 }

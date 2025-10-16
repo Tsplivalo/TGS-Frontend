@@ -1,74 +1,67 @@
-import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER } from '@angular/core';
+/**
+ * Configuración principal de la aplicación Angular
+ * 
+ * Este archivo define la configuración global de la aplicación incluyendo:
+ * - Configuración del router para navegación
+ * - Configuración de HTTP client con interceptores
+ * - Configuración de internacionalización (i18n)
+ * - Configuración de detección de cambios optimizada
+ */
+import { ApplicationConfig, provideZoneChangeDetection, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { credentialsInterceptor } from './interceptors/credentials.interceptor';
-import { AuthService } from './services/auth/auth';
+import { authInterceptor } from './interceptors/auth.interceptor';
 
-import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
-import { HttpTranslateLoader } from './i18n/translate-loader';
+// Módulos para internacionalización
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+
+// Loader personalizado para cargar traducciones desde el servidor
+import { HttpTranslateLoader } from '../app/i18n/translate-loader';
 
 /**
- * appConfig
- *
- * - Router + HttpClient con interceptor de credenciales
- * - ngx-translate con loader HTTP
- * - APP_INITIALIZER para elegir idioma por navegador (en/ES) en arranque
- *
- * Notas:
- * • Usamos APP_INITIALIZER (token oficial) en lugar de un string arbitrario.
- * • Guardamos acceso a `navigator` para SSR/entornos sin DOM.
+ * Factory function para crear el loader de traducciones personalizado
+ * 
+ * @param http - Instancia de HttpClient para realizar peticiones HTTP
+ * @returns Instancia del loader personalizado para traducciones
  */
-
-export function translateLoaderFactory(http: HttpClient): TranslateLoader {
+export function createTranslateLoader(http: HttpClient) {
   return new HttpTranslateLoader(http);
 }
 
-// Detecta lenguaje del navegador de forma segura (fallback 'en')
-function detectBrowserLang(): 'en' | 'es' {
-  if (typeof navigator === 'undefined') return 'en';
-  const base = (navigator.language || 'en').split('-')[0];
-  return (base === 'es' || base === 'en') ? base : 'en';
-}
-
-function initI18nFactory(ts: TranslateService) {
-  // Debe devolver una función: Angular la ejecuta en bootstrap y espera su finalización
-  return () => {
-    const lang = detectBrowserLang();
-    ts.setDefaultLang('en');
-    ts.use(lang);
-  };
-}
-
+/**
+ * Configuración principal de la aplicación
+ * 
+ * Define todos los providers necesarios para el funcionamiento de la aplicación:
+ * - Router con lazy loading de componentes
+ * - HTTP client con interceptor de autenticación
+ * - Sistema de internacionalización con español como idioma por defecto
+ * - Detección de cambios optimizada para mejor rendimiento
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
-    // Routing
+    // Configuración optimizada de detección de cambios
+    provideZoneChangeDetection({ eventCoalescing: true }),
+
+    // Configuración del router con lazy loading
     provideRouter(routes),
 
-    // HTTP + Interceptor de credenciales (cookies, etc.)
-    provideHttpClient(withInterceptors([credentialsInterceptor])),
-
-    // Servicios singleton
-    AuthService,
-
-    // i18n (ngx-translate) con loader HTTP
-    importProvidersFrom(
-      TranslateModule.forRoot({
-        defaultLanguage: 'en',
-        loader: {
-          provide: TranslateLoader,
-          useFactory: translateLoaderFactory,
-          deps: [HttpClient],
-        },
-      })
+    // Configuración de HTTP client con interceptor de autenticación
+    // IMPORTANTE: HttpClient debe estar disponible antes de TranslateModule
+    provideHttpClient(
+      withInterceptors([authInterceptor])
     ),
 
-    // Inicializador de idioma al arrancar la app
-    {
-      provide: APP_INITIALIZER,
-      multi: true,
-      useFactory: initI18nFactory,
-      deps: [TranslateService],
-    },
-  ],
+    // Configuración del módulo de traducciones con loader personalizado
+    importProvidersFrom(
+      TranslateModule.forRoot({
+        defaultLanguage: 'es', // Idioma por defecto: español
+        loader: {
+          provide: TranslateLoader,
+          useFactory: createTranslateLoader,
+          deps: [HttpClient]
+        }
+      })
+    )
+  ]
 };

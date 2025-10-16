@@ -4,7 +4,7 @@
       <h2>{{ 'authorities.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
-          {{ isFormOpen ? ('common.close' | translate) : ('authorities.new' | translate) }}
+          {{ isFormOpen ? ('Cerrar' | translate) : ('Nueva Autoridad' | translate) }}
         </button>
       </div>
     </div>
@@ -28,7 +28,7 @@
           <col />
           <col style="width:160px" />
           <col style="width:160px" />
-          <col style="width:220px" />
+          <col style="width:160px" />
         </colgroup>
 
         <thead>
@@ -47,17 +47,15 @@
             <td><span class="truncate">{{ a.rank }}</span></td>
             <td><span class="truncate">{{ getZoneText(a) }}</span></td>
             <td class="right">
-              <button class="btn ghost btn--icon" (click)="edit(a); isFormOpen = true" [attr.aria-label]="'common.edit' | translate"
+              <button class="btn ghost btn--icon" (click)="edit(a); isFormOpen = true"
                 [attr.title]="'common.edit' | translate">
-                ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                ✏️
               </button>
 
-              <button class="btn danger btn--icon" (click)="delete(a.dni)" [attr.aria-label]="'common.delete' | translate"
-                [attr.title]="'common.delete' | translate">
-                🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+              <button class="btn danger btn--icon" (click)="delete(a.dni)" [attr.title]="'common.delete' | translate">
+                🗑️
               </button>
             </td>
-
           </tr>
         </tbody>
       </table>
@@ -130,10 +128,10 @@
 
         <div class="right form-actions">
           <button class="btn success" type="submit" [disabled]="loading()">
-            {{ editDni() == null ? ('common.create' | translate) : ('common.save' | translate) }}
+            {{ editDni() == null ? ('Crear' | translate) : ('Guardar' | translate) }}
           </button>
           <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">
-            {{ 'common.cancel' | translate }}
+            {{ 'Cancelar' | translate }}
           </button>
         </div>
       </form>

@@ -6,14 +6,6 @@ import { ApiResponse, ProductDTO, CreateProductDTO, UpdateProductDTO } from '../
 import { ProductImageService } from '../../services/product-image/product-image';
 import { TranslateModule } from '@ngx-translate/core';
 
-/**
- * ProductComponent
- *
- * ABM de productos con filtro por texto/stock, previsualización de imagen
- * y persistencia de imagen solo en front (localStorage) vía ProductImageService.
- * Decisiones: el backend NO recibe imageUrl; tras crear/editar se guarda localmente.
- */
-
 @Component({
   selector: 'app-product',
   standalone: true,
@@ -30,7 +22,7 @@ export class ProductComponent implements OnInit {
   // --- Estado base ---
   loading = signal(false);
   error   = signal<string | null>(null);
-  editId  = signal<number | null>(null); // null → creando, número → editando
+  editId  = signal<number | null>(null);
 
   // --- Datos ---
   products = signal<ProductDTO[]>([]);
@@ -48,6 +40,7 @@ export class ProductComponent implements OnInit {
       const matchText =
         !txt ||
         (p.description ?? '').toLowerCase().includes(txt) ||
+        (p.detail ?? '').toLowerCase().includes(txt) ||
         String(p.id).includes(txt);
 
       const matchStock =
@@ -63,13 +56,34 @@ export class ProductComponent implements OnInit {
   selectedFile: File | null = null;
   imagePreview = signal<string | null>(null);
 
-  // Form reactivo (imageUrl solo para UI; no se manda al backend)
+  // ✅ CORREGIDO: Agregado campo "detail" requerido por el backend
   form = this.fb.group({
-    description: this.fb.control<string>('', { nonNullable: true, validators: [Validators.required] }),
-    price:       this.fb.control<number>(0,   { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
-    stock:       this.fb.control<number>(0,   { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
-    isIllegal:   this.fb.control<boolean>(false, { nonNullable: true }),
-    imageUrl:    this.fb.control<string>('', { nonNullable: true }), // usado solo en el front
+    description: this.fb.control<string>('', { 
+      nonNullable: true, 
+      validators: [
+        Validators.required, 
+        Validators.minLength(3),
+        Validators.maxLength(50)
+      ] 
+    }),
+    detail: this.fb.control<string>('', { 
+      nonNullable: true, 
+      validators: [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(200)
+      ] 
+    }),
+    price: this.fb.control<number>(0, { 
+      nonNullable: true, 
+      validators: [Validators.required, Validators.min(0.01)] 
+    }),
+    stock: this.fb.control<number>(0, { 
+      nonNullable: true, 
+      validators: [Validators.required, Validators.min(0)] 
+    }),
+    isIllegal: this.fb.control<boolean>(false, { nonNullable: true }),
+    imageUrl: this.fb.control<string>('', { nonNullable: true }),
   });
 
   // --- Ciclo de vida ---
@@ -105,7 +119,6 @@ export class ProductComponent implements OnInit {
       reader.onload = () => {
         const dataUrl = String(reader.result || '');
         this.imagePreview.set(dataUrl);
-        // Opcional: reflejar en el control para persistir en localStorage
         this.form.controls.imageUrl.setValue(dataUrl);
       };
       reader.readAsDataURL(f);
@@ -121,12 +134,11 @@ export class ProductComponent implements OnInit {
     this.srv.getAllProducts().subscribe({
       next: (r: ApiResponse<ProductDTO[]> | ProductDTO[]) => {
         const data = Array.isArray(r) ? r : (r as any).data;
-        // Superpone imágenes locales (solo front) sobre las del backend
         this.products.set(this.imgSvc.overlay(data ?? []));
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'products.errors.load');
+        this.error.set(err?.error?.message ?? 'Error al cargar productos');
         this.loading.set(false);
       }
     });
@@ -136,6 +148,7 @@ export class ProductComponent implements OnInit {
   private loadInForm(p: ProductDTO) {
     this.form.setValue({
       description: p.description ?? '',
+      detail: p.detail ?? '',
       price: p.price ?? 0,
       stock: p.stock ?? 0,
       isIllegal: p.isIllegal ?? false,
@@ -150,6 +163,7 @@ export class ProductComponent implements OnInit {
     this.editId.set(null);
     this.form.reset({
       description: '',
+      detail: '',
       price: 0,
       stock: 0,
       isIllegal: false,
@@ -157,18 +171,26 @@ export class ProductComponent implements OnInit {
     });
     this.selectedFile = null;
     this.imagePreview.set(null);
+    this.isNewOpen = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   edit(p: ProductDTO) {
     this.editId.set(p.id);
     this.loadInForm(p);
+    this.isNewOpen = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // --- Guardar ---
   save() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      // Marcar todos los campos como touched para mostrar errores
+      Object.keys(this.form.controls).forEach(key => {
+        this.form.get(key)?.markAsTouched();
+      });
+      return;
+    }
 
     this.loading.set(true);
     this.error.set(null);
@@ -176,39 +198,52 @@ export class ProductComponent implements OnInit {
     const raw = this.form.getRawValue();
     const img = raw.imageUrl?.trim() || null;
 
-    // No enviar imageUrl al backend (solo front)
-    const { imageUrl: _ignore, ...clean } = raw as any;
-
     if (this.editId() == null) {
-      // CREATE
-      const dtoCreate: CreateProductDTO = clean;
+      // CREATE - Construir DTO explícitamente (NO enviar imageUrl al backend)
+      const dtoCreate: CreateProductDTO = {
+        description: raw.description,
+        detail: raw.detail,
+        price: raw.price,
+        stock: raw.stock,
+        isIllegal: raw.isIllegal
+      };
+
       this.srv.createProduct(dtoCreate).subscribe({
         next: (res: any) => {
           const created = ('data' in res ? res.data : res) as ProductDTO | null;
-          if (created?.id) this.imgSvc.set(created.id, img); // guarda preview en local
+          if (created?.id) this.imgSvc.set(created.id, img);
           this.loading.set(false);
           this.new();
           this.load();
         },
         error: err => {
           this.loading.set(false);
-          this.error.set(err?.error?.message ?? 'products.errors.save');
+          this.error.set(err?.error?.message ?? 'Error al guardar producto');
+          console.error('Error creating product:', err);
         }
       });
     } else {
-      // UPDATE
+      // UPDATE - Construir DTO explícitamente (NO enviar imageUrl al backend)
       const id = this.editId()!;
-      const dtoUpdate: UpdateProductDTO = clean;
+      const dtoUpdate: UpdateProductDTO = {
+        description: raw.description,
+        detail: raw.detail,
+        price: raw.price,
+        stock: raw.stock,
+        isIllegal: raw.isIllegal
+      };
+
       this.srv.updateProduct(id, dtoUpdate).subscribe({
         next: _ => {
-          this.imgSvc.set(id, img); // actualiza imagen local
+          this.imgSvc.set(id, img);
           this.loading.set(false);
           this.new();
           this.load();
         },
         error: err => {
           this.loading.set(false);
-          this.error.set(err?.error?.message ?? 'products.errors.save');
+          this.error.set(err?.error?.message ?? 'Error al actualizar producto');
+          console.error('Error updating product:', err);
         }
       });
     }
@@ -216,18 +251,19 @@ export class ProductComponent implements OnInit {
 
   // --- Borrado ---
   delete(id: number) {
-    if (!confirm('products.confirmDelete')) return; // clave i18n sugerida
+    if (!confirm('¿Estás seguro de eliminar este producto?')) return;
     this.loading.set(true);
     this.error.set(null);
     this.srv.deleteProduct(id).subscribe({
       next: () => {
-        this.imgSvc.remove(id); // limpia imagen local asociada
+        this.imgSvc.remove(id);
         this.loading.set(false);
         this.load();
       },
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'products.errors.delete');
+        this.error.set(err?.error?.message ?? 'Error al eliminar producto');
         this.loading.set(false);
+        console.error('Error deleting product:', err);
       }
     });
   }

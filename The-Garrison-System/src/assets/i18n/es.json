@@ -3,11 +3,17 @@
   "nav": {
     "store": "Tienda",
     "myAccount": "Mi cuenta",
-    "management": "Gestión",
     "logout": "Salir",
+    "management": "Gestión",
+    "society": "Sociedad",
+    "inbox": "Bandeja",
+    "unread": "sin leer",
+    "roleRequests": "Solicitudes de rol",
+    "mailVerification": "Verificación de mail",
+    "myRoleRequest": "Mi solicitud de rol",
     "about": "Sobre nosotros",
-    "faqs": "FAQs",
-    "contact": "Contactanos",
+    "faqs": "Preguntas frecuentes",
+    "contact": "Contáctanos",
     "language": "Idioma"
   },
   "mgmt": {
@@ -20,7 +26,12 @@
     "bribe": "Sobornos",
     "decision": "Decisiones",
     "topic": "Temáticas",
-    "distributor": "Distribuidores"
+    "distributor": "Distribuidores",
+    "shelbyCouncil": "Consejo Shelby",
+    "monthlyReview": "Revisiones mensuales",
+    "clandestineAgreement": "Acuerdos clandestinos",
+    "admin": "Administradores",
+    "roleRequests": "Solicitudes de rol"
   },
   "store": {
     "title": "Tienda",
@@ -129,7 +140,10 @@
     "save": "Guardar",
     "cancel": "Cancelar",
     "edit": "Editar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "error": "Error",
+    "all": "Todos",
+    "actions": "Acciones"
   },
   "clients": {
     "title": "Clientes",
@@ -172,6 +186,65 @@
       "addressPh": "Calle 123, Ciudad"
     }
   },
+
+   "partner": {
+    "title": "Socios",
+    "new": "Nuevo socio",
+    "loading": "Cargando socios...",
+    "list": "Listado",
+    "emptyTitle": "No hay socios",
+    "emptyHint": "Creá un socio con el panel de abajo.",
+    "create": "Crear socio",
+    "edit": "Editar socio",
+    "buttons": {
+      "clear": "Limpiar formulario"
+    },
+    "filters": {
+      "search": "Buscar"
+    },
+    "createMode": "¿Cómo querés crear el socio?",
+    "mode": {
+      "fromClient": "Desde cliente existente",
+      "manual": "Manual"
+    },
+    "client": {
+      "search": "Buscar cliente",
+      "searchPh": "DNI, nombre o email...",
+      "select": "Seleccionar cliente",
+      "selectPh": "Elegí un cliente",
+      "hint": "Al seleccionar se completa el formulario; luego podés ajustar."
+    },
+    "fields": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "username": "Usuario",
+      "password": "Contraseña"
+    },
+    "creds": {
+      "toggle": "Crear cuenta para el socio",
+      "hint": "Si no marcás esta opción, se crea el socio sin usuario/contraseña."
+    },
+    "errors": {
+      "dni": "Ingresá un DNI válido.",
+      "name": "Ingresá un nombre válido.",
+      "email": "Ingresá un email válido.",
+      "username": "Usuario requerido (mín. 3).",
+      "password": "Contraseña requerida (mín. 6).",
+      "load": "No se pudieron cargar los socios.",
+      "create": "No se pudo crear el socio.",
+      "update": "No se pudo actualizar el socio.",
+      "delete": "No se pudo eliminar el socio."
+    },
+    "errorLoad": "No se pudieron cargar los socios.",
+    "errorCreate": "No se pudo crear el socio.",
+    "errorUpdate": "No se pudo actualizar el socio.",
+    "errorDelete": "No se pudo eliminar el socio."
+  },
+
+
   "sales": {
     "title": "Ventas",
     "new": "Nueva",
@@ -294,28 +367,78 @@
     },
     "err": { "zoneIdInvalid": "El ID de la zona debe ser un número válido mayor a 0." }
   },
+  
   "bribes": {
-    "title": "Sobornos",
-    "empty": "Sin sobornos",
-    "filters": { "search": "Buscar", "searchPh": "id, id de venta, id de autoridad" },
+    "title": "Gestión de Sobornos",
+    "new": "+ Nuevo Soborno",
+    "newTitle": "Crear Nuevo Soborno",
+    "editTitle": "Editar Soborno",
+    "loading": "Cargando sobornos...",
+    "noResults": "No se encontraron sobornos",
+    "confirmPay": "¿Confirmar el pago de este soborno?",
+    "confirmDelete": "¿Eliminar este soborno? Esta acción no se puede deshacer.",
+    
+    "filters": {
+      "search": "Buscar",
+      "searchPh": "Buscar por ID, monto, autoridad...",
+      "paid": "Estado de Pago",
+      "paid_all": "Todos",
+      "paid_yes": "Pagados",
+      "paid_no": "Pendientes",
+      "dateType": "Tipo de Fecha",
+      "dateType_all": "Todas las fechas",
+      "dateType_exact": "Fecha exacta",
+      "dateType_before": "Antes de",
+      "dateType_after": "Después de",
+      "dateType_between": "Entre fechas",
+      "date": "Fecha",
+      "endDate": "Fecha Final"
+    },
+    
     "table": {
       "id": "ID",
-      "sale": "Venta",
-      "authority": "Autoridad",
       "amount": "Monto",
-      "paid": "Pagado",
-      "date": "Fecha",
-      "actions": "Acciones"
+      "authority": "Autoridad",
+      "sale": "Venta",
+      "paid": "Estado",
+      "date": "Fecha de Creación"
     },
-    "actions": { "markPaid": "Marcar como pagado" },
-    "yes": "Sí",
-    "no": "No",
-    "err": { "completeAll": "Completá todos los campos.", "noChanges": "No hay cambios para guardar." },
-    "errorLoad": "No se pudieron cargar los sobornos.",
-    "errorCreate": "No se pudo crear.",
-    "errorUpdate": "No se pudo actualizar.",
-    "errorMarkPaid": "No se pudo marcar como pagado."
+    
+    "status": {
+      "paid": "Pagado",
+      "pending": "Pendiente"
+    },
+    
+    "actions": {
+      "pay": "Marcar como Pagado"
+    },
+    
+    "form": {
+      "amount": "Monto",
+      "amountPh": "Ingrese el monto del soborno",
+      "authority": "ID de Autoridad",
+      "authorityPh": "Ingrese el ID de la autoridad",
+      "sale": "ID de Venta",
+      "salePh": "Ingrese el ID de la venta",
+      "editNote": "Nota: Solo se puede editar el monto. La autoridad y venta no pueden modificarse."
+    },
+    
+    "errors": {
+      "amountRequired": "El monto es requerido",
+      "authorityIdRequired": "El ID de autoridad es requerido",
+      "saleIdRequired": "El ID de venta es requerido",
+      "minValue": "El valor mínimo es {{min}}",
+      "invalid": "Valor inválido"
+    },
+    
+    "errorLoad": "Error al cargar los sobornos",
+    "errorSearch": "Error al buscar sobornos",
+    "errorCreate": "Error al crear el soborno",
+    "errorSave": "Error al guardar el soborno",
+    "errorPay": "Error al procesar el pago",
+    "errorDelete": "Error al eliminar el soborno"
   },
+  
   "decisions": {
     "title": "Decisiones estratégicas",
     "new": "Nueva",
@@ -407,5 +530,235 @@
     "errorCreate": "No se pudo crear (verificá datos requeridos).",
     "errorSave": "No se pudo guardar.",
     "errorDelete": "No se pudo eliminar."
-  }
-}
+  },
+
+  "status": {
+    "PENDIENTE": "PENDIENTE",
+    "PENDING": "PENDIENTE",
+    "IN_REVIEW": "EN REVISIÓN",
+    "COMPLETED": "COMPLETADA",
+    "APPROVED": "APROBADA",
+    "REJECTED": "RECHAZADA",
+    "ACTIVE": "ACTIVO",
+    "EXPIRED": "VENCIDO",
+    "CANCELLED": "CANCELADO"
+  },
+  "roles": {
+    "CLIENT": "CLIENTE",
+    "DISTRIBUTOR": "DISTRIBUIDOR",
+    "PARTNER": "SOCIO",
+    "ADMIN": "ADMIN"
+  },
+
+  "admin": {
+    "title": "Administradores",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "DNI, nombre, email, teléfono"
+    },
+    "list": "Listado",
+    "emptyTitle": "No hay administradores",
+    "emptyHint": "Ajustá el filtro o creá un nuevo administrador.",
+    "form": {
+      "titleCreate": "Crear administrador",
+      "titleEdit": "Editar {{dni}}"
+    },
+    "fields": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono"
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "clear": "Limpiar",
+      "cancel": "Cancelar"
+    },
+    "messages": {
+      "loading": "Cargando...",
+      "errorCreating": "Error creando",
+      "errorSaving": "Error guardando",
+      "errorLoading": "Error cargando"
+    }
+  },
+
+  "roleRequest": {
+    "title": "Solicitudes de rol",
+    "my": {
+      "title": "Mis solicitudes",
+      "emptyTitle": "No tenés solicitudes",
+      "emptyHint": "Creá una nueva con el botón “+ Nueva”."
+    },
+    "pending": {
+      "title": "Pendientes (admin)",
+      "emptyTitle": "No hay solicitudes pendientes",
+      "emptyHint": "Cuando existan solicitudes, aparecerán acá."
+    },
+    "create": { "title": "Crear solicitud" },
+    "table": {
+      "user": "Usuario",
+      "role": "Rol",
+      "reason": "Motivo",
+      "status": "Estado",
+      "createdAt": "Creada"
+    },
+    "form": {
+      "requestedRole": "Rol solicitado",
+      "roleToRemove": "Quitar rol (opcional)",
+      "reason": "Motivo"
+    },
+    "buttons": {
+      "new": "+ Nueva",
+      "close": "Cerrar",
+      "send": "Enviar",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "cancel": "Cancelar"
+    },
+    "messages": { "errorSubmit": "No se pudo enviar la solicitud" }
+  },
+
+  "shelbyCouncil": {
+"title": "Consejo Shelby",
+    "loading": "Cargando...",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Socio, decisión, id"
+    },
+    "list": "Listado",
+    "emptyTitle": "No hay miembros",
+    "emptyHint": "Ajustá los filtros o creá un ingreso.",
+    "form": {
+      "titleCreate": "Crear ingreso",
+      "titleEdit": "Editar miembro #{{id}}"
+    },
+    "fields": {
+      "partnerDni": "DNI del socio",
+      "decisionId": "ID de decisión",
+      "joinDate": "Fecha de ingreso",
+      "role": "Rol",
+      "notes": "Notas"
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "clear": "Limpiar"
+    },
+    "errorCreate": "No se pudo crear",
+    "errorSave": "No se pudo guardar",
+    "errorLoad": "No se pudo cargar",
+    "errorDelete": "No se pudo eliminar",
+    "confirmDelete": "¿Eliminar este registro?" 
+  },
+
+  "monthlyReview": {
+    "title": "Revisiones Mensuales",
+    "loading": "Cargando...",
+    "filters": { 
+      "year": "Año", 
+      "month": "Mes (1-12)",
+      "monthPlaceholder": "Todos",
+      "status": "Estado"
+    },
+    "stats": { 
+      "title": "Estadísticas del Período", 
+      "empty": "Sin datos para el período seleccionado.",
+      "period": "Período",
+      "totalSales": "Total Ventas",
+      "totalAmount": "Monto Total",
+      "averageAmount": "Promedio",
+      "byProduct": "Por Producto",
+      "productName": "Producto",
+      "quantity": "Cantidad",
+      "amount": "Monto"
+    },
+    "list": "Listado de Revisiones",
+    "emptyTitle": "No hay revisiones",
+    "emptyHint": "Ajustá los filtros o creá una nueva revisión.",
+    "table": {
+      "id": "ID",
+      "period": "Período",
+      "status": "Estado",
+      "reviewer": "Revisor",
+      "date": "Fecha",
+      "totalAmount": "Monto",
+      "totalCount": "Ventas"
+    },
+    "form": {
+      "titleCreate": "Crear Revisión Mensual",
+      "titleEdit": "Editar Revisión #{{id}}",
+      "fields": {
+        "partnerDni": "DNI del Socio",
+        "year": "Año",
+        "month": "Mes",
+        "reviewDate": "Fecha de Revisión",
+        "status": "Estado",
+        "observations": "Observaciones",
+        "recommendations": "Recomendaciones"
+      },
+      "placeholders": {
+        "observations": "Observaciones sobre las ventas del período...",
+        "recommendations": "Recomendaciones o acciones a tomar..."
+      },
+      "errors": {
+          "partnerDni": "DNI del socio requerido (mín. 6 caracteres)"
+        }
+      }
+    },
+  
+  
+      
+      "clandestineAgreement": {
+        "title": "Acuerdos Clandestinos",
+        "list": "Listado de Acuerdos",
+        "emptyTitle": "No hay acuerdos clandestinos",
+        "emptyHint": "Utiliza el botón 'Nuevo' para crear el primer acuerdo clandestino",
+        "confirmDelete": "¿Eliminar este acuerdo clandestino?",
+        
+        "buttons": {
+          "new": "Nuevo",
+          "clear": "Limpiar"
+        },
+        
+        "filters": {
+          "search": "Buscar",
+          "searchPlaceholder": "Buscar por ID, DNI, nombre o descripción..."
+        },
+        
+        "table": {
+          "shelbyCouncil": "Consejo Shelby",
+          "admin": "Administrador",
+          "authority": "Autoridad",
+          "date": "Fecha del Acuerdo",
+          "status": "Estado",
+          "description": "Descripción"
+        },
+        
+        "form": {
+          "titleCreate": "Crear Nuevo Acuerdo Clandestino",
+          "titleEdit": "Editar Acuerdo #{{id}}",
+          
+          "fields": {
+            "shelbyCouncilId": "ID Consejo Shelby",
+            "adminDni": "DNI Administrador",
+            "authorityDni": "DNI Autoridad",
+            "agreementDate": "Fecha del Acuerdo",
+            "status": "Estado",
+            "description": "Descripción"
+          },
+          
+          "hints": {
+            "cannotChangeRelations": "No se pueden modificar las relaciones en modo edición"
+          }
+        }
+      }
+      
+      
+    }
+    
+  
+

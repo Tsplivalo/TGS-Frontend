@@ -4,7 +4,7 @@
       <h2>{{ 'decisions.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
-          {{ isFormOpen ? ('common.close' | translate) : ('decisions.new' | translate) }}
+          {{ isFormOpen ? ('Cerrar' | translate) : ('Nueva Decisión' | translate) }}
         </button>
       </div>
     </div>
@@ -29,7 +29,7 @@
           <col />
           <col style="width:140px" />
           <col style="width:140px" />
-          <col style="width:220px" />
+          <col style="width:160px" />
         </colgroup>
 
         <thead>
@@ -57,8 +57,10 @@
             <td>{{ d.startDate | date:'shortDate' }}</td>
             <td>{{ d.endDate | date:'shortDate' }}</td>
             <td class="right">
-              <button class="btn ghost" (click)="edit(d); isFormOpen = true">{{ 'common.edit' | translate }}</button>
-              <button class="btn danger" (click)="delete(d.id)">{{ 'common.delete' | translate }}</button>
+              <button class="btn ghost btn--icon" (click)="edit(d); isFormOpen = true"
+                [attr.title]="'common.edit' | translate">✏️</button>
+              <button class="btn danger btn--icon" (click)="delete(d.id)"
+                [attr.title]="'common.delete' | translate">🗑️</button>
             </td>
           </tr>
         </tbody>
@@ -112,10 +114,10 @@
 
         <div class="right form-actions">
           <button class="btn success" type="submit" [disabled]="loading()">
-            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+            {{ isEdit() ? ('Guardar' | translate) : ('Crear' | translate) }}
           </button>
           <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">
-            {{ 'common.cancel' | translate }}
+            {{ 'Cancelar' | translate }}
           </button>
         </div>
       </form>

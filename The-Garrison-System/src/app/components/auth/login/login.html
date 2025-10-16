@@ -1,53 +1,57 @@
-<!--
-  Login template
-  - Comentarios útiles y mejoras de accesibilidad.
-  - Mantiene estructura y bindings existentes (no rompe nada).
-  - Asocia labels con inputs, usa aria-live para errores y mejora el toggle de contraseña.
--->
-<form [formGroup]="form" (ngSubmit)="submit()" class="auth-form" aria-labelledby="login-title" novalidate>
+<section class="login-page">
+  <div class="login-card">
+    <header class="login-header">
+      <h1>Iniciar Sesión</h1>
+      <p>Ingresa tus credenciales para acceder</p>
+    </header>
 
-  <h1 id="login-title">Iniciar sesión</h1>
+    <!-- ⚠️ Banner de verificación de email requerida -->
+    <div class="verification-alert" *ngIf="needsEmailVerification()" role="alert">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-content">
+        <strong>Email no verificado</strong>
+        <p>Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.</p>
 
-  <!-- Campo Email -->
-  <label for="f-email">
-    Email
-    <input id="f-email" formControlName="email" type="email" autocomplete="email" placeholder="tu@email.com"
-      inputmode="email" />
-  </label>
+        <!-- Mensaje de email enviado -->
+        <div class="email-sent-message" *ngIf="emailSent()">
+          <span class="success-icon">✓</span>
+          Email de verificación enviado. Revisa tu bandeja de entrada.
+        </div>
 
-  <!-- Campo Password con botón mostrar/ocultar -->
-  <label class="password-row" for="f-password">
-    Contraseña
-    <div class="password-field">
-      <input id="f-password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
-        autocomplete="current-password" placeholder="••••••••" />
-
-      <!--
-        Botón de visibilidad:
-        - aria-pressed refleja estado (true cuando se muestra la contraseña)
-        - aria-controls referencia el input de password
-      -->
-      <button type="button" class="toggle" (click)="toggleShowPassword()"
-        [attr.aria-pressed]="showPassword ? 'true' : 'false'" aria-label="Mostrar u ocultar contraseña"
-        aria-controls="f-password">
-        {{ showPassword ? 'Ocultar' : 'Mostrar' }}
-      </button>
+        <!-- Botón de reenvío -->
+        <button type="button" class="btn-resend-small" (click)="resendVerificationEmail()"
+          [disabled]="resendingEmail() || emailSent()">
+          {{ resendingEmail() ? 'Enviando...' : emailSent() ? 'Email enviado ✓' : 'Reenviar email de verificación' }}
+        </button>
+      </div>
     </div>
-  </label>
 
-  <!-- Submit -->
-  <button type="submit" [disabled]="form.invalid || loading" [attr.aria-busy]="loading ? 'true' : null">
-    {{ loading ? 'Ingresando…' : 'Ingresar' }}
-  </button>
+    <!-- Mensaje de error general -->
+    <div class="error-message" *ngIf="error() && !needsEmailVerification()" role="alert">
+      {{ error() }}
+    </div>
 
-  <!-- Hint secundario -->
-  <p class="hint" id="login-hint">
-    ¿No tenés cuenta?
-    <a routerLink="/register">Crear cuenta</a>
-  </p>
+    <!-- Formulario de login -->
+    <form (submit)="onSubmit(); $event.preventDefault()" class="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" [value]="email()" (input)="email.set($any($event.target).value)"
+          placeholder="tu@email.com" required autocomplete="email" />
+      </div>
 
-  <!-- Errores: se anuncian a lectores de pantalla -->
-  <p class="error" *ngIf="errorMsg" role="alert" aria-live="assertive">
-    {{ errorMsg }}
-  </p>
-</form>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input id="password" type="password" [value]="password()" (input)="password.set($any($event.target).value)"
+          placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+
+      <button type="submit" class="btn-login" [disabled]="loading()">
+        {{ loading() ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+      </button>
+    </form>
+
+    <footer class="login-footer">
+      <p>¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a></p>
+    </footer>
+  </div>
+</section>
