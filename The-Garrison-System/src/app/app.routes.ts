@@ -31,6 +31,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/pages/contact/contact').then(m => m.ContactComponent) 
   },
 
+  {
+  path: 'tools/backup',
+  loadComponent: () => import('./tools/backup-export.component').then(m => m.BackupExportComponent)
+  },
+  
   // ══════════════════════════════════════════════════════════════════════════
   // AUTENTICACIÓN (Solo para NO autenticados)
   // ══════════════════════════════════════════════════════════════════════════

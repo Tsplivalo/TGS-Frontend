@@ -16,16 +16,13 @@ module.exports = function (config) {
     reporters: ['progress', 'coverage'],
 
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage'),
-      subdir: '.',
-      reporters: [
-        { type: 'html' },          // reporte visual (coverage/index.html)
-        { type: 'text-summary' },  // resumen en consola
-        { type: 'json' },          // detalle por archivo
-        { type: 'json-summary' }   // <-- necesario para check-coverage.cjs
-      ],
-      fixWebpackSourcePaths: true
-    },
+  dir: 'coverage',
+  reporters: [{ type: 'lcov' }, { type: 'text-summary' }],
+  check: {
+    global: { statements: 60, branches: 30, functions: 45, lines: 60 }
+  }
+},
+
 
     browsers: ['ChromeHeadless'],
     singleRun: true,
