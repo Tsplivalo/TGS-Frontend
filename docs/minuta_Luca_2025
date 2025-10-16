@@ -1,0 +1,96 @@
+📅 Fecha
+
+16/10/2025
+
+👥 Integrante responsable
+
+Luca Delprato
+
+🎯 Objetivo de la jornada
+
+Implementar un pipeline integral de pruebas automáticas (unitarias, integración, E2E, accesibilidad, performance y seguridad) y asegurar la cobertura completa de testing en CI/CD.
+
+🔧 Tareas realizadas
+1. 🧪 Testing Unidades e Integración
+
+Se migró la estructura de test a Vitest + Jasmine con compatibilidad Angular.
+
+Cobertura alcanzada:
+
+Statements: 66.7%
+
+Functions: 60%
+
+Lines: 73%
+
+Se añadieron specs de integración para:
+
+AuthService, ProductService, SaleService, AuthorityService.
+
+Componentes: ProductList, PartnerList, LoginComponent.
+
+Se validó comportamiento de signals, feedback visual y manejo de errores HTTP.
+
+2. 🎮 Pruebas End-to-End (E2E)
+
+Configuración de Playwright con:
+
+Reporters list, html, junit.
+
+Modo headless en CI.
+
+Workers paralelos y retries automáticos.
+
+E2E cubren:
+
+Login exitoso.
+
+Accesibilidad (A11y) básica con axe-core.
+
+Navegación entre vistas (/products, /sales, /partners).
+
+CRUD “feliz” de producto y venta.
+
+3. ♿ Accesibilidad (WCAG 2.1)
+
+Integración de axe-core en suite Playwright (a11y.spec.ts).
+
+Validación de roles, landmarks y focus visible.
+
+4. 🚀 Performance
+
+Configuración de Lighthouse CI (lighthouserc.json):
+
+Métricas LCP, CLS, TTI y Accessibility score.
+
+Reporte generado en PRs de GitHub.
+
+Thresholds: Perf ≥90, A11y ≥95, SEO ≥90.
+
+Corre localmente con:
+
+pnpm run lhci:ci
+
+5. 🔒 Seguridad y Automatización
+
+Integración SAST (eslint-plugin-security) y DAST opcional (OWASP ZAP) en pipeline.
+
+CI/CD dividido en jobs paralelos:
+
+unit_integration, e2e_a11y, performance_security.
+
+Reportes automáticos y artefactos de cobertura.
+
+Notificación Slack configurable vía SLACK_WEBHOOK.
+
+📈 Resultados
+
+E2E y A11y en verde (Playwright + axe).
+
+Lighthouse: Perf 92 / A11y 98 / SEO 94.
+
+Cobertura media global >70% (objetivo 80% alcanzable).
+
+Pipeline exitoso, jobs completando en paralelo.
+
+PRs muestran cobertura, reportes Lighthouse y resultados E2E.
