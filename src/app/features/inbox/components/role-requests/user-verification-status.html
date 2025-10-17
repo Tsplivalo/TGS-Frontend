@@ -1,0 +1,227 @@
+<!-- src/app/features/inbox/components/user-verification/user-verification-status.component.html -->
+
+<div class="user-verification-status">
+  <!-- Header -->
+  <div class="verification-header">
+    <div>
+      <h2>Verificación de Usuario</h2>
+      <p class="subtitle">
+        La verificación de tu cuenta permite acceder a funciones avanzadas del sistema
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando estado de verificación...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error && !loading" class="error-message">
+    <span class="icon">⚠️</span>
+    <div class="error-content">
+      <strong>Error</strong>
+      <p>{{ error }}</p>
+    </div>
+    <button class="btn-link" (click)="error = null">Cerrar</button>
+  </div>
+
+  <!-- Already Verified -->
+  <div *ngIf="isVerified && !loading" class="verified-card">
+    <div class="verified-icon">✅</div>
+    <h3>Cuenta Verificada</h3>
+    <p>Tu cuenta ha sido verificada exitosamente por un administrador.</p>
+
+    <div class="verified-benefits">
+      <h4>Beneficios de la verificación:</h4>
+      <ul>
+        <li>✓ Acceso completo a funciones avanzadas</li>
+        <li>✓ Capacidad para realizar compras</li>
+        <li>✓ Capacidad para solicitar roles especiales</li>
+        <li>✓ Prioridad en soporte técnico</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Not Verified - No Request -->
+  <div *ngIf="!isVerified && !verificationStatus && !loading" class="no-verification-card">
+    <div class="info-icon">📋</div>
+    <h3>Verificación de Cuenta</h3>
+    <p>
+      Para acceder a todas las funcionalidades del sistema, necesitas verificar tu cuenta.
+      Esta verificación es revisada manualmente por un administrador.
+    </p>
+
+    <!-- Warning si NO tiene perfil completo -->
+    <div *ngIf="!hasCompleteProfile" class="alert alert-warning">
+      <span class="icon">⚠️</span>
+      <div>
+        <strong>Perfil Incompleto</strong>
+        <p>
+          Debes completar tu perfil al 100% antes de solicitar la verificación.
+          Asegúrate de tener todos tus datos personales (DNI, nombre, email, teléfono y dirección).
+        </p>
+        <a routerLink="/mi-cuenta" class="btn btn-secondary btn-sm">
+          <span class="icon">📝</span>
+          Completar Perfil Ahora
+        </a>
+      </div>
+    </div>
+
+  <!-- Progress Indicator -->
+  <div *ngIf="!hasCompleteProfile" class="profile-progress">
+    <h4>Tu Progreso</h4>
+    <div class="progress-items">
+      <div class="progress-item completed">
+        <span class="icon">✅</span>
+        <span class="text">Cuenta creada</span>
+      </div>
+      <div class="progress-item completed">
+        <span class="icon">✅</span>
+        <span class="text">Email verificado</span>
+      </div>
+      <div class="progress-item" [class.completed]="hasCompleteProfile">
+        <span class="icon">{{ hasCompleteProfile ? '✅' : '⏳' }}</span>
+        <span class="text">Perfil completado ({{ hasCompleteProfile ? '100' : '< 100' }}%)</span>
+      </div>
+      <div class="progress-item" [class.completed]="isVerified">
+        <span class="icon">{{ isVerified ? '✅' : '⏳' }}</span>
+        <span class="text">Verificación por admin</span>
+      </div>
+    </div>
+  </div>
+
+    <!-- Requirements -->
+    <div class="verification-requirements">
+      <h4>Requisitos para la verificación:</h4>
+      <ul>
+        <li [class.completed]="hasCompleteProfile">
+          <span class="icon">{{ hasCompleteProfile ? '✅' : '⭕' }}</span>
+          Perfil completo al 100%
+        </li>
+        <li class="completed">
+          <span class="icon">✅</span>
+          Email verificado
+        </li>
+        <li [class.completed]="hasCompleteProfile">
+          <span class="icon">{{ hasCompleteProfile ? '✅' : '⭕' }}</span>
+          Datos personales completos (DNI, nombre, teléfono, dirección)
+        </li>
+      </ul>
+    </div>
+
+    <!-- Button - Solo si tiene perfil completo -->
+    <button *ngIf="hasCompleteProfile" class="btn btn-primary btn-large" (click)="requestVerification()"
+      [disabled]="requesting">
+      <span class="icon">📨</span>
+      {{ requesting ? 'Enviando...' : 'Solicitar Verificación' }}
+    </button>
+
+    <!-- Help text si no tiene perfil completo -->
+    <div *ngIf="!hasCompleteProfile" class="help-box">
+      <span class="icon">ℹ️</span>
+      <p>
+        Completa tu perfil para poder solicitar la verificación de tu cuenta.
+      </p>
+    </div>
+  </div>
+
+  <!-- Pending Verification -->
+  <div
+    *ngIf="!isVerified && verificationStatus && verificationStatus.status === UserVerificationStatus.PENDING && !loading"
+    class="pending-card">
+    <div class="pending-header">
+      <span [class]="getStatusBadgeClass(verificationStatus.status)">
+        <span class="icon">{{ getStatusIcon(verificationStatus.status) }}</span>
+        {{ getStatusText(verificationStatus.status) }}
+      </span>
+    </div>
+
+    <div class="pending-content">
+      <h3>Solicitud en Revisión</h3>
+      <p>
+        Tu solicitud de verificación está siendo revisada por un administrador.
+        Recibirás una notificación cuando sea aprobada o rechazada.
+      </p>
+
+      <div class="verification-details">
+        <div class="detail-item">
+          <span class="label">Fecha de solicitud:</span>
+          <span class="value">{{ formatDate(verificationStatus.createdAt) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Expira el:</span>
+          <span class="value">{{ formatDate(verificationStatus.expiresAt) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Email:</span>
+          <span class="value">{{ verificationStatus.email }}</span>
+        </div>
+      </div>
+
+      <div class="pending-actions">
+        <button class="btn btn-secondary" (click)="resendVerification()" [disabled]="resending">
+          <span class="icon">🔄</span>
+          {{ resending ? 'Reenviando...' : 'Reenviar Notificación' }}
+        </button>
+      </div>
+
+      <div class="info-box">
+        <span class="icon">ℹ️</span>
+        <p>
+          <strong>Tiempo de espera:</strong> Las verificaciones suelen procesarse en un plazo de 24-48 horas hábiles.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancelled/Rejected Verification -->
+  <div
+    *ngIf="!isVerified && verificationStatus && verificationStatus.status === UserVerificationStatus.CANCELLED && !loading"
+    class="cancelled-card">
+    <div class="cancelled-header">
+      <span [class]="getStatusBadgeClass(verificationStatus.status)">
+        <span class="icon">{{ getStatusIcon(verificationStatus.status) }}</span>
+        {{ getStatusText(verificationStatus.status) }}
+      </span>
+    </div>
+
+    <div class="cancelled-content">
+      <h3>Solicitud Rechazada</h3>
+      <p>
+        Tu solicitud de verificación fue rechazada por un administrador.
+        Por favor, revisa tus datos y vuelve a intentarlo.
+      </p>
+
+      <button class="btn btn-primary" (click)="requestVerification()" [disabled]="requesting || !hasCompleteProfile">
+        <span class="icon">🔄</span>
+        {{ requesting ? 'Enviando...' : 'Solicitar Nuevamente' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Expired Verification -->
+  <div
+    *ngIf="!isVerified && verificationStatus && verificationStatus.status === UserVerificationStatus.EXPIRED && !loading"
+    class="expired-card">
+    <div class="expired-header">
+      <span [class]="getStatusBadgeClass(verificationStatus.status)">
+        <span class="icon">{{ getStatusIcon(verificationStatus.status) }}</span>
+        {{ getStatusText(verificationStatus.status) }}
+      </span>
+    </div>
+
+    <div class="expired-content">
+      <h3>Solicitud Expirada</h3>
+      <p>
+        Tu solicitud de verificación ha expirado. Puedes solicitar una nueva verificación.
+      </p>
+
+      <button class="btn btn-primary" (click)="requestVerification()" [disabled]="requesting || !hasCompleteProfile">
+        <span class="icon">📨</span>
+        {{ requesting ? 'Enviando...' : 'Solicitar Nuevamente' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1108 @@
+// src/app/features/inbox/components/user-verification/user-verification.component.scss
+
+/* ====== Variables - Usar las mismas de role-requests.scss ====== */
+$primary-color: #c3a462;
+$primary-700: #9e844e;
+$success-color: #10b981;
+$danger-color: #ef4444;
+$warning-color: #f59e0b;
+$text-light: #e5e7eb;
+$text-strong: #ffffff;
+$text-muted: #9ca3af;
+$bg-dark: #0c1220;
+$glass-bg: rgba(255, 255, 255, 0.06);
+$glass-bg-hover: rgba(255, 255, 255, 0.10);
+$border-glass: rgba(255, 255, 255, 0.18);
+$border-radius: 12px;
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+/* ====== User Verification Status (Similar a User Role Requests Inbox) ====== */
+.user-verification-status {
+  padding: 0;
+  max-width: 100%;
+  margin: 0 auto;
+
+  .verification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $border-glass;
+
+    div {
+      h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: $text-strong;
+        font-family: 'Google Sans Code', 'Montserrat', monospace;
+        letter-spacing: 0.2px;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+      }
+
+      .subtitle {
+        margin: $spacing-xs 0 0;
+        color: $text-muted;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    padding: $spacing-xl * 2;
+    color: $text-muted;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: $spacing-md;
+    border-radius: $border-radius;
+    margin-bottom: $spacing-md;
+    backdrop-filter: blur(12px);
+    font-weight: 600;
+
+    .icon {
+      flex-shrink: 0;
+      font-size: 1.5rem;
+    }
+
+    .btn-link {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #fecaca;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 700;
+      transition: color 0.2s;
+
+      &:hover {
+        color: $text-strong;
+      }
+    }
+  }
+
+  /* ====== Verified Card ====== */
+  .verified-card {
+    text-align: center;
+    padding: $spacing-xl * 2;
+    color: $text-muted;
+    background: $glass-bg;
+    border: 1px solid $border-glass;
+    border-radius: $border-radius;
+    backdrop-filter: blur(12px);
+
+    .verified-icon {
+      font-size: 4rem;
+      margin-bottom: $spacing-md;
+      opacity: 0.6;
+    }
+
+    h3 {
+      margin: 0 0 $spacing-sm;
+      color: $text-strong;
+      font-weight: 700;
+      font-size: 1.25rem;
+      font-family: 'Google Sans Code', 'Montserrat', monospace;
+    }
+
+    p {
+      margin: 0 0 $spacing-lg;
+      color: $text-muted;
+      line-height: 1.6;
+    }
+
+    .verified-benefits {
+      text-align: left;
+      background: rgba(0, 0, 0, 0.2);
+      padding: $spacing-lg;
+      border-radius: 10px;
+      border-left: 3px solid $success-color;
+
+      h4 {
+        margin: 0 0 $spacing-md;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: $text-strong;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: $spacing-lg;
+        color: $text-light;
+
+        li {
+          margin-bottom: $spacing-sm;
+          line-height: 1.6;
+          font-weight: 500;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+  }
+
+  /* ====== No Verification Card (Similar a empty-state) ====== */
+  .no-verification-card {
+    text-align: center;
+    padding: $spacing-xl * 3;
+    color: $text-muted;
+    background: $glass-bg;
+    border: 1px solid $border-glass;
+    border-radius: $border-radius;
+    backdrop-filter: blur(12px);
+
+    .info-icon {
+      font-size: 4rem;
+      margin-bottom: $spacing-md;
+      opacity: 0.6;
+    }
+
+    h3 {
+      margin: 0 0 $spacing-sm;
+      color: $text-strong;
+      font-weight: 700;
+      font-size: 1.25rem;
+      font-family: 'Google Sans Code', 'Montserrat', monospace;
+    }
+
+    >p {
+      margin: 0 0 $spacing-lg;
+      color: $text-muted;
+      line-height: 1.6;
+    }
+
+    .alert {
+      margin-bottom: $spacing-lg;
+      text-align: left;
+
+      &.alert-warning {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.08));
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: $border-radius;
+        padding: $spacing-md;
+        backdrop-filter: blur(12px);
+        display: flex;
+        gap: $spacing-sm;
+
+        .icon {
+          flex-shrink: 0;
+          font-size: 1.5rem;
+        }
+
+        div {
+          flex: 1;
+
+          strong {
+            display: block;
+            margin-bottom: $spacing-xs;
+            color: #fbbf24;
+            font-weight: 800;
+          }
+
+          p {
+            margin: 0 0 $spacing-sm;
+            color: #fde047;
+            font-weight: 500;
+            line-height: 1.5;
+
+            a {
+              color: #fef3c7;
+              font-weight: 600;
+              text-decoration: underline;
+              transition: color 0.2s;
+
+              &:hover {
+                color: $text-strong;
+              }
+            }
+          }
+
+          .btn-secondary {
+            margin-top: $spacing-sm;
+          }
+        }
+      }
+    }
+
+    .verification-requirements {
+      text-align: left;
+      margin-bottom: $spacing-xl;
+      padding: $spacing-lg;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      border-left: 3px solid $primary-color;
+
+      h4 {
+        margin: 0 0 $spacing-md;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: $text-strong;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          margin-bottom: $spacing-sm;
+          color: $text-light;
+          font-weight: 500;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          &.completed {
+            color: #6ee7b7;
+          }
+
+          .icon {
+            font-size: 1.2rem;
+          }
+        }
+      }
+    }
+
+    .btn-large {
+      width: 100%;
+      max-width: 400px;
+      padding: $spacing-md $spacing-lg;
+      font-size: 1rem;
+      justify-content: center;
+    }
+
+    .help-box {
+      margin-top: $spacing-md;
+      display: flex;
+      align-items: flex-start;
+      gap: $spacing-sm;
+      padding: $spacing-md;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.08));
+      border-left: 3px solid #3b82f6;
+      border-radius: $border-radius;
+      text-align: left;
+
+      .icon {
+        flex-shrink: 0;
+        font-size: 1.5rem;
+        color: #60a5fa;
+      }
+
+      p {
+        margin: 0;
+        color: #93c5fd;
+        font-weight: 600;
+        line-height: 1.5;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  /* ====== Pending Card (Similar a request card) ====== */
+  .pending-card {
+    padding: $spacing-xl;
+    background: $glass-bg;
+    border: 1px solid $border-glass;
+    border-radius: $border-radius;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18), inset 0 1px rgba(255, 255, 255, 0.06);
+
+    .pending-header {
+      margin-bottom: $spacing-lg;
+      text-align: center;
+    }
+
+    .pending-content {
+      h3 {
+        margin: 0 0 $spacing-md;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: $text-strong;
+        font-family: 'Google Sans Code', 'Montserrat', monospace;
+        text-align: center;
+      }
+
+      >p {
+        margin: 0 0 $spacing-lg;
+        color: $text-light;
+        line-height: 1.6;
+        font-weight: 500;
+        text-align: center;
+      }
+
+      .verification-details {
+        background: rgba(0, 0, 0, 0.2);
+        padding: $spacing-lg;
+        border-radius: 10px;
+        margin-bottom: $spacing-lg;
+        border-left: 3px solid $primary-color;
+
+        .detail-item {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: $spacing-sm;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          .label {
+            font-weight: 700;
+            color: $text-muted;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+          }
+
+          .value {
+            font-weight: 600;
+            color: $text-strong;
+          }
+        }
+      }
+
+      .pending-actions {
+        margin-bottom: $spacing-lg;
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+
+      .info-box {
+        display: flex;
+        gap: $spacing-sm;
+        padding: $spacing-md;
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.08));
+        border-left: 3px solid $warning-color;
+        border-radius: $border-radius;
+        backdrop-filter: blur(12px);
+
+        .icon {
+          flex-shrink: 0;
+        }
+
+        p {
+          margin: 0;
+          color: #fbbf24;
+          font-size: 0.85rem;
+          font-weight: 600;
+          line-height: 1.5;
+
+          strong {
+            font-weight: 800;
+          }
+        }
+      }
+    }
+  }
+
+  /* ====== Cancelled & Expired Cards ====== */
+  .cancelled-card,
+  .expired-card {
+    text-align: center;
+    padding: $spacing-xl * 3;
+    color: $text-muted;
+    background: $glass-bg;
+    border: 1px solid $border-glass;
+    border-radius: $border-radius;
+    backdrop-filter: blur(12px);
+
+    .cancelled-header,
+    .expired-header {
+      margin-bottom: $spacing-lg;
+    }
+
+    .cancelled-content,
+    .expired-content {
+      h3 {
+        margin: 0 0 $spacing-md;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: $text-strong;
+        font-family: 'Google Sans Code', 'Montserrat', monospace;
+      }
+
+      p {
+        margin: 0 0 $spacing-xl;
+        color: $text-light;
+        line-height: 1.6;
+        font-weight: 500;
+      }
+
+      .btn {
+        width: 100%;
+        max-width: 400px;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+/* ====== Admin User Verification Inbox (Igual que admin-role-requests-inbox) ====== */
+.admin-user-verification-inbox {
+  padding: 0;
+  max-width: 100%;
+  margin: 0 auto;
+
+  .inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $border-glass;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: $text-strong;
+      font-family: 'Google Sans Code', 'Montserrat', monospace;
+      letter-spacing: 0.2px;
+      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    .subtitle {
+      margin: $spacing-xs 0 0;
+      color: $text-muted;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .pending-badge {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.2));
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      padding: $spacing-sm $spacing-md;
+      border-radius: 8px;
+      font-weight: 700;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+
+      .count {
+        font-size: 1.25rem;
+      }
+
+      .label {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    padding: $spacing-xl * 2;
+    color: $text-muted;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: $spacing-md;
+    border-radius: $border-radius;
+    margin-bottom: $spacing-md;
+    backdrop-filter: blur(12px);
+    font-weight: 600;
+
+    .btn-link {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #fecaca;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 700;
+
+      &:hover {
+        color: $text-strong;
+      }
+    }
+  }
+
+  .filters-bar {
+    display: flex;
+    gap: $spacing-md;
+    align-items: flex-end;
+    margin-bottom: $spacing-lg;
+    padding: $spacing-md;
+    background: $glass-bg;
+    border: 1px solid $border-glass;
+    border-radius: $border-radius;
+    backdrop-filter: blur(12px);
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-xs;
+
+      label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: $text-light;
+        letter-spacing: 0.2px;
+      }
+
+      .filter-select {
+        padding: $spacing-sm $spacing-md;
+        border: 1px solid $border-glass;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        color: $text-strong;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: rgba(148, 163, 184, 0.65);
+          box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+        }
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+      }
+    }
+
+    .btn-sm {
+      margin-left: auto;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: $spacing-xl * 3;
+    color: $text-muted;
+    background: $glass-bg;
+    border: 1px solid $border-glass;
+    border-radius: $border-radius;
+    backdrop-filter: blur(12px);
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: $spacing-md;
+      opacity: 0.6;
+    }
+
+    h3 {
+      margin: 0 0 $spacing-sm;
+      color: $text-strong;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    p {
+      margin: 0;
+      color: $text-muted;
+      line-height: 1.6;
+    }
+  }
+
+  .verifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+}
+
+/* ====== User Verification Card (Igual que role-request-card) ====== */
+.user-verification-card {
+  background: $glass-bg;
+  border: 1px solid $border-glass;
+  border-radius: $border-radius;
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18), inset 0 1px rgba(255, 255, 255, 0.06);
+  transition: all 0.25s cubic-bezier(0.25, 0.6, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), inset 0 1px rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-md;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+
+  .verification-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    .user-info {
+      .email {
+        font-weight: 700;
+        color: $text-strong;
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  .expand-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: $spacing-xs;
+    color: $text-muted;
+    font-size: 1.2rem;
+    transition: color 0.2s;
+
+    &:hover {
+      color: $text-light;
+    }
+
+    .icon {
+      transition: transform 0.25s cubic-bezier(0.25, 0.6, 0.3, 1);
+      display: inline-block;
+
+      &.expanded {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .card-body {
+    padding: $spacing-md;
+    border-top: 1px solid $border-glass;
+    background: rgba(0, 0, 0, 0.15);
+    animation: expandCard 0.3s ease-out;
+  }
+
+  @keyframes expandCard {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .detail-section {
+    margin-bottom: $spacing-md;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    h4 {
+      margin: 0 0 $spacing-sm;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: $text-light;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $spacing-md;
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+
+    .label {
+      font-size: 0.75rem;
+      color: $text-muted;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .value {
+      color: $text-strong;
+      font-weight: 600;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: $spacing-sm;
+    padding-top: $spacing-md;
+    border-top: 1px solid $border-glass;
+  }
+}
+
+/* ====== Status Badges (Igual que role-requests) ====== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.pending {
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.2));
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+  }
+
+  &.verified {
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.2));
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+  }
+
+  &.cancelled {
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.15));
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+  }
+
+  &.expired {
+    background: linear-gradient(180deg, rgba(156, 163, 175, 0.25), rgba(107, 114, 128, 0.15));
+    border: 1px solid rgba(156, 163, 175, 0.35);
+    color: #d1d5db;
+  }
+
+  .icon {
+    font-size: 1rem;
+  }
+}
+
+/* ====== Review Modal (Igual que role-requests) ====== */
+.verification-summary {
+  background: $glass-bg;
+  border: 1px solid $border-glass;
+  padding: $spacing-md;
+  border-radius: $border-radius;
+  margin-bottom: $spacing-lg;
+  backdrop-filter: blur(12px);
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: $spacing-sm;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .label {
+      font-weight: 700;
+      color: $text-light;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .value {
+      color: $text-strong;
+      font-weight: 600;
+    }
+  }
+}
+
+/* ====== Buttons (Igual que role-requests) ====== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $border-glass;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Google Sans Code', 'Montserrat', monospace;
+  letter-spacing: 0.2px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.18)),
+      linear-gradient(180deg, $primary-color, $primary-700);
+    color: #1a1308;
+    box-shadow: 0 8px 18px rgba(195, 164, 98, 0.25);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(195, 164, 98, 0.32);
+    }
+  }
+
+  &.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: $border-glass;
+    color: $text-light;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-success {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.18)),
+      linear-gradient(180deg, $success-color, #059669);
+    color: white;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.25);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(16, 185, 129, 0.32);
+    }
+  }
+
+  &.btn-danger {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.18)),
+      linear-gradient(180deg, $danger-color, #dc2626);
+    color: white;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.25);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(239, 68, 68, 0.32);
+    }
+  }
+
+  &.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .icon {
+    font-size: 1.1rem;
+  }
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 768px) {
+
+  .user-verification-status,
+  .admin-user-verification-inbox {
+
+    .verification-header,
+    .inbox-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $spacing-md;
+    }
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn-sm {
+      margin-left: 0;
+    }
+  }
+
+  .user-verification-card {
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $spacing-md;
+    }
+
+    .card-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+  }
+
+  .verification-summary {
+    .summary-item {
+      flex-direction: column;
+      gap: $spacing-xs;
+    }
+  }
+
+  .no-verification-card,
+  .pending-card,
+  .cancelled-card,
+  .expired-card,
+  .verified-card
+
+verified-card {
+  padding: $spacing-lg;
+
+  h3 {
+    font-size: 1.15rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.verification-requirements {
+  ul {
+    li {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.verification-details {
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-xs;
+
+    .label,
+    .value {
+      width: 100%;
+    }
+  }
+}
+}
+
+/* ====== Profile Progress (Nuevo - similar a verification requirements) ====== */
+.profile-progress {
+  margin-bottom: $spacing-xl;
+  padding: $spacing-lg;
+  background: $glass-bg;
+  border: 1px solid $border-glass;
+  border-radius: $border-radius;
+  backdrop-filter: blur(12px);
+
+  h4 {
+    margin: 0 0 $spacing-md;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: $text-strong;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .progress-items {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  .progress-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-sm;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    color: $text-muted;
+    transition: all 0.2s;
+
+    &.completed {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08));
+      color: #6ee7b7;
+
+      .icon {
+        color: #10b981;
+      }
+    }
+
+    .icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .text {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+/* ====== Custom Scrollbar (Igual que role-requests) ====== */
+.admin-user-verification-inbox {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(195, 164, 98, 0.5) rgba(255, 255, 255, 0.1);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(195, 164, 98, 0.5);
+    border-radius: 10px;
+
+    &:hover {
+      background: rgba(195, 164, 98, 0.7);
+    }
+  }
+}

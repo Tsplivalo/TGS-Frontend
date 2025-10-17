@@ -1,0 +1,152 @@
+<!-- inbox-page.html - REEMPLAZAR con esta versión -->
+
+<div class="inbox-container">
+  <!-- Header -->
+  <header class="inbox-header">
+    <h1>Bandeja de Entrada</h1>
+    <div class="user-info" *ngIf="user() as currentUser">
+      <span class="username">{{ currentUser.username }}</span>
+      <span class="profile-badge" [class.complete]="hasCompleteProfile()">
+        {{ profileCompleteness() }}% completo
+      </span>
+      <!-- ✅ Badge de verificación -->
+      <span class="verification-badge" [class.verified]="isVerified()">
+        {{ isVerified() ? '✅ Verificado' : '⏳ No Verificado' }}
+      </span>
+      <span class="role-badge" *ngFor="let role of currentUser.roles">
+        {{ role }}
+      </span>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Cargando bandeja...</p>
+  </div>
+
+  <!-- Content (when loaded) -->
+  <div class="inbox-content" *ngIf="!loading()">
+
+    <!-- ========================================
+         VISTA ADMIN
+         ======================================== -->
+    <ng-container *ngIf="shouldShowAdminView()">
+      <!-- Tabs de navegación -->
+      <nav class="inbox-tabs" role="tablist">
+        <button role="tab" [attr.aria-selected]="activeSection() === 'user-verification'"
+          [class.active]="activeSection() === 'user-verification'" (click)="setActiveSection('user-verification')">
+          ✅ Verificación de Usuarios
+        </button>
+        <button role="tab" [attr.aria-selected]="activeSection() === 'role-requests'"
+          [class.active]="activeSection() === 'role-requests'" (click)="setActiveSection('role-requests')">
+          📋 Solicitudes de Rol
+        </button>
+      </nav>
+
+      <!-- Contenido según tab activo -->
+      <div class="tab-content" role="tabpanel">
+        <!-- Tab: Verificación de Usuarios -->
+        <div *ngIf="activeSection() === 'user-verification'" class="tab-panel">
+          <app-admin-user-verification-inbox></app-admin-user-verification-inbox>
+        </div>
+
+        <!-- Tab: Solicitudes de Rol -->
+        <div *ngIf="activeSection() === 'role-requests'" class="tab-panel">
+          <app-admin-role-requests-inbox></app-admin-role-requests-inbox>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ========================================
+         VISTA USUARIO (cualquier usuario no-admin)
+         ======================================== -->
+    <ng-container *ngIf="shouldShowUserView()">
+      <!-- Tabs de navegación para usuario -->
+      <nav class="inbox-tabs" role="tablist">
+        <button role="tab" [attr.aria-selected]="activeSection() === 'user-verification'"
+          [class.active]="activeSection() === 'user-verification'" (click)="setActiveSection('user-verification')">
+          ✅ Verificación de Usuario
+        </button>
+        <button role="tab" [attr.aria-selected]="activeSection() === 'role-requests'"
+          [class.active]="activeSection() === 'role-requests'" (click)="setActiveSection('role-requests')"
+          [disabled]="!isVerified()" [title]="!isVerified() ? 'Debes verificar tu cuenta primero' : ''">
+          📋 Solicitud de Rol
+          <span *ngIf="!isVerified()" class="locked-icon">🔒</span>
+        </button>
+      </nav>
+
+      <!-- Contenido según tab activo -->
+      <div class="tab-content" role="tabpanel">
+        <!-- Tab: Verificación de Usuario -->
+        <div *ngIf="activeSection() === 'user-verification'" class="tab-panel">
+          <app-user-verification-status [userEmail]="getUserEmail()" [isVerified]="isVerified()"
+            [hasCompleteProfile]="hasCompleteProfile()">
+          </app-user-verification-status>
+        </div>
+
+        <!-- Tab: Solicitud de Rol -->
+        <div *ngIf="activeSection() === 'role-requests'" class="tab-panel">
+          <!-- ✅ Mensaje si no está verificado -->
+          <div *ngIf="!isVerified()" class="blocked-section">
+            <div class="blocked-icon">🔒</div>
+            <h2>Sección Bloqueada</h2>
+            <p>
+              Necesitas verificar tu cuenta antes de poder solicitar roles especiales.
+              Por favor, completa el proceso de verificación en la pestaña anterior.
+            </p>
+            <button class="btn btn-primary" (click)="setActiveSection('user-verification')">
+              <span class="icon">✅</span>
+              Ir a Verificación
+            </button>
+          </div>
+
+          <!-- ✅ Contenido si está verificado -->
+          <div *ngIf="isVerified()">
+            <div class="section-header">
+              <h2>Mi Solicitud de Rol</h2>
+              <p class="section-description">
+                Aquí puedes solicitar roles especiales como Partner o Distribuidor.
+              </p>
+            </div>
+
+            <!-- ✅ Alerta si el perfil no está completo -->
+            <div class="alert alert-warning" *ngIf="!hasCompleteProfile()">
+              <strong>⚠️ Completa tu perfil</strong>
+              <p>
+                Necesitas completar tu perfil al 100% antes de solicitar roles adicionales.
+                <a routerLink="/mi-cuenta">Ir a Mi Cuenta</a>
+              </p>
+              <div class="suggestions" *ngIf="getProfileSuggestions().length > 0">
+                <p><strong>Pendiente:</strong></p>
+                <ul>
+                  <li *ngFor="let suggestion of getProfileSuggestions()">
+                    {{ suggestion }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- ✅ Componente de solicitud -->
+            <app-user-role-requests-inbox [currentRoles]="currentRoles()" [hasCompleteProfile]="hasCompleteProfile()"
+              [isVerified]="isVerified()">
+            </app-user-role-requests-inbox>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ========================================
+         NO AUTENTICADO (no debería llegar aquí)
+         ======================================== -->
+    <ng-container *ngIf="!user()">
+      <div class="not-authenticated">
+        <div class="icon">🔒</div>
+        <h2>Sesión Requerida</h2>
+        <p>Necesitas iniciar sesión para acceder a esta página.</p>
+        <a routerLink="/login" class="btn btn-primary">Iniciar Sesión</a>
+      </div>
+    </ng-container>
+
+  </div>
+</div>

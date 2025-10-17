@@ -1,0 +1,55 @@
+<div class="admin-user-verification-inbox">
+  <div class="inbox-header">
+    <div>
+      <h2>Verificaciones de Usuario</h2>
+      <p class="subtitle">Revisa y gestiona las solicitudes de verificación de usuarios</p>
+    </div>
+
+    <div *ngIf="pendingCount > 0" class="pending-badge">
+      <span class="count">{{ pendingCount }}</span>
+      <span class="label">Pendientes</span>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">Cargando verificaciones...</div>
+
+  <div *ngIf="error && !loading" class="error-message">
+    <span class="icon">❌</span>
+    {{ error }}
+    <button class="btn-link" (click)="loadVerifications()">Reintentar</button>
+  </div>
+
+  <div *ngIf="!loading" class="filters-bar">
+    <div class="filter-group">
+      <label for="statusFilter">Estado:</label>
+      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+        <option value="ALL">Todos</option>
+        <option [value]="UserVerificationStatus.PENDING">Pendientes</option>
+        <option [value]="UserVerificationStatus.VERIFIED">Verificadas</option>
+        <option [value]="UserVerificationStatus.CANCELLED">Rechazadas</option>
+        <option [value]="UserVerificationStatus.EXPIRED">Expiradas</option>
+      </select>
+    </div>
+
+    <button class="btn btn-secondary btn-sm" (click)="loadVerifications()">
+      <span class="icon">🔄</span>
+      Actualizar
+    </button>
+  </div>
+
+  <div *ngIf="!loading && !error && filteredVerifications.length === 0" class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <h3>No hay verificaciones</h3>
+    <p>No se encontraron verificaciones con los filtros seleccionados</p>
+  </div>
+
+  <div *ngIf="!loading && !error && filteredVerifications.length > 0" class="verifications-list">
+    <app-user-verification-card *ngFor="let verification of filteredVerifications" [verification]="verification"
+      [isAdmin]="true" (review)="openReviewModal(verification)">
+    </app-user-verification-card>
+  </div>
+
+  <app-user-verification-review-modal *ngIf="reviewingVerification" [verification]="reviewingVerification"
+    (close)="closeReviewModal()" (reviewComplete)="handleReviewComplete()">
+  </app-user-verification-review-modal>
+</div>
