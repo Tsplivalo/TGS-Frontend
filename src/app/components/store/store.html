@@ -79,6 +79,8 @@
       </li>
     </ul>
 
+    <!-- REEMPLAZAR el footer del cart-drawer -->
+    
     <footer class="cart-drawer__footer">
       <!-- ✅ Alerta si no puede comprar -->
       <div class="cart-purchase-alert" *ngIf="!canPurchase()">
@@ -86,31 +88,39 @@
           <span class="alert__icon">⚠️</span>
           <div class="alert__content">
             <strong>No puedes comprar aún</strong>
-            <p *ngIf="!isEmailVerified()">
-              Verifica tu email para poder realizar compras.
-              <a routerLink="/verify-email" (click)="toggleCartDrawer()">Verificar ahora</a>
+            <p *ngIf="!isVerified()">
+              Debes verificar tu cuenta con un administrador para poder realizar compras.
+              <a routerLink="/inbox/verification" (click)="toggleCartDrawer()">Solicitar verificación</a>
             </p>
-            <p *ngIf="isEmailVerified() && profileCompleteness() < 100">
-              Completa tu perfil al {{ profileCompleteness() }}% para poder comprar.
+            <p *ngIf="isVerified() && profileCompleteness() < 100">
+              Completa tu perfil al 100% para poder comprar.
               <a routerLink="/mi-cuenta" (click)="toggleCartDrawer()">Completar perfil</a>
             </p>
           </div>
         </div>
       </div>
-
+    
+      <!-- Total -->
       <div class="cart-drawer__total">
         <span>{{ 'store.cart.total' | translate }}</span>
         <strong>$ {{ cart.total() | number:'1.2-2' }}</strong>
       </div>
-
-      <button class="btn btn--accent" type="button" [disabled]="!canPurchase() || cart.count() === 0"
+    
+      <!-- ✅ ACTUALIZAR: Botón de compra -->
+      <button class="btn btn--accent" type="button" [disabled]="!canPurchase() || cart.count() === 0 || processing()"
         [class.btn--disabled]="!canPurchase() || cart.count() === 0" (click)="goToCheckout()">
-        {{ 'store.cart.goToCheckout' | translate }}
+        <span class="icon" *ngIf="!processing()">🛒</span>
+        <span *ngIf="processing()">⏳</span>
+        {{ processing() ? 'Procesando...' : 'Realizar Compra' }}
       </button>
     </footer>
   </div>
 
   <div class="cart-backdrop" *ngIf="showCart()" (click)="toggleCartDrawer()"></div>
+
+    <app-purchase-success-modal *ngIf="showSuccessModal() && purchaseData()" [data]="purchaseData()!"
+      (close)="onCloseSuccessModal()">
+    </app-purchase-success-modal>
 </section>
 
 <!-- Nota: Agregar RouterModule a los imports del componente si no está -->

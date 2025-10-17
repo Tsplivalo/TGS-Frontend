@@ -83,7 +83,7 @@ export interface SaleDTO {
  * una nueva venta en el sistema.
  */
 export interface CreateSaleDTO {
-  clientDni: string;          // DNI del cliente (requerido)
+  clientDni?: string;         // ✅ CAMBIAR A OPCIONAL (el backend usa el del usuario autenticado si no se proporciona)
   distributorDni: string;     // DNI del distribuidor (requerido por el backend)
   details: SaleDetailDTO[];   // Lista de productos y cantidades
   person?: {                  // Información adicional del cliente (opcional)

@@ -1,3 +1,5 @@
+// src/app/services/sale/sale.service.ts
+
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
@@ -9,6 +11,25 @@ import {
   SaleDetailDTO,
 } from '../../models/sale/sale.model';
 
+/**
+ * Respuesta extendida del backend al crear una venta
+ */
+export interface CreateSaleResponse {
+  saleId: number;
+  total: number;
+  userRoleUpdated: boolean;
+  distributor?: {
+    name: string;
+    phone: string;
+    email: string;
+    zone?: {
+      id: number;
+      name: string;
+      isHeadquarters: boolean;
+    };
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class SaleService {
   private http = inject(HttpClient);
@@ -18,7 +39,6 @@ export class SaleService {
   getAllSales(): Observable<SaleDTO[]> {
     return this.http.get<ApiResponse<SaleDTO[]>>(this.base).pipe(
       map((res: any) => {
-        // El backend puede devolver {data: [...]} o directamente [...]
         if (Array.isArray(res)) return res;
         if (res?.data && Array.isArray(res.data)) return res.data;
         return [];
@@ -36,12 +56,20 @@ export class SaleService {
     );
   }
 
-  /** POST /api/sales - Crea una nueva venta */
+  /** 
+   * POST /api/sales - Crea una nueva venta
+   * 
+   * El backend automáticamente:
+   * 1. Crea la venta
+   * 2. Asigna rol CLIENT al usuario si no lo tiene
+   * 3. Retorna información del distributor y zona
+   */
+// src/app/services/sale/sale.service.ts - SOLO CAMBIAR createSale()
+
   createSale(payload: CreateSaleDTO): Observable<ApiResponse<SaleDTO>> {
-    // ✅ Normalizar datos antes de enviar
     const normalizedPayload: CreateSaleDTO = {
-      clientDni: String(payload.clientDni).trim(),
-      distributorDni: String(payload.distributorDni).trim(), // ← REQUERIDO
+      clientDni: payload.clientDni ? String(payload.clientDni).trim() : undefined,
+      distributorDni: String(payload.distributorDni).trim(),
       details: (payload.details || []).map((d: SaleDetailDTO) => ({
         productId: Number(d.productId),
         quantity: Number(d.quantity),
@@ -54,7 +82,12 @@ export class SaleService {
       } : undefined,
     };
 
-    return this.http.post<ApiResponse<SaleDTO>>(this.base, normalizedPayload);
+    // ✅ AGREGAR withCredentials
+    return this.http.post<ApiResponse<SaleDTO>>(
+      this.base, 
+      normalizedPayload,
+      { withCredentials: true } // ✅ ESTO
+    );
   }
 
   /** PATCH /api/sales/:id - Actualiza una venta (reasignar distribuidor/autoridad) */

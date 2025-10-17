@@ -1,11 +1,16 @@
+// src/app/pages/store/store.ts - VERSIÓN COMPLETA Y CORREGIDA
+
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '../../services/product/product';
 import { ProductImageService } from '../../services/product-image/product-image';
 import { AuthService } from '../../services/auth/auth';
+import { SaleService } from '../../services/sale/sale';
+import { DistributorService } from '../../services/distributor/distributor'; // ✅ IMPORTAR
 import { ApiResponse, ProductDTO } from '../../models/product/product.model';
 import { TranslateModule } from '@ngx-translate/core';
+import { PurchaseSuccessModalComponent, PurchaseSuccessData } from '../../components/purchase-success-modal/purchase-success-modal';
 
 type CartItem = {
   id: number;
@@ -18,7 +23,12 @@ type CartItem = {
 @Component({
   selector: 'app-store',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslateModule],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    TranslateModule,
+    PurchaseSuccessModalComponent
+  ],
   templateUrl: './store.html',
   styleUrls: ['./store.scss'],
 })
@@ -27,11 +37,13 @@ export class StoreComponent implements OnInit {
   private productsSrv = inject(ProductService);
   private imgSvc = inject(ProductImageService, { optional: true as any });
   private authService = inject(AuthService);
+  private saleService = inject(SaleService);
+  private distributorService = inject(DistributorService); // ✅ AGREGAR
   private router = inject(Router);
 
   // --- Estado base ---
   loading = signal(false);
-  error   = signal<string | null>(null);
+  error = signal<string | null>(null);
 
   // --- Datos de catálogo ---
   products = signal<ProductDTO[]>([]);
@@ -46,9 +58,20 @@ export class StoreComponent implements OnInit {
   showCart = signal(false);
   toggleCartDrawer() { this.showCart.set(!this.showCart()); }
 
+  // --- ✅ Modal de éxito ---
+  showSuccessModal = signal(false);
+  purchaseData = signal<PurchaseSuccessData | null>(null);
+
+  // --- ✅ Estado de procesamiento de compra ---
+  processing = signal(false);
+
+  // --- ✅ Distributor seleccionado ---
+  private selectedDistributorDni = signal<string | null>(null);
+
   // --- ✅ Validación de compra ---
   canPurchase = computed(() => this.authService.canPurchase());
   isEmailVerified = computed(() => this.authService.user()?.emailVerified ?? false);
+  isVerified = computed(() => (this.authService.user() as any)?.isVerified ?? false);
   profileCompleteness = computed(() => this.authService.profileCompleteness());
 
   // --- Carrito en localStorage ---
@@ -58,7 +81,7 @@ export class StoreComponent implements OnInit {
   // Totales + pequeña animación (bump) del ícono
   private countSig = computed(() => this.itemsSig().reduce((a, it) => a + it.qty, 0));
   private totalSig = computed(() => this.itemsSig().reduce((a, it) => a + it.qty * (it.price ?? 0), 0));
-  private bumpSig  = signal(false);
+  private bumpSig = signal(false);
 
   // API de lectura para el template
   cart = {
@@ -79,7 +102,10 @@ export class StoreComponent implements OnInit {
   });
 
   // --- Ciclo de vida ---
-  ngOnInit() { this.refresh(); }
+  ngOnInit() { 
+    this.refresh();
+    this.loadDefaultDistributor(); // ✅ AGREGAR
+  }
 
   // --- Data fetching (catálogo) ---
   refresh() {
@@ -99,10 +125,41 @@ export class StoreComponent implements OnInit {
     });
   }
 
+  // --- ✅ NUEVO: Cargar distribuidor por defecto ---
+  private loadDefaultDistributor(): void {
+    this.distributorService.getAll().subscribe({
+      next: (distributors) => {
+        console.log('📦 Distributors loaded:', distributors);
+        
+        if (distributors.length > 0) {
+          // Prioridad 1: Usar el de la zona headquarters (casa central)
+          const headquarters = distributors.find(d => d.zone?.isHeadquarters);
+          
+          if (headquarters) {
+            this.selectedDistributorDni.set(headquarters.dni);
+            console.log('✅ Selected headquarters distributor:', headquarters.name);
+          } else {
+            // Prioridad 2: Usar el primero disponible
+            this.selectedDistributorDni.set(distributors[0].dni);
+            console.log('✅ Selected first distributor:', distributors[0].name);
+          }
+        } else {
+          console.error('❌ No distributors available');
+          this.error.set('No hay distribuidores disponibles. Contacta al soporte.');
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error loading distributors:', err);
+        this.error.set('Error al cargar distribuidores');
+      }
+    });
+  }
+
   // --- Persistencia del carrito ---
   private persistCart() {
     try { localStorage.setItem(this.LS_KEY, JSON.stringify(this.itemsSig())); } catch {}
   }
+  
   private loadCart(): CartItem[] {
     try { return JSON.parse(localStorage.getItem(this.LS_KEY) || '[]') as CartItem[]; }
     catch { return []; }
@@ -178,24 +235,95 @@ export class StoreComponent implements OnInit {
     this.pulseCart();
   }
 
-  // --- ✅ Ir al checkout con validación ---
-  goToCheckout() {
-    if (!this.canPurchase()) {
-      return;
-    }
-    
-    // Navegar al checkout pasando los items del carrito
-    this.router.navigate(['/checkout'], {
-      state: {
-        cartItems: this.cart.items()
+  // --- ✅ REALIZAR COMPRA ---
+// store.component.ts - REEMPLAZAR goToCheckout() COMPLETO
+
+goToCheckout() {
+  if (!this.canPurchase() || this.cart.count() === 0) {
+    return;
+  }
+
+  const distributorDni = this.selectedDistributorDni();
+  if (!distributorDni) {
+    this.error.set('No hay distribuidores disponibles.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // ✅ Obtener DNI del usuario
+  const user = this.authService.user();
+  const clientDni = (user as any)?.person?.dni;
+
+  console.log('🔍 User DNI check:', {
+    user,
+    person: (user as any)?.person,
+    dni: clientDni
+  });
+
+  // ✅ Si NO tiene DNI, mostrar error claro
+  if (!clientDni) {
+    this.error.set('ERROR: Tu perfil no tiene DNI. Ve a "Mi Cuenta" y completa tus datos personales.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  this.processing.set(true);
+  this.error.set(null);
+
+  // ✅ SIEMPRE enviar clientDni explícitamente
+  const payload = {
+    clientDni: clientDni,  // ✅ FORZAR envío del DNI
+    distributorDni: distributorDni,
+    details: this.cart.items().map(item => ({
+      productId: item.id,
+      quantity: item.qty
+    }))
+  };
+
+  console.log('📤 Payload to send:', payload);
+
+  this.saleService.createSale(payload).subscribe({
+    next: (response) => {
+      console.log('✅ Sale created:', response);
+      
+      this.processing.set(false);
+      this.authService.forceRefresh();
+      
+      const saleData = response.data;
+      this.purchaseData.set({
+        saleId: saleData?.id || 0,
+        total: this.cart.total(),
+        distributor: (saleData as any)?.distributor
+      });
+      
+      this.showSuccessModal.set(true);
+      this.clear();
+      
+      if (this.showCart()) {
+        this.toggleCartDrawer();
       }
-    });
+    },
+    error: (err) => {
+      console.error('❌ Full error:', err);
+      this.processing.set(false);
+      
+      let errorMessage = err.error?.message || 'Error al procesar la compra';
+      this.error.set(errorMessage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+}
+
+  // --- ✅ Cerrar modal de éxito ---
+  onCloseSuccessModal(): void {
+    this.showSuccessModal.set(false);
+    this.purchaseData.set(null);
   }
 
   // --- UX: agregar desde card con animación ---
   onAddClick(ev: MouseEvent, p: ProductDTO, imgEl?: HTMLImageElement) {
     this.add(p);
-    const btn  = ev.currentTarget as HTMLElement | null;
+    const btn = ev.currentTarget as HTMLElement | null;
     const card = btn?.closest('.store-card') as HTMLElement | null;
     if (card) {
       this.flashId.set(p.id as number);
@@ -211,12 +339,12 @@ export class StoreComponent implements OnInit {
   // Crea un clon/"burbuja" y anima su trayectoria hasta el ancla del carrito
   private flyToCart(fromEl: HTMLElement, toEl: HTMLElement, isImage: boolean) {
     const start = fromEl.getBoundingClientRect();
-    const end   = toEl.getBoundingClientRect();
+    const end = toEl.getBoundingClientRect();
 
-    const startX = start.left + start.width  / 2;
-    const startY = start.top  + start.height / 2;
-    const endX   = end.left   + end.width    / 2;
-    const endY   = end.top    + end.height   / 2;
+    const startX = start.left + start.width / 2;
+    const startY = start.top + start.height / 2;
+    const endX = end.left + end.width / 2;
+    const endY = end.top + end.height / 2;
 
     let node: HTMLElement;
     if (isImage && fromEl instanceof HTMLImageElement) {
@@ -252,9 +380,9 @@ export class StoreComponent implements OnInit {
     const midY = Math.min(startY, endY) - Math.max(60, Math.abs(dx) * 0.12);
 
     const keyframes: Keyframe[] = [
-      { transform: `translate(${startX}px, ${startY}px) translate(-50%, -50%) scale(1)`,   opacity: 1,    offset: 0   },
-      { transform: `translate(${midX}px,   ${midY}px)   translate(-50%, -50%) scale(0.6)`, opacity: 0.9,  offset: 0.6 },
-      { transform: `translate(${endX}px,   ${endY}px)   translate(-50%, -50%) scale(0.2)`, opacity: 0.35, offset: 1   },
+      { transform: `translate(${startX}px, ${startY}px) translate(-50%, -50%) scale(1)`, opacity: 1, offset: 0 },
+      { transform: `translate(${midX}px, ${midY}px) translate(-50%, -50%) scale(0.6)`, opacity: 0.9, offset: 0.6 },
+      { transform: `translate(${endX}px, ${endY}px) translate(-50%, -50%) scale(0.2)`, opacity: 0.35, offset: 1 },
     ];
 
     const anim = (node as any).animate(keyframes, {
@@ -275,4 +403,3 @@ export class StoreComponent implements OnInit {
     setTimeout(() => this.bumpSig.set(false), 350);
   }
 }
-
