@@ -7,6 +7,7 @@ import {
   ViewChildren,
   inject,
   computed,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
@@ -30,10 +31,52 @@ export class NavbarComponent implements AfterViewInit {
   private routerSvc = inject(Router);
   private i18n = inject(I18nService);
 
+  // ✅ Señales reactivas del AuthService
   readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
   readonly user = computed(() => this.auth.user());
   readonly currentRoles = computed(() => this.auth.currentRoles());
   readonly profileCompleteness = computed(() => this.auth.profileCompleteness());
+
+  // ✅ Computed para roles con debug mejorado
+  readonly userRoles = computed(() => {
+    const roles = this.currentRoles();
+    const user = this.user();
+    console.log('[Navbar] 🔄 Roles actualizados:', {
+      roles,
+      userId: user?.id,
+      username: user?.username,
+      rolesFromUser: user?.roles
+    });
+    return roles;
+  });
+
+  // ✅ Computed para verificar si puede acceder a la tienda
+  readonly canSeeStore = computed(() => {
+    const isAuth = this.isAuthenticated();
+    const roles = this.currentRoles();
+    const user = this.user();
+    const hasClient = roles.includes(Role.CLIENT);
+    const hasUser = roles.includes(Role.USER); // ✅ Agregado USER
+    const hasAdmin = roles.includes(Role.ADMIN);
+    
+    console.log('[Navbar] 🛒 Store Access Check DETAILED:', {
+      isAuth,
+      user: user ? { id: user.id, username: user.username, email: user.email } : null,
+      roles,
+      rolesType: Array.isArray(roles) ? 'array' : typeof roles,
+      rolesLength: roles?.length,
+      hasClient,
+      hasUser, // ✅ Agregado
+      hasAdmin,
+      Role_CLIENT_value: Role.CLIENT,
+      Role_USER_value: Role.USER, // ✅ Agregado
+      Role_ADMIN_value: Role.ADMIN,
+      result: isAuth && (hasClient || hasUser || hasAdmin) // ✅ Incluye USER
+    });
+    
+    // ✅ USER también puede acceder a la tienda
+    return isAuth && (hasClient || hasUser || hasAdmin);
+  });
 
   readonly brand = 'GarrSYS';
 
@@ -77,9 +120,34 @@ export class NavbarComponent implements AfterViewInit {
     router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => setTimeout(() => this.updateIndicator(), 0));
+
+    
+    // ♻️ Refrescar roles del usuario en cada navegación (ligero y seguro)
+    if (this.isAuthenticated()) {
+      this.auth.refreshIfStale(0); // 0 = siempre que cambies de ruta
+    }
+// ✅ Effect para reaccionar a cambios en roles y usuario
+    effect(() => {
+      const roles = this.userRoles();
+      const user = this.user();
+      
+      if (user && roles.length > 0) {
+        console.log('[Navbar] 👤 Usuario actualizado:', {
+          id: user.id,
+          username: user.username,
+          roles: roles
+        });
+        
+        // Actualizar indicador visual después de cambios
+        setTimeout(() => this.updateIndicator(), 100);
+      }
+    });
   }
 
-  ngAfterViewInit() { this.updateIndicator(); }
+  ngAfterViewInit() { 
+    this.updateIndicator(); 
+    console.log('[Navbar] 🚀 Component initialized');
+  }
 
   isAuthenticated(): boolean {
     return this.auth.isAuthenticated();
@@ -111,27 +179,26 @@ export class NavbarComponent implements AfterViewInit {
 
   isOnlyClient(): boolean {
     const roles = this.roles();
-    const hasClient = roles.includes(Role.CLIENT);
+    const hasClientOrUser = roles.includes(Role.CLIENT) || roles.includes(Role.USER);
     const hasOther = roles.some(r => 
       r === Role.ADMIN || 
       r === Role.PARTNER || 
       r === Role.DISTRIBUTOR || 
       r === Role.AUTHORITY
     );
-    return hasClient && !hasOther;
+    return hasClientOrUser && !hasOther;
   }
 
   /**
-   * ✅ CAMBIO: Los clientes pueden ver la tienda siempre
-   * Solo necesitan perfil completo + email verificado para COMPRAR
+   * ✅ Usa el computed canSeeStore para determinar acceso a la tienda
+   * Permite acceso a: ADMIN, CLIENT y USER
    */
   canAccessStore(): boolean {
-    return this.isClient() || this.isAdmin();
+    return this.canSeeStore();
   }
 
   /**
    * Verifica si el usuario puede comprar (email verificado + perfil completo)
-   * Se usa en la página de la tienda, no aquí
    */
   canPurchase(): boolean {
     return this.auth.canPurchase();
@@ -187,10 +254,10 @@ export class NavbarComponent implements AfterViewInit {
     if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
       this.auth.logout().subscribe({
         next: () => {
-          console.log('[Navbar] Logout successful');
+          console.log('[Navbar] ✅ Logout successful');
         },
         error: (err) => {
-          console.error('[Navbar] Logout error:', err);
+          console.error('[Navbar] ❌ Logout error:', err);
           this.routerSvc.navigate(['/login']);
         }
       });

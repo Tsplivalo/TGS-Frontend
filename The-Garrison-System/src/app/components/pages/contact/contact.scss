@@ -151,39 +151,64 @@
   padding: 0;
   margin: 0;
   display: grid;
-  gap: .6rem;
+  gap: .8rem;
 }
 
 .list.compact {
   gap: .4rem;
 }
 
+.list li {
+  display: grid;
+  gap: .25rem;
+}
+
+/* ✅ CORREGIDO: Grid flexible sin sobreposiciones */
 .item-line {
   display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: .6rem;
+  grid-template-columns: 100px 1fr;
+  gap: .8rem;
   align-items: baseline;
+}
+
+@media (max-width: 640px) {
+  .item-line {
+    grid-template-columns: 1fr;
+    gap: .3rem;
+  }
 }
 
 .label {
   color: var(--muted);
   font-weight: 800;
   letter-spacing: .15px;
+  font-size: 0.9rem;
 }
 
 .value {
   color: var(--text-strong);
   font-weight: 800;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .hint {
   margin-top: .15rem;
+  font-size: 0.85rem;
+  padding-left: 108px;
+}
+
+@media (max-width: 640px) {
+  .hint {
+    padding-left: 0;
+  }
 }
 
 /* Dirección + CTA */
 .address {
   margin: .15rem 0 .6rem;
   color: var(--text);
+  line-height: 1.5;
 }
 
 .pill-link {
@@ -272,10 +297,12 @@
   grid-area: value;
   color: var(--text);
   font-weight: 700;
+  word-break: break-word;
 }
 
 .quick__hint {
   grid-area: hint;
+  font-size: 0.85rem;
 }
 
 .chev {
@@ -290,6 +317,7 @@
   place-items: center;
   color: #cbd5e1;
   transition: transform .25s ease, background .2s ease, border-color .2s ease, color .2s ease;
+  flex-shrink: 0;
 }
 
 .chev::before {
@@ -311,6 +339,7 @@
   color: var(--text-strong);
   text-decoration: none;
   border-bottom: 1px dashed rgba(255, 255, 255, .28);
+  transition: border-color .2s ease;
 }
 
 .link:hover {

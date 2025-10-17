@@ -34,10 +34,6 @@
           [class.active]="activeSection() === 'role-requests'" (click)="setActiveSection('role-requests')">
           📋 Solicitudes de Rol
         </button>
-        <button role="tab" [attr.aria-selected]="activeSection() === 'email-verification'"
-          [class.active]="activeSection() === 'email-verification'" (click)="setActiveSection('email-verification')">
-          ✉️ Verificación de Emails
-        </button>
       </nav>
 
       <!-- Contenido según tab activo -->

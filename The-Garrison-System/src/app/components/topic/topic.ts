@@ -37,6 +37,9 @@ export class TopicComponent implements OnInit {
   filterText = '';
   isEdit = signal(false); // true si editamos una temática existente
 
+  // ✅ UI: abrir/cerrar formulario
+  isFormOpen = false;
+
   // --- Form reactivo ---
   form: FormGroup<TopicForm> = this.fb.group<TopicForm>({
     id: this.fb.control<number | null>(null),
@@ -66,6 +69,20 @@ export class TopicComponent implements OnInit {
     });
   }
 
+  // ✅ Toggle formulario
+  toggleForm() {
+    this.isFormOpen = !this.isFormOpen;
+    if (!this.isFormOpen) {
+      this.new(); // Resetear al cerrar
+    }
+  }
+
+  // ✅ Cancelar y cerrar
+  cancel() {
+    this.isFormOpen = false;
+    this.new();
+  }
+
   // --- Crear / Editar ---
   new() {
     this.isEdit.set(false);
@@ -77,10 +94,15 @@ export class TopicComponent implements OnInit {
     this.isEdit.set(true);
     this.form.setValue({ id: t.id ?? null, description: t.description ?? '' });
     this.error.set(null);
+    this.isFormOpen = true; // ✅ Abrir formulario al editar
   }
 
   // --- Borrado ---
   delete(id: number) {
+    if (!confirm(this.t.instant('topics.confirmDelete') || '¿Eliminar temática?')) {
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
     this.srv.delete(id).subscribe({
@@ -109,7 +131,11 @@ export class TopicComponent implements OnInit {
     if (!id) {
       const payload = this.buildCreate();
       this.srv.create(payload).subscribe({
-        next: () => { this.new(); this.load(); },
+        next: () => { 
+          this.new(); 
+          this.isFormOpen = false; // ✅ Cerrar después de crear
+          this.load(); 
+        },
         error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorCreate')); this.loading.set(false); }
       });
       return;
@@ -117,7 +143,11 @@ export class TopicComponent implements OnInit {
 
     const payload = this.buildUpdate();
     this.srv.update(id, payload).subscribe({
-      next: () => { this.new(); this.load(); },
+      next: () => { 
+        this.new(); 
+        this.isFormOpen = false; // ✅ Cerrar después de actualizar
+        this.load(); 
+      },
       error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorSave')); this.loading.set(false); }
     });
   }

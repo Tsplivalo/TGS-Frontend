@@ -6,6 +6,7 @@ import { RoleRequest, RequestStatus } from '../../models/role-request.model';
 import { Role } from '../../../../models/user/user.model';
 import { RoleRequestCardComponent } from './role-request-card';
 import { RoleRequestReviewModalComponent } from './role-request-review-modal';
+import { AuthService } from '../../../../services/auth/auth';
 
 @Component({
   selector: 'app-admin-role-requests-inbox',
@@ -27,7 +28,10 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
   RequestStatus = RequestStatus;
   Role = Role;
 
-  constructor(private roleRequestService: RoleRequestService) {}
+  constructor(
+    private auth: AuthService,
+    private roleRequestService: RoleRequestService
+  ) {}
 
   ngOnInit(): void {
     this.loadRequests();

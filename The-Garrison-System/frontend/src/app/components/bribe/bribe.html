@@ -1,0 +1,184 @@
+<section class="stack-lg">
+
+  <!-- LIST -->
+  <div class="glass-dark card stack-md">
+    <div class="header">
+      <h2>{{ 'bribes.title' | translate }}</h2>
+      <div class="right">
+        <button class="btn" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
+          {{ (isNewOpen ? 'Cerrar' : 'Nuevo Soborno') | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <label class="label">
+        <span>{{ 'bribes.filters.search' | translate }}</span>
+        <input class="input" [placeholder]="'bribes.filters.searchPh' | translate" [ngModel]="fText()"
+          (ngModelChange)="fText.set($event)" />
+      </label>
+
+      <label class="label">
+        <span>{{ 'bribes.filters.paid' | translate }}</span>
+        <select class="input" [(ngModel)]="fPaid" (ngModelChange)="load()">
+          <option value="all">{{ 'bribes.filters.paid_all' | translate }}</option>
+          <option value="true">{{ 'bribes.filters.paid_yes' | translate }}</option>
+          <option value="false">{{ 'bribes.filters.paid_no' | translate }}</option>
+        </select>
+      </label>
+
+      <label class="label">
+        <span>{{ 'bribes.filters.dateType' | translate }}</span>
+        <select class="input" [(ngModel)]="fDateType" (ngModelChange)="load()">
+          <option value="all">{{ 'bribes.filters.dateType_all' | translate }}</option>
+          <option value="exact">{{ 'bribes.filters.dateType_exact' | translate }}</option>
+          <option value="before">{{ 'bribes.filters.dateType_before' | translate }}</option>
+          <option value="after">{{ 'bribes.filters.dateType_after' | translate }}</option>
+          <option value="between">{{ 'bribes.filters.dateType_between' | translate }}</option>
+        </select>
+      </label>
+
+      <label class="label" *ngIf="fDateType !== 'all'">
+        <span>{{ 'bribes.filters.date' | translate }}</span>
+        <input class="input" type="date" [(ngModel)]="fDate" (ngModelChange)="load()" />
+      </label>
+
+      <label class="label" *ngIf="fDateType === 'between'">
+        <span>{{ 'bribes.filters.endDate' | translate }}</span>
+        <input class="input" type="date" [(ngModel)]="fEndDate" (ngModelChange)="load()" />
+      </label>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+
+    <!-- Loading state -->
+    <div *ngIf="loading()" class="loading">{{ 'bribes.loading' | translate }}</div>
+
+    <!-- Table -->
+    <div class="table-wrap" *ngIf="!loading()">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>{{ 'bribes.table.id' | translate }}</th>
+            <th>{{ 'bribes.table.amount' | translate }}</th>
+            <th>{{ 'bribes.table.authority' | translate }}</th>
+            <th>{{ 'bribes.table.sale' | translate }}</th>
+            <th class="center">{{ 'bribes.table.paid' | translate }}</th>
+            <th>{{ 'bribes.table.date' | translate }}</th>
+            <th class="right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of filteredBribes(); trackBy: trackById">
+            <td>#{{ b.id }}</td>
+            <td>{{ b.amount | currency:'ARS':'symbol':'1.2-2' }}</td>
+            <td>
+              <div class="authority-cell">
+                <strong>{{ b.authority?.name || '—' }}</strong>
+                <small class="muted">DNI: {{ b.authority?.dni || '—' }}</small>
+              </div>
+            </td>
+            <td>#{{ b.sale?.id || '—' }}</td>
+            <td class="center">
+              <span class="badge" [class.badge-success]="b.paid" [class.badge-pending]="!b.paid">
+                {{ (b.paid ? 'bribes.status.paid' : 'bribes.status.pending') | translate }}
+              </span>
+            </td>
+            <td>{{ b.creationDate | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="right">
+              <button class="btn success btn--icon" (click)="markAsPaid(b)" [disabled]="b.paid" *ngIf="!b.paid"
+                [attr.title]="'bribes.actions.pay' | translate">
+                ✅
+              </button>
+              <button class="btn ghost btn--icon" (click)="edit(b)" [attr.title]="'common.edit' | translate">
+                ✏️
+              </button>
+              <button class="btn danger btn--icon" (click)="delete(b.id)" [attr.title]="'common.delete' | translate">
+                🗑️
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredBribes().length === 0">
+            <td colspan="7" class="muted center">
+              {{ 'bribes.noResults' | translate }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NEW / EDIT FORM (COLLAPSIBLE) -->
+  <div class="collapsible" [class.open]="isNewOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>
+          {{ (editId() == null ? 'bribes.newTitle' : 'bribes.editTitle') | translate }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+        <label class="label">
+          <span>{{ 'bribes.form.amount' | translate }} *</span>
+          <input class="input" type="number" formControlName="amount" min="0" step="0.01"
+            [placeholder]="'bribes.form.amountPh' | translate" [class.error-input]="hasError('amount')" />
+          <small class="error-text" *ngIf="hasError('amount')">
+            {{ getErrorMessage('amount') }}
+          </small>
+        </label>
+
+        <!-- AUTHORITY - SELECT AMIGABLE (usa DNI como string) -->
+        <label class="label" *ngIf="editId() === null">
+          <span>{{ 'bribes.form.authority' | translate }} *</span>
+          <select class="input" formControlName="authorityId" [class.error-input]="hasError('authorityId')">
+            <option [ngValue]="null" disabled>— Seleccioná una autoridad —</option>
+            <option *ngFor="let auth of authorities()" [ngValue]="auth.dni">
+              {{ auth.dni }} — {{ auth.name }}<ng-container *ngIf="auth.rank"> ({{ auth.rank }})</ng-container>
+            </option>
+          </select>
+          <small class="muted" *ngIf="!authorities().length && !loading()">
+            No hay autoridades disponibles. Creá una primero.
+          </small>
+          <small class="error-text" *ngIf="hasError('authorityId')">
+            {{ getErrorMessage('authorityId') }}
+          </small>
+        </label>
+
+        <!-- SALE - SELECT AMIGABLE -->
+        <label class="label" *ngIf="editId() === null">
+          <span>{{ 'bribes.form.sale' | translate }} *</span>
+          <select class="input" formControlName="saleId" [class.error-input]="hasError('saleId')">
+            <option [ngValue]="null" disabled>— Seleccioná una venta —</option>
+            <option *ngFor="let sale of sales()" [ngValue]="sale.id">
+              Venta #{{ sale.id }}<ng-container *ngIf="sale.client && sale.client.name"> — Cliente: {{ sale.client.name
+                }}</ng-container>
+            </option>
+          </select>
+          <small class="muted" *ngIf="!sales().length && !loading()">
+            No hay ventas disponibles. Creá una primero.
+          </small>
+          <small class="error-text" *ngIf="hasError('saleId')">
+            {{ getErrorMessage('saleId') }}
+          </small>
+        </label>
+
+        <div class="form-note" *ngIf="editId() !== null">
+          <span class="muted">
+            {{ 'bribes.form.editNote' | translate }}
+          </span>
+        </div>
+
+        <div class="right" style="grid-column: 1 / -1;">
+          <button class="btn success" type="submit" [disabled]="loading() || form.invalid">
+            {{ (editId() == null ? 'Crear' : 'Guardar') | translate }}
+          </button>
+          <button class="btn ghost" type="button" (click)="toggleNew()">
+            {{ 'Cancelar' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

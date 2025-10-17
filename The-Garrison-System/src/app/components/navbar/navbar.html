@@ -15,7 +15,7 @@
              height: indicator.h + 'px'
            }" aria-hidden="true"></div>
 
-      <!-- ✅ Ítems cliente: Tienda (siempre visible si es cliente/admin) -->
+      <!-- ✅ Ítems cliente: Tienda (visible para USER, CLIENT y ADMIN) -->
       <ng-container *ngIf="isAuthenticated() && canAccessStore()">
         <li class="menu__item" role="none" *ngFor="let it of clientItems; trackBy: trackByPath">
           <a #mainBtn role="menuitem" [routerLink]="it.path" routerLinkActive="active">
@@ -324,11 +324,11 @@
 
           <li class="dropdown__divider" role="separator"></li>
 
-          <!-- ✅ Roles del usuario -->
+          <!-- ✅ Roles del usuario - CORREGIDO: usa userRoles() -->
           <li class="dropdown__item dropdown__item--info" role="none" aria-disabled="true">
             <div class="user-roles">
               <span class="roles-label">Roles:</span>
-              <span class="role-badge" *ngFor="let role of user()?.roles">{{ role }}</span>
+              <span class="role-badge" *ngFor="let role of userRoles()">{{ role }}</span>
             </div>
           </li>
 
@@ -352,13 +352,7 @@
         </ul>
       </li>
 
-      <!-- Login (no autenticado) -->
-      <li class="menu__item" role="none" *ngIf="!isAuthenticated()">
-        <a role="menuitem" routerLink="/login" routerLinkActive="active" class="btn-login">
-          <span class="material-symbols-outlined">login</span>
-          {{ 'nav.login' | translate }}
-        </a>
-      </li>
+
     </ul>
   </div>
 </nav>

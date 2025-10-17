@@ -1,0 +1,785 @@
+{
+  "brand": { "name": "GarrSYS" },
+  "nav": {
+    "store": "Tienda",
+    "myAccount": "Mi cuenta",
+    "logout": "Salir",
+    "management": "Gestión",
+    "society": "Sociedad",
+    "inbox": "Bandeja",
+    "unread": "sin leer",
+    "roleRequests": "Solicitudes de rol",
+    "mailVerification": "Verificación de mail",
+    "myRoleRequest": "Mi solicitud de rol",
+    "about": "Sobre nosotros",
+    "faqs": "Preguntas frecuentes",
+    "contact": "Contáctanos",
+    "language": "Idioma"
+  },
+  "mgmt": {
+    "product": "Productos",
+    "client": "Clientes",
+    "partner": "Socios",
+    "sale": "Ventas",
+    "zone": "Zonas",
+    "authority": "Autoridades",
+    "bribe": "Sobornos",
+    "decision": "Decisiones",
+    "topic": "Temáticas",
+    "distributor": "Distribuidores",
+    "shelbyCouncil": "Consejo Shelby",
+    "monthlyReview": "Revisiones mensuales",
+    "clandestineAgreement": "Acuerdos clandestinos",
+    "admin": "Administradores",
+    "roleRequests": "Solicitudes de rol"
+  },
+  "store": {
+    "title": "Tienda",
+    "search": "Buscar",
+    "noImage": "Sin imagen",
+    "noProducts": { "title": "No hay productos", "desc": "Cuando se carguen productos, los vas a ver acá." },
+    "add": "Agregar",
+    "cart": {
+      "open": "Abrir carrito",
+      "items": "Carrito ({{count}})",
+      "empty": "Tu carrito está vacío",
+      "close": "Cerrar",
+      "clear": "Vaciar",
+      "goToCheckout": "Ir a pagar",
+      "total": "Total"
+    }
+  },
+  "account": {
+    "title": "Mi cuenta",
+    "loading": "Cargando...",
+    "save": "Guardar cambios",
+    "saved": "¡Guardado!",
+    "couldNotSave": "No se pudo guardar.",
+    "fields": {
+      "username": "Usuario",
+      "email": "Email",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "phone": "Teléfono",
+      "address": "Dirección"
+    }
+  },
+  "product": {
+    "title": "Productos",
+    "new": "Nuevo producto",
+    "close": "Cerrar",
+    "create": "Crear",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "list": "Listado",
+    "loading": "Cargando productos...",
+    "filters": {
+      "search": "Buscar",
+      "stock": "Stock",
+      "stock_all": "Todos",
+      "stock_with": "Con stock",
+      "stock_without": "Sin stock"
+    },
+    "fields": {
+      "description": "Descripción",
+      "price": "Precio",
+      "stock": "Stock",
+      "illegal": "¿Ilegal?",
+      "imageUrl": "Imagen (URL)",
+      "imageFile": "Imagen (archivo)"
+    },
+    "preview": "Vista previa",
+    "emptyTitle": "No hay productos",
+    "emptyHint": "Probá ajustar los filtros o creá un producto nuevo.",
+    "editTitle": "Editar producto #{{id}}",
+    "required": "Campo requerido.",
+    "priceInvalid": "Ingresá un precio válido.",
+    "stockInvalid": "Ingresá un stock válido.",
+    "imageUrlHint": "Pegá un link a una imagen (JPG/PNG/WebP). Si preferís subir archivo, usá el campo de abajo.",
+    "imageFileHint": "Si subís un archivo, primero se sube y luego se guarda su URL.",
+    "errorLoad": "No se pudo cargar el listado.",
+    "errorSave": "No se pudo guardar",
+    "errorDelete": "No se pudo eliminar."
+  },
+  "auth": {
+    "user": "usuario",
+    "login": { "title": "Iniciar sesión", "submit": "Entrar" },
+    "register": { "title": "Crear cuenta", "submit": "Crear cuenta" },
+    "fields": { "username": "Usuario", "email": "Email", "password": "Contraseña" },
+    "placeholders": { "username": "Tu nombre", "email": "tu@email.com", "password": "••••••••" },
+    "errors": {
+      "missingFields": "Completá todos los campos.",
+      "loginFailed": "No se pudo iniciar sesión.",
+      "registerFailed": "No se pudo registrar."
+    }
+  },
+  "home": {
+    "welcome": "Bienvenido/a,",
+    "tagline": "La plataforma que lleva tu negocio al siguiente nivel",
+    "pill": "GarrSYS en pocas palabras",
+    "intro": {
+      "title": "Todo en un mismo lugar",
+      "lead": "Centralizá productos, clientes, ventas y zonas con una interfaz clara. Menos pasos, menos fricción y más foco en lo importante: tu negocio.",
+      "cards": {
+        "1": {
+          "title": "Gestión simplificada",
+          "detail": "Unificá productos, clientes y ventas en una sola interfaz, con flujos claros y métricas accionables."
+        },
+        "2": {
+          "title": "Rendimiento y claridad",
+          "detail": "Pantallas ágiles, estados bien definidos y filtros que ayudan a decidir más rápido y mejor."
+        },
+        "3": {
+          "title": "Listo para escalar",
+          "detail": "Organizá zonas, autoridades y decisiones con controles que crecen con tu operación."
+        },
+        "4": {
+          "title": "Reportes en tiempo real",
+          "detail": "Visualizá KPIs y tendencias al instante para detectar oportunidades y anticipar desvíos."
+        },
+        "5": {
+          "title": "Seguridad y roles",
+          "detail": "Definí permisos por área o función para cuidar la información y ordenar el trabajo."
+        },
+        "6": {
+          "title": "Integraciones y API",
+          "detail": "Conectá tus sistemas, importá datos y automatizá procesos sin fricción."
+        }
+      }
+    },
+
+        "steps": {
+      "title": "Cómo empezar",
+      "one": "Creá tu cuenta o iniciá sesión.",
+      "two": "Cargá productos y clientes.",
+      "three": "Activá tus flujos de venta y gestión."
+    }
+  },
+  "common": {
+    "close": "Cerrar",
+    "create": "Crear",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "error": "Error",
+    "all": "Todos",
+    "actions": "Acciones"
+  },
+  "clients": {
+    "title": "Clientes",
+    "new": "Nuevo",
+    "newTitle": "Nuevo cliente",
+    "editTitle": "Editar cliente",
+    "loading": "Cargando clientes...",
+    "noResults": "Sin resultados",
+    "confirmDelete": "¿Eliminar este cliente?",
+    "errorLoad": "No se pudieron cargar los clientes.",
+    "errorSave": "No se pudo guardar.",
+    "errorCreate": "No se pudo crear.",
+    "errorDelete": "No se pudo eliminar.",
+    "filters": {
+      "search": "Buscar",
+      "searchPh": "DNI, nombre, email...",
+      "purchases": "Compras",
+      "purchases_all": "Todos",
+      "purchases_yes": "Con compras",
+      "purchases_no": "Sin compras"
+    },
+    "table": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "purchases": "Compras"
+    },
+    "form": {
+      "dni": "DNI",
+      "dniPh": "Ingresá DNI",
+      "name": "Nombre",
+      "namePh": "Juan Pérez",
+      "email": "Email",
+      "emailPh": "juan@mail.com",
+      "phone": "Teléfono",
+      "phonePh": "+54 9 341 ...",
+      "address": "Dirección",
+      "addressPh": "Calle 123, Ciudad"
+    }
+  },
+
+   "partner": {
+    "title": "Socios",
+    "new": "Nuevo socio",
+    "loading": "Cargando socios...",
+    "list": "Listado",
+    "emptyTitle": "No hay socios",
+    "emptyHint": "Creá un socio con el panel de abajo.",
+    "create": "Crear socio",
+    "edit": "Editar socio",
+    "buttons": {
+      "clear": "Limpiar formulario"
+    },
+    "filters": {
+      "search": "Buscar"
+    },
+    "createMode": "¿Cómo querés crear el socio?",
+    "mode": {
+      "fromClient": "Desde cliente existente",
+      "manual": "Manual"
+    },
+    "client": {
+      "search": "Buscar cliente",
+      "searchPh": "DNI, nombre o email...",
+      "select": "Seleccionar cliente",
+      "selectPh": "Elegí un cliente",
+      "hint": "Al seleccionar se completa el formulario; luego podés ajustar."
+    },
+    "fields": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "username": "Usuario",
+      "password": "Contraseña"
+    },
+    "creds": {
+      "toggle": "Crear cuenta para el socio",
+      "hint": "Si no marcás esta opción, se crea el socio sin usuario/contraseña."
+    },
+    "errors": {
+      "dni": "Ingresá un DNI válido.",
+      "name": "Ingresá un nombre válido.",
+      "email": "Ingresá un email válido.",
+      "username": "Usuario requerido (mín. 3).",
+      "password": "Contraseña requerida (mín. 6).",
+      "load": "No se pudieron cargar los socios.",
+      "create": "No se pudo crear el socio.",
+      "update": "No se pudo actualizar el socio.",
+      "delete": "No se pudo eliminar el socio."
+    },
+    "errorLoad": "No se pudieron cargar los socios.",
+    "errorCreate": "No se pudo crear el socio.",
+    "errorUpdate": "No se pudo actualizar el socio.",
+    "errorDelete": "No se pudo eliminar el socio."
+  },
+
+
+  "sales": {
+    "title": "Ventas",
+    "new": "Nueva",
+    "newTitle": "Nueva venta",
+    "noResults": "Sin ventas",
+    "errorLoad": "No se pudieron cargar las ventas.",
+    "client": "Cliente",
+    "itemsCount": "{{count}} ítem(s)",
+    "filters": {
+      "search": "Buscar",
+      "searchPh": "id, producto o cliente",
+      "clientDni": "DNI del cliente"
+    },
+    "table": {
+      "id": "ID",
+      "date": "Fecha",
+      "client": "Cliente",
+      "products": "Productos",
+      "quantity": "Cantidad",
+      "total": "Total"
+    },
+    "form": {
+      "client": "Cliente",
+      "clientFilterPh": "filtrar (dni o nombre)",
+      "chooseClient": "Elegí un cliente",
+      "clientHint": "¿No aparece? Crealo desde Clientes.",
+      "products": "Productos",
+      "searchProduct": "Buscar producto",
+      "searchProductPh": "id o descripción",
+      "product": "Producto",
+      "chooseProduct": "Elegí un producto",
+      "units": "u.",
+      "quantity": "Cantidad",
+      "stockTitle": "Stock disponible: {{stock}}",
+      "remove": "Quitar",
+      "addProduct": "+ Agregar producto",
+      "create": "Crear"
+    },
+    "err": {
+      "clientMissing": "El cliente no existe. Crealo primero desde la sección \"Clientes\".",
+      "addOne": "Agregá al menos un producto.",
+      "chooseProductLine": "Elegí un producto en la línea {{n}}.",
+      "validQtyLine": "Ingresá una cantidad válida en la línea {{n}}.",
+      "noStock": "No hay stock suficiente. Disponible: {{stock}} unidades.",
+      "create": "No se pudo crear la venta."
+    }
+  },
+  "zones": {
+    "title": "Zonas",
+    "new": "Nueva zona",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "headquarters": "Sede central",
+    "noHeadquarters": "Todavía no hay una sede definida.",
+    "filters": { "search": "Buscar", "searchPh": "ID, nombre o descripción..." },
+    "table": { "id": "ID", "name": "Nombre", "description": "Descripción", "actions": "Acciones" },
+    "empty": "No hay zonas para mostrar.",
+    "form": {
+      "createTitle": "Crear zona",
+      "editTitle": "Editar zona #{{id}}",
+      "name": "Nombre",
+      "namePh": "p. ej. Zona Sur",
+      "description": "Descripción",
+      "descriptionPh": "Opcional",
+      "markHq": "Marcar como sede",
+      "err": {
+        "required": "El nombre es obligatorio.",
+        "duplicate": "Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas)."
+      }
+    },
+    "confirmDelete": "¿Eliminar la zona \"{{name}}\"?",
+    "err": {
+      "cannotDeleteHq": "No se puede eliminar la zona \"{{name}}\" porque es la sede actual. Para eliminarla, primero asigná otra como sede."
+    },
+    "errorLoad": "No se pudieron cargar las zonas.",
+    "errorSave": "No se pudo guardar la zona.",
+    "errorDelete": "No se pudo eliminar."
+  },
+  "authorities": {
+    "title": "Autoridades",
+    "new": "Nueva",
+    "empty": "Sin autoridades",
+    "errorLoad": "No se pudieron cargar las autoridades.",
+    "errorCreate": "No se pudo crear.",
+    "errorSavePatch": "No se pudo guardar (PATCH).",
+    "errorSavePut": "No se pudo guardar (PUT).",
+    "errorDelete": "No se pudo eliminar.",
+    "filters": {
+      "search": "Buscar",
+      "searchPh": "dni / nombre / rango",
+      "zoneId": "ID de zona",
+      "zoneIdPh": "1"
+    },
+    "table": { "dni": "DNI", "name": "Nombre", "rank": "Rango", "zone": "Zona", "actions": "Acciones" },
+    "zone": "Zona",
+    "form": {
+      "newTitle": "Nueva autoridad",
+      "editTitle": "Editar autoridad: {{dni}}",
+      "dni": "DNI",
+      "dniPh": "Ingresá DNI",
+      "name": "Nombre",
+      "namePh": "Juan Pérez",
+      "email": "Email",
+      "emailPh": "juan@mail.com",
+      "phone": "Teléfono",
+      "phonePh": "+54...",
+      "address": "Dirección",
+      "addressPh": "Calle 123",
+      "rank": "Rango",
+      "rank0": "Rango 0",
+      "rank1": "Rango 1",
+      "rank2": "Rango 2",
+      "rank3": "Rango 3",
+      "zoneId": "ID de zona",
+      "zoneIdPh": "1",
+      "err": {
+        "create": "Completá DNI, Nombre, Email, Rango y Zona.",
+        "edit": "Completá Nombre, Rango y Zona (el email no es obligatorio al editar)."
+      }
+    },
+    "err": { "zoneIdInvalid": "El ID de la zona debe ser un número válido mayor a 0." }
+  },
+  
+  "bribes": {
+    "title": "Gestión de Sobornos",
+    "new": "+ Nuevo Soborno",
+    "newTitle": "Crear Nuevo Soborno",
+    "editTitle": "Editar Soborno",
+    "loading": "Cargando sobornos...",
+    "noResults": "No se encontraron sobornos",
+    "confirmPay": "¿Confirmar el pago de este soborno?",
+    "confirmDelete": "¿Eliminar este soborno? Esta acción no se puede deshacer.",
+    
+    "filters": {
+      "search": "Buscar",
+      "searchPh": "Buscar por ID, monto, autoridad...",
+      "paid": "Estado de Pago",
+      "paid_all": "Todos",
+      "paid_yes": "Pagados",
+      "paid_no": "Pendientes",
+      "dateType": "Tipo de Fecha",
+      "dateType_all": "Todas las fechas",
+      "dateType_exact": "Fecha exacta",
+      "dateType_before": "Antes de",
+      "dateType_after": "Después de",
+      "dateType_between": "Entre fechas",
+      "date": "Fecha",
+      "endDate": "Fecha Final"
+    },
+    
+    "table": {
+      "id": "ID",
+      "amount": "Monto",
+      "authority": "Autoridad",
+      "sale": "Venta",
+      "paid": "Estado",
+      "date": "Fecha de Creación"
+    },
+    
+    "status": {
+      "paid": "Pagado",
+      "pending": "Pendiente"
+    },
+    
+    "actions": {
+      "pay": "Marcar como Pagado"
+    },
+    
+    "form": {
+      "amount": "Monto",
+      "amountPh": "Ingrese el monto del soborno",
+      "authority": "ID de Autoridad",
+      "authorityPh": "Ingrese el ID de la autoridad",
+      "sale": "ID de Venta",
+      "salePh": "Ingrese el ID de la venta",
+      "editNote": "Nota: Solo se puede editar el monto. La autoridad y venta no pueden modificarse."
+    },
+    
+    "errors": {
+      "amountRequired": "El monto es requerido",
+      "authorityIdRequired": "El ID de autoridad es requerido",
+      "saleIdRequired": "El ID de venta es requerido",
+      "minValue": "El valor mínimo es {{min}}",
+      "invalid": "Valor inválido"
+    },
+    
+    "errorLoad": "Error al cargar los sobornos",
+    "errorSearch": "Error al buscar sobornos",
+    "errorCreate": "Error al crear el soborno",
+    "errorSave": "Error al guardar el soborno",
+    "errorPay": "Error al procesar el pago",
+    "errorDelete": "Error al eliminar el soborno"
+  },
+  
+  "decisions": {
+    "title": "Decisiones estratégicas",
+    "new": "Nueva",
+    "empty": "Sin decisiones",
+    "filters": { "search": "Buscar", "searchPh": "texto o id", "topic": "Temática (ID)", "topicPh": "filtrar por id de temática" },
+    "table": {
+      "id": "ID",
+      "topic": "Temática",
+      "description": "Descripción",
+      "start": "Inicio",
+      "end": "Fin",
+      "actions": "Acciones"
+    },
+    "topic": "Temática",
+    "form": {
+      "newTitle": "Nueva decisión",
+      "editTitle": "Editar decisión: {{id}}",
+      "topic": "Temática",
+      "topicFilterPh": "filtrar (id o descripción)",
+      "chooseTopic": "Elegí una temática",
+      "description": "Descripción",
+      "descriptionPh": "Descripción de la decisión estratégica",
+      "start": "Fecha de inicio",
+      "end": "Fecha de fin"
+    }
+  },
+  "topics": {
+    "title": "Temáticas",
+    "new": "Nueva",
+    "empty": "Sin temáticas",
+    "filters": { "search": "Buscar", "searchPh": "texto o id" },
+    "a11y": { "searchLabel": "Buscar temáticas por texto o id" },
+    "table": { "id": "ID", "description": "Descripción", "actions": "Acciones" },
+    "form": {
+      "newTitle": "Nueva temática",
+      "editTitle": "Editar temática: {{id}}",
+      "description": "Descripción",
+      "descriptionPh": "p. ej. Corrupción, Contrabando...",
+      "err": { "required": "La descripción es obligatoria.", "fill": "Completá la descripción." }
+    },
+    "errorLoad": "No se pudieron cargar las temáticas.",
+    "errorCreate": "No se pudo crear.",
+    "errorSave": "No se pudo guardar.",
+    "errorDelete": "No se pudo eliminar."
+  },
+  "distributors": {
+    "title": "Distribuidores",
+    "new": "+ Nuevo distribuidor",
+    "list": "Listado",
+    "loading": "Cargando distribuidores...",
+    "filters": { "search": "Buscar", "searchPh": "DNI, nombre, email, zona" },
+    "table": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "phone": "Teléfono",
+      "email": "Email",
+      "zone": "Zona",
+      "products": "Productos",
+      "actions": "Acciones"
+    },
+    "empty": { "title": "No hay distribuidores", "desc": "Creá el primero con “+ Nuevo distribuidor”." },
+    "form": {
+      "newTitle": "Nuevo distribuidor",
+      "editTitle": "Editar distribuidor {{dni}}",
+      "dni": "DNI",
+      "dniPh": "Documento",
+      "name": "Nombre",
+      "namePh": "Nombre y apellido",
+      "phone": "Teléfono",
+      "phonePh": "Ej. +54 9 ...",
+      "email": "Email",
+      "emailPh": "correo@dominio.com",
+      "address": "Dirección",
+      "addressPh": "Calle y número",
+      "zone": "Zona",
+      "chooseZone": "Seleccioná zona",
+      "products": "Productos",
+      "multiHint": "Mantené Ctrl/Cmd para selección múltiple",
+      "err": {
+        "dni": "DNI requerido.",
+        "name": "Nombre requerido.",
+        "phone": "Teléfono requerido.",
+        "email": "Email válido requerido.",
+        "zone": "Zona requerida.",
+        "fill": "Completá los campos requeridos."
+      }
+    },
+    "errorLoad": "No se pudo cargar.",
+    "errorCreate": "No se pudo crear (verificá datos requeridos).",
+    "errorSave": "No se pudo guardar.",
+    "errorDelete": "No se pudo eliminar."
+  },
+
+  "status": {
+    "PENDIENTE": "PENDIENTE",
+    "PENDING": "PENDIENTE",
+    "IN_REVIEW": "EN REVISIÓN",
+    "COMPLETED": "COMPLETADA",
+    "APPROVED": "APROBADA",
+    "REJECTED": "RECHAZADA",
+    "ACTIVE": "ACTIVO",
+    "EXPIRED": "VENCIDO",
+    "CANCELLED": "CANCELADO"
+  },
+  "roles": {
+    "CLIENT": "CLIENTE",
+    "DISTRIBUTOR": "DISTRIBUIDOR",
+    "PARTNER": "SOCIO",
+    "ADMIN": "ADMIN"
+  },
+
+  "admin": {
+    "title": "Administradores",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "DNI, nombre, email, teléfono"
+    },
+    "list": "Listado",
+    "emptyTitle": "No hay administradores",
+    "emptyHint": "Ajustá el filtro o creá un nuevo administrador.",
+    "form": {
+      "titleCreate": "Crear administrador",
+      "titleEdit": "Editar {{dni}}"
+    },
+    "fields": {
+      "dni": "DNI",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono"
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "clear": "Limpiar",
+      "cancel": "Cancelar"
+    },
+    "messages": {
+      "loading": "Cargando...",
+      "errorCreating": "Error creando",
+      "errorSaving": "Error guardando",
+      "errorLoading": "Error cargando"
+    }
+  },
+
+  "roleRequest": {
+    "title": "Solicitudes de rol",
+    "my": {
+      "title": "Mis solicitudes",
+      "emptyTitle": "No tenés solicitudes",
+      "emptyHint": "Creá una nueva con el botón “+ Nueva”."
+    },
+    "pending": {
+      "title": "Pendientes (admin)",
+      "emptyTitle": "No hay solicitudes pendientes",
+      "emptyHint": "Cuando existan solicitudes, aparecerán acá."
+    },
+    "create": { "title": "Crear solicitud" },
+    "table": {
+      "user": "Usuario",
+      "role": "Rol",
+      "reason": "Motivo",
+      "status": "Estado",
+      "createdAt": "Creada"
+    },
+    "form": {
+      "requestedRole": "Rol solicitado",
+      "roleToRemove": "Quitar rol (opcional)",
+      "reason": "Motivo"
+    },
+    "buttons": {
+      "new": "+ Nueva",
+      "close": "Cerrar",
+      "send": "Enviar",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "cancel": "Cancelar"
+    },
+    "messages": { "errorSubmit": "No se pudo enviar la solicitud" }
+  },
+
+  "shelbyCouncil": {
+"title": "Consejo Shelby",
+    "loading": "Cargando...",
+    "filters": {
+      "search": "Buscar",
+      "searchPlaceholder": "Socio, decisión, id"
+    },
+    "list": "Listado",
+    "emptyTitle": "No hay miembros",
+    "emptyHint": "Ajustá los filtros o creá un ingreso.",
+    "form": {
+      "titleCreate": "Crear ingreso",
+      "titleEdit": "Editar miembro #{{id}}"
+    },
+    "fields": {
+      "partnerDni": "DNI del socio",
+      "decisionId": "ID de decisión",
+      "joinDate": "Fecha de ingreso",
+      "role": "Rol",
+      "notes": "Notas"
+    },
+    "buttons": {
+      "new": "+ Nuevo",
+      "create": "Crear",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "clear": "Limpiar"
+    },
+    "errorCreate": "No se pudo crear",
+    "errorSave": "No se pudo guardar",
+    "errorLoad": "No se pudo cargar",
+    "errorDelete": "No se pudo eliminar",
+    "confirmDelete": "¿Eliminar este registro?" 
+  },
+
+  "monthlyReview": {
+    "title": "Revisiones Mensuales",
+    "loading": "Cargando...",
+    "filters": { 
+      "year": "Año", 
+      "month": "Mes (1-12)",
+      "monthPlaceholder": "Todos",
+      "status": "Estado"
+    },
+    "stats": { 
+      "title": "Estadísticas del Período", 
+      "empty": "Sin datos para el período seleccionado.",
+      "period": "Período",
+      "totalSales": "Total Ventas",
+      "totalAmount": "Monto Total",
+      "averageAmount": "Promedio",
+      "byProduct": "Por Producto",
+      "productName": "Producto",
+      "quantity": "Cantidad",
+      "amount": "Monto"
+    },
+    "list": "Listado de Revisiones",
+    "emptyTitle": "No hay revisiones",
+    "emptyHint": "Ajustá los filtros o creá una nueva revisión.",
+    "table": {
+      "id": "ID",
+      "period": "Período",
+      "status": "Estado",
+      "reviewer": "Revisor",
+      "date": "Fecha",
+      "totalAmount": "Monto",
+      "totalCount": "Ventas"
+    },
+    "form": {
+      "titleCreate": "Crear Revisión Mensual",
+      "titleEdit": "Editar Revisión #{{id}}",
+      "fields": {
+        "partnerDni": "DNI del Socio",
+        "year": "Año",
+        "month": "Mes",
+        "reviewDate": "Fecha de Revisión",
+        "status": "Estado",
+        "observations": "Observaciones",
+        "recommendations": "Recomendaciones"
+      },
+      "placeholders": {
+        "observations": "Observaciones sobre las ventas del período...",
+        "recommendations": "Recomendaciones o acciones a tomar..."
+      },
+      "errors": {
+          "partnerDni": "DNI del socio requerido (mín. 6 caracteres)"
+        }
+      }
+    },
+  
+  
+      
+      "clandestineAgreement": {
+        "title": "Acuerdos Clandestinos",
+        "list": "Listado de Acuerdos",
+        "emptyTitle": "No hay acuerdos clandestinos",
+        "emptyHint": "Utiliza el botón 'Nuevo' para crear el primer acuerdo clandestino",
+        "confirmDelete": "¿Eliminar este acuerdo clandestino?",
+        
+        "buttons": {
+          "new": "Nuevo",
+          "clear": "Limpiar"
+        },
+        
+        "filters": {
+          "search": "Buscar",
+          "searchPlaceholder": "Buscar por ID, DNI, nombre o descripción..."
+        },
+        
+        "table": {
+          "shelbyCouncil": "Consejo Shelby",
+          "admin": "Administrador",
+          "authority": "Autoridad",
+          "date": "Fecha del Acuerdo",
+          "status": "Estado",
+          "description": "Descripción"
+        },
+        
+        "form": {
+          "titleCreate": "Crear Nuevo Acuerdo Clandestino",
+          "titleEdit": "Editar Acuerdo #{{id}}",
+          
+          "fields": {
+            "shelbyCouncilId": "ID Consejo Shelby",
+            "adminDni": "DNI Administrador",
+            "authorityDni": "DNI Autoridad",
+            "agreementDate": "Fecha del Acuerdo",
+            "status": "Estado",
+            "description": "Descripción"
+          },
+          
+          "hints": {
+            "cannotChangeRelations": "No se pueden modificar las relaciones en modo edición"
+          }
+        }
+      }
+      
+      
+    }
+    
+  
+

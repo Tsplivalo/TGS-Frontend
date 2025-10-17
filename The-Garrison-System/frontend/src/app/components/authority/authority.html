@@ -1,0 +1,140 @@
+<section class="stack-lg">
+  <div class="glass-dark card stack-md">
+    <div class="header">
+      <h2>{{ 'authorities.title' | translate }}</h2>
+      <div class="right">
+        <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
+          {{ isFormOpen ? ('Cerrar' | translate) : ('Nueva Autoridad' | translate) }}
+        </button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <label class="label">
+        <span>{{ 'authorities.filters.search' | translate }}</span>
+        <input class="input" [placeholder]="'authorities.filters.searchPh' | translate" [(ngModel)]="fText" />
+      </label>
+
+      <label class="label">
+        <span>{{ 'authorities.filters.zoneId' | translate }}</span>
+        <input class="input" [placeholder]="'authorities.filters.zoneIdPh' | translate" [(ngModel)]="fZoneId" />
+      </label>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table" *ngIf="filteredAuthorities().length; else empty">
+        <colgroup>
+          <col style="width:120px" />
+          <col />
+          <col style="width:160px" />
+          <col style="width:160px" />
+          <col style="width:160px" />
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th>{{ 'authorities.table.dni' | translate }}</th>
+            <th>{{ 'authorities.table.name' | translate }}</th>
+            <th>{{ 'authorities.table.rank' | translate }}</th>
+            <th>{{ 'authorities.table.zone' | translate }}</th>
+            <th class="right">{{ 'authorities.table.actions' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of filteredAuthorities()">
+            <td>#{{ a.dni }}</td>
+            <td><span class="truncate">{{ a.name }}</span></td>
+            <td><span class="truncate">{{ a.rank }}</span></td>
+            <td><span class="truncate">{{ getZoneText(a) }}</span></td>
+            <td class="right">
+              <button class="btn ghost btn--icon" (click)="edit(a); isFormOpen = true"
+                [attr.title]="'common.edit' | translate">
+                ✏️
+              </button>
+
+              <button class="btn danger btn--icon" (click)="delete(a.dni)" [attr.title]="'common.delete' | translate">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #empty>
+        <div class="center muted">{{ 'authorities.empty' | translate }}</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="collapsible" [class.open]="isFormOpen">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2>
+          {{ editDni() == null
+          ? ('authorities.form.newTitle' | translate)
+          : ('authorities.form.editTitle' | translate: { dni: editDni() }) }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+        <div class="error" *ngIf="error()">{{ error() }}</div>
+        <div class="error" *ngIf="submitted() && form.invalid">
+          {{ editDni() == null
+          ? ('authorities.form.err.create' | translate)
+          : ('authorities.form.err.edit' | translate) }}
+        </div>
+
+        <label class="label">
+          <span>{{ 'authorities.form.dni' | translate }}</span>
+          <input class="input" formControlName="dni" maxlength="8" [placeholder]="'authorities.form.dniPh' | translate"
+            [readonly]="editDni() !== null" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'authorities.form.name' | translate }}</span>
+          <input class="input" formControlName="name" [placeholder]="'authorities.form.namePh' | translate" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'authorities.form.email' | translate }}</span>
+          <input class="input" type="email" formControlName="email"
+            [placeholder]="'authorities.form.emailPh' | translate" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'authorities.form.phone' | translate }}</span>
+          <input class="input" formControlName="phone" [placeholder]="'authorities.form.phonePh' | translate" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'authorities.form.address' | translate }}</span>
+          <input class="input" formControlName="address" [placeholder]="'authorities.form.addressPh' | translate" />
+        </label>
+
+        <label class="label">
+          <span>{{ 'authorities.form.rank' | translate }}</span>
+          <select class="input" formControlName="rank">
+            <option value="0">0 - {{ 'authorities.form.rank0' | translate }}</option>
+            <option value="1">1 - {{ 'authorities.form.rank1' | translate }}</option>
+            <option value="2">2 - {{ 'authorities.form.rank2' | translate }}</option>
+            <option value="3">3 - {{ 'authorities.form.rank3' | translate }}</option>
+          </select>
+        </label>
+
+        <label class="label">
+          <span>{{ 'authorities.form.zoneId' | translate }}</span>
+          <input class="input" formControlName="zoneId" [placeholder]="'authorities.form.zoneIdPh' | translate" />
+        </label>
+
+        <div class="right form-actions">
+          <button class="btn success" type="submit" [disabled]="loading()">
+            {{ editDni() == null ? ('Crear' | translate) : ('Guardar' | translate) }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">
+            {{ 'Cancelar' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

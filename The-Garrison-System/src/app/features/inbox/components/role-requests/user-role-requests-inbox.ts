@@ -5,6 +5,7 @@ import { RoleRequestService } from '../../services/role-request';
 import { RoleRequest } from '../../models/role-request.model';
 import { RoleRequestModalComponent } from './role-request-modal';
 import { RoleRequestCardComponent } from './role-request-card';
+import { AuthService } from '../../../../services/auth/auth';
 
 @Component({
   selector: 'app-user-role-requests-inbox',
@@ -14,6 +15,10 @@ import { RoleRequestCardComponent } from './role-request-card';
   styleUrls: ['./role-requests.scss']
 })
 export class UserRoleRequestsInboxComponent implements OnInit {
+  constructor(
+    private auth: AuthService,
+    private roleRequestService: RoleRequestService
+  ) {}
   @Input() currentRoles: Role[] = [];
   @Input() hasCompleteProfile: boolean = false;
 
@@ -21,8 +26,6 @@ export class UserRoleRequestsInboxComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
   isModalOpen: boolean = false;
-
-  constructor(private roleRequestService: RoleRequestService) {}
 
   ngOnInit(): void {
     this.loadRequests();
@@ -49,7 +52,13 @@ export class UserRoleRequestsInboxComponent implements OnInit {
   }
 
   handleRequestSubmitted(): void {
-    this.loadRequests();
+    this.loadRequests().then(() => {
+      // Buscar aprobadas y refrescar roles para reflejar el cambio sin relogin
+      const hasApproved = this.requests?.some(r => r.status === 'APPROVED');
+      if (hasApproved) {
+        this.auth.forceRefresh();
+      }
+    });
     this.closeModal();
   }
 }

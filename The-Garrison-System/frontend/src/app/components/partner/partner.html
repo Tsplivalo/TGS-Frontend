@@ -1,0 +1,205 @@
+<section class="stack-lg">
+
+  <div class="glass-dark card stack-md">
+    <header class="header">
+      <h2 class="title">{{ 'partner.title' | translate }}</h2>
+      <div class="right">
+        <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
+          {{ isNewOpen() ? ('common.close' | translate) : ('partner.new' | translate) }}
+        </button>
+      </div>
+    </header>
+
+    <section class="filters">
+      <label class="label">
+        <span class="label-text">{{ 'partner.filters.search' | translate }}</span>
+        <input class="input" type="text" [placeholder]="'partner.filters.search' | translate" [value]="fText()"
+          (input)="fText.set($any($event.target).value)" />
+      </label>
+    </section>
+
+    <div class="error" *ngIf="error() as err">
+      <strong>{{ 'common.error' | translate }}</strong> {{ err }}
+    </div>
+    <div class="muted" *ngIf="loading()">
+      {{ 'partner.loading' | translate : {} : 'Cargando socios...' }}
+    </div>
+
+    <section class="subsection">
+      <h3 class="sub-title">{{ 'partner.list' | translate }}</h3>
+      <div class="table-wrap" *ngIf="filteredPartners().length; else emptyState">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width:120px;">DNI</th>
+              <th>{{ 'partner.fields.name' | translate }}</th>
+              <th>{{ 'partner.fields.email' | translate }}</th>
+              <th>{{ 'partner.fields.phone' | translate }}</th>
+              <th>{{ 'partner.fields.address' | translate }}</th>
+              <th style="width:200px;" class="right">{{ 'common.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of filteredPartners()">
+              <td class="mono">{{ it.dni }}</td>
+              <td>{{ it.name }}</td>
+              <td>{{ it.email || '—' }}</td>
+              <td>{{ it.phone || '—' }}</td>
+              <td>{{ it.address || '—' }}</td>
+              <td class="right">
+                <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+                  [title]="'common.edit' | translate">
+                  ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+                </button>
+                <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                  [title]="'common.delete' | translate">
+                  🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty empty-state">
+          <h3>{{ 'partner.emptyTitle' | translate : {} : 'No hay socios' }}</h3>
+          <p class="muted">{{ 'partner.emptyHint' | translate : {} : 'Creá un socio con el panel de abajo.' }}</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <!-- Panel plegable -->
+  <div class="collapsible" [class.open]="isNewOpen()">
+    <div class="collapsible__content glass-dark card">
+      <div class="header">
+        <h2 class="title">
+          {{ isEdit() ? ('partner.edit' | translate) : ('partner.create' | translate) }}
+        </h2>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+
+        <!-- Selector de modo -->
+        <fieldset class="group col-2">
+          <legend>{{ 'partner.createMode' | translate : {} : '¿Cómo querés crear el socio?' }}</legend>
+
+          <label class="radio">
+            <input type="radio" name="mode" value="fromClient" [checked]="mode() === 'fromClient'"
+              (change)="onModeChange($event)" />
+            <span>{{ 'partner.mode.fromClient' | translate : {} : 'Desde cliente existente' }}</span>
+          </label>
+
+          <label class="radio">
+            <input type="radio" name="mode" value="manual" [checked]="mode() === 'manual'"
+              (change)="onModeChange($event)" />
+            <span>{{ 'partner.mode.manual' | translate : {} : 'Manual' }}</span>
+          </label>
+        </fieldset>
+
+        <!-- Buscador + selector de clientes (solo modo fromClient) -->
+        <ng-container *ngIf="mode() === 'fromClient'">
+          <label class="label col-2">
+            <span class="label-text">{{ 'partner.client.search' | translate }}</span>
+            <input class="input" type="text" [value]="clientSearch()"
+              (input)="clientSearch.set($any($event.target).value)"
+              [placeholder]="'partner.client.searchPh' | translate" />
+          </label>
+
+          <label class="label col-2">
+            <span class="label-text">{{ 'partner.client.select' | translate }}</span>
+            <select class="input" (change)="onSelectClient($event)">
+              <option value="">{{ 'partner.client.selectPh' | translate }}</option>
+              <option *ngFor="let c of filteredClients()" [value]="c.dni">
+                {{ c.dni }} — {{ c.name }} {{ c.email ? ('· ' + c.email) : '' }}
+              </option>
+            </select>
+            <small class="muted">
+              {{ 'partner.client.hint' | translate : {} : 'Al seleccionar se completa el formulario; luego podés
+              ajustar.' }}
+            </small>
+          </label>
+        </ng-container>
+
+        <!-- Campos del socio -->
+        <label class="label">
+          <span>{{ 'partner.fields.dni' | translate }}</span>
+          <input class="input" formControlName="dni" />
+          <small class="hint" *ngIf="form.controls.dni.invalid && form.controls.dni.touched">
+            {{ 'partner.errors.dni' | translate : {} : 'Ingresá un DNI válido.' }}
+          </small>
+        </label>
+
+        <label class="label">
+          <span>{{ 'partner.fields.name' | translate }}</span>
+          <input class="input" formControlName="name" />
+          <small class="hint" *ngIf="form.controls.name.invalid && form.controls.name.touched">
+            {{ 'partner.errors.name' | translate : {} : 'Ingresá un nombre válido.' }}
+          </small>
+        </label>
+
+        <label class="label">
+          <span>{{ 'partner.fields.email' | translate }}</span>
+          <input class="input" type="email" formControlName="email" />
+          <small class="hint" *ngIf="form.controls.email.invalid && form.controls.email.touched">
+            {{ 'partner.errors.email' | translate : {} : 'Ingresá un email válido.' }}
+          </small>
+        </label>
+
+        <label class="label">
+          <span>{{ 'partner.fields.phone' | translate }}</span>
+          <input class="input" formControlName="phone" />
+        </label>
+
+        <label class="label col-2">
+          <span>{{ 'partner.fields.address' | translate }}</span>
+          <input class="input" formControlName="address" />
+        </label>
+
+        <!-- Credenciales: SOLO modo manual -->
+        <ng-container *ngIf="mode() === 'manual'">
+          <fieldset class="group col-2">
+            <label class="switch">
+              <input type="checkbox" [checked]="form.controls.createCreds.value" (change)="onCredsToggle($event)" />
+              <span>{{ 'partner.creds.toggle' | translate : {} : 'Crear cuenta para el socio' }}</span>
+            </label>
+
+            <div class="grid-2" *ngIf="form.controls.createCreds.value">
+              <label class="label">
+                <span>{{ 'partner.fields.username' | translate }}</span>
+                <input class="input" formControlName="username" (blur)="form.controls.username.markAsTouched()" />
+                <small class="hint" *ngIf="form.controls.username.invalid && form.controls.username.touched">
+                  {{ 'partner.errors.username' | translate : {} : 'Usuario requerido (mín. 3).' }}
+                </small>
+              </label>
+
+              <label class="label">
+                <span>{{ 'partner.fields.password' | translate }}</span>
+                <input class="input" type="password" formControlName="password"
+                  (blur)="form.controls.password.markAsTouched()" />
+                <small class="hint" *ngIf="form.controls.password.invalid && form.controls.password.touched">
+                  {{ 'partner.errors.password' | translate : {} : 'Contraseña requerida (mín. 6).' }}
+                </small>
+              </label>
+            </div>
+            <small class="muted">
+              {{ 'partner.creds.hint' | translate : {} :
+              'Si no marcás esta opción, se crea el socio sin usuario/contraseña.' }}
+            </small>
+          </fieldset>
+        </ng-container>
+
+        <div class="form-actions">
+          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
+          </button>
+          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
+            {{ 'partner.buttons.clear' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>

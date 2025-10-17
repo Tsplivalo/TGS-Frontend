@@ -14,7 +14,7 @@ import { RoleRequestService } from '../../services/role-request.js';
 export class RoleRequestReviewModalComponent {
   @Input() request!: RoleRequest;
   @Output() close = new EventEmitter<void>();
-  @Output() reviewComplete = new EventEmitter<void>();
+  @Output() reviewComplete = new EventEmitter<string | undefined>(); // ✅ Emite el userId si fue aprobado
 
   action: 'approve' | 'reject' = 'approve';
   comments: string = '';
@@ -58,7 +58,18 @@ export class RoleRequestReviewModalComponent {
         comments: this.comments || undefined,
       });
 
-      this.reviewComplete.emit();
+      console.log('[ReviewModal] ✅ Solicitud revisada:', {
+        requestId: this.request.id,
+        userId: this.request.user.id,
+        action: this.action
+      });
+
+      // ✅ Si se aprobó, emitir el userId para que el componente padre actualice al usuario
+      if (this.action === 'approve') {
+        this.reviewComplete.emit(this.request.user.id);
+      } else {
+        this.reviewComplete.emit(undefined);
+      }
     } catch (err: any) {
       this.error =
         err.error?.message ||

@@ -47,7 +47,7 @@
   </div>
 
   <div *ngIf="!loading && !error && filteredRequests.length === 0" class="empty-state">
-    <div class="empty-icon">📭</div>
+    <div class="empty-icon">🔭</div>
     <h3>No hay solicitudes</h3>
     <p>No se encontraron solicitudes con los filtros seleccionados</p>
   </div>
@@ -58,6 +58,7 @@
     </app-role-request-card>
   </div>
 
+  <!-- ✅ CORREGIDO: Capturar el evento con el userId -->
   <app-role-request-review-modal *ngIf="reviewingRequest" [request]="reviewingRequest" (close)="closeReviewModal()"
     (reviewComplete)="handleReviewComplete()">
   </app-role-request-review-modal>

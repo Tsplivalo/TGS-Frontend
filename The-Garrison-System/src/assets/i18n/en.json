@@ -1,5 +1,7 @@
 {
-  "brand": { "name": "GarrSYS" },
+  "brand": {
+    "name": "GarrSYS"
+  },
   "nav": {
     "store": "Store",
     "myAccount": "My account",
@@ -20,7 +22,10 @@
     "title": "Store",
     "search": "Search",
     "noImage": "No image",
-    "noProducts": { "title": "No products", "desc": "When products are loaded, you'll see them here." },
+    "noProducts": {
+      "title": "No products",
+      "desc": "When products are loaded, you'll see them here."
+    },
     "add": "Add",
     "cart": {
       "open": "Open cart",
@@ -38,7 +43,14 @@
     "save": "Save changes",
     "saved": "Saved!",
     "couldNotSave": "Could not save.",
-    "fields": { "username": "Username", "email": "Email", "firstName": "First name", "lastName": "Last name", "phone": "Phone", "address": "Address" }
+    "fields": {
+      "username": "Username",
+      "email": "Email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "address": "Address"
+    }
   },
   "product": {
     "title": "Products",
@@ -49,8 +61,23 @@
     "cancel": "Cancel",
     "list": "List",
     "loading": "Loading products...",
-    "filters": { "search": "Search", "stock": "Stock", "stock_all": "All", "stock_with": "With stock", "stock_without": "Out of stock" },
-    "fields": { "description": "Description", "price": "Price", "stock": "Stock", "illegal": "Illegal?", "imageUrl": "Image (URL)", "imageFile": "Image (file)" },
+    "filters": {
+      "search": "Search",
+      "stock": "Stock",
+      "stock_all": "All",
+      "stock_with": "With stock",
+      "stock_without": "Out of stock"
+    },
+    "fields": {
+      "description": "Description",
+      "price": "Price",
+      "stock": "Stock",
+      "illegal": "Illegal?",
+      "imageUrl": "Image (URL)",
+      "imageFile": "Image (file)",
+      "detail": "Detail",
+      "detailPlaceholder": "Enter a detailed description of the product"
+    },
     "preview": "Preview",
     "emptyTitle": "No products",
     "emptyHint": "Try adjusting the filters or create a new product.",
@@ -62,44 +89,88 @@
     "imageFileHint": "If you upload a file, it will be uploaded first and then its URL will be saved.",
     "errorLoad": "Could not load the list.",
     "errorSave": "Could not save",
-    "errorDelete": "Could not delete."
+    "errorDelete": "Could not delete.",
+    "descriptionRequired": "Description required (3-50 characters)",
+    "detailRequired": "Detail required (3-200 characters)"
   },
   "auth": {
     "user": "user",
-    "login": { "title": "Sign in", "submit": "Sign in" },
-    "register": { "title": "Create account", "submit": "Create account" },
-    "fields": { "username": "Username", "email": "Email", "password": "Password" },
-    "placeholders": { "username": "Your name", "email": "you@email.com", "password": "••••••••" },
-    "errors": { "missingFields": "Please complete all fields.", "loginFailed": "Could not sign in.", "registerFailed": "Could not register." }
+    "login": {
+      "title": "Sign in",
+      "submit": "Sign in"
+    },
+    "register": {
+      "title": "Create account",
+      "submit": "Create account"
+    },
+    "fields": {
+      "username": "Username",
+      "email": "Email",
+      "password": "Password"
+    },
+    "placeholders": {
+      "username": "Your name",
+      "email": "you@email.com",
+      "password": "••••••••"
+    },
+    "errors": {
+      "missingFields": "Please complete all fields.",
+      "loginFailed": "Could not sign in.",
+      "registerFailed": "Could not register."
+    }
   },
   "home": {
     "welcome": "Welcome,",
     "tagline": "The platform that takes your business to the next level",
-    "cta": { "store": "Go to Store" },
-    "pill": "GarrSYS at a glance",
-    "intro": { "title": "Everything in one place", "lead": "Centralize products, customers, sales and zones with a clear interface." },
-    "steps": { "title": "How to start", "one": "Create your account or sign in.", "two": "Load products and customers.", "three": "Activate your sales and management flows." },
-    "features": {
-      "simplified": { "title": "Simplified management", "detail": "Unify products, customers and sales in a single interface." },
-      "performance": { "title": "Performance & clarity", "detail": "Fast screens, clear states and helpful filters." },
-      "scalable": { "title": "Ready to scale", "detail": "Organize zones, authorities and decisions at scale." },
-      "reports": { "title": "Real-time reports", "detail": "Visualize KPIs and trends instantly." },
-      "security": { "title": "Security & roles", "detail": "Define permissions per area or function." },
-      "integrations": { "title": "Integrations & API", "detail": "Connect systems and automate without friction." }
+    "pill": "GarrSYS in a nutshell",
+    "intro": {
+      "title": "Everything in one place",
+      "lead": "Centralize products, customers, sales and zones with a clear interface. Fewer steps, less friction and more focus on what matters: your business.",
+      "cards": {
+        "1": {
+          "title": "Simplified management",
+          "detail": "Unify products, customers and sales in a single interface, with clear flows and actionable metrics."
+        },
+        "2": {
+          "title": "Performance and clarity",
+          "detail": "Agile screens, well-defined states and filters that help you decide faster and better."
+        },
+        "3": {
+          "title": "Ready to scale",
+          "detail": "Organize zones, authorities and decisions with controls that grow with your operation."
+        },
+        "4": {
+          "title": "Real-time reports",
+          "detail": "View KPIs and trends instantly to detect opportunities and anticipate deviations."
+        },
+        "5": {
+          "title": "Security and roles",
+          "detail": "Define permissions by area or function to protect information and organize work."
+        },
+        "6": {
+          "title": "Integrations and API",
+          "detail": "Connect your systems, import data and automate processes without friction."
+        }
+      }
+    },
+    "steps": {
+      "title": "How to start",
+      "one": "Create your account or log in.",
+      "two": "Load products and customers.",
+      "three": "Activate your sales and management flows."
     }
   },
-  "common": { 
-    "close": "Close", 
-    "create": "Create", 
-    "save": "Save", 
-    "cancel": "Cancel", 
-    "edit": "Edit", 
-    "delete": "Delete", 
+  "common": {
+    "close": "Close",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
     "error": "Error",
     "all": "All",
     "actions": "Actions"
   },
-
   "clients": {
     "title": "Clients",
     "new": "New",
@@ -120,10 +191,27 @@
       "purchases_yes": "With purchases",
       "purchases_no": "No purchases"
     },
-    "table": { "dni": "DNI", "name": "Name", "email": "Email", "address": "Address", "phone": "Phone", "purchases": "Purchases" },
-    "form": { "dni": "DNI", "dniPh": "Enter DNI", "name": "Name", "namePh": "John Doe", "email": "Email", "emailPh": "john@mail.com", "phone": "Phone", "phonePh": "+54 9 341 ...", "address": "Address", "addressPh": "Street 123, City" }
+    "table": {
+      "dni": "DNI",
+      "name": "Name",
+      "email": "Email",
+      "address": "Address",
+      "phone": "Phone",
+      "purchases": "Purchases"
+    },
+    "form": {
+      "dni": "DNI",
+      "dniPh": "Enter DNI",
+      "name": "Name",
+      "namePh": "John Doe",
+      "email": "Email",
+      "emailPh": "john@mail.com",
+      "phone": "Phone",
+      "phonePh": "+54 9 341 ...",
+      "address": "Address",
+      "addressPh": "Street 123, City"
+    }
   },
-
   "partner": {
     "title": "Partners",
     "new": "New partner",
@@ -180,7 +268,6 @@
     "errorUpdate": "Partner could not be updated.",
     "errorDelete": "Partner could not be deleted."
   },
-
   "sales": {
     "title": "Sales",
     "new": "New",
@@ -189,8 +276,20 @@
     "errorLoad": "Could not load sales.",
     "client": "Client",
     "itemsCount": "{{count}} item(s)",
-    "filters": { "search": "Search", "searchPh": "id, product or client description", "clientDni": "Client DNI" },
-    "table": { "id": "ID", "date": "Date", "client": "Client", "products": "Products", "quantity": "Quantity", "total": "Total" },
+    "filters": {
+      "search": "Search",
+      "searchPh": "id, product or client description",
+      "clientDni": "Client DNI"
+    },
+    "table": {
+      "id": "ID",
+      "date": "Date",
+      "client": "Client",
+      "products": "Products",
+      "quantity": "Quantity",
+      "total": "Total",
+      "distributor": "Distributor"
+    },
     "form": {
       "client": "Client",
       "clientFilterPh": "filter (dni or name)",
@@ -206,7 +305,13 @@
       "stockTitle": "Stock available: {{stock}}",
       "remove": "Remove",
       "addProduct": "+ Add product",
-      "create": "Create"
+      "create": "Create",
+      "distributor": "Distributor",
+      "distributorFilterPh": "filter (dni or name)",
+      "chooseDistributor": "Choose a distributor",
+      "distributorHint": "Select the distributor who handles this sale",
+      "distributorRequired": "Distributor required",
+      "clientRequired": "Client required"
     },
     "err": {
       "clientMissing": "The client does not exist. Create it first from the \"Clients\" section.",
@@ -215,7 +320,8 @@
       "validQtyLine": "Enter a valid quantity in line {{n}}.",
       "noStock": "Not enough stock. Available: {{stock}} units.",
       "create": "Could not create the sale."
-    }
+    },
+    "noProductsAvailable": "No products available"
   },
   "zones": {
     "title": "Zones",
@@ -224,8 +330,16 @@
     "loading": "Loading...",
     "headquarters": "Headquarters",
     "noHeadquarters": "No headquarters defined yet.",
-    "filters": { "search": "Search", "searchPh": "ID, name or description..." },
-    "table": { "id": "ID", "name": "Name", "description": "Description", "actions": "Actions" },
+    "filters": {
+      "search": "Search",
+      "searchPh": "ID, name or description..."
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "actions": "Actions"
+    },
     "empty": "No zones to show.",
     "form": {
       "createTitle": "Create zone",
@@ -235,10 +349,15 @@
       "description": "Description",
       "descriptionPh": "Optional",
       "markHq": "Mark as headquarters",
-      "err": { "required": "The name is required.", "duplicate": "A zone with that name already exists (regardless of case)." }
+      "err": {
+        "required": "The name is required.",
+        "duplicate": "A zone with that name already exists (regardless of case)."
+      }
     },
     "confirmDelete": "Delete zone \"{{name}}\"?",
-    "err": { "cannotDeleteHq": "Cannot delete zone \"{{name}}\" because it is the current headquarters. To delete it, first assign another zone as headquarters." },
+    "err": {
+      "cannotDeleteHq": "Cannot delete zone \"{{name}}\" because it is the current headquarters. To delete it, first assign another zone as headquarters."
+    },
     "errorLoad": "Could not load zones.",
     "errorSave": "Could not save the zone.",
     "errorDelete": "Could not delete."
@@ -252,8 +371,19 @@
     "errorSavePatch": "Could not save (PATCH).",
     "errorSavePut": "Could not save (PUT).",
     "errorDelete": "Could not delete.",
-    "filters": { "search": "Search", "searchPh": "dni / name / rank", "zoneId": "Zone ID", "zoneIdPh": "1" },
-    "table": { "dni": "DNI", "name": "Name", "rank": "Rank", "zone": "Zone", "actions": "Actions" },
+    "filters": {
+      "search": "Search",
+      "searchPh": "dni / name / rank",
+      "zoneId": "Zone ID",
+      "zoneIdPh": "1"
+    },
+    "table": {
+      "dni": "DNI",
+      "name": "Name",
+      "rank": "Rank",
+      "zone": "Zone",
+      "actions": "Actions"
+    },
     "zone": "Zone",
     "form": {
       "newTitle": "New authority",
@@ -280,7 +410,9 @@
         "edit": "Complete Name, Rank and Zone (email is not required when editing)."
       }
     },
-    "err": { "zoneIdInvalid": "Zone ID must be a valid number greater than 0." }
+    "err": {
+      "zoneIdInvalid": "Zone ID must be a valid number greater than 0."
+    }
   },
   "bribes": {
     "title": "Bribe Management",
@@ -291,7 +423,6 @@
     "noResults": "No bribes found",
     "confirmPay": "Confirm payment of this bribe?",
     "confirmDelete": "Delete this bribe? This action cannot be undone.",
-    
     "filters": {
       "search": "Search",
       "searchPh": "Search by ID, amount, authority...",
@@ -308,7 +439,6 @@
       "date": "Date",
       "endDate": "End Date"
     },
-    
     "table": {
       "id": "ID",
       "amount": "Amount",
@@ -317,16 +447,13 @@
       "paid": "Status",
       "date": "Creation Date"
     },
-    
     "status": {
       "paid": "Paid",
       "pending": "Pending"
     },
-    
     "actions": {
       "pay": "Mark as Paid"
     },
-    
     "form": {
       "amount": "Amount",
       "amountPh": "Enter bribe amount",
@@ -336,7 +463,6 @@
       "salePh": "Enter sale ID",
       "editNote": "Note: Only the amount can be edited. Authority and sale cannot be modified."
     },
-    
     "errors": {
       "amountRequired": "Amount is required",
       "authorityIdRequired": "Authority ID is required",
@@ -344,7 +470,6 @@
       "minValue": "Minimum value is {{min}}",
       "invalid": "Invalid value"
     },
-    
     "errorLoad": "Error loading bribes",
     "errorSearch": "Error searching bribes",
     "errorCreate": "Error creating bribe",
@@ -356,8 +481,20 @@
     "title": "Strategic decisions",
     "new": "New",
     "empty": "No decisions",
-    "filters": { "search": "Search", "searchPh": "text or id", "topic": "Thematic (ID)", "topicPh": "filter by thematic id" },
-    "table": { "id": "ID", "topic": "Thematic", "description": "Description", "start": "Start", "end": "End", "actions": "Actions" },
+    "filters": {
+      "search": "Search",
+      "searchPh": "text or id",
+      "topic": "Thematic (ID)",
+      "topicPh": "filter by thematic id"
+    },
+    "table": {
+      "id": "ID",
+      "topic": "Thematic",
+      "description": "Description",
+      "start": "Start",
+      "end": "End",
+      "actions": "Actions"
+    },
     "topic": "Thematic",
     "form": {
       "newTitle": "New decision",
@@ -375,15 +512,27 @@
     "title": "Topics",
     "new": "New",
     "empty": "No topics",
-    "filters": { "search": "Search", "searchPh": "text or id" },
-    "a11y": { "searchLabel": "Search topics by text or id" },
-    "table": { "id": "ID", "description": "Description", "actions": "Actions" },
+    "filters": {
+      "search": "Search",
+      "searchPh": "text or id"
+    },
+    "a11y": {
+      "searchLabel": "Search topics by text or id"
+    },
+    "table": {
+      "id": "ID",
+      "description": "Description",
+      "actions": "Actions"
+    },
     "form": {
       "newTitle": "New topic",
       "editTitle": "Edit topic: {{id}}",
       "description": "Description",
       "descriptionPh": "e.g. Corruption, Smuggling...",
-      "err": { "required": "Description is required.", "fill": "Please complete the description." }
+      "err": {
+        "required": "Description is required.",
+        "fill": "Please complete the description."
+      }
     },
     "errorLoad": "Could not load topics.",
     "errorCreate": "Could not create.",
@@ -395,9 +544,23 @@
     "new": "+ New distributor",
     "list": "List",
     "loading": "Loading distributors...",
-    "filters": { "search": "Search", "searchPh": "DNI, name, email, zone" },
-    "table": { "dni": "DNI", "name": "Name", "phone": "Phone", "email": "Email", "zone": "Zone", "products": "Products", "actions": "Actions" },
-    "empty": { "title": "No distributors", "desc": "Create the first one with new button" },
+    "filters": {
+      "search": "Search",
+      "searchPh": "DNI, name, email, zone"
+    },
+    "table": {
+      "dni": "DNI",
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "zone": "Zone",
+      "products": "Products",
+      "actions": "Actions"
+    },
+    "empty": {
+      "title": "No distributors",
+      "desc": "Create the first one with new button"
+    },
     "form": {
       "newTitle": "New distributor",
       "editTitle": "Edit distributor {{dni}}",
@@ -429,7 +592,6 @@
     "errorSave": "Could not save.",
     "errorDelete": "Could not delete."
   },
-
   "mgmt": {
     "product": "Products",
     "client": "Clients",
@@ -447,7 +609,6 @@
     "admin": "Administrators",
     "roleRequests": "Role requests"
   },
-
   "status": {
     "PENDING": "PENDING",
     "IN_REVIEW": "IN REVIEW",
@@ -464,7 +625,6 @@
     "PARTNER": "PARTNER",
     "ADMIN": "ADMIN"
   },
-
   "admin": {
     "title": "Administrators",
     "filters": {
@@ -498,7 +658,6 @@
       "errorLoading": "Error loading"
     }
   },
-
   "roleRequest": {
     "title": "Role requests",
     "my": {
@@ -511,7 +670,9 @@
       "emptyTitle": "No pending requests",
       "emptyHint": "When there are requests, they will appear here."
     },
-    "create": { "title": "Create request" },
+    "create": {
+      "title": "Create request"
+    },
     "table": {
       "user": "User",
       "role": "Role",
@@ -532,9 +693,10 @@
       "reject": "Reject",
       "cancel": "Cancel"
     },
-    "messages": { "errorSubmit": "Could not submit request" }
+    "messages": {
+      "errorSubmit": "Could not submit request"
+    }
   },
-
   "shelbyCouncil": {
     "title": "Shelby Council",
     "loading": "Loading...",
@@ -569,18 +731,17 @@
     "errorDelete": "Could not delete",
     "confirmDelete": "Delete this entry?"
   },
-
   "monthlyReview": {
     "title": "Monthly Reviews",
     "loading": "Loading...",
-    "filters": { 
-      "year": "Year", 
+    "filters": {
+      "year": "Year",
       "month": "Month (1-12)",
       "monthPlaceholder": "All",
       "status": "Status"
     },
-    "stats": { 
-      "title": "Period Statistics", 
+    "stats": {
+      "title": "Period Statistics",
       "empty": "No data for the selected period.",
       "period": "Period",
       "totalSales": "Total Sales",
@@ -637,56 +798,49 @@
     "errorDelete": "Could not delete review",
     "confirmDelete": "Delete this review?"
   },
-
   "clandestineAgreement": {
     "title": "Clandestine Agreements",
-      "list": "Agreements List",
-      "emptyTitle": "No clandestine agreements",
-      "emptyHint": "Create a new agreement to get started",
-      "confirmDelete": "Are you sure you want to delete this clandestine agreement?",
-      
-      "buttons": {
-        "new": "New Agreement",
-        "clear": "Clear Form"
-      },
-      
-      "filters": {
-        "search": "Search",
-        "searchPlaceholder": "Search by ID, description, admin, authority..."
-      },
-      
-      "table": {
-        "shelbyCouncil": "Shelby Council",
-        "admin": "Administrator",
-        "authority": "Authority",
-        "date": "Agreement Date",
-        "status": "Status",
-        "description": "Description"
-      },
-      
-      "form": {
-        "titleCreate": "Create New Clandestine Agreement",
-        "titleEdit": "Edit Agreement #{{id}}",
-        
-        "fields": {
-          "shelbyCouncilId": "Shelby Council ID",
-          "adminDni": "Administrator DNI",
-          "authorityDni": "Authority DNI",
-          "agreementDate": "Agreement Date",
-          "description": "Agreement Description",
-          "status": "Status"
-        },
-        
-        "hints": {
-          "cannotChangeRelations": "Relationships cannot be changed after creating the agreement"
-        }
-      }
-    },
+    "list": "Agreements List",
+    "emptyTitle": "No clandestine agreements",
+    "emptyHint": "Create a new agreement to get started",
+    "confirmDelete": "Are you sure you want to delete this clandestine agreement?",
     "buttons": {
-      "new": "+ New",
-      "create": "Create",
-      "save": "Save",
-      "clear": "Clear",
-      "cancel": "Cancel"
+      "new": "New Agreement",
+      "clear": "Clear Form"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search by ID, description, admin, authority..."
+    },
+    "table": {
+      "shelbyCouncil": "Shelby Council",
+      "admin": "Administrator",
+      "authority": "Authority",
+      "date": "Agreement Date",
+      "status": "Status",
+      "description": "Description"
+    },
+    "form": {
+      "titleCreate": "Create New Clandestine Agreement",
+      "titleEdit": "Edit Agreement #{{id}}",
+      "fields": {
+        "shelbyCouncilId": "Shelby Council ID",
+        "adminDni": "Administrator DNI",
+        "authorityDni": "Authority DNI",
+        "agreementDate": "Agreement Date",
+        "description": "Agreement Description",
+        "status": "Status"
+      },
+      "hints": {
+        "cannotChangeRelations": "Relationships cannot be changed after creating the agreement"
+      }
     }
+  },
+  "buttons": {
+    "new": "+ New",
+    "create": "Create",
+    "save": "Save",
+    "clear": "Clear",
+    "cancel": "Cancel"
   }
+}
