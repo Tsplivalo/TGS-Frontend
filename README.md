@@ -14,7 +14,6 @@
 - [Configuración rápida](#-configuración-rápida)
 - [Ejecución con Docker Compose](#-ejecución-con-docker-compose)
 - [Ejecución local (sin Docker)](#-ejecución-local-sin-docker)
-- [Variables de entorno](#-variables-de-entorno)
 - [Estructura de carpetas](#-estructura-de-carpetas)
 - [i18n](#-i18n)
 - [Autenticación y roles](#-autenticación-y-roles)
@@ -22,10 +21,8 @@
 - [Contratos API](#-contratos-api)
 - [Pruebas, Lint y Estilo](#-pruebas-lint-y-estilo)
 - [Flujo de desarrollo](#-flujo-de-desarrollo)
-- [Solución de problemas](#-solución-de-problemas)
 - [Preguntas frecuentes](#-preguntas-frecuentes)
-- [Contribuir](#-contribuir)
-- [Licencia](#-licencia)
+
 
 ---
 
