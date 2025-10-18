@@ -1,7 +1,8 @@
+<!-- role-request-modal.component.html -->
 <div *ngIf="isOpen" class="modal-overlay" (click)="onOverlayClick($event)">
   <div class="modal role-request-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>Solicitar Rol Especial</h2>
+      <h2>{{ 'roleRequests.modal.title' | translate }}</h2>
       <button class="close-btn" type="button" (click)="onClose()">×</button>
     </div>
 
@@ -11,39 +12,37 @@
         {{ error }}
       </div>
 
-      <!-- ✅ Toggle de cambio de rol -->
+      <!-- Toggle de cambio de rol -->
       <div *ngIf="removableRoles.length > 0" class="role-change-toggle">
         <label class="checkbox-label">
           <input type="checkbox" [(ngModel)]="isRoleChange" name="isRoleChange"
             (change)="onRoleChangeToggle(isRoleChange)" />
-          <span>Cambiar un rol existente por otro</span>
+          <span>{{ 'roleRequests.modal.changeToggle' | translate }}</span>
         </label>
-        <p class="help-text">
-          Si quieres intercambiar uno de tus roles actuales por otro, activa esta opción
-        </p>
+        <p class="help-text">{{ 'roleRequests.modal.changeHelp' | translate }}</p>
       </div>
 
-      <!-- ✅ Rol a remover (solo si isRoleChange = true) -->
+      <!-- Rol a remover -->
       <div *ngIf="isRoleChange" class="form-group">
         <label for="roleToRemove">
-          Rol a remover <span class="required">*</span>
+          {{ 'roleRequests.modal.roleToRemoveRequired' | translate }}
         </label>
         <select id="roleToRemove" [(ngModel)]="roleToRemove" name="roleToRemove" [disabled]="isSubmitting"
           [required]="isRoleChange">
-          <option value="">Selecciona el rol a remover</option>
+          <option value="">{{ 'roleRequests.modal.roleToRemovePh' | translate }}</option>
           <option *ngFor="let role of removableRoles" [value]="role">
             {{ getRoleInfo(role)?.icon }} {{ getRoleInfo(role)?.label || role }}
           </option>
         </select>
       </div>
 
-      <!-- ✅ Rol solicitado (REQUERIDO) -->
+      <!-- Rol solicitado -->
       <div class="form-group">
         <label for="requestedRole">
-          Rol solicitado <span class="required">*</span>
+          {{ 'roleRequests.modal.requestedRole' | translate }}
         </label>
         <select id="requestedRole" [(ngModel)]="requestedRole" name="requestedRole" [disabled]="isSubmitting" required>
-          <option value="">Selecciona un rol</option>
+          <option value="">{{ 'roleRequests.modal.requestedRolePh' | translate }}</option>
           <option *ngFor="let role of availableRoles" [value]="role.value">
             {{ role.icon }} {{ role.label }}
           </option>
@@ -53,39 +52,41 @@
         </p>
       </div>
 
-      <!-- ✅ CORREGIDO: Justificación OPCIONAL -->
+      <!-- Justificación (opcional) -->
       <div class="form-group">
         <label for="justification">
-          Justificación <span class="optional">(opcional)</span>
+          {{ 'roleRequests.modal.justification' | translate }} <span class="optional">{{
+            'roleRequests.modal.justificationOptional' | translate }}</span>
         </label>
         <textarea id="justification" [(ngModel)]="justification" name="justification"
-          placeholder="Explica por qué solicitas este rol (opcional, mínimo 20 caracteres si lo proporcionas)"
-          [disabled]="isSubmitting" minlength="20" maxlength="500" rows="4"></textarea>
+          [placeholder]="'roleRequests.modal.justificationPh' | translate" [disabled]="isSubmitting" minlength="20"
+          maxlength="500" rows="4"></textarea>
         <div class="character-count">
-          {{ justification.length }}/500 caracteres
+          {{ 'roleRequests.modal.justCounter' | translate:{ n: justification.length } }}
           <span *ngIf="justification.length > 0 && justification.length < 20" class="warning">
-            (mínimo 20 si proporcionas justificación)
+            {{ 'roleRequests.modal.justMinWarn' | translate }}
           </span>
         </div>
       </div>
 
-      <!-- ✅ Info de roles incompatibles -->
+      <!-- Info de roles incompatibles -->
       <div *ngIf="incompatibleRolesText" class="info-box">
         <span class="icon">⚠️</span>
         <div>
-          <strong>Nota:</strong> El rol {{ requestedRole }} es incompatible con:
-          {{ incompatibleRolesText }}
+          <strong>Nota:</strong>
+          {{ 'roleRequests.modal.incompatibleNote' | translate:{ role: requestedRole, list: incompatibleRolesText } }}
         </div>
       </div>
 
-      <!-- ✅ Botones de acción -->
+      <!-- Acciones -->
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" (click)="onClose()" [disabled]="isSubmitting">
-          Cancelar
+          {{ 'roleRequests.modal.actions.cancel' | translate }}
         </button>
         <button type="submit" class="btn btn-primary"
           [disabled]="isSubmitting || !requestedRole || (isRoleChange && !roleToRemove) || (justification.length > 0 && justification.length < 20)">
-          {{ isSubmitting ? 'Enviando...' : 'Enviar Solicitud' }}
+          {{ isSubmitting ? ('roleRequests.modal.actions.sending' | translate) : ('roleRequests.modal.actions.submit' |
+          translate) }}
         </button>
       </div>
     </form>

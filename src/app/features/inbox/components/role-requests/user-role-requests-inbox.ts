@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input,inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Role } from '../../../../models/user/user.model';
 import { RoleRequestService } from '../../services/role-request';
@@ -6,15 +6,19 @@ import { RoleRequest } from '../../models/role-request.model';
 import { RoleRequestModalComponent } from './role-request-modal';
 import { RoleRequestCardComponent } from './role-request-card';
 import { AuthService } from '../../../../services/auth/auth';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-user-role-requests-inbox',
   standalone: true,
-  imports: [CommonModule, RoleRequestModalComponent, RoleRequestCardComponent],
+  imports: [CommonModule, RoleRequestModalComponent, RoleRequestCardComponent,TranslateModule],
   templateUrl: './user-role-requests-inbox.html',
   styleUrls: ['./role-requests.scss']
 })
+
+
 export class UserRoleRequestsInboxComponent implements OnInit {
+  private t = inject(TranslateService);
   constructor(
     private auth: AuthService,
     private roleRequestService: RoleRequestService

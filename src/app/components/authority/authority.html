@@ -1,24 +1,73 @@
 <section class="stack-lg">
+  <!-- LIST -->
   <div class="glass-dark card stack-md">
     <div class="header">
       <h2>{{ 'authorities.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
-          {{ isFormOpen ? ('Cerrar' | translate) : ('Nueva Autoridad' | translate) }}
+          {{ isFormOpen ? ('authorities.toggle.close' | translate) : ('authorities.toggle.new' | translate) }}
         </button>
       </div>
     </div>
 
-    <div class="filters">
-      <label class="label">
+    <!-- Estadísticas -->
+    <div *ngIf="!loading() && authorities().length > 0"
+      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'authorities.stats.totalLabel' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-strong);">{{ totalAuthorities() }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'authorities.stats.rank0Label' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">{{ authoritiesByRank()[0] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'authorities.stats.rank1Label' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">{{ authoritiesByRank()[1] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'authorities.stats.rank2Label' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">{{ authoritiesByRank()[2] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'authorities.stats.rank3Label' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700;">{{ authoritiesByRank()[3] }}</div>
+      </div>
+      <div style="text-align: center;" *ngIf="fTextApplied() || fZoneIdApplied()">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'authorities.stats.filteredLabel' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ filteredAuthorities().length }}</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters" style="align-items: flex-end;">
+      <label class="label" style="flex: 1;">
         <span>{{ 'authorities.filters.search' | translate }}</span>
-        <input class="input" [placeholder]="'authorities.filters.searchPh' | translate" [(ngModel)]="fText" />
+        <input class="input" [placeholder]="'authorities.filters.searchPh' | translate" [ngModel]="fTextInput()"
+          (ngModelChange)="fTextInput.set($event)" (keyup.enter)="applyFilters()" />
       </label>
 
-      <label class="label">
+      <label class="label" style="min-width: 180px;">
         <span>{{ 'authorities.filters.zoneId' | translate }}</span>
-        <input class="input" [placeholder]="'authorities.filters.zoneIdPh' | translate" [(ngModel)]="fZoneId" />
+        <input class="input" [placeholder]="'authorities.filters.zoneIdPh' | translate" [ngModel]="fZoneIdInput()"
+          (ngModelChange)="fZoneIdInput.set($event)" (keyup.enter)="applyFilters()" />
       </label>
+
+      <!-- Botones -->
+      <div style="display: flex; gap: var(--sp-2);">
+        <button class="btn btn-primary" type="button" (click)="applyFilters()">
+          🔍 {{ 'common.search' | translate }}
+        </button>
+        <button class="btn ghost" type="button" (click)="clearFilters()" *ngIf="fTextApplied() || fZoneIdApplied()">
+          🗑️ {{ 'common.clear' | translate }}
+        </button>
+      </div>
     </div>
 
     <div class="table-wrap">
@@ -51,7 +100,6 @@
                 [attr.title]="'common.edit' | translate">
                 ✏️
               </button>
-
               <button class="btn danger btn--icon" (click)="delete(a.dni)" [attr.title]="'common.delete' | translate">
                 🗑️
               </button>
@@ -61,7 +109,11 @@
       </table>
 
       <ng-template #empty>
-        <div class="center muted">{{ 'authorities.empty' | translate }}</div>
+        <div class="center muted">
+          {{ (fTextApplied() || fZoneIdApplied())
+          ? ('authorities.noResults' | translate)
+          : ('authorities.empty' | translate) }}
+        </div>
       </ng-template>
     </div>
   </div>
@@ -128,10 +180,10 @@
 
         <div class="right form-actions">
           <button class="btn success" type="submit" [disabled]="loading()">
-            {{ editDni() == null ? ('Crear' | translate) : ('Guardar' | translate) }}
+            {{ editDni() == null ? ('common.create' | translate) : ('common.save' | translate) }}
           </button>
           <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">
-            {{ 'Cancelar' | translate }}
+            {{ 'common.cancel' | translate }}
           </button>
         </div>
       </form>

@@ -13,26 +13,65 @@
       </div>
     </header>
 
+    <div *ngIf="!loading() && items().length > 0"
+      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'monthlyReview.stats.total' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-strong);">{{ totalReviews() }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'monthlyReview.stats.pending' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;">{{ reviewsByStatus()['PENDING'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'monthlyReview.stats.inReview' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #3b82f6;">{{ reviewsByStatus()['IN_REVIEW'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'monthlyReview.stats.completed' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #6b7280;">{{ reviewsByStatus()['COMPLETED'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'monthlyReview.stats.approved' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #4a8d72;">{{ reviewsByStatus()['APPROVED'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'monthlyReview.stats.rejected' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #a94545;">{{ reviewsByStatus()['REJECTED'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'monthlyReview.stats.filtered' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ filtered().length }}</div>
+      </div>
+    </div>
+
     <!-- FILTROS -->
-    <section class="filters">
+    <section class="filters" style="align-items: flex-end;">
       <label class="label">
         <span class="label-text">{{ 'monthlyReview.filters.year' | translate : {} : 'Año' }}</span>
-        <input class="input" type="number" [value]="fYear()"
-          (input)="fYear.set(+$any($event.target).value); applyFilters()"
+        <input class="input" type="number" [value]="fYearInput()" (input)="fYearInput.set(+$any($event.target).value)"
           [attr.aria-label]="'monthlyReview.filters.year' | translate : {} : 'Año'" />
       </label>
 
       <label class="label">
         <span class="label-text">{{ 'monthlyReview.filters.month' | translate : {} : 'Mes (1-12)' }}</span>
-        <input class="input" type="number" [value]="fMonth()"
-          (input)="fMonth.set($any($event.target).value ? +$any($event.target).value : null); applyFilters()"
+        <input class="input" type="number" [value]="fMonthInput()"
+          (input)="fMonthInput.set($any($event.target).value ? +$any($event.target).value : null)"
           [placeholder]="'monthlyReview.filters.monthPlaceholder' | translate : {} : 'Todos'"
           [attr.aria-label]="'monthlyReview.filters.month' | translate : {} : 'Mes'" />
       </label>
 
       <label class="label">
         <span class="label-text">{{ 'monthlyReview.filters.status' | translate : {} : 'Estado' }}</span>
-        <select class="input" [value]="fStatus() || ''" (change)="fStatus.set($any($event.target).value || null)">
+        <select class="input" [value]="fStatusInput() || ''"
+          (change)="fStatusInput.set($any($event.target).value || null)">
           <option value="">{{ 'common.all' | translate : {} : 'Todos' }}</option>
           <option value="PENDING">{{ 'status.PENDING' | translate : {} : 'Pendiente' }}</option>
           <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate : {} : 'En Revisión' }}</option>
@@ -41,6 +80,15 @@
           <option value="REJECTED">{{ 'status.REJECTED' | translate : {} : 'Rechazado' }}</option>
         </select>
       </label>
+
+      <div style="display: flex; gap: var(--sp-2);">
+        <button class="btn btn-primary" type="button" (click)="applyFilters()">
+          🔍 {{ 'common.search' | translate }}
+        </button>
+        <button class="btn ghost" type="button" (click)="clearFilters()" *ngIf="fMonthApplied() || fStatusApplied()">
+          🗑️ {{ 'common.clear' | translate }}
+        </button>
+      </div>
     </section>
 
     <!-- ESTADÍSTICAS -->
@@ -149,9 +197,12 @@
       <!-- Empty state -->
       <ng-template #emptyState>
         <div class="empty-state">
-          <h3>{{ 'monthlyReview.emptyTitle' | translate : {} : 'No hay revisiones' }}</h3>
+          <h3>{{ (fMonthApplied() || fStatusApplied()) ? 'Sin resultados' : ('monthlyReview.emptyTitle' | translate : {}
+            : 'No hay revisiones') }}</h3>
           <p class="muted">
-            {{ 'monthlyReview.emptyHint' | translate : {} : 'Probá ajustar los filtros o creá una nueva revisión.' }}
+            {{ (fMonthApplied() || fStatusApplied())
+            ? 'Probá ajustar los filtros o hacer clic en "Limpiar"'
+            : ('monthlyReview.emptyHint' | translate : {} : 'Probá ajustar los filtros o creá una nueva revisión.') }}
           </p>
         </div>
       </ng-template>

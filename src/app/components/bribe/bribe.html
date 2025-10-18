@@ -5,32 +5,61 @@
     <div class="header">
       <h2>{{ 'bribes.title' | translate }}</h2>
       <div class="right">
-        <button class="btn" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ (isNewOpen ? 'Cerrar' : 'Nuevo Soborno') | translate }}
-        </button>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div *ngIf="!loading() && bribes().length > 0"
+      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">Total sobornos</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-strong);">{{ totalBribes() }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">Monto total</div>
+        <div style="font-size: 1.3rem; font-weight: 700; color: var(--accent);">{{ totalAmount() |
+          currency:'ARS':'symbol':'1.0-0' }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">Pagados</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #4a8d72;">{{ paidBribes() }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">Pendientes</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #a94545;">{{ pendingBribes() }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">Monto pendiente</div>
+        <div style="font-size: 1.3rem; font-weight: 700; color: #a94545;">{{ pendingAmount() |
+          currency:'ARS':'symbol':'1.0-0' }}</div>
+      </div>
+      <div style="text-align: center;"
+        *ngIf="fTextApplied() || fPaidApplied() !== 'all' || fDateTypeApplied() !== 'all'">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">Filtrados</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ filteredBribes().length }}</div>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="filters">
-      <label class="label">
+    <div class="filters" style="align-items: flex-end; flex-wrap: wrap;">
+      <label class="label" style="flex: 1; min-width: 200px;">
         <span>{{ 'bribes.filters.search' | translate }}</span>
-        <input class="input" [placeholder]="'bribes.filters.searchPh' | translate" [ngModel]="fText()"
-          (ngModelChange)="fText.set($event)" />
+        <input class="input" [placeholder]="'bribes.filters.searchPh' | translate" [ngModel]="fTextInput()"
+          (ngModelChange)="fTextInput.set($event)" (keyup.enter)="applyFilters()" />
       </label>
 
-      <label class="label">
+      <label class="label" style="min-width: 180px;">
         <span>{{ 'bribes.filters.paid' | translate }}</span>
-        <select class="input" [(ngModel)]="fPaid" (ngModelChange)="load()">
+        <select class="input" [ngModel]="fPaidInput()" (ngModelChange)="fPaidInput.set($event)">
           <option value="all">{{ 'bribes.filters.paid_all' | translate }}</option>
           <option value="true">{{ 'bribes.filters.paid_yes' | translate }}</option>
           <option value="false">{{ 'bribes.filters.paid_no' | translate }}</option>
         </select>
       </label>
 
-      <label class="label">
+      <label class="label" style="min-width: 180px;">
         <span>{{ 'bribes.filters.dateType' | translate }}</span>
-        <select class="input" [(ngModel)]="fDateType" (ngModelChange)="load()">
+        <select class="input" [ngModel]="fDateTypeInput()" (ngModelChange)="fDateTypeInput.set($event)">
           <option value="all">{{ 'bribes.filters.dateType_all' | translate }}</option>
           <option value="exact">{{ 'bribes.filters.dateType_exact' | translate }}</option>
           <option value="before">{{ 'bribes.filters.dateType_before' | translate }}</option>
@@ -39,15 +68,26 @@
         </select>
       </label>
 
-      <label class="label" *ngIf="fDateType !== 'all'">
+      <label class="label" *ngIf="fDateTypeInput() !== 'all'" style="min-width: 160px;">
         <span>{{ 'bribes.filters.date' | translate }}</span>
-        <input class="input" type="date" [(ngModel)]="fDate" (ngModelChange)="load()" />
+        <input class="input" type="date" [ngModel]="fDateInput()" (ngModelChange)="fDateInput.set($event)" />
       </label>
 
-      <label class="label" *ngIf="fDateType === 'between'">
+      <label class="label" *ngIf="fDateTypeInput() === 'between'" style="min-width: 160px;">
         <span>{{ 'bribes.filters.endDate' | translate }}</span>
-        <input class="input" type="date" [(ngModel)]="fEndDate" (ngModelChange)="load()" />
+        <input class="input" type="date" [ngModel]="fEndDateInput()" (ngModelChange)="fEndDateInput.set($event)" />
       </label>
+
+      <!-- Botones -->
+      <div style="display: flex; gap: var(--sp-2);">
+        <button class="btn btn-primary" type="button" (click)="applyFilters()">
+          🔍 {{ 'common.search' | translate }}
+        </button>
+        <button class="btn ghost" type="button" (click)="clearFilters()"
+          *ngIf="fTextApplied() || fPaidApplied() !== 'all' || fDateTypeApplied() !== 'all'">
+          🗑️ {{ 'common.clear' | translate }}
+        </button>
+      </div>
     </div>
 
     <!-- Error message -->
@@ -67,7 +107,7 @@
             <th>{{ 'bribes.table.sale' | translate }}</th>
             <th class="center">{{ 'bribes.table.paid' | translate }}</th>
             <th>{{ 'bribes.table.date' | translate }}</th>
-            <th class="right">Acciones</th>
+            <th class="right">{{ 'bribes.table.actions' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -102,7 +142,9 @@
           </tr>
           <tr *ngIf="filteredBribes().length === 0">
             <td colspan="7" class="muted center">
-              {{ 'bribes.noResults' | translate }}
+              {{ (fTextApplied() || fPaidApplied() !== 'all' || fDateTypeApplied() !== 'all')
+              ? ('bribes.noResults' | translate)
+              : ('bribes.empty' | translate) }}
             </td>
           </tr>
         </tbody>

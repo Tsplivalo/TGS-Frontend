@@ -27,14 +27,21 @@ export class ProductComponent implements OnInit {
   // --- Datos ---
   products = signal<ProductDTO[]>([]);
 
+  // ✅ AGREGAR:
+totalProducts = computed(() => this.products().length);
+productsWithStock = computed(() => this.products().filter(p => (p.stock ?? 0) > 0).length);
+productsWithoutStock = computed(() => this.products().filter(p => (p.stock ?? 0) === 0).length);
+
   // --- Filtros de UI ---
-  fText  = signal('');
-  fStock = signal<'all' | 'with' | 'without'>('all');
+  fTextInput = signal('');
+  fTextApplied = signal('');
+  fStockInput = signal<'all' | 'with' | 'without'>('all');
+  fStockApplied = signal<'all' | 'with' | 'without'>('all');
 
   // Vista filtrada reactiva
   filteredList = computed(() => {
-    const txt = this.fText().toLowerCase().trim();
-    const fstock = this.fStock();
+    const txt = this.fTextApplied().toLowerCase().trim();
+    const fstock = this.fStockApplied();
 
     return this.products().filter(p => {
       const matchText =
@@ -45,12 +52,25 @@ export class ProductComponent implements OnInit {
 
       const matchStock =
         fstock === 'all' ||
-        (fstock === 'with'     && (p.stock ?? 0) > 0) ||
-        (fstock === 'without'  && (p.stock ?? 0) === 0);
+        (fstock === 'with' && (p.stock ?? 0) > 0) ||
+        (fstock === 'without' && (p.stock ?? 0) === 0);
 
       return matchText && matchStock;
     });
   });
+
+
+  applyFilters() {
+  this.fTextApplied.set(this.fTextInput());
+  this.fStockApplied.set(this.fStockInput());
+  }
+
+  clearFilters() {
+    this.fTextInput.set('');
+    this.fStockInput.set('all');
+    this.fTextApplied.set('');
+    this.fStockApplied.set('all');
+  }
 
   // --- Previsualización de imagen (solo front) ---
   selectedFile: File | null = null;

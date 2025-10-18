@@ -9,6 +9,8 @@ import { AdminRoleRequestsInboxComponent } from '../components/role-requests/adm
 import { UserRoleRequestsInboxComponent } from '../components/role-requests/user-role-requests-inbox';
 import { AdminUserVerificationInboxComponent } from '../components/role-requests/admin-user-verification-inbox';
 import { UserVerificationStatusComponent } from '../components/role-requests/user-verification-status';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
 
 @Component({
   selector: 'app-inbox-page',
@@ -20,12 +22,14 @@ import { UserVerificationStatusComponent } from '../components/role-requests/use
     UserRoleRequestsInboxComponent,
     AdminUserVerificationInboxComponent,
     UserVerificationStatusComponent,
+    TranslateModule
   ],
   templateUrl: './inbox-page.html',
   styleUrls: ['./inbox-page.scss']
 })
 export class InboxPageComponent implements OnInit {
   private authService = inject(AuthService);
+  private tr  = inject(TranslateService);
 
   // Sección activa para ADMIN y USER
   activeSection = signal<'user-verification' | 'role-requests'>('user-verification');

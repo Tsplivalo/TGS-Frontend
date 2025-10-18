@@ -1,17 +1,18 @@
 /**
- * Servicio de autenticación
+ * Servicio de autenticación con soporte completo para refresh token
  * 
- * ✅ CORRECCIONES APLICADAS:
+ * ✅ CARACTERÍSTICAS:
  * - Señales reactivas mejoradas para roles
- * - Debug mejorado para tracking de cambios
+ * - Refresh automático de tokens via interceptor
  * - Sincronización correcta de estado
  * - Cálculo de profileCompleteness sincronizado con backend
+ * - Manejo robusto de errores y sesiones
  */
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { Observable, BehaviorSubject, throwError, of, timer } from 'rxjs';
+import { tap, catchError, map, take } from 'rxjs/operators';
 import { Role, User } from '../../models/user/user.model';
 
 const API_URL = '';
@@ -41,45 +42,37 @@ export interface RegisterRequest {
   providedIn: 'root'
 })
 export class AuthService {
-  /** Marca temporal del último sync exitoso con el backend */
-  private _lastSyncAt = 0;
-
-  /**
-   * Fuerza un refresh de /api/users/me para obtener roles/flags actuales.
-   * No altera la estética ni el flujo; actualiza las señales en background.
-   */
-  forceRefresh(): void {
-    if (!this.isAuthenticated()) return;
-    this.me().subscribe({ next: () => {}, error: () => {} });
-  }
-
-  /**
-   * Refresca el usuario si pasó más de maxAgeMs desde el último sync.
-   * Útil para reflejar cambios de rol aprobados por un admin sin re-login.
-   */
-  refreshIfStale(maxAgeMs: number = 15000): void {
-    if (!this.isAuthenticated()) return;
-    const now = Date.now();
-    if (now - this._lastSyncAt < maxAgeMs) return;
-    this._lastSyncAt = now;
-    this.me().subscribe({ next: () => {}, error: () => {} });
-  }
-
+  // ============================================================================
+  // PROPIEDADES PRIVADAS
+  // ============================================================================
+  
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  
+  /** Marca temporal del último sync exitoso con el backend */
+  private _lastSyncAt = 0;
+  
+  /** Timer para auto-refresh del token */
+  private _refreshTimer?: any;
 
-  // ✅ Estado del usuario usando Angular Signals
+  // ============================================================================
+  // SEÑALES Y ESTADO REACTIVO
+  // ============================================================================
+  
+  /** Estado del usuario usando Angular Signals */
   private readonly userSignal = signal<User | null>(null);
 
-  // ✅ Señales computadas con debug mejorado
+  /** Usuario en modo solo lectura */
   readonly user = this.userSignal.asReadonly();
+  
+  /** Verifica si el usuario está autenticado */
   readonly isAuthenticated = computed(() => this.userSignal() !== null);
   
-  // ✅ CORRECCIÓN: currentRoles siempre retorna el array de roles actualizado
+  /** Roles actuales del usuario */
   readonly currentRoles = computed(() => {
     const user = this.userSignal();
     const roles = user?.roles ?? [];
-    console.log('[AuthService] 🔄 Roles computed:', {
+    console.log('[AuthService] 📋 Roles computed:', {
       userId: user?.id,
       username: user?.username,
       roles: roles
@@ -87,19 +80,18 @@ export class AuthService {
     return roles;
   });
 
-  // ✅ CORRECCIÓN: profileCompleteness sincronizado con el backend
+  /** Completitud del perfil sincronizada con el backend */
   readonly profileCompleteness = computed(() => {
     const user = this.userSignal();
     if (!user) return 0;
     
-    // ✅ PRIORIDAD 1: Usar el valor que viene del backend si existe
+    // PRIORIDAD 1: Usar el valor del backend si existe
     if ((user as any).profileCompleteness !== undefined) {
       console.log('[AuthService] 📊 Using backend profileCompleteness:', (user as any).profileCompleteness);
       return (user as any).profileCompleteness;
     }
     
-    // ✅ FALLBACK: Calcular manualmente (debe coincidir EXACTAMENTE con el backend)
-    // Referencia: user.entity.ts - calculateProfileCompleteness()
+    // FALLBACK: Calcular manualmente (coincide con backend)
     let completeness = 25; // Base por tener una cuenta
     
     if ((user as any).isVerified) {
@@ -124,26 +116,28 @@ export class AuthService {
     return result;
   });
 
-  // ✅ Computed signals para estados importantes
+  /** Indica si tiene información personal completa */
   readonly hasPersonalInfo = computed(() => {
     const hasInfo = (this.userSignal() as any)?.hasPersonalInfo ?? false;
     console.log('[AuthService] 📋 hasPersonalInfo:', hasInfo);
     return hasInfo;
   });
 
+  /** Indica si el email está verificado */
   readonly emailVerified = computed(() => {
     const verified = this.userSignal()?.emailVerified ?? false;
     console.log('[AuthService] ✉️ emailVerified:', verified);
     return verified;
   });
 
+  /** Indica si está verificado por un admin */
   readonly isVerified = computed(() => {
     const verified = (this.userSignal() as any)?.isVerified ?? false;
     console.log('[AuthService] ✅ isVerified (by admin):', verified);
     return verified;
   });
 
-  // ✅ NUEVO: Computed para saber si puede solicitar verificación
+  /** Indica si puede solicitar verificación */
   readonly canRequestVerification = computed(() => {
     const user = this.userSignal();
     if (!user) return false;
@@ -164,14 +158,18 @@ export class AuthService {
     return result;
   });
 
-  // BehaviorSubject para compatibilidad
+  // BehaviorSubject para compatibilidad con código legacy
   private userSubject = new BehaviorSubject<User | null>(null);
-  public  user$ = this.userSubject.asObservable();
+  public user$ = this.userSubject.asObservable();
 
+  // ============================================================================
+  // CONSTRUCTOR
+  // ============================================================================
+  
   constructor() {
     console.log('[AuthService] 🚀 Initialized with API:', API_URL);
     
-    // ✅ Effect para debug de cambios en el usuario
+    // Effect para debug de cambios en el usuario
     effect(() => {
       const user = this.userSignal();
       if (user) {
@@ -192,11 +190,20 @@ export class AuthService {
     });
   }
 
+  // ============================================================================
+  // MÉTODOS PÚBLICOS - INICIALIZACIÓN
+  // ============================================================================
+  
+  /**
+   * Inicializa el estado de autenticación al cargar la aplicación
+   * Intenta restaurar la sesión usando el refresh token existente
+   */
   public initialize(): void {
     console.log('[AuthService] 🔄 Initializing auth state...');
     this.me().subscribe({
       next: (user) => {
         console.log('[AuthService] ✅ Session restored:', user);
+        this.scheduleTokenRefresh();
       },
       error: (err) => {
         console.log('[AuthService] ℹ️ No active session:', err?.message || err);
@@ -204,6 +211,13 @@ export class AuthService {
     });
   }
 
+  // ============================================================================
+  // MÉTODOS PÚBLICOS - AUTENTICACIÓN
+  // ============================================================================
+  
+  /**
+   * Inicia sesión con credenciales
+   */
   login(credentials: LoginRequest): Observable<User> {
     console.log('[AuthService] 🔐 Login attempt for:', credentials.email);
 
@@ -219,11 +233,15 @@ export class AuthService {
       tap(user => {
         console.log('[AuthService] ✅ Login successful, setting user:', user);
         this.setUser(user);
+        this.scheduleTokenRefresh();
       }),
       catchError(this.handleError.bind(this))
     );
   }
 
+  /**
+   * Registra un nuevo usuario
+   */
   register(data: RegisterRequest): Observable<any> {
     console.log('[AuthService] 🔐 Register attempt for:', data.email);
 
@@ -240,8 +258,14 @@ export class AuthService {
     );
   }
 
+  /**
+   * Cierra la sesión del usuario
+   */
   logout(): Observable<void> {
     console.log('[AuthService] 🚪 Logout');
+    
+    // Cancelar el timer de refresh
+    this.cancelTokenRefresh();
 
     return this.http.post<void>(
       `${API_URL}/api/auth/logout`,
@@ -250,16 +274,20 @@ export class AuthService {
     ).pipe(
       tap(() => {
         this.clearUser();
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
       }),
       catchError(err => {
         this.clearUser();
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
         return of(undefined as any);
       })
     );
   }
 
+  /**
+   * Refresca el access token usando el refresh token
+   * NOTA: Este método es llamado automáticamente por el interceptor
+   */
   refresh(): Observable<User> {
     console.log('[AuthService] 🔄 Refreshing token');
 
@@ -272,15 +300,20 @@ export class AuthService {
       tap(user => {
         console.log('[AuthService] ✅ Token refreshed, user:', user);
         this.setUser(user);
+        this.scheduleTokenRefresh();
       }),
       catchError(err => {
         console.error('[AuthService] ❌ Refresh failed:', err);
         this.clearUser();
+        this.cancelTokenRefresh();
         return throwError(() => err);
       })
     );
   }
   
+  /**
+   * Obtiene el usuario actual desde el servidor
+   */
   me(): Observable<User> {
     console.log('[AuthService] 👤 Fetching current user');
 
@@ -300,6 +333,13 @@ export class AuthService {
     );
   }
 
+  // ============================================================================
+  // MÉTODOS PÚBLICOS - GESTIÓN DE PERFIL
+  // ============================================================================
+  
+  /**
+   * Completa el perfil del usuario con información personal
+   */
   completeProfile(data: {
     dni: string;
     name: string;
@@ -333,34 +373,35 @@ export class AuthService {
     );
   }
 
-  // ✅ CORRECCIÓN: setUser ahora fuerza actualización de señales
-  private setUser(user: User | null): void {
-    console.log('[AuthService] 💾 Setting user signal:', user);
-    
-    // Forzar nueva referencia para trigger de señales
-    const userCopy = user ? { ...user } : null;
-    
-    this.userSignal.set(userCopy);
-    this.userSubject.next(userCopy);
-    
-    this._lastSyncAt = Date.now();
-    
-    if (userCopy) {
-      console.log('[AuthService] ✅ User signal updated:', {
-        roles: userCopy.roles,
-        emailVerified: userCopy.emailVerified,
-        hasPersonalInfo: (userCopy as any).hasPersonalInfo,
-        isVerified: (userCopy as any).isVerified,
-        profileCompleteness: (userCopy as any).profileCompleteness
-      });
-    }
+  // ============================================================================
+  // MÉTODOS PÚBLICOS - REFRESH MANUAL
+  // ============================================================================
+  
+  /**
+   * Fuerza un refresh de /api/users/me para obtener roles/flags actuales
+   * No altera la estética ni el flujo; actualiza las señales en background
+   */
+  forceRefresh(): void {
+    if (!this.isAuthenticated()) return;
+    this.me().subscribe({ next: () => {}, error: () => {} });
   }
 
-  private clearUser(): void {
-    console.log('[AuthService] 🗑️ Clearing user');
-    this.setUser(null);
+  /**
+   * Refresca el usuario si pasó más de maxAgeMs desde el último sync
+   * Útil para reflejar cambios de rol aprobados por un admin sin re-login
+   */
+  refreshIfStale(maxAgeMs: number = 15000): void {
+    if (!this.isAuthenticated()) return;
+    const now = Date.now();
+    if (now - this._lastSyncAt < maxAgeMs) return;
+    this._lastSyncAt = now;
+    this.me().subscribe({ next: () => {}, error: () => {} });
   }
 
+  // ============================================================================
+  // MÉTODOS PÚBLICOS - VERIFICACIÓN DE ROLES Y PERMISOS
+  // ============================================================================
+  
   hasRole(role: Role): boolean {
     const result = this.currentRoles().includes(role);
     console.log('[AuthService] 🔍 hasRole check:', { role, result, currentRoles: this.currentRoles() });
@@ -385,12 +426,12 @@ export class AuthService {
     const user = this.userSignal();
     if (!user) return false;
 
-    // ✅ Los admins pueden comprar sin restricciones
+    // Los admins pueden comprar sin restricciones
     if ((user.roles ?? []).includes(Role.ADMIN)) {
       return true;
     }
 
-    // ✅ Usuarios verificados con info personal completa pueden comprar
+    // Usuarios verificados con info personal completa pueden comprar
     const isVerified = !!(user as any).isVerified;
     const hasPersonalInfo = !!(user as any).hasPersonalInfo;
 
@@ -445,6 +486,91 @@ export class AuthService {
     return suggestions;
   }
 
+  // ============================================================================
+  // MÉTODOS PRIVADOS - GESTIÓN DE ESTADO
+  // ============================================================================
+  
+  /**
+   * Actualiza el estado del usuario en las señales
+   */
+  private setUser(user: User | null): void {
+    console.log('[AuthService] 💾 Setting user signal:', user);
+    
+    // Forzar nueva referencia para trigger de señales
+    const userCopy = user ? { ...user } : null;
+    
+    this.userSignal.set(userCopy);
+    this.userSubject.next(userCopy);
+    
+    this._lastSyncAt = Date.now();
+    
+    if (userCopy) {
+      console.log('[AuthService] ✅ User signal updated:', {
+        roles: userCopy.roles,
+        emailVerified: userCopy.emailVerified,
+        hasPersonalInfo: (userCopy as any).hasPersonalInfo,
+        isVerified: (userCopy as any).isVerified,
+        profileCompleteness: (userCopy as any).profileCompleteness
+      });
+    }
+  }
+
+  /**
+   * Limpia el estado del usuario
+   */
+  private clearUser(): void {
+    console.log('[AuthService] 🗑️ Clearing user');
+    this.setUser(null);
+  }
+
+  // ============================================================================
+  // MÉTODOS PRIVADOS - AUTO-REFRESH DEL TOKEN
+  // ============================================================================
+  
+  /**
+   * Programa un refresh automático del token antes de que expire
+   * El access token expira en 15 minutos, refrescamos a los 14 minutos
+   */
+  private scheduleTokenRefresh(): void {
+    // Cancelar timer existente
+    this.cancelTokenRefresh();
+    
+    // Programar nuevo refresh a los 14 minutos (840 segundos)
+    // El token expira a los 15 minutos (900 segundos)
+    const refreshTime = 14 * 60 * 1000; // 14 minutos en milisegundos
+    
+    console.log('[AuthService] ⏰ Scheduling token refresh in 14 minutes');
+    
+    this._refreshTimer = timer(refreshTime).pipe(take(1)).subscribe(() => {
+      console.log('[AuthService] ⏰ Auto-refreshing token...');
+      
+      this.refresh().subscribe({
+        next: (user) => {
+          console.log('[AuthService] ✅ Auto-refresh successful:', user.username);
+        },
+        error: (err) => {
+          console.error('[AuthService] ❌ Auto-refresh failed:', err);
+          // El interceptor manejará el error y hará logout si es necesario
+        }
+      });
+    });
+  }
+
+  /**
+   * Cancela el timer de refresh automático
+   */
+  private cancelTokenRefresh(): void {
+    if (this._refreshTimer) {
+      console.log('[AuthService] ⏰ Cancelling scheduled token refresh');
+      this._refreshTimer.unsubscribe();
+      this._refreshTimer = undefined;
+    }
+  }
+
+  // ============================================================================
+  // MÉTODOS PRIVADOS - MANEJO DE ERRORES
+  // ============================================================================
+  
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Ha ocurrido un error';
 

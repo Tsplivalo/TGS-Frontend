@@ -35,7 +35,8 @@ export class AdminComponent implements OnInit {
   isEdit    = signal(false);
 
   // Filtro
-  fText = signal('');
+  fTextInput = signal('');
+  fTextApplied = signal('');
 
   // ── Formulario ───────────────────────────────────────────────────────────────
   form = this.fb.group({
@@ -50,7 +51,7 @@ export class AdminComponent implements OnInit {
 
   // ── Derivados ───────────────────────────────────────────────────────────────
   filtered = computed(() => {
-    const q = this.fText().toLowerCase().trim();
+    const q = this.fTextApplied().toLowerCase().trim();
     return this.items().filter(it =>
       !q ||
       it.dni.toLowerCase().includes(q) ||
@@ -59,6 +60,18 @@ export class AdminComponent implements OnInit {
       (it.phone?.toLowerCase().includes(q) ?? false)
     );
   });
+
+  applyFilters() {
+  this.fTextApplied.set(this.fTextInput());
+  }
+
+  clearFilters() {
+    this.fTextInput.set('');
+    this.fTextApplied.set('');
+  }
+
+  totalAdmins = computed(() => this.items().length);
+
 
   // ── Acciones UI ─────────────────────────────────────────────────────────────
   /** Abre/cierra el panel colapsable de crear/editar. */

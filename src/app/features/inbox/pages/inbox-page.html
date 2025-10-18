@@ -1,17 +1,16 @@
-<!-- inbox-page.html - REEMPLAZAR con esta versión -->
-
+<!-- inbox-page.html (i18n aplicado) -->
 <div class="inbox-container">
   <!-- Header -->
   <header class="inbox-header">
-    <h1>Bandeja de Entrada</h1>
+    <h1>{{ 'inbox.title' | translate }}</h1>
     <div class="user-info" *ngIf="user() as currentUser">
       <span class="username">{{ currentUser.username }}</span>
       <span class="profile-badge" [class.complete]="hasCompleteProfile()">
-        {{ profileCompleteness() }}% completo
+        {{ profileCompleteness() }}{{ 'inbox.profileCompletenessSuffix' | translate }}
       </span>
       <!-- ✅ Badge de verificación -->
       <span class="verification-badge" [class.verified]="isVerified()">
-        {{ isVerified() ? '✅ Verificado' : '⏳ No Verificado' }}
+        {{ isVerified() ? ('inbox.verified' | translate) : ('inbox.notVerified' | translate) }}
       </span>
       <span class="role-badge" *ngFor="let role of currentUser.roles">
         {{ role }}
@@ -22,7 +21,7 @@
   <!-- Loading State -->
   <div class="loading-state" *ngIf="loading()">
     <div class="spinner"></div>
-    <p>Cargando bandeja...</p>
+    <p>{{ 'inbox.loading' | translate }}</p>
   </div>
 
   <!-- Content (when loaded) -->
@@ -36,11 +35,11 @@
       <nav class="inbox-tabs" role="tablist">
         <button role="tab" [attr.aria-selected]="activeSection() === 'user-verification'"
           [class.active]="activeSection() === 'user-verification'" (click)="setActiveSection('user-verification')">
-          ✅ Verificación de Usuarios
+          {{ 'inbox.tabs.userVerificationPlural' | translate }}
         </button>
         <button role="tab" [attr.aria-selected]="activeSection() === 'role-requests'"
           [class.active]="activeSection() === 'role-requests'" (click)="setActiveSection('role-requests')">
-          📋 Solicitudes de Rol
+          {{ 'inbox.tabs.roleRequestsPlural' | translate }}
         </button>
       </nav>
 
@@ -66,12 +65,12 @@
       <nav class="inbox-tabs" role="tablist">
         <button role="tab" [attr.aria-selected]="activeSection() === 'user-verification'"
           [class.active]="activeSection() === 'user-verification'" (click)="setActiveSection('user-verification')">
-          ✅ Verificación de Usuario
+          {{ 'inbox.tabs.userVerification' | translate }}
         </button>
         <button role="tab" [attr.aria-selected]="activeSection() === 'role-requests'"
           [class.active]="activeSection() === 'role-requests'" (click)="setActiveSection('role-requests')"
-          [disabled]="!isVerified()" [title]="!isVerified() ? 'Debes verificar tu cuenta primero' : ''">
-          📋 Solicitud de Rol
+          [disabled]="!isVerified()" [title]="!isVerified() ? ('inbox.blocked.goVerify' | translate) : ''">
+          {{ 'inbox.tabs.roleRequest' | translate }}
           <span *ngIf="!isVerified()" class="locked-icon">🔒</span>
         </button>
       </nav>
@@ -90,35 +89,32 @@
           <!-- ✅ Mensaje si no está verificado -->
           <div *ngIf="!isVerified()" class="blocked-section">
             <div class="blocked-icon">🔒</div>
-            <h2>Sección Bloqueada</h2>
-            <p>
-              Necesitas verificar tu cuenta antes de poder solicitar roles especiales.
-              Por favor, completa el proceso de verificación en la pestaña anterior.
-            </p>
+            <h2>{{ 'inbox.blocked.title' | translate }}</h2>
+            <p>{{ 'inbox.blocked.desc' | translate }}</p>
             <button class="btn btn-primary" (click)="setActiveSection('user-verification')">
               <span class="icon">✅</span>
-              Ir a Verificación
+              {{ 'inbox.blocked.goVerify' | translate }}
             </button>
           </div>
 
           <!-- ✅ Contenido si está verificado -->
           <div *ngIf="isVerified()">
             <div class="section-header">
-              <h2>Mi Solicitud de Rol</h2>
+              <h2>{{ 'inbox.userView.myRoleRequestTitle' | translate }}</h2>
               <p class="section-description">
-                Aquí puedes solicitar roles especiales como Partner o Distribuidor.
+                {{ 'inbox.userView.myRoleRequestDesc' | translate }}
               </p>
             </div>
 
             <!-- ✅ Alerta si el perfil no está completo -->
             <div class="alert alert-warning" *ngIf="!hasCompleteProfile()">
-              <strong>⚠️ Completa tu perfil</strong>
+              <strong>⚠️ {{ 'account.completeProfileBanner.title' | translate }}</strong>
               <p>
-                Necesitas completar tu perfil al 100% antes de solicitar roles adicionales.
-                <a routerLink="/mi-cuenta">Ir a Mi Cuenta</a>
+                {{ 'account.completeProfileBanner.desc' | translate }}
+                <a routerLink="/mi-cuenta">{{ 'nav.myAccount' | translate }}</a>
               </p>
               <div class="suggestions" *ngIf="getProfileSuggestions().length > 0">
-                <p><strong>Pendiente:</strong></p>
+                <p><strong>{{ 'clients.stats.filteredLabel' | translate }}</strong></p>
                 <ul>
                   <li *ngFor="let suggestion of getProfileSuggestions()">
                     {{ suggestion }}
@@ -142,9 +138,9 @@
     <ng-container *ngIf="!user()">
       <div class="not-authenticated">
         <div class="icon">🔒</div>
-        <h2>Sesión Requerida</h2>
-        <p>Necesitas iniciar sesión para acceder a esta página.</p>
-        <a routerLink="/login" class="btn btn-primary">Iniciar Sesión</a>
+        <h2>{{ 'inbox.notAuth.title' | translate }}</h2>
+        <p>{{ 'inbox.notAuth.desc' | translate }}</p>
+        <a routerLink="/login" class="btn btn-primary">{{ 'inbox.notAuth.login' | translate }}</a>
       </div>
     </ng-container>
 
