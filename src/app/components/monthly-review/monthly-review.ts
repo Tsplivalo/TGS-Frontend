@@ -42,9 +42,12 @@ export class MonthlyReviewComponent implements OnInit {
   partners = signal<PartnerDTO[]>([]);
 
   // Filtros
-  fYear  = signal<number>(new Date().getFullYear());
-  fMonth = signal<number | null>(null);
-  fStatus = signal<ReviewStatus | null>(null);
+  fYearInput = signal<number>(new Date().getFullYear());
+  fYearApplied = signal<number>(new Date().getFullYear());
+  fMonthInput = signal<number | null>(null);
+  fMonthApplied = signal<number | null>(null);
+  fStatusInput = signal<ReviewStatus | null>(null);
+  fStatusApplied = signal<ReviewStatus | null>(null);
 
   // Formulario
   form = this.fb.group({
@@ -64,9 +67,9 @@ export class MonthlyReviewComponent implements OnInit {
 
   // Lista filtrada por año/mes/status
   filtered = computed(() => {
-    const y = this.fYear();
-    const m = this.fMonth();
-    const s = this.fStatus();
+    const y = this.fYearApplied();
+    const m = this.fMonthApplied();
+    const s = this.fStatusApplied();
     
     return this.items().filter(it => {
       const matchYear = y ? it.year === y : true;
@@ -213,8 +216,23 @@ export class MonthlyReviewComponent implements OnInit {
 
   // Aplicar filtros y recargar estadísticas
   applyFilters(): void {
+    this.fYearApplied.set(this.fYearInput());
+    this.fMonthApplied.set(this.fMonthInput());
+    this.fStatusApplied.set(this.fStatusInput());
     this.loadStatistics();
   }
+
+  clearFilters(): void {
+    const currentYear = new Date().getFullYear();
+    this.fYearInput.set(currentYear);
+    this.fMonthInput.set(null);
+    this.fStatusInput.set(null);
+    this.fYearApplied.set(currentYear);
+    this.fMonthApplied.set(null);
+    this.fStatusApplied.set(null);
+    this.loadStatistics();
+  }
+
 
   trackById = (_: number, it: MonthlyReviewDTO) => it.id;
 
@@ -252,10 +270,26 @@ export class MonthlyReviewComponent implements OnInit {
     });
   }
 
-  private loadStatistics(): void {
-    const year = this.fYear();
-    const month = this.fMonth() ?? undefined;
+  totalReviews = computed(() => this.items().length);
+  reviewsByStatus = computed(() => {
+    const byStatus: Record<ReviewStatus, number> = {
+      PENDING: 0,
+      IN_REVIEW: 0,
+      COMPLETED: 0,
+      APPROVED: 0,
+      REJECTED: 0
+    };
+    this.items().forEach(r => {
+      if (r.status && byStatus.hasOwnProperty(r.status)) {
+        byStatus[r.status]++;
+      }
+    });
+    return byStatus;
+  });
 
+  private loadStatistics(): void {
+  const year = this.fYearApplied();
+  const month = this.fMonthApplied() ?? undefined;
     // Validar que year sea un número válido antes de hacer la petición
     if (!year || isNaN(year) || year < 2000) {
       console.warn('⚠️ Año inválido para estadísticas:', year);

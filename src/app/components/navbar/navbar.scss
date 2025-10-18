@@ -92,6 +92,8 @@
   background: transparent;
   color: var(--text);
   transition: transform .15s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease, color .2s ease;
+  cursor: pointer;
+  /* ✅ Asegurar que el cursor sea pointer */
 }
 
 .menu__item a:hover,
@@ -177,19 +179,26 @@
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   box-shadow: 0 16px 36px rgba(0, 0, 0, .35);
-  display: none;
+
+  /* ✅ CAMBIO PRINCIPAL: Siempre renderizado pero oculto */
+  visibility: hidden;
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity .18s ease, transform .18s ease;
+  transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
+
   z-index: 10;
   min-width: 220px;
+
+  /* ✅ Permitir interacción con el dropdown */
+  pointer-events: auto;
 }
 
-.menu__item--dropdown:focus-within>.dropdown,
+/* ✅ MEJORA: Activar dropdown al hacer hover sobre el item padre */
 .menu__item--dropdown:hover>.dropdown {
-  display: block;
+  visibility: visible;
   opacity: 1;
   transform: translateY(0);
+  transition: opacity .18s ease, transform .18s ease, visibility 0s 0s;
 }
 
 /* Items del dropdown */
@@ -269,7 +278,8 @@
   padding: .6rem .7rem;
   border-radius: .6rem;
   color: var(--text);
-  cursor: default;
+  cursor: pointer;
+  /* ✅ Cursor pointer para indicar interactividad */
 }
 
 .dropdown__subgroup-title {
@@ -297,35 +307,43 @@
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   box-shadow: 0 14px 30px rgba(0, 0, 0, .32);
-  display: none;
+
+  /* ✅ CAMBIO: Siempre renderizado pero oculto */
+  visibility: hidden;
   opacity: 0;
   transform: translateX(6px);
-  transition: opacity .18s ease, transform .18s ease;
+  transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
+
   z-index: 12;
   min-width: 220px;
+  pointer-events: auto;
 }
 
-.dropdown__item--sub:focus-within>.dropdown--inner,
+/* ✅ MEJORA: Activar submenú al hacer hover */
 .dropdown__item--sub:hover>.dropdown--inner {
-  display: block;
+  visibility: visible;
   opacity: 1;
   transform: translateX(0);
+  transition: opacity .18s ease, transform .18s ease, visibility 0s 0s;
 }
 
-.dropdown__item--sub:hover>.dropdown__subgroup,
-.dropdown__item--sub:focus-within>.dropdown__subgroup {
+.dropdown__item--sub:hover>.dropdown__subgroup {
   background: rgba(255, 255, 255, 0.07);
   border-radius: .6rem;
 }
 
-.dropdown__item--sub:hover .chevron,
-.dropdown__item--sub:focus-within .chevron {
+.dropdown__item--sub:hover .chevron {
   transform: rotate(90deg);
 }
 
 /* ====== Estados activos de grupos (Gestión / Inbox) ====== */
 .menu__item--dropdown .dropdown__toggle .chevron {
   transition: transform .15s ease;
+}
+
+/* ✅ MEJORA: Chevron rota cuando el dropdown está visible */
+.menu__item--dropdown:hover .dropdown__toggle .chevron {
+  transform: rotate(180deg);
 }
 
 .menu__item--dropdown .dropdown__toggle.active .chevron {
@@ -408,11 +426,11 @@
   font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }
 
-/* ====== Botón Inbox icon-only ====== */
-.dropdown__toggle.icon-only {
+/* ====== Botón Inbox Simplificado (enlace directo) ====== */
+.inbox-link {
   width: 40px;
   height: 40px;
-  padding: 0;
+  padding: 0 !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -425,7 +443,7 @@
   transform: translateY(1px);
 }
 
-.dropdown__toggle.icon-only .badge {
+.inbox-link .badge {
   position: absolute;
   top: -6px;
   right: -6px;
@@ -440,6 +458,23 @@
   background: #ef4444;
   color: #fff;
   box-shadow: 0 0 0 2px rgba(12, 18, 32, .6);
+  font-weight: 700;
+}
+
+.inbox-link .underline {
+  left: 8px;
+  right: 8px;
+}
+
+/* ====== Botón Usuario icon-only (dropdown) ====== */
+.dropdown__toggle.icon-only {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .dropdown__toggle.icon-only .underline {
@@ -590,14 +625,14 @@
 /* ====== Despliegue diagonal ====== */
 .dropdown--diag {
   transform: translate(10px, 10px);
-  transition: opacity .18s ease, transform .18s ease;
+  transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
 }
 
-.menu__item--dropdown:focus-within>.dropdown--diag,
 .menu__item--dropdown:hover>.dropdown--diag {
-  display: block;
+  visibility: visible;
   opacity: 1;
   transform: translate(0, 0);
+  transition: opacity .18s ease, transform .18s ease, visibility 0s 0s;
 }
 
 .menu--right .menu__item--dropdown>.dropdown--diag {
@@ -606,7 +641,6 @@
   transform: translate(-10px, 10px);
 }
 
-.menu--right .menu__item--dropdown:focus-within>.dropdown--diag,
 .menu--right .menu__item--dropdown:hover>.dropdown--diag {
   transform: translate(0, 0);
 }
@@ -626,19 +660,31 @@
   left: .75rem;
   right: auto;
   transform: translate(6px, 8px);
+  visibility: hidden;
   opacity: 0;
-  transition: opacity .18s ease, transform .18s ease;
+  transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
 }
 
-.dropdown__item--sub:focus-within>.dropdown--inner-diag,
 .dropdown__item--sub:hover>.dropdown--inner-diag {
-  display: block;
+  visibility: visible;
   opacity: 1;
   transform: translate(0, 0);
+  transition: opacity .18s ease, transform .18s ease, visibility 0s 0s;
 }
 
 .menu__item--dropdown {
   overflow: visible;
+}
+
+/* ✅ MEJORA: Área de hover extendida para mantener dropdown abierto */
+.menu__item--dropdown::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: .45rem;
+  pointer-events: auto;
 }
 
 /* ====== Responsivo ====== */

@@ -66,8 +66,10 @@ export class SaleComponent implements OnInit {
   submitted = signal(false);
 
   // --- Filtros de listado ---
-  fText = '';
-  fClientDni = '';
+  fTextInput = signal('');
+  fTextApplied = signal('');
+  fClientDniInput = signal('');
+  fClientDniApplied = signal('');
 
   // --- Filtros de selects ---
   productFilter = '';
@@ -76,6 +78,11 @@ export class SaleComponent implements OnInit {
 
   // --- Líneas de la venta en edición ---
   lines = signal<Line[]>([{ productId: null, quantity: 1, filter: '' }]);
+
+  totalSales = computed(() => this.sales().length);
+  totalRevenue = computed(() => 
+    this.sales().reduce((sum, v) => sum + this.calculateTotal(v), 0)
+  );
 
   // --- Form reactivo (cabecera) ---
   form: FormGroup<SaleForm> = this.fb.group<SaleForm>({
@@ -102,6 +109,8 @@ export class SaleComponent implements OnInit {
   ngOnInit(): void {
     this.loading.set(true);
     this.error.set(null);
+
+    
 
     // ✅ Cargar productos, clientes Y distributores
     forkJoin({
@@ -185,15 +194,32 @@ export class SaleComponent implements OnInit {
 
   // --- Listado filtrado ---
   filteredSales = computed(() => {
-    const q = (this.fText || '').toLowerCase().trim();
-    const dni = (this.fClientDni || '').trim();
+    const q = this.fTextApplied().toLowerCase().trim();
+    const dni = this.fClientDniApplied().trim();
+    
     return this.sales().filter(v => {
+      // Buscar en descripción de productos
       const saleDescription = (v.details && v.details.length) 
         ? v.details.map(d => this.detailDescription(d)).join(' ').toLowerCase()
         : '';
-      const hasText = (!q) || saleDescription.includes(q) || String(v.id).includes(q);
-      const matchDni = !dni || (v.client?.dni ? v.client.dni.includes(dni) : false);
-      return (q ? hasText : true) && matchDni;
+      
+      // Buscar en nombre y DNI del cliente
+      const clientName = v.client?.name?.toLowerCase() || '';
+      const clientDni = v.client?.dni || '';
+      
+      // Buscar en nombre del distribuidor
+      const distributorName = v.distributor?.name?.toLowerCase() || '';
+      
+      const hasText = (!q) || 
+        saleDescription.includes(q) || 
+        String(v.id).includes(q) ||
+        clientName.includes(q) ||        // ← NUEVO
+        clientDni.includes(q) ||         // ← NUEVO
+        distributorName.includes(q);     // ← NUEVO
+      
+      const matchDni = !dni || clientDni.includes(dni);
+      
+      return hasText && matchDni;
     });
   });
 
@@ -237,6 +263,18 @@ export class SaleComponent implements OnInit {
       (d.name || '').toLowerCase().includes(q)
     );
   });
+
+  applyFilters() {
+  this.fTextApplied.set(this.fTextInput());
+  this.fClientDniApplied.set(this.fClientDniInput());
+  }
+
+  clearFilters() {
+    this.fTextInput.set('');
+    this.fClientDniInput.set('');
+    this.fTextApplied.set('');
+    this.fClientDniApplied.set('');
+  }
 
   // --- Data fetching ---
   loadSales() {

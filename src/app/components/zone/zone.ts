@@ -32,11 +32,12 @@ export class ZoneComponent implements OnInit {
 
   // --- Datos ---
   zones = signal<ZoneDTO[]>([]);
-  fText = signal('');
+  fTextInput = signal('');
+  fTextApplied = signal('');
 
   // Listado filtrado por id/nombre/descripción
   filteredList = computed(() => {
-    const txt = this.fText().toLowerCase().trim();
+    const txt = this.fTextApplied().toLowerCase().trim();
     return this.zones().filter(z => {
       const matchText = !txt
         || String(z.id).includes(txt)
@@ -46,9 +47,20 @@ export class ZoneComponent implements OnInit {
     });
   });
 
+  applyFilters() {
+  this.fTextApplied.set(this.fTextInput());
+  }
+
+  clearFilters() {
+    this.fTextInput.set('');
+    this.fTextApplied.set('');
+  }
+
   // Única sede central (si existe) para destacar en UI o bloquear acciones
   headquarters = computed(() => this.zones().find(z => z.isHeadquarters) ?? null);
 
+
+  totalZones = computed(() => this.zones().length);
   // Form reactivo
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],

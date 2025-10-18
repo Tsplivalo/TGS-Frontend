@@ -1,14 +1,15 @@
 // src/app/features/inbox/components/user-verification/user-verification-status.component.ts
 
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input,inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserVerificationService } from '../../services/user-verification';
 import { UserVerificationStatusResponse, UserVerificationStatus } from '../../models/user-verification.model';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-user-verification-status',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,TranslateModule],
   templateUrl: './user-verification-status.html',
   styleUrls: ['./user-verification.scss']
 })
@@ -23,7 +24,9 @@ export class UserVerificationStatusComponent implements OnInit {
   requesting: boolean = false;
   resending: boolean = false;
 
+
   UserVerificationStatus = UserVerificationStatus;
+  private t = inject(TranslateService);
 
   constructor(private userVerificationService: UserVerificationService) {}
 

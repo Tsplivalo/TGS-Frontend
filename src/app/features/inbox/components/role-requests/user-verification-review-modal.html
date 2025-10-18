@@ -1,11 +1,11 @@
-<!-- src/app/features/inbox/components/user-verification/user-verification-review-modal.component.html -->
-
+<!-- user-verification-review-modal.component.html -->
 <div class="modal-overlay" (click)="onOverlayClick($event)">
   <div class="modal" (click)="$event.stopPropagation()">
     <!-- Modal Header -->
     <div class="modal-header">
-      <h2>Revisar Verificación de Usuario</h2>
-      <button class="close-btn" type="button" (click)="onClose()" aria-label="Cerrar">×</button>
+      <h2>{{ 'userVerification.reviewModal.title' | translate }}</h2>
+      <button class="close-btn" type="button" (click)="onClose()"
+        [attr.aria-label]="'userVerification.reviewModal.closeAria' | translate">×</button>
     </div>
 
     <!-- Modal Body -->
@@ -13,22 +13,22 @@
       <!-- Verification Summary -->
       <div class="verification-summary">
         <div class="summary-item">
-          <span class="label">Email:</span>
+          <span class="label">{{ 'userVerification.reviewModal.summary.email' | translate }}</span>
           <span class="value">{{ verification.email }}</span>
         </div>
 
         <div class="summary-item">
-          <span class="label">Fecha de solicitud:</span>
+          <span class="label">{{ 'userVerification.reviewModal.summary.requestedAt' | translate }}</span>
           <span class="value">{{ formatDate(verification.createdAt) }}</span>
         </div>
 
         <div class="summary-item">
-          <span class="label">Expira:</span>
+          <span class="label">{{ 'userVerification.reviewModal.summary.expiresAt' | translate }}</span>
           <span class="value">{{ formatDate(verification.expiresAt) }}</span>
         </div>
 
         <div class="summary-item">
-          <span class="label">Intentos:</span>
+          <span class="label">{{ 'userVerification.reviewModal.summary.attempts' | translate }}</span>
           <span class="value">{{ verification.attempts }} / {{ verification.maxAttempts }}</span>
         </div>
       </div>
@@ -41,52 +41,50 @@
 
       <!-- Action Selector -->
       <div class="form-group">
-        <label>Decisión:</label>
+        <label>{{ 'userVerification.reviewModal.decision' | translate }}</label>
         <div class="action-selector">
           <label [class.selected]="action === 'approve'" class="action-option">
             <input type="radio" name="action" value="approve" [(ngModel)]="action" [disabled]="isSubmitting" />
             <span class="icon">✓</span>
-            <span class="text">Aprobar</span>
+            <span class="text">{{ 'userVerification.reviewModal.approve' | translate }}</span>
           </label>
 
           <label [class.selected]="action === 'reject'" class="action-option">
             <input type="radio" name="action" value="reject" [(ngModel)]="action" [disabled]="isSubmitting" />
             <span class="icon">✗</span>
-            <span class="text">Rechazar</span>
+            <span class="text">{{ 'userVerification.reviewModal.reject' | translate }}</span>
           </label>
         </div>
       </div>
 
-      <!-- Reject Reason (Solo si action === 'reject') -->
+      <!-- Reject Reason -->
       <div *ngIf="action === 'reject'" class="form-group">
         <label for="reason">
-          Motivo del rechazo <span class="optional">(opcional)</span>:
+          {{ 'userVerification.reviewModal.rejectReasonLabel' | translate }}
+          <span class="optional">{{ 'userVerification.reviewModal.rejectReasonOptional' | translate }}</span>:
         </label>
         <textarea id="reason" [(ngModel)]="reason" name="reason"
-          placeholder="Explica por qué se rechaza la verificación (opcional, mínimo 3 caracteres si lo proporcionas)"
-          [disabled]="isSubmitting" minlength="3" maxlength="500" rows="4"></textarea>
+          [placeholder]="'userVerification.reviewModal.rejectReasonPh' | translate" [disabled]="isSubmitting"
+          minlength="3" maxlength="500" rows="4"></textarea>
         <div class="character-count">
-          {{ reason.length }}/500 caracteres
+          {{ reason.length }}/500 {{ 'userVerification.reviewModal.rejectReasonCounter' | translate:{ n: reason.length }
+          }}
           <span *ngIf="reason.length > 0 && reason.length < 3" class="warning">
-            (mínimo 3 si proporcionas un motivo)
+            {{ 'userVerification.reviewModal.rejectReasonMinWarn' | translate }}
           </span>
         </div>
         <p class="help-text">
-          Este motivo será visible para el usuario en caso de rechazo.
+          {{ 'userVerification.reviewModal.rejectReasonHelp' | translate }}
         </p>
       </div>
 
-      <!-- Info Box (Solo si action === 'approve') -->
+      <!-- Info Box (Approve) -->
       <div *ngIf="action === 'approve'" class="info-box">
         <span class="icon">ℹ️</span>
         <div>
-          <strong>Al aprobar esta verificación:</strong>
+          <strong>{{ 'userVerification.reviewModal.approveInfoTitle' | translate }}</strong>
           <ul>
-            <li>El usuario será marcado como verificado</li>
-            <li>Se actualizará su completitud de perfil al 100%</li>
-            <li>Recibirá un email de confirmación</li>
-            <li>Podrá realizar compras en el sistema</li>
-            <li>Podrá solicitar roles especiales</li>
+            <li *ngFor="let item of ('userVerification.reviewModal.approveInfoList' | translate)">{{ item }}</li>
           </ul>
         </div>
       </div>
@@ -95,13 +93,17 @@
     <!-- Modal Actions -->
     <div class="modal-actions">
       <button type="button" class="btn btn-secondary" (click)="onClose()" [disabled]="isSubmitting">
-        Cancelar
+        {{ 'userVerification.reviewModal.actions.cancel' | translate }}
       </button>
       <button type="submit" [class]="action === 'approve' ? 'btn btn-success' : 'btn btn-danger'"
         [disabled]="isSubmitting || (action === 'reject' && reason.length > 0 && reason.length < 3)"
         (click)="onSubmit()">
         <span class="icon">{{ action === 'approve' ? '✓' : '✗' }}</span>
-        {{ isSubmitting ? 'Procesando...' : action === 'approve' ? 'Aprobar Verificación' : 'Rechazar Verificación' }}
+        {{ isSubmitting
+        ? ('userVerification.reviewModal.actions.processing' | translate)
+        : (action === 'approve'
+        ? ('userVerification.reviewModal.actions.approve' | translate)
+        : ('userVerification.reviewModal.actions.reject' | translate)) }}
       </button>
     </div>
   </div>

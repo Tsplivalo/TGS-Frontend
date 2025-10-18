@@ -49,8 +49,10 @@ export class AuthorityComponent implements OnInit {
   private original: Partial<UpdateAuthorityDTO & { dni: string }> | null = null;
 
   // --- Filtros de listado ---
-  fZoneId: string | null = null; // id de zona (string para binding)
-  fText = '';                    // texto libre (dni, nombre, rank)
+  fZoneIdInput = signal<string>('');
+  fZoneIdApplied = signal<string>('');
+  fTextInput = signal('');
+  fTextApplied = signal('');
 
   // --- Form reactivo ---
   form: FormGroup<AuthorityForm> = this.fb.group<AuthorityForm>({
@@ -90,8 +92,9 @@ export class AuthorityComponent implements OnInit {
   // Listado filtrado reactivo por texto y zona
   filteredAuthorities = computed(() => {
     const arr = this.authorities();
-    const q = (this.fText || '').trim();
-    const z = (this.fZoneId || '').trim();
+    const q = this.fTextApplied().trim();
+    const z = this.fZoneIdApplied().trim();
+    
     return arr.filter(a => {
       const matchQ = !q || this.includesTxt(a, q);
       const zoneIdFromDto = a?.zone?.id != null ? String(a.zone.id) : '';
@@ -99,6 +102,28 @@ export class AuthorityComponent implements OnInit {
       return matchQ && matchZ;
     });
   });
+
+  applyFilters() {
+  this.fTextApplied.set(this.fTextInput());
+  this.fZoneIdApplied.set(this.fZoneIdInput());
+  }
+
+  totalAuthorities = computed(() => this.authorities().length);
+  authoritiesByRank = computed(() => {
+    const byRank = { 0: 0, 1: 0, 2: 0, 3: 0 };
+    this.authorities().forEach(a => {
+      const rank = a.rank ?? 0;
+      if (rank >= 0 && rank <= 3) byRank[rank as 0|1|2|3]++;
+    });
+    return byRank;
+  });
+
+  clearFilters() {
+    this.fTextInput.set('');
+    this.fZoneIdInput.set('');
+    this.fTextApplied.set('');
+    this.fZoneIdApplied.set('');
+  }
 
   // --- Data fetching ---
   load() {

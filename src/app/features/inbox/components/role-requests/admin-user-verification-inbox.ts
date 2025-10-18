@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserVerificationService } from '../../services/user-verification';
 import { UserVerification, UserVerificationStatus } from '../../models/user-verification.model';
 import { UserVerificationCardComponent } from '../role-requests/user-verification-card.js';
 import { UserVerificationReviewModalComponent } from '../role-requests/user-verification-review-modal.js';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-admin-user-verification-inbox',
@@ -13,7 +14,8 @@ import { UserVerificationReviewModalComponent } from '../role-requests/user-veri
     CommonModule,
     FormsModule,
     UserVerificationCardComponent,
-    UserVerificationReviewModalComponent
+    UserVerificationReviewModalComponent,
+    TranslateModule
   ],
   templateUrl: './admin-user-verification-inbox.html',
   styleUrls: ['./user-verification.scss']
@@ -23,6 +25,8 @@ export class AdminUserVerificationInboxComponent implements OnInit {
   filteredVerifications: UserVerification[] = [];
   loading: boolean = true;
   error: string | null = null;
+
+  private t = inject(TranslateService);
 
   statusFilter: UserVerificationStatus | 'ALL' = UserVerificationStatus.PENDING;
   reviewingVerification: UserVerification | null = null;

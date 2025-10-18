@@ -14,7 +14,7 @@
     "mailVerification": "Verificación de mail",
     "myRoleRequest": "Mi solicitud de rol",
     "about": "Sobre nosotros",
-    "faqs": "Preguntas frecuentes",
+    "faqs": "FAQs",
     "contact": "Contáctanos",
     "language": "Idioma"
   },
@@ -67,7 +67,38 @@
       "lastName": "Apellido",
       "phone": "Teléfono",
       "address": "Dirección"
-    }
+    },
+    "verificationBanner": {
+      "title": "Email no verificado",
+      "desc": "Revisá tu bandeja de entrada y hacé clic en el enlace de verificación que te enviamos.",
+      "resend": "Reenviar email",
+      "sending": "Enviando..."
+    },
+    "loadingProfile": "Cargando perfil...",
+    "completeProfileBanner": {
+      "title": "Completa tu perfil",
+      "desc": "Necesitás completar tu información personal para acceder a esta función."
+    },
+    "improveProfile": "Mejorá tu perfil",
+    "purchaseRequirements": {
+      "title": "Para realizar compras necesitás:"
+    },
+    "actions": {
+      "completeProfile": "Completar perfil",
+      "saving": "Guardando..."
+    },
+    "infoSection": {
+      "title": "Información de la cuenta",
+      "status": "Estado de la cuenta:",
+      "active": "✓ Activa",
+      "inactive": "✗ Inactiva",
+      "emailVerified": "Email verificado:",
+      "emailVerifiedYes": "✓ Sí",
+      "emailVerifiedNo": "✗ No",
+      "roles": "Roles:",
+      "memberSince": "Miembro desde:"
+    },
+    "readonlyNote": "ℹ️ Los datos personales no pueden modificarse una vez completados."
   },
   "product": {
     "title": "Productos",
@@ -79,11 +110,17 @@
     "list": "Listado",
     "loading": "Cargando productos...",
     "filters": {
-      "search": "Buscar",
-      "stock": "Stock",
+      "search": "Buscar producto",
+      "stock": {
+        "all": "Todos los productos",
+        "with": "Con stock",
+        "without": "Sin stock"
+      },
       "stock_all": "Todos",
       "stock_with": "Con stock",
-      "stock_without": "Sin stock"
+      "stock_without": "Sin stock",
+      "searchPh": "Buscar por ID, descripción o detalle...",
+      "stockLabel": "Filtrar por stock"
     },
     "fields": {
       "description": "Descripción",
@@ -103,12 +140,39 @@
     "priceInvalid": "Ingresá un precio válido.",
     "stockInvalid": "Ingresá un stock válido.",
     "imageUrlHint": "Pegá un link a una imagen (JPG/PNG/WebP). Si preferís subir archivo, usá el campo de abajo.",
-    "imageFileHint": "Si subís un archivo, primero se sube y luego se guarda su URL.",
+    "imageFileHint": "Opcional: subí una imagen desde tu dispositivo",
     "errorLoad": "No se pudo cargar el listado.",
     "errorSave": "No se pudo guardar",
     "errorDelete": "No se pudo eliminar.",
     "descriptionRequired": "Descripción requerida (3-50 caracteres)",
-    "detailRequired": "Detalle requerido (3-200 caracteres)"
+    "detailRequired": "Detalle requerido (3-200 caracteres)",
+    "toggle": {
+      "close": "Cerrar",
+      "new": "Nuevo Producto"
+    },
+    "stats": {
+      "totalLabel": "Total:",
+      "withStockLabel": "Con stock:",
+      "withoutStockLabel": "Sin stock:",
+      "filteredLabel": "Filtrados:"
+    },
+    "table": {
+      "id": "ID",
+      "actions": "Acciones"
+    },
+    "empty": {
+      "title": "No hay productos",
+      "desc": "Creá un producto nuevo para comenzar."
+    },
+    "noResults": {
+      "title": "No hay resultados",
+      "desc": "Probá ajustar los filtros o hacer clic en \"Limpiar\"."
+    },
+    "badges": {
+      "yes": "Sí",
+      "no": "No"
+    },
+    "imageFile": "Imagen (archivo)"
   },
   "auth": {
     "user": "usuario",
@@ -186,9 +250,18 @@
     "delete": "Eliminar",
     "error": "Error",
     "all": "Todos",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "search": "Buscar",
+    "clear": "Limpiar",
+    "applyFiltersTitle": "Aplicar filtros",
+    "clearFiltersTitle": "Limpiar filtros",
+    "refresh": "Actualizar"
   },
   "clients": {
+    "toggle": {
+      "close": "Cerrar",
+      "new": "Nuevo Cliente"
+    },
     "title": "Clientes",
     "new": "Nuevo",
     "newTitle": "Nuevo cliente",
@@ -202,11 +275,13 @@
     "errorDelete": "No se pudo eliminar.",
     "filters": {
       "search": "Buscar",
+      "purchaseFilterLabel": "Filtrar por compras",
       "searchPh": "DNI, nombre, email...",
-      "purchases": "Compras",
-      "purchases_all": "Todos",
-      "purchases_yes": "Con compras",
-      "purchases_no": "Sin compras"
+      "purchases": {
+        "all": "Todos los clientes",
+        "yes": "Con compras",
+        "no": "Sin compras"
+      }
     },
     "table": {
       "dni": "DNI",
@@ -214,7 +289,8 @@
       "email": "Email",
       "address": "Dirección",
       "phone": "Teléfono",
-      "purchases": "Compras"
+      "purchases": "Compras",
+      "actions": "Acciones"
     },
     "form": {
       "dni": "DNI",
@@ -227,7 +303,15 @@
       "phonePh": "+54 9 341 ...",
       "address": "Dirección",
       "addressPh": "Calle 123, Ciudad"
-    }
+    },
+    "stats": {
+      "totalLabel": "Total:",
+      "clientsNoun": "clientes",
+      "withPurchasesLabel": "Con compras:",
+      "withoutPurchasesLabel": "Sin compras:",
+      "filteredLabel": "Filtrados:"
+    },
+    "empty": "No hay clientes disponibles."
   },
   "partner": {
     "title": "Socios",
@@ -283,7 +367,12 @@
     "errorLoad": "No se pudieron cargar los socios.",
     "errorCreate": "No se pudo crear el socio.",
     "errorUpdate": "No se pudo actualizar el socio.",
-    "errorDelete": "No se pudo eliminar el socio."
+    "errorDelete": "No se pudo eliminar el socio.",
+    "stats": {
+      "total": "Total socios:",
+      "withDecisions": "Con decisiones:",
+      "filtered": "Filtrados:"
+    }
   },
   "sales": {
     "title": "Ventas",
@@ -296,7 +385,8 @@
     "filters": {
       "search": "Buscar",
       "searchPh": "id, producto o cliente",
-      "clientDni": "DNI del cliente"
+      "clientDni": "DNI del cliente",
+      "clientDniPh": "DNI del cliente"
     },
     "table": {
       "id": "ID",
@@ -314,21 +404,25 @@
       "clientHint": "¿No aparece? Crealo desde Clientes.",
       "products": "Productos",
       "searchProduct": "Buscar producto",
-      "searchProductPh": "id o descripción",
+      "searchProductPh": "Buscar por ID o descripción",
       "product": "Producto",
       "chooseProduct": "Elegí un producto",
-      "units": "u.",
+      "units": "unidades",
       "quantity": "Cantidad",
       "stockTitle": "Stock disponible: {{stock}}",
       "remove": "Quitar",
-      "addProduct": "+ Agregar producto",
-      "create": "Crear",
+      "addProduct": "Agregar producto",
+      "create": "Crear venta",
       "distributor": "Distribuidor",
-      "distributorFilterPh": "filtrar (dni o nombre)",
+      "distributorFilterPh": "Buscar por DNI o nombre",
       "chooseDistributor": "Elegí un distribuidor",
       "distributorHint": "Seleccioná el distribuidor que gestiona esta venta",
       "distributorRequired": "Distribuidor requerido",
-      "clientRequired": "Cliente requerido"
+      "clientRequired": "Cliente requerido",
+      "noProductsAvailable": "No hay productos disponibles",
+      "noProductsLoaded": "⚠️ No se cargaron productos. Total: {{count}}",
+      "availableProductsCount": "✅ {{count}} productos disponibles",
+      "removeLineTitle": "Eliminar línea"
     },
     "err": {
       "clientMissing": "El cliente no existe. Crealo primero desde la sección \"Clientes\".",
@@ -338,18 +432,28 @@
       "noStock": "No hay stock suficiente. Disponible: {{stock}} unidades.",
       "create": "No se pudo crear la venta."
     },
-    "noProductsAvailable": "No hay productos disponibles"
+    "noProductsAvailable": "No hay productos disponibles",
+    "toggle": {
+      "close": "Cerrar",
+      "new": "Nueva Venta"
+    },
+    "stats": {
+      "totalLabel": "Total ventas:",
+      "revenueLabel": "Ingresos totales:",
+      "filteredLabel": "Filtradas:"
+    },
+    "empty": "No hay ventas registradas"
   },
   "zones": {
     "title": "Zonas",
-    "new": "Nueva zona",
+    "new": "Nueva Zona",
     "close": "Cerrar",
-    "loading": "Cargando...",
+    "loading": "Cargando zonas…",
     "headquarters": "Sede central",
-    "noHeadquarters": "Todavía no hay una sede definida.",
+    "noHeadquarters": "No hay sede central definida.",
     "filters": {
-      "search": "Buscar",
-      "searchPh": "ID, nombre o descripción..."
+      "search": "Buscar zona",
+      "searchPh": "Buscar por nombre o descripción…"
     },
     "table": {
       "id": "ID",
@@ -357,18 +461,18 @@
       "description": "Descripción",
       "actions": "Acciones"
     },
-    "empty": "No hay zonas para mostrar.",
+    "empty": "No hay zonas registradas",
     "form": {
       "createTitle": "Crear zona",
       "editTitle": "Editar zona #{{id}}",
       "name": "Nombre",
-      "namePh": "p. ej. Zona Sur",
+      "namePh": "Ej.: Distrito Norte",
       "description": "Descripción",
-      "descriptionPh": "Opcional",
-      "markHq": "Marcar como sede",
+      "descriptionPh": "Breve descripción de la zona",
+      "markHq": "Marcar como sede central",
       "err": {
-        "required": "El nombre es obligatorio.",
-        "duplicate": "Ya existe una zona con ese nombre (sin importar mayúsculas/minúsculas)."
+        "required": "Este campo es obligatorio",
+        "duplicate": "Ya existe una zona con ese nombre"
       }
     },
     "confirmDelete": "¿Eliminar la zona \"{{name}}\"?",
@@ -377,7 +481,12 @@
     },
     "errorLoad": "No se pudieron cargar las zonas.",
     "errorSave": "No se pudo guardar la zona.",
-    "errorDelete": "No se pudo eliminar."
+    "errorDelete": "No se pudo eliminar.",
+    "stats": {
+      "totalLabel": "Total zonas:",
+      "filteredLabel": "Filtradas:"
+    },
+    "noResults": "No hay resultados"
   },
   "authorities": {
     "title": "Autoridades",
@@ -392,7 +501,7 @@
       "search": "Buscar",
       "searchPh": "dni / nombre / rango",
       "zoneId": "ID de zona",
-      "zoneIdPh": "1"
+      "zoneIdPh": "ID de zona"
     },
     "table": {
       "dni": "DNI",
@@ -429,6 +538,18 @@
     },
     "err": {
       "zoneIdInvalid": "El ID de la zona debe ser un número válido mayor a 0."
+    },
+    "toggle": {
+      "close": "Cerrar",
+      "new": "Nueva Autoridad"
+    },
+    "stats": {
+      "totalLabel": "Total",
+      "rank0Label": "Rango 0",
+      "rank1Label": "Rango 1",
+      "rank2Label": "Rango 2",
+      "rank3Label": "Rango 3",
+      "filteredLabel": "Filtradas"
     }
   },
   "bribes": {
@@ -437,24 +558,24 @@
     "newTitle": "Crear Nuevo Soborno",
     "editTitle": "Editar Soborno",
     "loading": "Cargando sobornos...",
-    "noResults": "No se encontraron sobornos",
+    "noResults": "Sin resultados para el filtro aplicado",
     "confirmPay": "¿Confirmar el pago de este soborno?",
     "confirmDelete": "¿Eliminar este soborno? Esta acción no se puede deshacer.",
     "filters": {
       "search": "Buscar",
       "searchPh": "Buscar por ID, monto, autoridad...",
-      "paid": "Estado de Pago",
+      "paid": "Pagados",
       "paid_all": "Todos",
-      "paid_yes": "Pagados",
-      "paid_no": "Pendientes",
-      "dateType": "Tipo de Fecha",
-      "dateType_all": "Todas las fechas",
-      "dateType_exact": "Fecha exacta",
+      "paid_yes": "Sí",
+      "paid_no": "No",
+      "dateType": "Fecha",
+      "dateType_all": "Todas",
+      "dateType_exact": "Exacta",
       "dateType_before": "Antes de",
       "dateType_after": "Después de",
-      "dateType_between": "Entre fechas",
+      "dateType_between": "Entre",
       "date": "Fecha",
-      "endDate": "Fecha Final"
+      "endDate": "Hasta"
     },
     "table": {
       "id": "ID",
@@ -462,23 +583,26 @@
       "authority": "Autoridad",
       "sale": "Venta",
       "paid": "Estado",
-      "date": "Fecha de Creación"
+      "date": "Fecha de Creación",
+      "actions": "Acciones"
     },
     "status": {
       "paid": "Pagado",
       "pending": "Pendiente"
     },
     "actions": {
-      "pay": "Marcar como Pagado"
+      "pay": "Marcar como pagado"
     },
     "form": {
       "amount": "Monto",
-      "amountPh": "Ingrese el monto del soborno",
+      "amountPh": "Ej.: 15000.00",
       "authority": "ID de Autoridad",
       "authorityPh": "Ingrese el ID de la autoridad",
       "sale": "ID de Venta",
       "salePh": "Ingrese el ID de la venta",
-      "editNote": "Nota: Solo se puede editar el monto. La autoridad y venta no pueden modificarse."
+      "editNote": "Solo podés editar el monto y el estado de pago.",
+      "authority_placeholder": "— Seleccioná una autoridad —",
+      "sale_placeholder": "— Seleccioná una venta —"
     },
     "errors": {
       "amountRequired": "El monto es requerido",
@@ -492,7 +616,16 @@
     "errorCreate": "Error al crear el soborno",
     "errorSave": "Error al guardar el soborno",
     "errorPay": "Error al procesar el pago",
-    "errorDelete": "Error al eliminar el soborno"
+    "errorDelete": "Error al eliminar el soborno",
+    "stats": {
+      "total": "Total sobornos",
+      "amount": "Monto total",
+      "paid": "Pagados",
+      "pending": "Pendientes",
+      "pendingAmount": "Monto pendiente",
+      "filtered": "Filtrados"
+    },
+    "empty": "No hay sobornos registrados"
   },
   "decisions": {
     "title": "Decisiones estratégicas",
@@ -523,7 +656,17 @@
       "descriptionPh": "Descripción de la decisión estratégica",
       "start": "Fecha de inicio",
       "end": "Fecha de fin"
-    }
+    },
+    "toggle": {
+      "close": "Cerrar",
+      "new": "Nueva Decisión"
+    },
+    "stats": {
+      "total": "Total:",
+      "active": "Activas:",
+      "filtered": "Filtradas:"
+    },
+    "noResults": "Sin resultados para el filtro aplicado"
   },
   "topics": {
     "title": "Temáticas",
@@ -554,7 +697,12 @@
     "errorLoad": "No se pudieron cargar las temáticas.",
     "errorCreate": "No se pudo crear.",
     "errorSave": "No se pudo guardar.",
-    "errorDelete": "No se pudo eliminar."
+    "errorDelete": "No se pudo eliminar.",
+    "stats": {
+      "total": "Total temáticas:",
+      "filtered": "Filtradas:"
+    },
+    "noResults": "Sin resultados para el filtro aplicado"
   },
   "distributors": {
     "title": "Distribuidores",
@@ -592,9 +740,9 @@
       "address": "Dirección",
       "addressPh": "Calle y número",
       "zone": "Zona",
-      "chooseZone": "Seleccioná zona",
+      "chooseZone": "Elegí una zona",
       "products": "Productos",
-      "multiHint": "Mantené Ctrl/Cmd para selección múltiple",
+      "multiHint": "Podés seleccionar múltiples productos",
       "err": {
         "dni": "DNI requerido.",
         "name": "Nombre requerido.",
@@ -602,12 +750,25 @@
         "email": "Email válido requerido.",
         "zone": "Zona requerida.",
         "fill": "Completá los campos requeridos."
-      }
+      },
+      "noProducts": "No hay productos disponibles"
     },
     "errorLoad": "No se pudo cargar.",
     "errorCreate": "No se pudo crear (verificá datos requeridos).",
     "errorSave": "No se pudo guardar.",
-    "errorDelete": "No se pudo eliminar."
+    "errorDelete": "No se pudo eliminar.",
+    "toggle": {
+      "new": "Nuevo Distribuidor"
+    },
+    "stats": {
+      "total": "Total:",
+      "withProducts": "Con productos:",
+      "filtered": "Filtrados:"
+    },
+    "noResults": {
+      "title": "Sin resultados",
+      "desc": "Probá ajustar el filtro"
+    }
   },
   "status": {
     "PENDIENTE": "PENDIENTE",
@@ -657,6 +818,10 @@
       "errorCreating": "Error creando",
       "errorSaving": "Error guardando",
       "errorLoading": "Error cargando"
+    },
+    "stats": {
+      "totalLabel": "Total administradores:",
+      "filteredLabel": "Filtrados:"
     }
   },
   "roleRequest": {
@@ -730,7 +895,13 @@
     "errorSave": "No se pudo guardar",
     "errorLoad": "No se pudo cargar",
     "errorDelete": "No se pudo eliminar",
-    "confirmDelete": "¿Eliminar este registro?"
+    "confirmDelete": "¿Eliminar este registro?",
+    "stats": {
+      "total": "Total registros",
+      "uniquePartners": "Socios únicos",
+      "uniqueDecisions": "Decisiones únicas",
+      "filtered": "Filtrados"
+    }
   },
   "monthlyReview": {
     "title": "Revisiones Mensuales",
@@ -745,13 +916,25 @@
       "title": "Estadísticas del Período",
       "empty": "Sin datos para el período seleccionado.",
       "period": "Período",
+      "totalLabel": "Total:",
+      "clientsNoun": "clientes",
+      "withPurchasesLabel": "Con compras:",
+      "withoutPurchasesLabel": "Sin compras:",
+      "filteredLabel": "Filtrados:",
       "totalSales": "Total Ventas",
       "totalAmount": "Monto Total",
       "averageAmount": "Promedio",
       "byProduct": "Por Producto",
       "productName": "Producto",
       "quantity": "Cantidad",
-      "amount": "Monto"
+      "amount": "Monto",
+      "total": "Total",
+      "pending": "Pendientes",
+      "inReview": "En revisión",
+      "completed": "Completados",
+      "approved": "Aprobados",
+      "rejected": "Rechazados",
+      "filtered": "Filtrados"
     },
     "list": "Listado de Revisiones",
     "emptyTitle": "No hay revisiones",
@@ -821,6 +1004,294 @@
       },
       "hints": {
         "cannotChangeRelations": "No se pueden modificar las relaciones en modo edición"
+      }
+    },
+    "stats": {
+      "total": "Total",
+      "active": "Activos",
+      "completed": "Completados",
+      "cancelled": "Cancelados",
+      "uniqueAdmins": "Admins únicos",
+      "uniqueAuthorities": "Autoridades únicas",
+      "filtered": "Filtrados"
+    }
+  },
+  "inbox": {
+    "title": "Bandeja de entrada",
+    "loading": "Cargando bandeja...",
+    "profileCompletenessSuffix": "% completo",
+    "verified": "✅ Verificado",
+    "notVerified": "⏳ No verificado",
+    "tabs": {
+      "userVerificationPlural": "✅ Verificación de usuarios",
+      "roleRequestsPlural": "📋 Solicitudes de rol",
+      "userVerification": "✅ Verificación de usuario",
+      "roleRequest": "📋 Solicitud de rol"
+    },
+    "blocked": {
+      "title": "Sección bloqueada",
+      "desc": "Necesitás verificar tu cuenta antes de solicitar roles especiales. Completá la verificación en la pestaña anterior.",
+      "goVerify": "Ir a verificación"
+    },
+    "userView": {
+      "myRoleRequestTitle": "Mi solicitud de rol",
+      "myRoleRequestDesc": "Acá podés solicitar roles especiales como Socio o Distribuidor."
+    },
+    "notAuth": {
+      "title": "Sesión requerida",
+      "desc": "Necesitás iniciar sesión para acceder a esta página.",
+      "login": "Iniciar sesión"
+    }
+  },
+  "userVerification": {
+    "status": {
+      "title": "Verificación de Usuario",
+      "subtitle": "La verificación de tu cuenta habilita funciones avanzadas",
+      "loading": "Cargando estado de verificación...",
+      "error": {
+        "title": "Error",
+        "close": "Cerrar"
+      },
+      "verified": {
+        "title": "Cuenta Verificada",
+        "desc": "Tu cuenta ha sido verificada exitosamente por un administrador.",
+        "benefitsTitle": "Beneficios de la verificación:",
+        "benefits": [
+          "✓ Acceso completo a funciones avanzadas",
+          "✓ Capacidad para realizar compras",
+          "✓ Capacidad para solicitar roles especiales",
+          "✓ Prioridad en soporte técnico"
+        ]
+      },
+      "request": {
+        "title": "Verificación de Cuenta",
+        "desc": "Para acceder a todas las funcionalidades, necesitás verificar tu cuenta. Esta verificación es revisada manualmente por un administrador."
+      },
+      "profileIncomplete": {
+        "title": "Perfil Incompleto",
+        "desc": "Debés completar tu perfil al 100% antes de solicitar la verificación. Asegurate de tener todos tus datos personales (DNI, nombre, email, teléfono y dirección).",
+        "completeNow": "Completar Perfil Ahora"
+      },
+      "progress": {
+        "title": "Tu Progreso",
+        "created": "Cuenta creada",
+        "emailVerified": "Email verificado",
+        "profileCompleted": "Perfil completado ({{percent}}%)",
+        "adminVerification": "Verificación por admin"
+      },
+      "requirements": {
+        "title": "Requisitos para la verificación:",
+        "profile100": "Perfil completo al 100%",
+        "emailVerified": "Email verificado",
+        "personalData": "Datos personales completos (DNI, nombre, teléfono, dirección)"
+      },
+      "buttons": {
+        "request": "Solicitar Verificación",
+        "requestAgain": "Solicitar Nuevamente",
+        "sending": "Enviando...",
+        "resend": "Reenviar Notificación",
+        "resending": "Reenviando..."
+      },
+      "help": {
+        "completeProfile": "Completá tu perfil para poder solicitar la verificación de tu cuenta."
+      },
+      "pending": {
+        "title": "Solicitud en Revisión",
+        "desc": "Tu solicitud de verificación está siendo revisada por un administrador. Recibirás una notificación cuando sea aprobada o rechazada.",
+        "details": {
+          "requestedAt": "Fecha de solicitud:",
+          "expiresAt": "Expira:",
+          "email": "Email:"
+        },
+        "infoBox": {
+          "waitTitle": "Tiempo estimado:",
+          "waitDesc": "Las verificaciones suelen procesarse en un plazo de 24–48 horas hábiles."
+        }
+      },
+      "rejected": {
+        "title": "Solicitud Rechazada",
+        "desc": "Tu solicitud de verificación fue rechazada por un administrador. Revisá tus datos y volvé a intentarlo."
+      },
+      "expired": {
+        "title": "Solicitud Expirada",
+        "desc": "Tu solicitud de verificación ha expirado. Podés solicitar una nueva verificación."
+      }
+    },
+    "card": {
+      "infoTitle": "Información de la Solicitud",
+      "labels": {
+        "email": "Email:",
+        "requestedAt": "Fecha de solicitud:",
+        "expiresAt": "Expira:",
+        "attempts": "Intentos:",
+        "verifiedAt": "Verificado el:",
+        "updatedAt": "Última actualización:"
+      },
+      "reviewBtn": "Revisar Verificación",
+      "expandAria": "Expandir detalles"
+    },
+    "reviewModal": {
+      "title": "Revisar Verificación de Usuario",
+      "closeAria": "Cerrar",
+      "summary": {
+        "email": "Email:",
+        "requestedAt": "Fecha de solicitud:",
+        "expiresAt": "Expira:",
+        "attempts": "Intentos:"
+      },
+      "errorPrefix": "Error",
+      "decision": "Decisión:",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "rejectReasonLabel": "Motivo del rechazo",
+      "rejectReasonOptional": "(opcional)",
+      "rejectReasonPh": "Explicá por qué se rechaza la verificación (opcional, mínimo 3 caracteres si lo proporcionás)",
+      "rejectReasonCounter": "{{n}}/500 caracteres",
+      "rejectReasonMinWarn": "(mínimo 3 si proporcionás un motivo)",
+      "rejectReasonHelp": "Este motivo será visible para el usuario en caso de rechazo.",
+      "approveInfoTitle": "Al aprobar esta verificación:",
+      "approveInfoList": [
+        "El usuario será marcado como verificado",
+        "Se actualizará su completitud de perfil al 100%",
+        "Recibirá un email de confirmación",
+        "Podrá realizar compras",
+        "Podrá solicitar roles especiales"
+      ],
+      "actions": {
+        "cancel": "Cancelar",
+        "processing": "Procesando...",
+        "approve": "Aprobar Verificación",
+        "reject": "Rechazar Verificación"
+      }
+    },
+    "adminInbox": {
+      "title": "Verificaciones de Usuario",
+      "subtitle": "Revisá y gestioná las solicitudes de verificación de usuarios",
+      "pendingLabel": "Pendientes",
+      "loading": "Cargando verificaciones...",
+      "errorRetry": "Reintentar",
+      "filters": {
+        "status": {
+          "label": "Estado:",
+          "all": "Todos",
+          "pending": "Pendientes",
+          "verified": "Verificadas",
+          "rejected": "Rechazadas",
+          "expired": "Expiradas"
+        }
+      },
+      "refresh": "Actualizar",
+      "empty": {
+        "title": "No hay verificaciones",
+        "desc": "No se encontraron verificaciones con los filtros seleccionados"
+      }
+    }
+  },
+  "roleRequests": {
+    "inbox": {
+      "title": "Mis Solicitudes de Rol",
+      "subtitle": "Gestioná tus solicitudes de roles especiales",
+      "newBtn": "Nueva Solicitud",
+      "verifyRequiredBadge": "Verificá tu cuenta para solicitar roles",
+      "completeProfileRequired": "Completá tu perfil para solicitar roles",
+      "verifyRequiredTitle": "Verificación Requerida",
+      "verifyRequiredDesc": "Necesitás que un administrador verifique tu cuenta antes de poder solicitar roles especiales. Completá el proceso de verificación en la pestaña \"Verificación de Usuario\".",
+      "loading": "Cargando solicitudes...",
+      "errorRetry": "Reintentar",
+      "emptyTitle": "No tenés solicitudes",
+      "emptyDescVerified": "Cuando solicites un rol especial, aparecerá acá",
+      "emptyDescIncomplete": "Completá tu perfil para poder solicitar roles especiales",
+      "createFirstBtn": "Crear Primera Solicitud"
+    },
+    "reviewModal": {
+      "title": "Revisar Solicitud de Rol",
+      "close": "Cerrar",
+      "summary": {
+        "user": "Usuario:",
+        "request": "Solicitud:",
+        "date": "Fecha:",
+        "justification": "Justificación:"
+      },
+      "decision": "Decisión:",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "commentsLabel": "Comentarios",
+      "commentsPh": "Añadí comentarios sobre tu decisión...",
+      "commentsCounter": "{{n}}/500 caracteres",
+      "actions": {
+        "cancel": "Cancelar",
+        "processing": "Procesando...",
+        "approve": "Aprobar Solicitud",
+        "reject": "Rechazar Solicitud"
+      },
+      "changeLabel": "Cambio de rol"
+    },
+    "modal": {
+      "title": "Solicitar Rol Especial",
+      "changeToggle": "Cambiar un rol existente por otro",
+      "changeHelp": "Si querés intercambiar uno de tus roles actuales por otro, activá esta opción",
+      "roleToRemove": "Rol a remover",
+      "roleToRemoveRequired": "Rol a remover *",
+      "roleToRemovePh": "Seleccioná el rol a remover",
+      "requestedRole": "Rol solicitado *",
+      "requestedRolePh": "Seleccioná un rol",
+      "roleDescription": "Descripción",
+      "justification": "Justificación",
+      "justificationOptional": "(opcional)",
+      "justificationPh": "Explicá por qué solicitás este rol (opcional, mínimo 20 caracteres si lo proporcionás)",
+      "justCounter": "{{n}}/500 caracteres",
+      "justMinWarn": "(mínimo 20 si proporcionás justificación)",
+      "incompatibleNote": "Nota: el rol {{role}} es incompatible con: {{list}}",
+      "actions": {
+        "cancel": "Cancelar",
+        "submit": "Enviar Solicitud",
+        "sending": "Enviando..."
+      }
+    },
+    "card": {
+      "changeLabel": "Cambio de rol",
+      "newLabel": "Nueva solicitud",
+      "titles": {
+        "justification": "Justificación",
+        "info": "Información",
+        "adminComments": "Comentarios del Administrador"
+      },
+      "labels": {
+        "createdAt": "Fecha de solicitud:",
+        "reviewedAt": "Fecha de revisión:",
+        "reviewedBy": "Revisado por:"
+      },
+      "actions": {
+        "approve": "Aprobar",
+        "reject": "Rechazar"
+      }
+    },
+    "adminInbox": {
+      "title": "Solicitudes de Rol",
+      "subtitle": "Revisá y gestioná las solicitudes de roles especiales",
+      "pendingLabel": "Pendientes",
+      "loading": "Cargando solicitudes...",
+      "errorRetry": "Reintentar",
+      "filters": {
+        "status": {
+          "label": "Estado:",
+          "all": "Todos",
+          "pending": "Pendientes",
+          "approved": "Aprobadas",
+          "rejected": "Rechazadas"
+        },
+        "role": {
+          "label": "Rol:",
+          "all": "Todos",
+          "partner": "Socio",
+          "distributor": "Distribuidor",
+          "authority": "Autoridad"
+        }
+      },
+      "refresh": "Actualizar",
+      "empty": {
+        "title": "No hay solicitudes",
+        "desc": "No se encontraron solicitudes con los filtros seleccionados"
       }
     }
   }

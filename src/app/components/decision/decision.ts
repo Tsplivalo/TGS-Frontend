@@ -46,8 +46,10 @@ export class DecisionComponent implements OnInit {
   isEdit = signal(false); // true si estamos editando una decisión existente
 
   // --- Filtros del listado ---
-  fText = '';
-  topicFilter = '';
+  fTextInput = signal('');
+  fTextApplied = signal('');
+  topicFilterInput = signal('');
+  topicFilterApplied = signal('');
   today = this.todayLocalInput(); // AAAA-MM-DD para inputs tipo date
 
   // --- Form reactivo ---
@@ -100,8 +102,8 @@ export class DecisionComponent implements OnInit {
 
   // --- Listados filtrados ---
   filteredDecisions = computed(() => {
-    const q = (this.fText || '').toLowerCase().trim();
-    const tFilter = (this.topicFilter || '').trim();
+    const q = this.fTextApplied().toLowerCase().trim();
+    const tFilter = this.topicFilterApplied().trim();
     return this.decisions().filter(d => {
       const matchText = !q || (d.description || '').toLowerCase().includes(q) || String(d.id).includes(q);
       const topicId = d.topic?.id != null ? String(d.topic.id) : '';
@@ -110,13 +112,22 @@ export class DecisionComponent implements OnInit {
     });
   });
 
-  filteredTopics = computed(() => {
-    const q = (this.topicFilter || '').toLowerCase().trim();
-    if (!q) return this.topics();
-    return this.topics().filter(t =>
-      (t.description || '').toLowerCase().includes(q) ||
-      String(t.id).includes(q)
-    );
+  applyFilters() {
+  this.fTextApplied.set(this.fTextInput());
+  this.topicFilterApplied.set(this.topicFilterInput());
+  }
+
+  clearFilters() {
+    this.fTextInput.set('');
+    this.topicFilterInput.set('');
+    this.fTextApplied.set('');
+    this.topicFilterApplied.set('');
+  }
+
+  totalDecisions = computed(() => this.decisions().length);
+  activeDecisions = computed(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return this.decisions().filter(d => d.endDate >= today).length;
   });
 
   // --- Data fetching ---

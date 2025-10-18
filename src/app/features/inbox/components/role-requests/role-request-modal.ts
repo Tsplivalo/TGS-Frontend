@@ -1,8 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges,inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Role } from '../../../../models/user/user.model';
 import { RoleRequestService } from '../../services/role-request';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 interface RoleOption {
   value: Role;
@@ -14,7 +15,7 @@ interface RoleOption {
 @Component({
   selector: 'app-role-request-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,TranslateModule],
   templateUrl: './role-request-modal.html',
   styleUrls: ['./role-requests.scss']
 })
@@ -23,6 +24,7 @@ export class RoleRequestModalComponent implements OnChanges {
   @Input() currentRoles: Role[] = [];
   @Output() close = new EventEmitter<void>();
   @Output() requestSubmitted = new EventEmitter<void>();
+  private t = inject(TranslateService);
 
   requestedRole: Role | '' = '';
   roleToRemove: Role | '' = '';

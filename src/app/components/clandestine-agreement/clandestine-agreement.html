@@ -10,13 +10,61 @@
       </div>
     </header>
 
+    <div *ngIf="!loading() && items().length > 0"
+      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'clandestineAgreement.stats.total' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-strong);">{{ totalAgreements() }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'clandestineAgreement.stats.active' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #4a8d72;">{{ agreementsByStatus()['ACTIVE'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'clandestineAgreement.stats.completed' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #3b82f6;">{{ agreementsByStatus()['COMPLETED'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'clandestineAgreement.stats.cancelled' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: #a94545;">{{ agreementsByStatus()['CANCELLED'] }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'clandestineAgreement.stats.uniqueAdmins' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ uniqueAdmins() }}</div>
+      </div>
+      <div style="text-align: center;">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'clandestineAgreement.stats.uniqueAuthorities' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ uniqueAuthorities() }}</div>
+      </div>
+      <div style="text-align: center;" *ngIf="fTextApplied()">
+        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
+          'clandestineAgreement.stats.filtered' | translate }}</div>
+        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ filtered().length }}</div>
+      </div>
+    </div>
+
     <!-- FILTROS -->
-    <section class="filters">
-      <label class="label">
+    <section class="filters" style="align-items: flex-end;">
+      <label class="label" style="flex: 1;">
         <span>{{ 'clandestineAgreement.filters.search' | translate }}</span>
-        <input class="input" type="text" [ngModel]="fText()" (ngModelChange)="fText.set($event)"
-          [placeholder]="'clandestineAgreement.filters.searchPlaceholder' | translate" />
+        <input class="input" type="text" [ngModel]="fTextInput()" (ngModelChange)="fTextInput.set($event)"
+          (keyup.enter)="applyFilters()" [placeholder]="'clandestineAgreement.filters.searchPlaceholder' | translate" />
       </label>
+
+      <div style="display: flex; gap: var(--sp-2);">
+        <button class="btn btn-primary" type="button" (click)="applyFilters()">
+          🔍 {{ 'common.search' | translate }}
+        </button>
+        <button class="btn ghost" type="button" (click)="clearFilters()" *ngIf="fTextApplied()">
+          🗑️ {{ 'common.clear' | translate }}
+        </button>
+      </div>
     </section>
 
     <!-- MENSAJES -->
@@ -68,8 +116,10 @@
       <!-- Empty state -->
       <ng-template #emptyState>
         <div class="empty empty-state">
-          <h3>{{ 'clandestineAgreement.emptyTitle' | translate }}</h3>
-          <p class="muted">{{ 'clandestineAgreement.emptyHint' | translate }}</p>
+          <h3>{{ fTextApplied() ? 'Sin resultados' : ('clandestineAgreement.emptyTitle' | translate) }}</h3>
+          <p class="muted">{{ fTextApplied() ? 'Probá ajustar el filtro' : ('clandestineAgreement.emptyHint' |
+            translate) }}
+          </p>
         </div>
       </ng-template>
     </section>
