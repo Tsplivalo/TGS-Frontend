@@ -17,6 +17,18 @@ export interface RoleRequestReviewer {
   username: string;
 }
 
+// ✅ NUEVO: Datos adicionales según el rol solicitado
+export interface RoleRequestAdditionalData {
+  // Para DISTRIBUTOR
+  zoneId?: number;
+  address?: string;
+  productsIds?: number[];
+  
+  // Para AUTHORITY
+  rank?: '0' | '1' | '2' | '3';
+  // authorityZoneId también usa zoneId
+}
+
 export interface RoleRequest {
   id: string;
   user: RoleRequestUser;
@@ -25,6 +37,7 @@ export interface RoleRequest {
   isRoleChange: boolean;
   status: RequestStatus;
   justification?: string;
+  additionalData?: RoleRequestAdditionalData; 
   createdAt: string;
   reviewedAt?: string;
   reviewedBy: RoleRequestReviewer | null;
@@ -35,6 +48,7 @@ export interface CreateRoleRequestDTO {
   requestedRole: Role;
   roleToRemove?: Role;
   justification?: string;
+  additionalData?: RoleRequestAdditionalData; 
 }
 
 export interface ReviewRoleRequestDTO {

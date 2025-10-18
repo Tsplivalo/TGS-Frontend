@@ -1,21 +1,21 @@
-import { Component, Input, Output, EventEmitter,inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RoleRequest } from '../../models/role-request.model.js';
-import { RoleRequestService } from '../../services/role-request.js';
+import { RoleRequest } from '../../models/role-request.model';
+import { RoleRequestService } from '../../services/role-request';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-role-request-review-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule,TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './role-request-review-modal.html',
   styleUrls: ['./role-requests.scss']
 })
 export class RoleRequestReviewModalComponent {
   @Input() request!: RoleRequest;
   @Output() close = new EventEmitter<void>();
-  @Output() reviewComplete = new EventEmitter<string | undefined>(); // ✅ Emite el userId si fue aprobado
+  @Output() reviewComplete = new EventEmitter<string | undefined>();
 
   action: 'approve' | 'reject' = 'approve';
   comments: string = '';
@@ -44,6 +44,17 @@ export class RoleRequestReviewModalComponent {
       minute: '2-digit',
     });
   }
+  
+  // ✅ NUEVO: Obtener etiqueta del rango de autoridad
+  getRankLabel(rank: string): string {
+    const labels: Record<string, string> = {
+      '0': 'Rango 0 - Base',
+      '1': 'Rango 1 - Intermedio',
+      '2': 'Rango 2 - Senior',
+      '3': 'Rango 3 - Ejecutivo'
+    };
+    return labels[rank] || `Rango ${rank}`;
+  }
 
   async onSubmit(): Promise<void> {
     this.error = null;
@@ -56,6 +67,7 @@ export class RoleRequestReviewModalComponent {
     this.isSubmitting = true;
 
     try {
+      // Revisar la solicitud en el backend
       await this.roleRequestService.reviewRequest(this.request.id, {
         action: this.action,
         comments: this.comments || undefined,
@@ -67,13 +79,12 @@ export class RoleRequestReviewModalComponent {
         action: this.action
       });
 
-      // ✅ Si se aprobó, emitir el userId para que el componente padre actualice al usuario
-      if (this.action === 'approve') {
-        this.reviewComplete.emit(this.request.user.id);
-      } else {
-        this.reviewComplete.emit(undefined);
-      }
+      // El backend ya se encarga de crear el registro automáticamente
+      // Solo emitimos el evento para que el padre actualice la lista
+      this.reviewComplete.emit(this.action === 'approve' ? this.request.user.id : undefined);
+      
     } catch (err: any) {
+      console.error('[ReviewModal] ❌ Error:', err);
       this.error =
         err.error?.message ||
         err.error?.errors?.[0]?.message ||
