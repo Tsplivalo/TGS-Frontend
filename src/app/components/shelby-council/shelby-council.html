@@ -14,30 +14,6 @@
       </div>
     </header>
 
-    <div *ngIf="!loading() && items().length > 0"
-      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
-      <div style="text-align: center;">
-        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
-          'shelbyCouncil.stats.total' | translate }}</div>
-        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-strong);">{{ totalRecords() }}</div>
-      </div>
-      <div style="text-align: center;">
-        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
-          'shelbyCouncil.stats.uniquePartners' | translate }}</div>
-        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ uniquePartners() }}</div>
-      </div>
-      <div style="text-align: center;">
-        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
-          'shelbyCouncil.stats.uniqueDecisions' | translate }}</div>
-        <div style="font-size: 1.5rem; font-weight: 700; color: var(--info);">{{ uniqueDecisions() }}</div>
-      </div>
-      <div style="text-align: center;" *ngIf="fTextApplied()">
-        <div class="muted" style="font-size: 11px; text-transform: uppercase; margin-bottom: 4px;">{{
-          'shelbyCouncil.stats.filtered' | translate }}</div>
-        <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">{{ filtered().length }}</div>
-      </div>
-    </div>
-
     <!-- MENSAJES DE ESTADO -->
     <div class="success-banner" *ngIf="success() as msg">
       <strong>✓ {{ 'common.success' | translate : {} : 'Éxito' }}</strong> {{ msg }}
@@ -50,28 +26,17 @@
     </div>
 
     <!-- FILTROS -->
-    <section class="filters" style="align-items: flex-end;">
-      <label class="label" style="flex: 1;">
+    <section class="filters">
+      <label class="label">
         <span class="label-text">🔍 {{ 'shelbyCouncil.filters.search' | translate : {} : 'Buscar' }}</span>
-        <input class="input" type="text" [value]="fTextInput()" (input)="fTextInput.set($any($event.target).value)"
-          (keyup.enter)="applyFilters()"
+        <input class="input" type="text" [value]="fText()" (input)="fText.set($any($event.target).value)"
           [placeholder]="'shelbyCouncil.filters.searchPlaceholder' | translate : {} : 'Socio, decisión, rol, notas...'"
           [attr.aria-label]="'shelbyCouncil.filters.search' | translate : {} : 'Buscar'" />
       </label>
-
-      <div style="display: flex; gap: var(--sp-2); align-items: center;">
-        <div class="filter-info" *ngIf="!fTextApplied()">
-          <span class="badge badge-info">
-            {{ filtered().length }} {{ filtered().length === 1 ? 'registro' : 'registros' }}
-          </span>
-        </div>
-
-        <button class="btn btn-primary" type="button" (click)="applyFilters()">
-          🔍 {{ 'common.search' | translate }}
-        </button>
-        <button class="btn ghost" type="button" (click)="clearFilters()" *ngIf="fTextApplied()">
-          🗑️ {{ 'common.clear' | translate }}
-        </button>
+      <div class="filter-info">
+        <span class="badge badge-info">
+          {{ filtered().length }} {{ filtered().length === 1 ? 'registro' : 'registros' }}
+        </span>
       </div>
     </section>
 
@@ -132,13 +97,9 @@
       <ng-template #emptyState>
         <div class="empty">
           <div class="empty-icon">🔭</div>
-          <h3>{{ fTextApplied() ? 'Sin resultados' : ('shelbyCouncil.emptyTitle' | translate : {} : 'No hay registros')
-            }}
-          </h3>
+          <h3>{{ 'shelbyCouncil.emptyTitle' | translate : {} : 'No hay registros' }}</h3>
           <p class="muted">
-            {{ fTextApplied()
-            ? 'Probá ajustar el filtro o hacer clic en "Limpiar"'
-            : ('shelbyCouncil.emptyHint' | translate : {} : 'Probá ajustar la búsqueda o creá un nuevo registro.') }}
+            {{ 'shelbyCouncil.emptyHint' | translate : {} : 'Probá ajustar la búsqueda o creá un nuevo registro.' }}
           </p>
         </div>
       </ng-template>
@@ -159,7 +120,7 @@
       </div>
 
       <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
-        <!-- PARTNER -->
+        <!-- PARTNER - SELECT AMIGABLE -->
         <label class="label" [class.error]="partnerDniInvalid">
           <span class="label-text">
             👤 {{ 'shelbyCouncil.fields.partnerDni' | translate : {} : 'Socio' }}
@@ -182,7 +143,7 @@
           </small>
         </label>
 
-        <!-- DECISION -->
+        <!-- DECISION - SELECT AMIGABLE -->
         <label class="label" [class.error]="decisionIdInvalid">
           <span class="label-text">
             📊 {{ 'shelbyCouncil.fields.decisionId' | translate : {} : 'Decisión' }}

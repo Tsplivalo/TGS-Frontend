@@ -34,8 +34,7 @@ export class TopicComponent implements OnInit {
   error = signal<string | null>(null);
 
   // --- Filtro de búsqueda ---
-  filterTextInput = signal('');
-  filterTextApplied = signal('');
+  filterText = '';
   isEdit = signal(false); // true si editamos una temática existente
 
   // ✅ UI: abrir/cerrar formulario
@@ -52,24 +51,13 @@ export class TopicComponent implements OnInit {
 
   // --- Listado filtrado ---
   filtered = computed(() => {
-    const q = this.filterTextApplied().toLowerCase().trim();
+    const q = (this.filterText || '').toLowerCase().trim();
     if (!q) return this.topics();
     return this.topics().filter(t =>
       (t.description || '').toLowerCase().includes(q) ||
       String(t.id ?? '').includes(q)
     );
   });
-
-  applyFilters() {
-  this.filterTextApplied.set(this.filterTextInput());
-  }
-
-  totalTopics = computed(() => this.topics().length);
-
-  clearFilters() {
-    this.filterTextInput.set('');
-    this.filterTextApplied.set('');
-  }
 
   // --- Data fetching ---
   load() {

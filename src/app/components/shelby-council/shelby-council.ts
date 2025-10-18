@@ -45,8 +45,8 @@ export class ShelbyCouncilComponent implements OnInit {
   decisions = signal<DecisionDTO[]>([]);
 
   // Filtros
-  fTextInput = signal('');
-  fTextApplied = signal('');
+  fText = signal<string>('');
+
   // Formulario con validaciones mejoradas
   form = this.fb.group({
     id: this.fb.control<number | null>(null),
@@ -69,8 +69,8 @@ export class ShelbyCouncilComponent implements OnInit {
   }
 
   // Lista filtrada por texto local
-    filtered = computed(() => {
-    const q = this.fTextApplied().toLowerCase().trim();
+  filtered = computed(() => {
+    const q = this.fText().toLowerCase().trim();
     if (!q) return this.items();
 
     return this.items().filter(it => {
@@ -86,24 +86,6 @@ export class ShelbyCouncilComponent implements OnInit {
       return searchText.includes(q);
     });
   });
-
-
-  applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-  }
-
-  clearFilters() {
-    this.fTextInput.set('');
-    this.fTextApplied.set('');
-  }
-
-  totalRecords = computed(() => this.items().length);
-  uniquePartners = computed(() => 
-    new Set(this.items().map(i => i.partner?.dni).filter(Boolean)).size
-  );
-  uniqueDecisions = computed(() => 
-    new Set(this.items().map(i => i.decision?.id).filter(Boolean)).size
-  );
 
   // UI Actions
   toggleNew(): void {

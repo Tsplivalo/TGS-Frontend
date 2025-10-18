@@ -9,45 +9,20 @@
       </div>
     </div>
 
-    <div *ngIf="!loading() && decisions().length > 0"
-      style="display: flex; gap: var(--sp-4); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
-      <span class="muted">
-        <strong>{{ 'decisions.stats.total' | translate }}</strong> {{ totalDecisions() }}
-      </span>
-      <span class="muted">
-        <strong>{{ 'decisions.stats.active' | translate }}</strong> {{ activeDecisions() }}
-      </span>
-      <span class="muted" *ngIf="fTextApplied() || topicFilterApplied()">
-        <strong>{{ 'decisions.stats.filtered' | translate }}</strong> {{ filteredDecisions().length }}
-      </span>
-    </div>
-
-
-    <div class="filters" style="align-items: flex-end;">
-      <label class="label" style="flex: 1;">
+    <div class="filters">
+      <label class="label">
         <span>{{ 'decisions.filters.search' | translate }}</span>
-        <input class="input" [placeholder]="'decisions.filters.searchPh' | translate" [ngModel]="fTextInput()"
-          (ngModelChange)="fTextInput.set($event)" (keyup.enter)="applyFilters()" />
+        <input class="input" [placeholder]="'decisions.filters.searchPh' | translate" [(ngModel)]="fText" />
       </label>
 
-      <label class="label" style="min-width: 200px;">
+      <label class="label">
         <span>{{ 'decisions.filters.topic' | translate }}</span>
-        <input class="input" [placeholder]="'decisions.filters.topicPh' | translate" [ngModel]="topicFilterApplied()"
-          (ngModelChange)="topicFilterApplied.set($event)" (keyup.enter)="applyFilters()" />
+        <input class="input" [placeholder]="'decisions.filters.topicPh' | translate" [(ngModel)]="topicFilter" />
       </label>
-
-      <div style="display: flex; gap: var(--sp-2);">
-        <button class="btn btn-primary" type="button" (click)="applyFilters()">
-          🔍 {{ 'common.search' | translate }}
-        </button>
-        <button class="btn ghost" type="button" (click)="clearFilters()" *ngIf="fTextApplied() || topicFilterApplied()">
-          🗑️ {{ 'common.clear' | translate }}
-        </button>
-      </div>
     </div>
 
     <div class="table-wrap">
-      <table class="table" *ngIf="filteredDecisions().length;">
+      <table class="table" *ngIf="filteredDecisions().length; else empty">
         <colgroup>
           <col style="width:90px" />
           <col style="width:220px" />
@@ -91,11 +66,9 @@
         </tbody>
       </table>
 
-      <div class="center muted">
-        {{ (fTextApplied() || topicFilterApplied())
-        ? 'Sin resultados para el filtro aplicado'
-        : ('decisions.empty' | translate) }}
-      </div>
+      <ng-template #empty>
+        <div class="center muted">{{ 'decisions.empty' | translate }}</div>
+      </ng-template>
     </div>
   </div>
 
@@ -112,10 +85,12 @@
         <div class="error" *ngIf="error()">{{ error() }}</div>
 
         <label class="label">
-          <span>{{ 'decisions.form.topic' | translate }} *</span>
+          <span>{{ 'decisions.form.topic' | translate }}</span>
+          <input class="input" [placeholder]="'decisions.form.topicFilterPh' | translate" [(ngModel)]="topicFilter"
+            name="fltThematic" />
           <select class="input" formControlName="topicId">
             <option [ngValue]="null" disabled>{{ 'decisions.form.chooseTopic' | translate }}</option>
-            <option *ngFor="let t of topics()" [ngValue]="t.id">
+            <option *ngFor="let t of filteredTopics()" [ngValue]="t.id">
               {{ t.id }} - {{ t.description }}
             </option>
           </select>

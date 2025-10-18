@@ -1,12 +1,11 @@
-import { Component, Input, Output, EventEmitter,inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserVerification, UserVerificationStatus } from '../../models/user-verification.model';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-user-verification-card',
   standalone: true,
-  imports: [CommonModule,TranslateModule],
+  imports: [CommonModule],
   templateUrl: './user-verification-card.html',
   styleUrls: ['./user-verification.scss']
 })
@@ -17,7 +16,6 @@ export class UserVerificationCardComponent {
 
   isExpanded: boolean = false;
   UserVerificationStatus = UserVerificationStatus;
-  private t = inject(TranslateService);
 
   toggleExpanded(): void {
     this.isExpanded = !this.isExpanded;

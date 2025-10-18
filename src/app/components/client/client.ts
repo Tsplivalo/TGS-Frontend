@@ -3,15 +3,20 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ClientService } from '../../services/client/client';
-import { SaleService } from '../../services/sale/sale';
 import { 
   ApiResponse, 
   ClientDTO, 
   CreateClientDTO, 
-  UpdateClientDTO
+  UpdateClientDTO 
 } from '../../models/client/client.model';
-import { SaleDTO } from '../../models/sale/sale.model';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
+/**
+ * ClientComponent
+ *
+ * Gestión básica de clientes: listado con filtros, alta/edición y borrado.
+ * Usa signals para loading/error/lista, form reactivo para validación y i18n para mensajes.
+ */
 
 @Component({
   selector: 'app-client',
@@ -21,53 +26,26 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   styleUrls: ['./client.scss']
 })
 export class ClientComponent implements OnInit {
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(ClientService);
-  private saleSrv = inject(SaleService);
   private t = inject(TranslateService);
 
+  // --- Estado ---
   loading = signal(false);
   error = signal<string | null>(null);
   clients = signal<ClientDTO[]>([]);
-  sales = signal<SaleDTO[]>([]);
   editDni = signal<string | null>(null);
   isNewOpen = false;
 
-  fTextInput = signal('');
-  fTextApplied = signal('');
-  fPurchasesInput = signal<'all' | 'yes' | 'no'>('all');
-  fPurchasesApplied = signal<'all' | 'yes' | 'no'>('all');
+  // --- Filtros ---
+  fText = '';
+  fPurchases: 'all' | 'yes' | 'no' = 'all';
 
-  // ✅ Mapa de compras por cliente DNI
-  purchasesByClient = computed(() => {
-    const map = new Map<string, number>();
-    this.sales().forEach(sale => {
-      // ✅ El sale tiene 'client.dni', no 'clientDni'
-      const clientDni = sale.client?.dni;
-      if (clientDni) {
-        const current = map.get(clientDni) || 0;
-        map.set(clientDni, current + 1);
-      }
-    });
-    return map;
-  });
-
-  totalClients = computed(() => this.clients().length);
-  
-  clientsWithPurchases = computed(() => {
-    const purchasesMap = this.purchasesByClient();
-    return this.clients().filter(c => (purchasesMap.get(c.dni) || 0) > 0).length;
-  });
-  
-  clientsWithoutPurchases = computed(() => {
-    const purchasesMap = this.purchasesByClient();
-    return this.clients().filter(c => (purchasesMap.get(c.dni) || 0) === 0).length;
-  });
-
+  // Filtrado reactivo por texto y por historial de compras
   filteredClients = computed(() => {
-    const txt = this.fTextApplied().toLowerCase().trim();
-    const filter = this.fPurchasesApplied();
-    const purchasesMap = this.purchasesByClient();
+    const txt = (this.fText || '').toLowerCase().trim();
+    const filter = this.fPurchases;
 
     return this.clients().filter(c => {
       const matchText = !txt
@@ -77,58 +55,50 @@ export class ClientComponent implements OnInit {
         || (c.address ?? '').toLowerCase().includes(txt)
         || (c.phone ?? '').toLowerCase().includes(txt);
 
-      const purchaseCount = purchasesMap.get(c.dni) || 0;
+      const purchases = Array.isArray(c.purchases) ? c.purchases : [];
       const matchPurchases = filter === 'all'
-        || (filter === 'yes' && purchaseCount > 0)
-        || (filter === 'no' && purchaseCount === 0);
+        || (filter === 'yes' && purchases.length > 0)
+        || (filter === 'no' && purchases.length === 0);
 
       return matchText && matchPurchases;
     });
   });
 
-  applyFilters() {
-    this.fTextApplied.set(this.fTextInput());
-    this.fPurchasesApplied.set(this.fPurchasesInput());
-  }
-
-  clearFilters() {
-    this.fTextInput.set('');
-    this.fPurchasesInput.set('all');
-    this.fTextApplied.set('');
-    this.fPurchasesApplied.set('all');
-  }
-
+  // --- Form reactivo ---
   form = this.fb.group({
     dni: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(8)]],
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    address: [''],
-    phone: ['']
+    address: ['', [Validators.minLength(1)]],
+    phone: ['', [Validators.minLength(6)]],
+    username: [''],
+    password: ['']
   });
 
+  // --- Ciclo de vida ---
   ngOnInit(): void {
     this.load();
   }
 
+  // --- Data fetching ---
   load() {
     this.loading.set(true);
     this.error.set(null);
     
-    // ✅ Cargar clientes Y ventas en paralelo
-    Promise.all([
-      this.srv.getAllClients().toPromise(),
-      this.saleSrv.getAllSales().toPromise()
-    ]).then(([clientsRes, sales]) => {
-      this.clients.set(clientsRes?.data ?? []);
-      this.sales.set(sales ?? []);
-      this.loading.set(false);
-    }).catch((err) => {
-      const msg = err?.error?.message || this.t.instant('clients.errorLoad');
-      this.error.set(msg);
-      this.loading.set(false);
+    this.srv.getAllClients().subscribe({
+      next: (r: ApiResponse<ClientDTO[]>) => {
+        this.clients.set(r.data ?? []);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        const msg = err?.error?.message || this.t.instant('clients.errorLoad');
+        this.error.set(msg);
+        this.loading.set(false);
+      }
     });
   }
 
+  // --- UI helpers ---
   toggleNew() {
     this.isNewOpen = !this.isNewOpen;
     if (this.isNewOpen) {
@@ -143,8 +113,11 @@ export class ClientComponent implements OnInit {
       name: '',
       email: '',
       address: '',
-      phone: ''
+      phone: '',
+      username: '',
+      password: ''
     });
+    // Re-habilitar DNI si estaba deshabilitado
     this.form.get('dni')?.enable();
     this.error.set(null);
   }
@@ -156,15 +129,21 @@ export class ClientComponent implements OnInit {
       name: c.name,
       email: c.email,
       address: c.address || '',
-      phone: c.phone || ''
+      phone: c.phone || '',
+      username: '',
+      password: ''
     });
     
+    // Deshabilitar el campo DNI en modo edición
     this.form.get('dni')?.disable();
+    
     this.isNewOpen = true;
     this.error.set(null);
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // --- Borrado ---
   delete(dni: string) {
     if (!confirm(this.t.instant('clients.confirmDelete'))) return;
     
@@ -183,6 +162,7 @@ export class ClientComponent implements OnInit {
     });
   }
 
+  // --- Guardado (create/update) ---
   save() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -196,6 +176,7 @@ export class ClientComponent implements OnInit {
     this.error.set(null);
 
     if (isEdit) {
+      // Actualizar cliente existente
       const updateData: UpdateClientDTO = {
         name: value.name!.trim(),
         email: value.email!.trim(),
@@ -216,12 +197,15 @@ export class ClientComponent implements OnInit {
         }
       });
     } else {
+      // Crear nuevo cliente
       const createData: CreateClientDTO = {
         dni: value.dni!.trim(),
         name: value.name!.trim(),
         email: value.email!.trim(),
         address: value.address?.trim() || undefined,
-        phone: value.phone?.trim() || undefined
+        phone: value.phone?.trim() || undefined,
+        username: value.username?.trim() || undefined,
+        password: value.password?.trim() || undefined,
       };
 
       this.srv.createClient(createData).subscribe({
@@ -239,6 +223,7 @@ export class ClientComponent implements OnInit {
     }
   }
 
+  // --- Validación helpers ---
   hasError(field: string): boolean {
     const control = this.form.get(field);
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -266,13 +251,10 @@ export class ClientComponent implements OnInit {
     return this.t.instant('clients.errors.invalid');
   }
 
-  // ✅ Obtener cantidad de compras desde el mapa
-  getPurchaseCount(client: ClientDTO): number {
-    return this.purchasesByClient().get(client.dni) || 0;
-  }
-
-  // ✅ Verificar si tiene compras
-  hasPurchases(client: ClientDTO): boolean {
-    return (this.purchasesByClient().get(client.dni) || 0) > 0;
+  // --- Helpers para template ---
+  getPurchaseCount(client: ClientDTO): number | string {
+    if (!client.purchases) return 0;
+    if (typeof client.purchases === 'string') return '—';
+    return client.purchases.length;
   }
 }

@@ -1,65 +1,69 @@
 <!-- user-role-requests-inbox.html -->
+
 <div class="user-role-requests-inbox">
   <div class="inbox-header">
     <div>
-      <h2>{{ 'roleRequests.inbox.title' | translate }}</h2>
-      <p class="subtitle">{{ 'roleRequests.inbox.subtitle' | translate }}</p>
+      <h2>Mis Solicitudes de Rol</h2>
+      <p class="subtitle">Gestiona tus solicitudes de roles especiales</p>
     </div>
 
-    <!-- Botón nuevo -->
+    <!-- ✅ Botón deshabilitado si no está verificado -->
     <button *ngIf="hasCompleteProfile && isVerified" class="btn btn-primary" (click)="openModal()">
       <span class="icon">+</span>
-      {{ 'roleRequests.inbox.newBtn' | translate }}
+      Nueva Solicitud
     </button>
 
-    <!-- Badge verificación requerida -->
+    <!-- ✅ Mensaje si no está verificado -->
     <div *ngIf="!isVerified" class="verification-required-warning">
       <span class="icon">⚠️</span>
-      <span>{{ 'roleRequests.inbox.verifyRequiredBadge' | translate }}</span>
+      <span>Verifica tu cuenta para solicitar roles</span>
     </div>
 
     <div *ngIf="!hasCompleteProfile && isVerified" class="incomplete-profile-warning">
       <span class="icon">⚠️</span>
-      <span>{{ 'roleRequests.inbox.completeProfileRequired' | translate }}</span>
+      <span>Completa tu perfil para solicitar roles</span>
     </div>
   </div>
 
-  <!-- Mensaje si no está verificado -->
+  <!-- ✅ Mensaje si intenta ver sin estar verificado -->
   <div *ngIf="!loading && !error && !isVerified" class="verification-required-state">
     <div class="warning-icon">🔒</div>
-    <h3>{{ 'roleRequests.inbox.verifyRequiredTitle' | translate }}</h3>
-    <p>{{ 'roleRequests.inbox.verifyRequiredDesc' | translate }}</p>
+    <h3>Verificación Requerida</h3>
+    <p>
+      Necesitas que un administrador verifique tu cuenta antes de poder solicitar roles especiales.
+      Por favor, completa el proceso de verificación en la pestaña "Verificación de Usuario".
+    </p>
   </div>
 
-  <div *ngIf="loading" class="loading">{{ 'roleRequests.inbox.loading' | translate }}</div>
+  <div *ngIf="loading" class="loading">Cargando solicitudes...</div>
 
   <div *ngIf="error && !loading" class="error-message">
     <span class="icon">❌</span>
     {{ error }}
-    <button class="btn-link" (click)="loadRequests()">{{ 'roleRequests.inbox.errorRetry' | translate }}</button>
+    <button class="btn-link" (click)="loadRequests()">Reintentar</button>
   </div>
 
-  <!-- Empty state (verificado) -->
+  <!-- ✅ Solo mostrar si está verificado -->
   <div *ngIf="isVerified && !loading && !error && requests.length === 0" class="empty-state">
     <div class="empty-icon">📋</div>
-    <h3>{{ 'roleRequests.inbox.emptyTitle' | translate }}</h3>
+    <h3>No tienes solicitudes</h3>
     <p>
       {{ hasCompleteProfile
-      ? ('roleRequests.inbox.emptyDescVerified' | translate)
-      : ('roleRequests.inbox.emptyDescIncomplete' | translate) }}
+      ? 'Cuando solicites un rol especial, aparecerá aquí'
+      : 'Completa tu perfil para poder solicitar roles especiales' }}
     </p>
     <button *ngIf="hasCompleteProfile" class="btn btn-primary" (click)="openModal()">
-      {{ 'roleRequests.inbox.createFirstBtn' | translate }}
+      Crear Primera Solicitud
     </button>
   </div>
 
-  <!-- Listado -->
+  <!-- ✅ Solo mostrar requests si está verificado -->
   <div *ngIf="isVerified && !loading && !error && requests.length > 0" class="requests-list">
-    <app-role-request-card *ngFor="let request of requests" [request]="request"
-      [isAdmin]="false"></app-role-request-card>
+    <app-role-request-card *ngFor="let request of requests" [request]="request" [isAdmin]="false">
+    </app-role-request-card>
   </div>
 
-  <!-- Modal -->
+  <!-- ✅ Modal solo si está verificado -->
   <app-role-request-modal *ngIf="hasCompleteProfile && isVerified" [isOpen]="isModalOpen" [currentRoles]="currentRoles"
     (close)="closeModal()" (requestSubmitted)="handleRequestSubmitted()">
   </app-role-request-modal>

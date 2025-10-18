@@ -43,8 +43,7 @@ export class ClandestineAgreementComponent implements OnInit {
   isNewOpen = signal(false);
   isEdit    = signal(false);
 
-  fTextInput = signal('');
-  fTextApplied = signal('');
+  fText = signal('');
 
   //  Datos reales desde la API
   authorities = signal<AuthorityDTO[]>([]);
@@ -66,7 +65,7 @@ export class ClandestineAgreementComponent implements OnInit {
   }
 
   filtered = computed(() => {
-    const q = this.fTextApplied().toLowerCase().trim();
+    const q = this.fText().toLowerCase().trim();
     if (!q) return this.items();
     return this.items().filter(it =>
       (it.description?.toLowerCase().includes(q) ?? false) ||
@@ -78,32 +77,6 @@ export class ClandestineAgreementComponent implements OnInit {
       (it.shelbyCouncil?.id !== undefined && String(it.shelbyCouncil.id).includes(q))
     );
   });
-
-  applyFilters() {
-    this.fTextApplied.set(this.fTextInput());
-  }
-
-  clearFilters() {
-    this.fTextInput.set('');
-    this.fTextApplied.set('');
-  }
-
-  totalAgreements = computed(() => this.items().length);
-  agreementsByStatus = computed(() => {
-    const byStatus = { ACTIVE: 0, COMPLETED: 0, CANCELLED: 0 };
-    this.items().forEach(a => {
-      if (a.status && byStatus.hasOwnProperty(a.status)) {
-        byStatus[a.status]++;
-      }
-    });
-    return byStatus;
-  });
-  uniqueAdmins = computed(() => 
-    new Set(this.items().map(i => i.admin?.dni).filter(Boolean)).size
-  );
-  uniqueAuthorities = computed(() => 
-    new Set(this.items().map(i => i.authority?.dni).filter(Boolean)).size
-  );
 
   toggleNew(): void {
     const open = !this.isNewOpen();

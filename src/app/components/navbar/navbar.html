@@ -261,16 +261,26 @@
         </ul>
       </li>
 
-      <!-- ✅ INBOX SIMPLIFICADO - Botón directo sin dropdown -->
-      <li class="menu__item" role="none" *ngIf="isAuthenticated() && (isAdmin() || isOnlyClient())">
-        <a #mainBtn role="menuitem" routerLink="/inbox" routerLinkActive="active" class="inbox-link"
-          [attr.aria-label]="'nav.inbox' | translate">
+      <!-- ✅ Bandeja UNIFICADA (ADMIN o CLIENTE base) -->
+      <li class="menu__item menu__item--dropdown" role="none" tabindex="0"
+        *ngIf="isAuthenticated() && (isAdmin() || isOnlyClient())">
+        <button #mainBtn class="dropdown__toggle has-underline icon-only" type="button" aria-haspopup="true"
+          aria-expanded="false" [class.active]="isInboxActive()" [attr.aria-label]="'nav.inbox' | translate">
           <span class="material-symbols-outlined inbox-icon" aria-hidden="true">inbox</span>
           <span *ngIf="inboxCount() > 0" class="badge" [attr.aria-label]="'nav.unread' | translate">
             {{ inboxCount() }}
           </span>
           <span class="underline"></span>
-        </a>
+        </button>
+
+        <ul class="dropdown" role="menu" aria-label="Bandeja de entrada">
+          <li class="dropdown__item" role="none">
+            <a role="menuitem" routerLink="/inbox" routerLinkActive="active">
+              📬 {{ 'nav.inbox' | translate }}
+              <span class="underline"></span>
+            </a>
+          </li>
+        </ul>
       </li>
 
       <!-- ✅ Usuario (SIMPLIFICADO) -->
@@ -314,7 +324,7 @@
 
           <li class="dropdown__divider" role="separator"></li>
 
-          <!-- ✅ Roles del usuario -->
+          <!-- ✅ Roles del usuario - CORREGIDO: usa userRoles() -->
           <li class="dropdown__item dropdown__item--info" role="none" aria-disabled="true">
             <div class="user-roles">
               <span class="roles-label">Roles:</span>
@@ -341,6 +351,8 @@
           </li>
         </ul>
       </li>
+
+
     </ul>
   </div>
 </nav>

@@ -1,12 +1,11 @@
-import { Component, Input, Output, EventEmitter,inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RoleRequest, RequestStatus } from '../../models/role-request.model';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-role-request-card',
   standalone: true,
-  imports: [CommonModule,TranslateModule],
+  imports: [CommonModule],
   templateUrl: './role-request-card.html',
   styleUrls: ['./role-requests.scss']
 })
@@ -14,7 +13,6 @@ export class RoleRequestCardComponent {
   @Input() request!: RoleRequest;
   @Input() isAdmin: boolean = false;
   @Output() review = new EventEmitter<'approve' | 'reject'>();
-  private t = inject(TranslateService);
 
   isExpanded: boolean = false;
   RequestStatus = RequestStatus;

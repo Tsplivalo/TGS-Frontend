@@ -1,14 +1,12 @@
-<!-- account.html (i18n aplicado) -->
+<!-- account.component.html -->
 <section class="account stack-lg">
   <header>
-    <h2 id="account-title">{{ 'account.title' | translate }}</h2>
+    <h2 id="account-title">Mi Cuenta</h2>
     <div class="profile-stats" *ngIf="me()">
       <span class="completeness" [class.complete]="profileCompleteness() === 100">
-        {{ profileCompleteness() }}{{ 'inbox.profileCompletenessSuffix' | translate }}
+        {{ profileCompleteness() }}% completo
       </span>
-      <span class="verified" *ngIf="me()?.emailVerified">
-        ✓ {{ 'account.infoSection.emailVerifiedYes' | translate }}
-      </span>
+      <span class="verified" *ngIf="me()?.emailVerified">✓ Email verificado</span>
     </div>
   </header>
 
@@ -17,30 +15,29 @@
     <div class="banner-content">
       <div class="banner-icon">⚠️</div>
       <div class="banner-text">
-        <strong>{{ 'account.verificationBanner.title' | translate }}</strong>
-        <p>{{ 'account.verificationBanner.desc' | translate }}</p>
+        <strong>Email no verificado</strong>
+        <p>Revisa tu bandeja de entrada y haz clic en el enlace de verificación que te enviamos.</p>
       </div>
       <button class="btn-resend" (click)="resendVerificationEmail()" [disabled]="resendingEmail()" type="button">
-        {{ resendingEmail() ? ('account.verificationBanner.sending' | translate) : ('account.verificationBanner.resend'
-        | translate) }}
+        {{ resendingEmail() ? 'Enviando...' : 'Reenviar email' }}
       </button>
     </div>
   </div>
 
   <!-- Estado de carga -->
   <div class="muted" *ngIf="loading()" role="status" aria-live="polite">
-    {{ 'account.loadingProfile' | translate }}
+    Cargando perfil...
   </div>
 
   <!-- Mensaje para completar perfil -->
   <div class="info-banner" *ngIf="showCompleteProfileMessage() && !hasPersonalInfo()" role="alert">
-    <strong>⚠️ {{ 'account.completeProfileBanner.title' | translate }}</strong>
-    <p>{{ 'account.completeProfileBanner.desc' | translate }}</p>
+    <strong>⚠️ Completa tu perfil</strong>
+    <p>Necesitas completar tu información personal para acceder a esta función.</p>
   </div>
 
   <!-- Sugerencias de perfil -->
   <div class="suggestions" *ngIf="!loading() && me() && profileCompleteness() < 100">
-    <h3>{{ 'account.improveProfile' | translate }}</h3>
+    <h3>Mejora tu perfil</h3>
     <ul>
       <li *ngFor="let suggestion of getProfileSuggestions()">{{ suggestion }}</li>
     </ul>
@@ -48,7 +45,7 @@
 
   <!-- Requisitos para comprar -->
   <div class="requirements" *ngIf="!loading() && me() && !canPurchase()">
-    <h3>{{ 'account.purchaseRequirements.title' | translate }}</h3>
+    <h3>Para realizar compras necesitas:</h3>
     <ul>
       <li *ngFor="let req of getPurchaseRequirements()">{{ req }}</li>
     </ul>
@@ -71,14 +68,14 @@
     <div class="grid">
       <!-- Username (solo lectura si ya está establecido) -->
       <label for="f-username">
-        <span>{{ 'account.fields.username' | translate }}</span>
+        <span>Usuario</span>
         <input id="f-username" name="username" [value]="me()?.username || ''" autocomplete="username" disabled
           maxlength="100" />
       </label>
 
       <!-- Email (siempre solo lectura) -->
       <label for="f-email">
-        <span>{{ 'account.fields.email' | translate }}</span>
+        <span>Email</span>
         <input id="f-email" type="email" [value]="me()?.email || ''" autocomplete="email" disabled />
       </label>
 
@@ -92,7 +89,7 @@
 
       <!-- Nombre completo -->
       <label for="f-name">
-        <span>{{ 'account.fields.firstName' | translate }} *</span>
+        <span>Nombre completo *</span>
         <input id="f-name" name="name" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
           [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" autocomplete="name" maxlength="100"
           placeholder="Juan Pérez" />
@@ -100,7 +97,7 @@
 
       <!-- Teléfono -->
       <label for="f-phone">
-        <span>{{ 'account.fields.phone' | translate }} *</span>
+        <span>Teléfono *</span>
         <input id="f-phone" name="phone" [value]="me()?.hasPersonalInfo ? '••••••••' : ''" type="tel" inputmode="tel"
           autocomplete="tel" [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" maxlength="24"
           placeholder="+54 9 11 1234-5678" />
@@ -108,7 +105,7 @@
 
       <!-- Dirección -->
       <label class="wide" for="f-address">
-        <span>{{ 'account.fields.address' | translate }} *</span>
+        <span>Dirección *</span>
         <input id="f-address" name="address" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
           autocomplete="street-address" [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo"
           maxlength="200" placeholder="Av. Siempre Viva 123" />
@@ -120,32 +117,33 @@
       <!-- Mostrar botón solo si NO tiene información personal -->
       <button type="submit" *ngIf="!me()?.hasPersonalInfo" [disabled]="saving()"
         [attr.aria-busy]="saving() ? 'true' : null">
-        {{ saving() ? ('account.actions.saving' | translate) : ('account.actions.completeProfile' | translate) }}
+        {{ saving() ? 'Guardando...' : 'Completar perfil' }}
       </button>
 
       <!-- Mensaje informativo si ya tiene datos -->
       <p class="info-text" *ngIf="me()?.hasPersonalInfo">
-        {{ 'account.readonlyNote' | translate }}
+        ℹ️ Los datos personales no pueden modificarse una vez completados.
       </p>
     </div>
   </form>
 
   <!-- Información adicional -->
   <div class="info-section" *ngIf="me()">
-    <h3>{{ 'account.infoSection.title' | translate }}</h3>
+    <h3>Información de la cuenta</h3>
     <dl>
-      <dt>{{ 'account.infoSection.status' | translate }}</dt>
-      <dd>{{ me()?.isActive ? ('account.infoSection.active' | translate) : ('account.infoSection.inactive' | translate)
-        }}</dd>
+      <dt>Estado de la cuenta:</dt>
+      <dd>{{ me()?.isActive ? '✓ Activa' : '✗ Inactiva' }}</dd>
 
-      <dt>{{ 'account.infoSection.emailVerified' | translate }}</dt>
-      <dd>{{ me()?.emailVerified ? ('account.infoSection.emailVerifiedYes' | translate) :
-        ('account.infoSection.emailVerifiedNo' | translate) }}</dd>
+      <dt>Email verificado:</dt>
+      <dd>{{ me()?.emailVerified ? '✓ Sí' : '✗ No' }}</dd>
 
-      <dt>{{ 'account.infoSection.roles' | translate }}</dt>
+      <dt>Roles:</dt>
       <dd>{{ me()?.roles?.join(', ') || 'N/A' }}</dd>
 
-      <dt>{{ 'account.infoSection.memberSince' | translate }}</dt>
+      <dt>Última sesión:</dt>
+      <dd>{{ me()?.lastLoginAt ? (me()!.lastLoginAt | date:'medium') : 'N/A' }}</dd>
+
+      <dt>Miembro desde:</dt>
       <dd>{{ me()?.createdAt | date:'longDate' }}</dd>
     </dl>
   </div>

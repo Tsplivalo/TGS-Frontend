@@ -36,8 +36,7 @@ export class PartnerComponent implements OnInit {
   error = signal<string | null>(null);
 
   // Filtros / UI
-  fTextInput = signal('');
-  fTextApplied = signal('');
+  fText = signal<string>('');
   isNewOpen = signal(false);
   isEdit = signal(false);
 
@@ -62,7 +61,7 @@ export class PartnerComponent implements OnInit {
 
   // Listado filtrado de socios
   filteredPartners = computed(() => {
-    const q = this.fTextApplied().toLowerCase().trim();
+    const q = this.fText().toLowerCase().trim();
     if (!q) return this.items();
     return this.items().filter(it =>
       it.dni.toLowerCase().includes(q) ||
@@ -132,7 +131,7 @@ export class PartnerComponent implements OnInit {
   // data
   private load(): void {
     this.loading.set(true);
-    const q = this.fTextApplied().trim() || undefined;
+    const q = this.fText().trim() || undefined;
     this.srv.list({ q }).subscribe({
       next: (res) => { this.items.set(res.data ?? []); this.loading.set(false); },
       error: (e)  => {
@@ -141,22 +140,6 @@ export class PartnerComponent implements OnInit {
       }
     });
   }
-
-  applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-  this.load(); // Recarga con el nuevo filtro
-  }
-
-  clearFilters() {
-    this.fTextInput.set('');
-    this.fTextApplied.set('');
-    this.load();
-  }
-
-  totalPartners = computed(() => this.items().length);
-  partnersWithDecisions = computed(() => 
-    this.items().filter(p => p.decisions && p.decisions.length > 0).length
-  );
 
   private loadClients(): void {
     this.clientsSrv.getAllClients().subscribe({

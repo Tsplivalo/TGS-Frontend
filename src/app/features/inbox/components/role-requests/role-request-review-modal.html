@@ -1,16 +1,14 @@
-<!-- role-request-review-modal.component.html -->
 <div class="modal-overlay" (click)="onOverlayClick($event)">
   <div class="modal review-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>{{ 'roleRequests.reviewModal.title' | translate }}</h2>
-      <button class="close-btn" type="button" (click)="onClose()">{{ 'roleRequests.reviewModal.close' | translate
-        }}</button>
+      <h2>Revisar Solicitud de Rol</h2>
+      <button class="close-btn" type="button" (click)="onClose()">×</button>
     </div>
 
     <form (ngSubmit)="onSubmit()" class="modal-body">
       <div class="request-summary">
         <div class="summary-item">
-          <span class="label">{{ 'roleRequests.reviewModal.summary.user' | translate }}</span>
+          <span class="label">Usuario:</span>
           <div class="value">
             <strong>{{ request.user.username }}</strong>
             <small>{{ request.user.email }}</small>
@@ -18,13 +16,13 @@
         </div>
 
         <div class="summary-item">
-          <span class="label">{{ 'roleRequests.reviewModal.summary.request' | translate }}</span>
+          <span class="label">Solicitud:</span>
           <div class="value">
             <div *ngIf="request.isRoleChange" class="role-change">
               <span class="role-badge">{{ getRoleLabel(request.roleToRemove!) }}</span>
               <span class="arrow">→</span>
               <span class="role-badge">{{ getRoleLabel(request.requestedRole) }}</span>
-              <small class="change-label">{{ 'roleRequests.reviewModal.changeLabel' | translate }}</small>
+              <small class="change-label">Cambio de rol</small>
             </div>
             <span *ngIf="!request.isRoleChange" class="role-badge">
               {{ getRoleLabel(request.requestedRole) }}
@@ -33,12 +31,12 @@
         </div>
 
         <div class="summary-item">
-          <span class="label">{{ 'roleRequests.reviewModal.summary.date' | translate }}</span>
+          <span class="label">Fecha:</span>
           <span class="value">{{ formatDate(request.createdAt) }}</span>
         </div>
 
         <div *ngIf="request.justification" class="summary-item full-width">
-          <span class="label">{{ 'roleRequests.reviewModal.summary.justification' | translate }}</span>
+          <span class="label">Justificación:</span>
           <p class="justification">{{ request.justification }}</p>
         </div>
       </div>
@@ -49,45 +47,43 @@
       </div>
 
       <div class="form-group">
-        <label>{{ 'roleRequests.reviewModal.decision' | translate }}</label>
+        <label>Decisión:</label>
         <div class="action-selector">
           <label [class.selected]="action === 'approve'" class="action-option">
             <input type="radio" name="action" value="approve" [(ngModel)]="action" [disabled]="isSubmitting" />
             <span class="icon">✓</span>
-            <span class="text">{{ 'roleRequests.reviewModal.approve' | translate }}</span>
+            <span class="text">Aprobar</span>
           </label>
 
           <label [class.selected]="action === 'reject'" class="action-option">
             <input type="radio" name="action" value="reject" [(ngModel)]="action" [disabled]="isSubmitting" />
             <span class="icon">✗</span>
-            <span class="text">{{ 'roleRequests.reviewModal.reject' | translate }}</span>
+            <span class="text">Rechazar</span>
           </label>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="comments">{{ 'roleRequests.reviewModal.commentsLabel' | translate }}
-          <span *ngIf="action === 'reject'">(recomendado)</span>:
+        <label for="comments">
+          Comentarios <span *ngIf="action === 'reject'">(recomendado)</span>:
         </label>
         <textarea id="comments" [(ngModel)]="comments" name="comments"
-          [placeholder]="'roleRequests.reviewModal.commentsPh' | translate" [disabled]="isSubmitting" rows="4"
+          placeholder="Añade comentarios sobre tu decisión..." [disabled]="isSubmitting" rows="4"
           maxlength="500"></textarea>
-        <div class="character-count">
-          {{ 'roleRequests.reviewModal.commentsCounter' | translate:{ n: comments.length } }}
-        </div>
+        <div class="character-count">{{ comments.length }}/500 caracteres</div>
       </div>
 
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" (click)="onClose()" [disabled]="isSubmitting">
-          {{ 'roleRequests.reviewModal.actions.cancel' | translate }}
+          Cancelar
         </button>
         <button type="submit" [class]="action === 'approve' ? 'btn btn-success' : 'btn btn-danger'"
           [disabled]="isSubmitting">
           {{ isSubmitting
-          ? ('roleRequests.reviewModal.actions.processing' | translate)
-          : (action === 'approve'
-          ? ('roleRequests.reviewModal.actions.approve' | translate)
-          : ('roleRequests.reviewModal.actions.reject' | translate)) }}
+          ? 'Procesando...'
+          : action === 'approve'
+          ? 'Aprobar Solicitud'
+          : 'Rechazar Solicitud' }}
         </button>
       </div>
     </form>

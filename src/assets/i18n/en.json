@@ -50,38 +50,7 @@
       "lastName": "Last name",
       "phone": "Phone",
       "address": "Address"
-    },
-    "verificationBanner": {
-      "title": "Email not verified",
-      "desc": "Check your inbox and click the verification link we sent you.",
-      "resend": "Resend email",
-      "sending": "Sending..."
-    },
-    "loadingProfile": "Loading profile...",
-    "completeProfileBanner": {
-      "title": "Complete your profile",
-      "desc": "You need to complete your personal information to access this feature."
-    },
-    "improveProfile": "Improve your profile",
-    "purchaseRequirements": {
-      "title": "To make purchases you need:"
-    },
-    "actions": {
-      "completeProfile": "Complete profile",
-      "saving": "Saving..."
-    },
-    "infoSection": {
-      "title": "Account information",
-      "status": "Account status:",
-      "active": "✓ Active",
-      "inactive": "✗ Inactive",
-      "emailVerified": "Email verified:",
-      "emailVerifiedYes": "✓ Yes",
-      "emailVerifiedNo": "✗ No",
-      "roles": "Roles:",
-      "memberSince": "Member since:"
-    },
-    "readonlyNote": "ℹ️ Personal data cannot be modified once completed."
+    }
   },
   "product": {
     "title": "Products",
@@ -93,17 +62,11 @@
     "list": "List",
     "loading": "Loading products...",
     "filters": {
-      "search": "Search product",
-      "stock": {
-        "all": "All products",
-        "with": "In stock",
-        "without": "Out of stock"
-      },
+      "search": "Search",
+      "stock": "Stock",
       "stock_all": "All",
       "stock_with": "With stock",
-      "stock_without": "Out of stock",
-      "searchPh": "Search by ID, description or detail...",
-      "stockLabel": "Filter by stock"
+      "stock_without": "Out of stock"
     },
     "fields": {
       "description": "Description",
@@ -122,40 +85,13 @@
     "required": "Field is required.",
     "priceInvalid": "Enter a valid price.",
     "stockInvalid": "Enter a valid stock.",
-    "imageUrlHint": "Paste a link to an image (JPG/PNG/WebP). If you prefer uploading a file, use the field below.",
-    "imageFileHint": "Optional: upload an image from your device",
+    "imageUrlHint": "Paste a link to an image (JPG/PNG/WebP). If you prefer to upload a file, use the field below.",
+    "imageFileHint": "If you upload a file, it will be uploaded first and then its URL will be saved.",
     "errorLoad": "Could not load the list.",
     "errorSave": "Could not save",
     "errorDelete": "Could not delete.",
     "descriptionRequired": "Description required (3-50 characters)",
-    "detailRequired": "Detail required (3-200 characters)",
-    "toggle": {
-      "close": "Close",
-      "new": "New Product"
-    },
-    "stats": {
-      "totalLabel": "Total:",
-      "withStockLabel": "In stock:",
-      "withoutStockLabel": "Out of stock:",
-      "filteredLabel": "Filtered:"
-    },
-    "table": {
-      "id": "ID",
-      "actions": "Actions"
-    },
-    "empty": {
-      "title": "No products",
-      "desc": "Create a new product to get started."
-    },
-    "noResults": {
-      "title": "No results",
-      "desc": "Try adjusting the filters or click \"Clear\"."
-    },
-    "badges": {
-      "yes": "Yes",
-      "no": "No"
-    },
-    "imageFile": "Image (file)"
+    "detailRequired": "Detail required (3-200 characters)"
   },
   "auth": {
     "user": "user",
@@ -233,12 +169,7 @@
     "delete": "Delete",
     "error": "Error",
     "all": "All",
-    "actions": "Actions",
-    "search": "Search",
-    "clear": "Clear",
-    "applyFiltersTitle": "Apply filters",
-    "clearFiltersTitle": "Clear filters",
-    "refresh": "Refresh"
+    "actions": "Actions"
   },
   "clients": {
     "title": "Clients",
@@ -255,15 +186,10 @@
     "filters": {
       "search": "Search",
       "searchPh": "DNI, name, email...",
-      "purchases": {
-        "all": "All clients",
-        "yes": "With purchases",
-        "no": "Without purchases"
-      },
+      "purchases": "Purchases",
       "purchases_all": "All",
       "purchases_yes": "With purchases",
-      "purchases_no": "No purchases",
-      "purchaseFilterLabel": "Filter by purchases"
+      "purchases_no": "No purchases"
     },
     "table": {
       "dni": "DNI",
@@ -271,8 +197,7 @@
       "email": "Email",
       "address": "Address",
       "phone": "Phone",
-      "purchases": "Purchases",
-      "actions": "Actions"
+      "purchases": "Purchases"
     },
     "form": {
       "dni": "DNI",
@@ -285,19 +210,7 @@
       "phonePh": "+54 9 341 ...",
       "address": "Address",
       "addressPh": "Street 123, City"
-    },
-    "toggle": {
-      "close": "Close",
-      "new": "New Client"
-    },
-    "stats": {
-      "totalLabel": "Total:",
-      "clientsNoun": "clients",
-      "withPurchasesLabel": "With purchases:",
-      "withoutPurchasesLabel": "Without purchases:",
-      "filteredLabel": "Filtered:"
-    },
-    "empty": "No clients available."
+    }
   },
   "partner": {
     "title": "Partners",
@@ -353,12 +266,7 @@
     "errorLoad": "Partners could not be loaded.",
     "errorCreate": "Partner could not be created.",
     "errorUpdate": "Partner could not be updated.",
-    "errorDelete": "Partner could not be deleted.",
-    "stats": {
-      "total": "Total partners:",
-      "withDecisions": "With decisions:",
-      "filtered": "Filtered:"
-    }
+    "errorDelete": "Partner could not be deleted."
   },
   "sales": {
     "title": "Sales",
@@ -371,8 +279,7 @@
     "filters": {
       "search": "Search",
       "searchPh": "id, product or client description",
-      "clientDni": "Client DNI",
-      "clientDniPh": "Client DNI"
+      "clientDni": "Client DNI"
     },
     "table": {
       "id": "ID",
@@ -390,25 +297,21 @@
       "clientHint": "Not listed? Create it from Clients.",
       "products": "Products",
       "searchProduct": "Search product",
-      "searchProductPh": "Search by ID or description",
+      "searchProductPh": "id or description",
       "product": "Product",
       "chooseProduct": "Choose a product",
-      "units": "units",
+      "units": "u.",
       "quantity": "Quantity",
-      "stockTitle": "Available stock: {{stock}}",
+      "stockTitle": "Stock available: {{stock}}",
       "remove": "Remove",
-      "addProduct": "Add product",
-      "create": "Create sale",
+      "addProduct": "+ Add product",
+      "create": "Create",
       "distributor": "Distributor",
-      "distributorFilterPh": "Search by ID or name",
+      "distributorFilterPh": "filter (dni or name)",
       "chooseDistributor": "Choose a distributor",
-      "distributorHint": "Select the distributor handling this sale",
-      "distributorRequired": "Distributor is required",
-      "clientRequired": "Client required",
-      "noProductsAvailable": "No products available",
-      "noProductsLoaded": "⚠️ No products loaded. Total: {{count}}",
-      "availableProductsCount": "✅ {{count}} products available",
-      "removeLineTitle": "Remove line"
+      "distributorHint": "Select the distributor who handles this sale",
+      "distributorRequired": "Distributor required",
+      "clientRequired": "Client required"
     },
     "err": {
       "clientMissing": "The client does not exist. Create it first from the \"Clients\" section.",
@@ -418,28 +321,18 @@
       "noStock": "Not enough stock. Available: {{stock}} units.",
       "create": "Could not create the sale."
     },
-    "noProductsAvailable": "No products available",
-    "toggle": {
-      "close": "Close",
-      "new": "New Sale"
-    },
-    "stats": {
-      "totalLabel": "Total sales:",
-      "revenueLabel": "Total revenue:",
-      "filteredLabel": "Filtered:"
-    },
-    "empty": "No sales recorded"
+    "noProductsAvailable": "No products available"
   },
   "zones": {
     "title": "Zones",
-    "new": "New Zone",
+    "new": "New zone",
     "close": "Close",
-    "loading": "Loading zones…",
+    "loading": "Loading...",
     "headquarters": "Headquarters",
-    "noHeadquarters": "No headquarters set.",
+    "noHeadquarters": "No headquarters defined yet.",
     "filters": {
-      "search": "Search zone",
-      "searchPh": "Search by name or description…"
+      "search": "Search",
+      "searchPh": "ID, name or description..."
     },
     "table": {
       "id": "ID",
@@ -447,18 +340,18 @@
       "description": "Description",
       "actions": "Actions"
     },
-    "empty": "No zones recorded",
+    "empty": "No zones to show.",
     "form": {
       "createTitle": "Create zone",
       "editTitle": "Edit zone #{{id}}",
       "name": "Name",
-      "namePh": "e.g., North District",
+      "namePh": "e.g. South Zone",
       "description": "Description",
-      "descriptionPh": "Short description of the zone",
+      "descriptionPh": "Optional",
       "markHq": "Mark as headquarters",
       "err": {
-        "required": "This field is required",
-        "duplicate": "A zone with that name already exists"
+        "required": "The name is required.",
+        "duplicate": "A zone with that name already exists (regardless of case)."
       }
     },
     "confirmDelete": "Delete zone \"{{name}}\"?",
@@ -467,12 +360,7 @@
     },
     "errorLoad": "Could not load zones.",
     "errorSave": "Could not save the zone.",
-    "errorDelete": "Could not delete.",
-    "stats": {
-      "totalLabel": "Total zones:",
-      "filteredLabel": "Filtered:"
-    },
-    "noResults": "No results"
+    "errorDelete": "Could not delete."
   },
   "authorities": {
     "title": "Authorities",
@@ -487,7 +375,7 @@
       "search": "Search",
       "searchPh": "dni / name / rank",
       "zoneId": "Zone ID",
-      "zoneIdPh": "Zone ID"
+      "zoneIdPh": "1"
     },
     "table": {
       "dni": "DNI",
@@ -524,18 +412,6 @@
     },
     "err": {
       "zoneIdInvalid": "Zone ID must be a valid number greater than 0."
-    },
-    "toggle": {
-      "close": "Close",
-      "new": "New Authority"
-    },
-    "stats": {
-      "totalLabel": "Total",
-      "rank0Label": "Rank 0",
-      "rank1Label": "Rank 1",
-      "rank2Label": "Rank 2",
-      "rank3Label": "Rank 3",
-      "filteredLabel": "Filtered"
     }
   },
   "bribes": {
@@ -544,24 +420,24 @@
     "newTitle": "Create New Bribe",
     "editTitle": "Edit Bribe",
     "loading": "Loading bribes...",
-    "noResults": "No results for the applied filter",
+    "noResults": "No bribes found",
     "confirmPay": "Confirm payment of this bribe?",
     "confirmDelete": "Delete this bribe? This action cannot be undone.",
     "filters": {
       "search": "Search",
       "searchPh": "Search by ID, amount, authority...",
-      "paid": "Paid",
+      "paid": "Payment Status",
       "paid_all": "All",
-      "paid_yes": "Yes",
-      "paid_no": "No",
-      "dateType": "Date",
-      "dateType_all": "All",
-      "dateType_exact": "Exact",
+      "paid_yes": "Paid",
+      "paid_no": "Pending",
+      "dateType": "Date Type",
+      "dateType_all": "All dates",
+      "dateType_exact": "Exact date",
       "dateType_before": "Before",
       "dateType_after": "After",
-      "dateType_between": "Between",
+      "dateType_between": "Between dates",
       "date": "Date",
-      "endDate": "Until"
+      "endDate": "End Date"
     },
     "table": {
       "id": "ID",
@@ -569,26 +445,23 @@
       "authority": "Authority",
       "sale": "Sale",
       "paid": "Status",
-      "date": "Creation Date",
-      "actions": "Actions"
+      "date": "Creation Date"
     },
     "status": {
       "paid": "Paid",
       "pending": "Pending"
     },
     "actions": {
-      "pay": "Mark as paid"
+      "pay": "Mark as Paid"
     },
     "form": {
       "amount": "Amount",
-      "amountPh": "e.g., 15000.00",
+      "amountPh": "Enter bribe amount",
       "authority": "Authority ID",
       "authorityPh": "Enter authority ID",
       "sale": "Sale ID",
       "salePh": "Enter sale ID",
-      "editNote": "You can only edit the amount and payment status.",
-      "authority_placeholder": "— Select an authority —",
-      "sale_placeholder": "— Select a sale —"
+      "editNote": "Note: Only the amount can be edited. Authority and sale cannot be modified."
     },
     "errors": {
       "amountRequired": "Amount is required",
@@ -602,16 +475,7 @@
     "errorCreate": "Error creating bribe",
     "errorSave": "Error saving bribe",
     "errorPay": "Error processing payment",
-    "errorDelete": "Error deleting bribe",
-    "stats": {
-      "total": "Total bribes",
-      "amount": "Total amount",
-      "paid": "Paid",
-      "pending": "Pending",
-      "pendingAmount": "Pending amount",
-      "filtered": "Filtered"
-    },
-    "empty": "No bribes recorded"
+    "errorDelete": "Error deleting bribe"
   },
   "decisions": {
     "title": "Strategic decisions",
@@ -621,7 +485,7 @@
       "search": "Search",
       "searchPh": "text or id",
       "topic": "Thematic (ID)",
-      "topicPh": "filter by topic id"
+      "topicPh": "filter by thematic id"
     },
     "table": {
       "id": "ID",
@@ -642,17 +506,7 @@
       "descriptionPh": "Description of the strategic decision",
       "start": "Start date",
       "end": "End date"
-    },
-    "toggle": {
-      "close": "Close",
-      "new": "New Decision"
-    },
-    "stats": {
-      "total": "Total:",
-      "active": "Active:",
-      "filtered": "Filtered:"
-    },
-    "noResults": "No results for the applied filter"
+    }
   },
   "topics": {
     "title": "Topics",
@@ -683,12 +537,7 @@
     "errorLoad": "Could not load topics.",
     "errorCreate": "Could not create.",
     "errorSave": "Could not save.",
-    "errorDelete": "Could not delete.",
-    "stats": {
-      "total": "Total topics:",
-      "filtered": "Filtered:"
-    },
-    "noResults": "No results for the applied filter"
+    "errorDelete": "Could not delete."
   },
   "distributors": {
     "title": "Distributors",
@@ -726,9 +575,9 @@
       "address": "Address",
       "addressPh": "Street and number",
       "zone": "Zone",
-      "chooseZone": "Choose a zone",
+      "chooseZone": "Choose zone",
       "products": "Products",
-      "multiHint": "You can select multiple products",
+      "multiHint": "Hold Ctrl/Cmd to multi-select",
       "err": {
         "dni": "DNI required.",
         "name": "Name required.",
@@ -736,25 +585,12 @@
         "email": "Valid email required.",
         "zone": "Zone required.",
         "fill": "Please complete the required fields."
-      },
-      "noProducts": "No products available"
+      }
     },
     "errorLoad": "Could not load.",
     "errorCreate": "Could not create (check required data).",
     "errorSave": "Could not save.",
-    "errorDelete": "Could not delete.",
-    "toggle": {
-      "new": "New Distributor"
-    },
-    "stats": {
-      "total": "Total:",
-      "withProducts": "With products:",
-      "filtered": "Filtered:"
-    },
-    "noResults": {
-      "title": "No results",
-      "desc": "Try adjusting the filter"
-    }
+    "errorDelete": "Could not delete."
   },
   "mgmt": {
     "product": "Products",
@@ -820,10 +656,6 @@
       "errorCreating": "Error creating",
       "errorSaving": "Error saving",
       "errorLoading": "Error loading"
-    },
-    "stats": {
-      "totalLabel": "Total admins:",
-      "filteredLabel": "Filtered:"
     }
   },
   "roleRequest": {
@@ -897,13 +729,7 @@
     "errorSave": "Could not save",
     "errorLoad": "Could not load",
     "errorDelete": "Could not delete",
-    "confirmDelete": "Delete this entry?",
-    "stats": {
-      "total": "Total records",
-      "uniquePartners": "Unique partners",
-      "uniqueDecisions": "Unique decisions",
-      "filtered": "Filtered"
-    }
+    "confirmDelete": "Delete this entry?"
   },
   "monthlyReview": {
     "title": "Monthly Reviews",
@@ -924,14 +750,7 @@
       "byProduct": "By Product",
       "productName": "Product",
       "quantity": "Quantity",
-      "amount": "Amount",
-      "total": "Total",
-      "pending": "Pending",
-      "inReview": "In review",
-      "completed": "Completed",
-      "approved": "Approved",
-      "rejected": "Rejected",
-      "filtered": "Filtered"
+      "amount": "Amount"
     },
     "list": "List of Reviews",
     "emptyTitle": "No reviews",
@@ -1015,15 +834,6 @@
       "hints": {
         "cannotChangeRelations": "Relationships cannot be changed after creating the agreement"
       }
-    },
-    "stats": {
-      "total": "Total",
-      "active": "Active",
-      "completed": "Completed",
-      "cancelled": "Cancelled",
-      "uniqueAdmins": "Unique admins",
-      "uniqueAuthorities": "Unique authorities",
-      "filtered": "Filtered"
     }
   },
   "buttons": {
@@ -1032,284 +842,5 @@
     "save": "Save",
     "clear": "Clear",
     "cancel": "Cancel"
-  },
-  "inbox": {
-    "title": "Inbox",
-    "loading": "Loading inbox...",
-    "profileCompletenessSuffix": "% complete",
-    "verified": "✅ Verified",
-    "notVerified": "⏳ Not Verified",
-    "tabs": {
-      "userVerificationPlural": "✅ User verification",
-      "roleRequestsPlural": "📋 Role requests",
-      "userVerification": "✅ User verification",
-      "roleRequest": "📋 Role request"
-    },
-    "blocked": {
-      "title": "Blocked section",
-      "desc": "You need to verify your account before requesting special roles. Please complete verification in the previous tab.",
-      "goVerify": "Go to verification"
-    },
-    "userView": {
-      "myRoleRequestTitle": "My role request",
-      "myRoleRequestDesc": "Here you can request special roles like Partner or Distributor."
-    },
-    "notAuth": {
-      "title": "Session required",
-      "desc": "You need to sign in to access this page.",
-      "login": "Sign in"
-    }
-  },
-  "userVerification": {
-    "status": {
-      "title": "User Verification",
-      "subtitle": "Verifying your account unlocks advanced features",
-      "loading": "Loading verification status...",
-      "error": {
-        "title": "Error",
-        "close": "Close"
-      },
-      "verified": {
-        "title": "Account Verified",
-        "desc": "Your account has been verified successfully by an administrator.",
-        "benefitsTitle": "Benefits of verification:",
-        "benefits": [
-          "✓ Full access to advanced features",
-          "✓ Ability to make purchases",
-          "✓ Ability to request special roles",
-          "✓ Priority technical support"
-        ]
-      },
-      "request": {
-        "title": "Account Verification",
-        "desc": "To access all features, you need to verify your account. This verification is reviewed manually by an administrator."
-      },
-      "profileIncomplete": {
-        "title": "Incomplete Profile",
-        "desc": "You must complete your profile to 100% before requesting verification. Make sure you have all personal data (ID, name, email, phone and address).",
-        "completeNow": "Complete Profile Now"
-      },
-      "progress": {
-        "title": "Your Progress",
-        "created": "Account created",
-        "emailVerified": "Email verified",
-        "profileCompleted": "Profile completed ({{percent}}%)",
-        "adminVerification": "Admin verification"
-      },
-      "requirements": {
-        "title": "Requirements for verification:",
-        "profile100": "100% complete profile",
-        "emailVerified": "Email verified",
-        "personalData": "Personal data completed (ID, name, phone, address)"
-      },
-      "buttons": {
-        "request": "Request Verification",
-        "requestAgain": "Request Again",
-        "sending": "Sending...",
-        "resend": "Resend Notification",
-        "resending": "Resending..."
-      },
-      "help": {
-        "completeProfile": "Complete your profile to request verification of your account."
-      },
-      "pending": {
-        "title": "Request Under Review",
-        "desc": "Your verification request is being reviewed by an administrator. You will receive a notification when it is approved or rejected.",
-        "details": {
-          "requestedAt": "Request date:",
-          "expiresAt": "Expires:",
-          "email": "Email:"
-        },
-        "infoBox": {
-          "waitTitle": "Estimated time:",
-          "waitDesc": "Verifications are usually processed within 24–48 business hours."
-        }
-      },
-      "rejected": {
-        "title": "Request Rejected",
-        "desc": "Your verification request was rejected by an administrator. Please review your data and try again."
-      },
-      "expired": {
-        "title": "Request Expired",
-        "desc": "Your verification request has expired. You can request a new verification."
-      }
-    },
-    "card": {
-      "infoTitle": "Request Information",
-      "labels": {
-        "email": "Email:",
-        "requestedAt": "Request date:",
-        "expiresAt": "Expires:",
-        "attempts": "Attempts:",
-        "verifiedAt": "Verified at:",
-        "updatedAt": "Last update:"
-      },
-      "reviewBtn": "Review Verification",
-      "expandAria": "Expand details"
-    },
-    "reviewModal": {
-      "title": "Review User Verification",
-      "closeAria": "Close",
-      "summary": {
-        "email": "Email:",
-        "requestedAt": "Request date:",
-        "expiresAt": "Expires:",
-        "attempts": "Attempts:"
-      },
-      "errorPrefix": "Error",
-      "decision": "Decision:",
-      "approve": "Approve",
-      "reject": "Reject",
-      "rejectReasonLabel": "Rejection reason",
-      "rejectReasonOptional": "(optional)",
-      "rejectReasonPh": "Explain why the verification is rejected (optional, minimum 3 characters if provided)",
-      "rejectReasonCounter": "{{n}}/500 characters",
-      "rejectReasonMinWarn": "(minimum 3 if you provide a reason)",
-      "rejectReasonHelp": "This reason will be visible to the user in case of rejection.",
-      "approveInfoTitle": "When approving this verification:",
-      "approveInfoList": [
-        "The user will be marked as verified",
-        "Their profile completeness will be updated to 100%",
-        "They will receive a confirmation email",
-        "They will be able to make purchases",
-        "They will be able to request special roles"
-      ],
-      "actions": {
-        "cancel": "Cancel",
-        "processing": "Processing...",
-        "approve": "Approve Verification",
-        "reject": "Reject Verification"
-      }
-    },
-    "adminInbox": {
-      "title": "User Verifications",
-      "subtitle": "Review and manage user verification requests",
-      "pendingLabel": "Pending",
-      "loading": "Loading verifications...",
-      "errorRetry": "Retry",
-      "filters": {
-        "status": {
-          "label": "Status:",
-          "all": "All",
-          "pending": "Pending",
-          "verified": "Verified",
-          "rejected": "Rejected",
-          "expired": "Expired"
-        }
-      },
-      "refresh": "Refresh",
-      "empty": {
-        "title": "No verifications",
-        "desc": "No verifications were found with the selected filters"
-      }
-    }
-  },
-  "roleRequests": {
-    "inbox": {
-      "title": "My Role Requests",
-      "subtitle": "Manage your special role requests",
-      "newBtn": "New Request",
-      "verifyRequiredBadge": "Verify your account to request roles",
-      "completeProfileRequired": "Complete your profile to request roles",
-      "verifyRequiredTitle": "Verification Required",
-      "verifyRequiredDesc": "An administrator must verify your account before you can request special roles. Please complete the verification process in the \"User Verification\" tab.",
-      "loading": "Loading requests...",
-      "errorRetry": "Retry",
-      "emptyTitle": "You have no requests",
-      "emptyDescVerified": "When you submit a special role request, it will appear here",
-      "emptyDescIncomplete": "Complete your profile to be able to request special roles",
-      "createFirstBtn": "Create First Request"
-    },
-    "reviewModal": {
-      "title": "Review Role Request",
-      "close": "Close",
-      "summary": {
-        "user": "User:",
-        "request": "Request:",
-        "date": "Date:",
-        "justification": "Justification:"
-      },
-      "decision": "Decision:",
-      "approve": "Approve",
-      "reject": "Reject",
-      "commentsLabel": "Comments",
-      "commentsPh": "Add comments about your decision...",
-      "commentsCounter": "{{n}}/500 characters",
-      "actions": {
-        "cancel": "Cancel",
-        "processing": "Processing...",
-        "approve": "Approve Request",
-        "reject": "Reject Request"
-      },
-      "changeLabel": "Role change"
-    },
-    "modal": {
-      "title": "Request Special Role",
-      "changeToggle": "Exchange one of your current roles for another",
-      "changeHelp": "If you want to swap one of your current roles for another, enable this option",
-      "roleToRemove": "Role to remove",
-      "roleToRemoveRequired": "Role to remove *",
-      "roleToRemovePh": "Select the role to remove",
-      "requestedRole": "Requested role *",
-      "requestedRolePh": "Select a role",
-      "roleDescription": "Description",
-      "justification": "Justification",
-      "justificationOptional": "(optional)",
-      "justificationPh": "Explain why you request this role (optional, minimum 20 characters if provided)",
-      "justCounter": "{{n}}/500 characters",
-      "justMinWarn": "(minimum 20 if you provide justification)",
-      "incompatibleNote": "Note: the role {{role}} is incompatible with: {{list}}",
-      "actions": {
-        "cancel": "Cancel",
-        "submit": "Submit Request",
-        "sending": "Sending..."
-      }
-    },
-    "card": {
-      "changeLabel": "Role change",
-      "newLabel": "New request",
-      "titles": {
-        "justification": "Justification",
-        "info": "Information",
-        "adminComments": "Administrator Comments"
-      },
-      "labels": {
-        "createdAt": "Request date:",
-        "reviewedAt": "Reviewed at:",
-        "reviewedBy": "Reviewed by:"
-      },
-      "actions": {
-        "approve": "Approve",
-        "reject": "Reject"
-      }
-    },
-    "adminInbox": {
-      "title": "Role Requests",
-      "subtitle": "Review and manage special role requests",
-      "pendingLabel": "Pending",
-      "loading": "Loading requests...",
-      "errorRetry": "Retry",
-      "filters": {
-        "status": {
-          "label": "Status:",
-          "all": "All",
-          "pending": "Pending",
-          "approved": "Approved",
-          "rejected": "Rejected"
-        },
-        "role": {
-          "label": "Role:",
-          "all": "All",
-          "partner": "Partner",
-          "distributor": "Distributor",
-          "authority": "Authority"
-        }
-      },
-      "refresh": "Refresh",
-      "empty": {
-        "title": "No requests",
-        "desc": "No requests were found with the selected filters"
-      }
-    }
   }
 }

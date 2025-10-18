@@ -6,44 +6,21 @@
       <h2>{{ 'sales.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
-          {{ isNewOpen ? ('sales.toggle.close' | translate) : ('sales.toggle.new' | translate) }}
+          {{ (isNewOpen ? 'Cerrar' : 'Nueva Venta') | translate }}
         </button>
       </div>
     </div>
 
-    <!-- Estadísticas -->
-    <div *ngIf="!loading() && sales().length > 0" class="filters"
-      style="background: rgba(195, 164, 98, 0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2);">
-      <span class="muted"><strong>{{ 'sales.stats.totalLabel' | translate }}</strong> {{ totalSales() }}</span>
-      <span class="muted"><strong>{{ 'sales.stats.revenueLabel' | translate }}</strong> {{ totalRevenue() |
-        currency:'ARS' }}</span>
-      <span class="muted" *ngIf="fTextApplied()"><strong>{{ 'sales.stats.filteredLabel' | translate }}</strong> {{
-        filteredSales().length }}</span>
-    </div>
-
-    <!-- Filtros -->
-    <div class="filters" style="align-items: flex-end;">
-      <label class="label" style="flex: 1;">
+    <!-- Filters -->
+    <div class="filters">
+      <label class="label">
         <span>{{ 'sales.filters.search' | translate }}</span>
-        <input class="input" [placeholder]="'sales.filters.searchPh' | translate" [ngModel]="fTextInput()"
-          (ngModelChange)="fTextInput.set($event)" (keyup.enter)="applyFilters()" />
+        <input class="input" [placeholder]="'sales.filters.searchPh' | translate" [(ngModel)]="fText" />
       </label>
-
-      <label class="label" style="min-width: 180px;">
+      <label class="label">
         <span>{{ 'sales.filters.clientDni' | translate }}</span>
-        <input class="input" maxlength="8" [placeholder]="'sales.filters.clientDniPh' | translate"
-          [ngModel]="fClientDniInput()" (ngModelChange)="fClientDniInput.set($event)" (keyup.enter)="applyFilters()" />
+        <input class="input" maxlength="8" [(ngModel)]="fClientDni" />
       </label>
-
-      <!-- Botones -->
-      <div style="display: flex; gap: var(--sp-2);">
-        <button class="btn btn-primary" type="button" (click)="applyFilters()">
-          🔍 {{ 'common.search' | translate }}
-        </button>
-        <button class="btn ghost" type="button" (click)="clearFilters()" *ngIf="fTextApplied() || fClientDniApplied()">
-          🗑️ {{ 'common.clear' | translate }}
-        </button>
-      </div>
     </div>
 
     <!-- Table -->
@@ -103,11 +80,7 @@
           }
           @if (filteredSales().length === 0) {
           <tr>
-            <td colspan="7" class="center muted">
-              {{ (fTextApplied() || fClientDniApplied())
-              ? ('sales.noResults' | translate)
-              : ('sales.empty' | translate) }}
-            </td>
+            <td colspan="7" class="center muted">{{ 'sales.noResults' | translate }}</td>
           </tr>
           }
         </tbody>
@@ -148,18 +121,21 @@
         <!-- Distributor - NUEVO CAMPO REQUERIDO -->
         <label class="label">
           <span>{{ 'sales.form.distributor' | translate }} *</span>
-          <input class="input" [placeholder]="'sales.form.distributorFilterPh' | translate" maxlength="8"
+          <input class="input"
+            [placeholder]="'sales.form.distributorFilterPh' | translate : {} : 'Buscar por DNI o nombre'" maxlength="8"
             [(ngModel)]="distributorFilter" [ngModelOptions]="{standalone: true}" name="fltDistributor" />
 
           <select class="input" formControlName="distributorDni">
-            <option [ngValue]="null" disabled>{{ 'sales.form.chooseDistributor' | translate }}</option>
+            <option [ngValue]="null" disabled>{{ 'sales.form.chooseDistributor' | translate : {} : 'Elegí un
+              distribuidor' }}</option>
             @for (d of filteredDistributors(); track d.dni) {
             <option [ngValue]="d.dni">{{ d.dni }} - {{ d.name }}</option>
             }
           </select>
-          <small class="muted">{{ 'sales.form.distributorHint' | translate }}</small>
+          <small class="muted">{{ 'sales.form.distributorHint' | translate : {} : 'Seleccioná el distribuidor que
+            gestiona esta venta' }}</small>
           <small class="hint" *ngIf="distributorControl.invalid && distributorControl.touched">
-            {{ 'sales.form.distributorRequired' | translate }}
+            {{ 'sales.form.distributorRequired' | translate : {} : 'Distribuidor requerido' }}
           </small>
         </label>
 
@@ -189,15 +165,14 @@
                   </option>
                   }
                   @empty {
-                  <option disabled>{{ 'sales.form.noProductsAvailable' | translate }}</option>
+                  <option disabled>No hay productos disponibles</option>
                   }
                 </select>
                 <small class="muted" *ngIf="products().length === 0">
-                  {{ 'sales.form.noProductsLoaded' | translate:{count: products().length} }}
+                  ⚠️ No se cargaron productos. Total: {{ products().length }}
                 </small>
                 <small class="muted" *ngIf="products().length > 0">
-                  {{ 'sales.form.availableProductsCount' | translate:{count: filteredProductsBy(l.filter || '').length}
-                  }}
+                  ✅ {{ filteredProductsBy(l.filter || '').length }} productos disponibles
                 </small>
               </label>
             </div>
@@ -213,8 +188,7 @@
             </div>
 
             <div class="linea__cell actions">
-              <button class="btn danger btn--icon" type="button" (click)="removeLine(i)"
-                [attr.title]="'sales.form.removeLineTitle' | translate">
+              <button class="btn danger btn--icon" type="button" (click)="removeLine(i)" title="Eliminar línea">
                 🗑️
               </button>
             </div>
@@ -233,7 +207,7 @@
             {{ 'sales.form.create' | translate }}
           </button>
           <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'common.cancel' | translate }}
+            {{ 'Cancelar' | translate }}
           </button>
         </div>
       </form>

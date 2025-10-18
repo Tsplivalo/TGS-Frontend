@@ -54,8 +54,7 @@ export class DistributorComponent implements OnInit {
   list = signal<DistributorDTO[]>([]);
   zones = signal<ZoneDTO[]>([]);
   products = signal<ProductDTO[]>([]);
-  fTextInput = signal('');
-  fTextApplied = signal('');
+  fText = '';
 
   // --- UI ---
   isFormOpen = false;
@@ -141,23 +140,9 @@ export class DistributorComponent implements OnInit {
     });
   }
 
-  applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-}
-
-  clearFilters() {
-    this.fTextInput.set('');
-    this.fTextApplied.set('');
-  }
-
-  totalDistributors = computed(() => this.list().length);
-  distributorsWithProducts = computed(() => 
-    this.list().filter(d => d.products && d.products.length > 0).length
-  );
-
   // --- Listado filtrado ---
   filtered = computed(() => {
-    const q = this.fTextApplied().toLowerCase().trim();
+    const q = (this.fText || '').toLowerCase().trim();
     if (!q) return this.list();
     return this.list().filter(d =>
       String(d.dni).includes(q) ||

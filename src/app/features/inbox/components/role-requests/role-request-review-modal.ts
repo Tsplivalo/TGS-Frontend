@@ -1,14 +1,13 @@
-import { Component, Input, Output, EventEmitter,inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RoleRequest } from '../../models/role-request.model.js';
 import { RoleRequestService } from '../../services/role-request.js';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-role-request-review-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule,TranslateModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './role-request-review-modal.html',
   styleUrls: ['./role-requests.scss']
 })
@@ -21,8 +20,6 @@ export class RoleRequestReviewModalComponent {
   comments: string = '';
   isSubmitting: boolean = false;
   error: string | null = null;
-
-  private t = inject(TranslateService);
 
   constructor(private roleRequestService: RoleRequestService) {}
 

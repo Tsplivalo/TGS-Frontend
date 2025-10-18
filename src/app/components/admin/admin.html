@@ -11,29 +11,13 @@
       </div>
     </header>
 
-    <div *ngIf="!loading() && items().length > 0"
-      style="display: flex; gap: var(--sp-4); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
-      <span class="muted"><strong>{{ 'admin.stats.totalLabel' | translate }}</strong> {{ totalAdmins() }}</span>
-      <span class="muted" *ngIf="fTextApplied()"><strong>{{ 'admin.stats.filteredLabel' | translate }}</strong> {{
-        filtered().length }}</span>
-    </div>
-
     <!-- FILTROS -->
-    <section class="filters" style="align-items: flex-end;">
-      <label class="label" style="flex: 1;">
+    <section class="filters">
+      <label class="label">
         <span>{{ 'admin.filters.search' | translate }}</span>
-        <input class="input" type="text" [ngModel]="fTextInput()" (ngModelChange)="fTextInput.set($event)"
-          (keyup.enter)="applyFilters()" [placeholder]="'admin.filters.searchPlaceholder' | translate" />
+        <input class="input" type="text" [ngModel]="fText()" (ngModelChange)="fText.set($event)"
+          [placeholder]="'admin.filters.searchPlaceholder' | translate" />
       </label>
-
-      <div style="display: flex; gap: var(--sp-2);">
-        <button class="btn btn-primary" type="button" (click)="applyFilters()">
-          🔍 {{ 'common.search' | translate }}
-        </button>
-        <button class="btn ghost" type="button" (click)="clearFilters()" *ngIf="fTextApplied()">
-          🗑️ {{ 'common.clear' | translate }}
-        </button>
-      </div>
     </section>
 
     <!-- MENSAJES -->
@@ -79,10 +63,8 @@
       <!-- Empty state -->
       <ng-template #emptyState>
         <div class="empty empty-state">
-          <h3>{{ fTextApplied() ? ('distributors.noResults.title' | translate) : ('admin.emptyTitle' | translate) }}
-          </h3>
-          <p class="muted">{{ fTextApplied() ? ('distributors.noResults.desc' | translate) : ('admin.emptyHint' |
-            translate) }}</p>
+          <h3>{{ 'admin.emptyTitle' | translate }}</h3>
+          <p class="muted">{{ 'admin.emptyHint' | translate }}</p>
         </div>
       </ng-template>
     </section>

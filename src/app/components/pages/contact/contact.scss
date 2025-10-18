@@ -204,20 +204,6 @@
   }
 }
 
-/* Enlaces con íconos */
-.with-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-}
-
-.channel-icon {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
 /* Dirección + CTA */
 .address {
   margin: .15rem 0 .6rem;
@@ -237,13 +223,6 @@
   font-weight: 800;
   text-decoration: none;
   transition: transform .15s ease, background .2s ease, border-color .2s ease;
-}
-
-.pill-icon {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  flex-shrink: 0;
 }
 
 .pill-link:hover {
@@ -294,20 +273,11 @@
   color: var(--text);
   text-decoration: none;
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas: "icon title chev" "icon value chev" "icon hint chev";
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "title chev" "value chev" "hint chev";
   row-gap: .15rem;
   column-gap: .6rem;
   transition: transform .18s ease, background .2s ease, border-color .2s ease;
-}
-
-.quick-icon {
-  grid-area: icon;
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  align-self: center;
-  flex-shrink: 0;
 }
 
 .quick:hover {

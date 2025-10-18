@@ -22,10 +22,7 @@
             <div class="item-line">
               <span class="label">{{ c.label }}</span>
               <span class="value">
-                <a class="link with-icon" [href]="c.href" target="_self" rel="noopener">
-                  <img [src]="c.icon" [alt]="c.label + ' icon'" class="channel-icon" *ngIf="c.icon">
-                  {{ c.value }}
-                </a>
+                <a class="link" [href]="c.href" target="_self" rel="noopener">{{ c.value }}</a>
               </span>
             </div>
             <div class="hint muted" *ngIf="c.hint">{{ c.hint }}</div>
@@ -56,10 +53,7 @@
         </header>
 
         <p class="address">{{ address }}</p>
-        <a class="link pill-link" [href]="mapHref" target="_blank" rel="noopener">
-          <img [src]="mapIcon" alt="Google Maps icon" class="pill-icon">
-          Ver en Google Maps
-        </a>
+        <a class="link pill-link" [href]="mapHref" target="_blank" rel="noopener">Ver en Google Maps</a>
       </article>
     </div>
   </section>
@@ -73,7 +67,6 @@
 
     <div class="links-grid">
       <a class="quick" *ngFor="let l of links" [href]="l.href" target="_blank" rel="noopener">
-        <img [src]="l.icon" [alt]="l.label + ' icon'" class="quick-icon" *ngIf="l.icon">
         <span class="quick__title">{{ l.label }}</span>
         <span class="quick__value">{{ l.value }}</span>
         <span class="chev" aria-hidden="true"></span>

@@ -1,4 +1,4 @@
-import { Component, OnInit,inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RoleRequestService } from '../../services/role-request';
@@ -7,12 +7,11 @@ import { Role } from '../../../../models/user/user.model';
 import { RoleRequestCardComponent } from './role-request-card';
 import { RoleRequestReviewModalComponent } from './role-request-review-modal';
 import { AuthService } from '../../../../services/auth/auth';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-admin-role-requests-inbox',
   standalone: true,
-  imports: [CommonModule, FormsModule, RoleRequestCardComponent, RoleRequestReviewModalComponent,TranslateModule],
+  imports: [CommonModule, FormsModule, RoleRequestCardComponent, RoleRequestReviewModalComponent],
   templateUrl: './admin-role-requests-inbox.html',
   styleUrls: ['./role-requests.scss']
 })
@@ -25,8 +24,6 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
   statusFilter: RequestStatus | 'ALL' = RequestStatus.PENDING;
   roleFilter: Role | 'ALL' = 'ALL';
   reviewingRequest: RoleRequest | null = null;
-
-  private t = inject(TranslateService);
 
   RequestStatus = RequestStatus;
   Role = Role;

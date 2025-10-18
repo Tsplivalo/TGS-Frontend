@@ -55,39 +55,34 @@ export class BribeComponent implements OnInit {
   sales = signal<SaleDTO[]>([]);
 
   // --- Filtros ---
-  fTextInput = signal('');
-  fTextApplied = signal('');
-  fPaidInput = signal<'all' | 'true' | 'false'>('all');
-  fPaidApplied = signal<'all' | 'true' | 'false'>('all');
-  fDateTypeInput = signal<'all' | 'exact' | 'before' | 'after' | 'between'>('all');
-  fDateTypeApplied = signal<'all' | 'exact' | 'before' | 'after' | 'between'>('all');
-  fDateInput = signal('');
-  fDateApplied = signal('');
-  fEndDateInput = signal('');
-  fEndDateApplied = signal('');
+  fText = signal('');
+  fPaid: 'all' | 'true' | 'false' = 'all';
+  fDateType: 'all' | 'exact' | 'before' | 'after' | 'between' = 'all';
+  fDate = '';
+  fEndDate = '';
 
   // Filtrado reactivo
   filteredBribes = computed(() => {
-  const txt = this.fTextApplied().toLowerCase().trim();
-  const paidFilter = this.fPaidApplied();
+    const txt = this.fText().toLowerCase().trim();
+    const paidFilter = this.fPaid;
 
-  return this.bribes().filter(b => {
-    // Filtro por texto
-    const matchText = !txt
-      || String(b.id).includes(txt)
-      || String(b.amount).includes(txt)
-      || b.authority?.name.toLowerCase().includes(txt)
-      || b.authority?.dni.includes(txt)
-      || String(b.sale?.id).includes(txt);
+    return this.bribes().filter(b => {
+      // Filtro por texto
+      const matchText = !txt
+        || String(b.id).includes(txt)
+        || String(b.amount).includes(txt)
+        || b.authority?.name.toLowerCase().includes(txt)
+        || b.authority?.dni.includes(txt)
+        || String(b.sale?.id).includes(txt);
 
-    // Filtro por estado de pago
-    const matchPaid = paidFilter === 'all'
-      || (paidFilter === 'true' && b.paid)
-      || (paidFilter === 'false' && !b.paid);
+      // Filtro por estado de pago
+      const matchPaid = paidFilter === 'all'
+        || (paidFilter === 'true' && b.paid)
+        || (paidFilter === 'false' && !b.paid);
 
-    return matchText && matchPaid;
+      return matchText && matchPaid;
+    });
   });
-});
 
   // --- Form reactivo ---
   form = this.fb.group({
@@ -113,7 +108,8 @@ export class BribeComponent implements OnInit {
     this.error.set(null);
 
     // Si hay filtros activos en sobornos, usar search
-const bribesRequest = (this.fPaidApplied() !== 'all' || this.fDateTypeApplied() !== 'all')      ? this.getBribesFiltered()
+    const bribesRequest = (this.fPaid !== 'all' || this.fDateType !== 'all')
+      ? this.getBribesFiltered()
       : this.srv.getAllBribes();
 
     forkJoin({
@@ -141,56 +137,17 @@ const bribesRequest = (this.fPaidApplied() !== 'all' || this.fDateTypeApplied() 
     });
   }
 
-  applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-  this.fPaidApplied.set(this.fPaidInput());
-  this.fDateTypeApplied.set(this.fDateTypeInput());
-  this.fDateApplied.set(this.fDateInput());
-  this.fEndDateApplied.set(this.fEndDateInput());
-  this.loadAll(); // Recarga datos si hay filtros de fecha
-}
-
-clearFilters() {
-  this.fTextInput.set('');
-  this.fPaidInput.set('all');
-  this.fDateTypeInput.set('all');
-  this.fDateInput.set('');
-  this.fEndDateInput.set('');
-  this.fTextApplied.set('');
-  this.fPaidApplied.set('all');
-  this.fDateTypeApplied.set('all');
-  this.fDateApplied.set('');
-  this.fEndDateApplied.set('');
-  this.loadAll();
-}
-
   /**
    * Helper para obtener sobornos filtrados
    */
   private getBribesFiltered() {
-    const paidValue = this.fPaidApplied();
-    const paid = paidValue === 'all' ? undefined : paidValue as 'true' | 'false';
-    const dateType = this.fDateTypeApplied();
-    const date = dateType !== 'all' && this.fDateApplied() ? this.fDateApplied() : undefined;
-    const type = dateType !== 'all' ? dateType : undefined;
-    const endDate = dateType === 'between' && this.fEndDateApplied() ? this.fEndDateApplied() : undefined;
+    const paid = this.fPaid === 'all' ? undefined : this.fPaid;
+    const date = this.fDateType !== 'all' && this.fDate ? this.fDate : undefined;
+    const type = this.fDateType !== 'all' ? this.fDateType : undefined;
+    const endDate = this.fDateType === 'between' && this.fEndDate ? this.fEndDate : undefined;
 
     return this.srv.searchBribes(paid, date, type, endDate);
   }
-
-  totalBribes = computed(() => this.bribes().length);
-  totalAmount = computed(() => 
-    this.bribes().reduce((sum, b) => sum + (b.amount || 0), 0)
-  );
-  paidBribes = computed(() => 
-    this.bribes().filter(b => b.paid).length
-  );
-  pendingBribes = computed(() => 
-    this.bribes().filter(b => !b.paid).length
-  );
-  pendingAmount = computed(() =>
-    this.bribes().filter(b => !b.paid).reduce((sum, b) => sum + (b.amount || 0), 0)
-  );
 
   /**
    * Wrapper para recargar cuando cambian filtros
