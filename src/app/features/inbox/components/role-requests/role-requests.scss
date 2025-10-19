@@ -43,7 +43,7 @@ $spacing-xl: 32px;
       font-size: 1.5rem;
       font-weight: 800;
       color: $text-strong;
-      font-family: 'Google Sans Code', 'Montserrat', monospace;
+      font-family: 'Google Sans Code', '', monospace;
       letter-spacing: 0.2px;
       text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
     }
@@ -149,6 +149,7 @@ $spacing-xl: 32px;
       color: $text-strong;
       font-weight: 700;
       font-size: 1.25rem;
+      font-family: 'Google Sans Code', '', monospace;
     }
 
     p {
@@ -1068,5 +1069,160 @@ $spacing-xl: 32px;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+  }
+}
+
+/* ====== AGREGAR ESTOS ESTILOS AL FINAL DE role-requests.scss ====== */
+
+/* ====== Additional Data Box (Review Modal) ====== */
+.additional-data-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid $border-glass;
+  border-radius: 8px;
+  padding: $spacing-md;
+  margin-top: $spacing-xs;
+
+  .data-row {
+    display: flex;
+    gap: $spacing-md;
+    margin-bottom: $spacing-sm;
+    align-items: flex-start;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .data-label {
+      font-size: 0.85rem;
+      color: $text-muted;
+      font-weight: 700;
+      min-width: 120px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .data-value {
+      flex: 1;
+      color: $text-strong;
+      font-weight: 600;
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-xs;
+
+      strong {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .product-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: linear-gradient(180deg, rgba(195, 164, 98, 0.25), rgba(195, 164, 98, 0.15));
+    border: 1px solid rgba(195, 164, 98, 0.35);
+    color: $primary-color;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+}
+
+/* ====== Products Grid (Role Request Modal Step 2) ====== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+
+  .product-checkbox {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid $border-glass;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    font-size: 0.85rem;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+
+    input[type='checkbox'] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: $primary-color;
+    }
+
+    input[type='checkbox']:checked+span {
+      color: $primary-color;
+    }
+  }
+}
+
+/* ====== Required asterisk ====== */
+.required {
+  color: $danger-color;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+/* ====== Step Indicator (Optional - for visual feedback) ====== */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md 0;
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    color: $text-muted;
+    font-weight: 700;
+    font-size: 0.85rem;
+
+    .step-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid $border-glass;
+    }
+
+    &.active {
+      color: $primary-color;
+
+      .step-number {
+        background: linear-gradient(180deg, rgba(195, 164, 98, 0.3), rgba(195, 164, 98, 0.2));
+        border-color: $primary-color;
+      }
+    }
+
+    &.completed {
+      color: $success-color;
+
+      .step-number {
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.2));
+        border-color: $success-color;
+      }
+    }
+  }
+
+  .step-divider {
+    width: 40px;
+    height: 2px;
+    background: $border-glass;
   }
 }

@@ -1,21 +1,21 @@
-import { Component, Input, Output, EventEmitter,inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RoleRequest } from '../../models/role-request.model.js';
-import { RoleRequestService } from '../../services/role-request.js';
+import { RoleRequest } from '../../models/role-request.model';
+import { RoleRequestService } from '../../services/role-request';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-role-request-review-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule,TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './role-request-review-modal.html',
   styleUrls: ['./role-requests.scss']
 })
 export class RoleRequestReviewModalComponent {
   @Input() request!: RoleRequest;
   @Output() close = new EventEmitter<void>();
-  @Output() reviewComplete = new EventEmitter<string | undefined>(); // ✅ Emite el userId si fue aprobado
+  @Output() reviewComplete = new EventEmitter<string | undefined>();
 
   action: 'approve' | 'reject' = 'approve';
   comments: string = '';
@@ -23,8 +23,7 @@ export class RoleRequestReviewModalComponent {
   error: string | null = null;
 
   private t = inject(TranslateService);
-
-  constructor(private roleRequestService: RoleRequestService) {}
+  private roleRequestService = inject(RoleRequestService);
 
   getRoleLabel(role: string): string {
     const labels: Record<string, string> = {
@@ -44,6 +43,16 @@ export class RoleRequestReviewModalComponent {
       minute: '2-digit',
     });
   }
+  
+  getRankLabel(rank: string): string {
+    const labels: Record<string, string> = {
+      '0': 'Rango 0 - Base',
+      '1': 'Rango 1 - Intermedio',
+      '2': 'Rango 2 - Senior',
+      '3': 'Rango 3 - Ejecutivo'
+    };
+    return labels[rank] || `Rango ${rank}`;
+  }
 
   async onSubmit(): Promise<void> {
     this.error = null;
@@ -53,31 +62,94 @@ export class RoleRequestReviewModalComponent {
       return;
     }
 
+    // ✅ VALIDACIÓN CRÍTICA: Verificar additionalData antes de aprobar
+    
+    if (this.action === 'approve') {
+      const role = this.request.requestedRole;
+      const data = this.request.additionalData;
+
+      if (role === 'DISTRIBUTOR') {
+        if (!data || !data.zoneId || !data.address) {
+          this.error = '❌ Esta solicitud no tiene los datos adicionales requeridos (zona y dirección). No se puede aprobar. Por favor, pide al usuario que cree una nueva solicitud.';
+          console.error('❌ Cannot approve DISTRIBUTOR without additionalData:', data);
+          return;
+        }
+      } else if (role === 'AUTHORITY') {
+        if (!data || !data.rank || !data.zoneId) {
+          this.error = '❌ Esta solicitud no tiene los datos adicionales requeridos (rango y zona). No se puede aprobar. Por favor, pide al usuario que cree una nueva solicitud.';
+          console.error('❌ Cannot approve AUTHORITY without additionalData:', data);
+          return;
+        }
+      }
+    }
+
     this.isSubmitting = true;
 
     try {
-      await this.roleRequestService.reviewRequest(this.request.id, {
+      console.group('🔍 [ReviewModal] REQUEST DEBUG');
+      console.log('📋 Request Object:', this.request);
+      console.log('🎯 Request ID:', this.request.id);
+      console.log('👤 User ID:', this.request.user?.id);
+      console.log('🎭 Requested Role:', this.request.requestedRole);
+      console.log('📦 Additional Data:', this.request.additionalData);
+      console.log('✅ Action:', this.action);
+      console.log('💬 Comments:', this.comments || '(empty)');
+      
+      const payload = {
         action: this.action,
         comments: this.comments || undefined,
-      });
+      };
+      
+      console.log('📤 Payload a enviar:', JSON.stringify(payload, null, 2));
+      console.groupEnd();
 
-      console.log('[ReviewModal] ✅ Solicitud revisada:', {
-        requestId: this.request.id,
-        userId: this.request.user.id,
-        action: this.action
-      });
-
-      // ✅ Si se aprobó, emitir el userId para que el componente padre actualice al usuario
-      if (this.action === 'approve') {
-        this.reviewComplete.emit(this.request.user.id);
-      } else {
-        this.reviewComplete.emit(undefined);
+      if (!this.request.id) {
+        throw new Error('Request ID is missing');
       }
+
+      if (!this.request.user?.id) {
+        throw new Error('User ID is missing from request');
+      }
+
+      console.log('🚀 Calling reviewRequest API...');
+      
+      const response = await this.roleRequestService.reviewRequest(this.request.id, payload);
+      
+      console.log('✅ [ReviewModal] Review completed successfully:', response);
+
+      this.reviewComplete.emit(this.action === 'approve' ? this.request.user.id : undefined);
+      
     } catch (err: any) {
-      this.error =
-        err.error?.message ||
-        err.error?.errors?.[0]?.message ||
-        'Error al procesar la solicitud';
+      console.group('❌ [ReviewModal] ERROR DETAILS');
+      console.error('Error object:', err);
+      console.error('Status:', err.status);
+      console.error('Status text:', err.statusText);
+      console.error('Error body:', err.error);
+      console.groupEnd();
+      
+      let errorMessage = 'Error desconocido';
+
+      if (err.error?.errors && Array.isArray(err.error.errors)) {
+        errorMessage = err.error.errors.map((e: any) => {
+          return `${e.field || 'Campo'}: ${e.message}`;
+        }).join('\n');
+      } else if (err.error?.message) {
+        errorMessage = err.error.message;
+      } else if (err.status === 400) {
+        errorMessage = 'Solicitud inválida. Los datos adicionales pueden estar incompletos o ser incorrectos.';
+      } else if (err.status === 404) {
+        errorMessage = 'No se encontró la solicitud. Puede que ya haya sido procesada.';
+      } else if (err.status === 500) {
+        errorMessage = 'Error interno del servidor. Por favor contacta al administrador.';
+      } else if (err.status === 0) {
+        errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+      } else {
+        errorMessage = `Error ${err.status}: ${err.statusText || 'Desconocido'}`;
+      }
+
+      this.error = errorMessage;
+      console.error('📢 User-facing error:', errorMessage);
+      
     } finally {
       this.isSubmitting = false;
     }
