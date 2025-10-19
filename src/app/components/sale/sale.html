@@ -3,7 +3,7 @@
   <!-- GRID PRINCIPAL: STATS (FIJO) + LISTA -->
   <div class="sales-main-grid">
 
-    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS (FIJO/STICKY) -->
+    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS (SIEMPRE VISIBLE) -->
     <aside class="stats-panel">
       <div class="glass-dark card">
 
@@ -12,7 +12,7 @@
           <p>{{ 'sales.stats.loading' | translate : {} : 'Cargando estadísticas...' }}</p>
         </div>
 
-        } @else if (stats() && stats()!.totalSales > 0) {
+        } @else if (stats()) {
 
         <!-- KPIs principales -->
         <div class="stats-grid">
@@ -194,9 +194,10 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-        @if (error()) { <div class="error">{{ error() }}</div> }
+        @if (error()) {
+        <div class="error">{{ error() }}</div>
+        }
 
-        <!-- (… resto del formulario tal cual …) -->
         <!-- Client -->
         <label class="label">
           <span>{{ 'sales.form.client' | translate }} *</span>
@@ -214,7 +215,88 @@
           </small>
         </label>
 
-        <!-- (… mantiene el resto igual que lo tenías …) -->
+        <!-- Distributor -->
+        <label class="label">
+          <span>{{ 'sales.form.distributor' | translate }} *</span>
+          <input class="input" [placeholder]="'sales.form.distributorFilterPh' | translate" maxlength="8"
+            [(ngModel)]="distributorFilter" [ngModelOptions]="{standalone: true}" name="fltDistributor" />
+
+          <select class="input" formControlName="distributorDni">
+            <option [ngValue]="null" disabled>{{ 'sales.form.chooseDistributor' | translate }}</option>
+            @for (d of filteredDistributors(); track d.dni) {
+            <option [ngValue]="d.dni">{{ d.dni }} - {{ d.name }}</option>
+            }
+          </select>
+          <small class="muted">{{ 'sales.form.distributorHint' | translate }}</small>
+          <small class="hint" *ngIf="distributorControl.invalid && distributorControl.touched">
+            {{ 'sales.form.distributorRequired' | translate }}
+          </small>
+        </label>
+
+        <div class="subheader">{{ 'sales.form.products' | translate }}</div>
+
+        @for (l of lines(); track $index; let i = $index) {
+        <div class="linea" style="grid-column: 1 / -1;">
+          <div class="linea__row">
+            <div class="linea__cell">
+              <label class="label">
+                <span>{{ 'sales.form.searchProduct' | translate }}</span>
+                <input class="input" [placeholder]="'sales.form.searchProductPh' | translate" [(ngModel)]="l.filter"
+                  [ngModelOptions]="{standalone: true}" [name]="'fltProd' + i" />
+              </label>
+            </div>
+
+            <div class="linea__cell">
+              <label class="label">
+                <span>{{ 'sales.form.product' | translate }}</span>
+                <select class="input" [(ngModel)]="l.productId" [ngModelOptions]="{standalone: true}"
+                  [name]="'prod' + i">
+                  <option [ngValue]="null" disabled>{{ 'sales.form.chooseProduct' | translate }}</option>
+                  @for (p of filteredProductsBy(l.filter || ''); track p.id) {
+                  <option [ngValue]="p.id">
+                    {{ p.id }} - {{ p.description }} ({{ p.stock }} {{ 'sales.form.units' | translate }}) - {{ p.price |
+                    currency:'ARS' }}
+                  </option>
+                  }
+                  @empty {
+                  <option disabled>{{ 'sales.form.noProductsAvailable' | translate }}</option>
+                  }
+                </select>
+                <small class="muted" *ngIf="products().length === 0">
+                  {{ 'sales.form.noProductsLoaded' | translate:{count: products().length} }}
+                </small>
+                <small class="muted" *ngIf="products().length > 0">
+                  {{ 'sales.form.availableProductsCount' | translate:{count: filteredProductsBy(l.filter || '').length}
+                  }}
+                </small>
+              </label>
+            </div>
+
+            <div class="linea__cell sm">
+              <label class="label">
+                <span>{{ 'sales.form.quantity' | translate }}</span>
+                <input class="input" type="number" min="1" step="1" [attr.max]="getStock(l.productId) || null"
+                  [title]="'sales.form.stockTitle' | translate:{stock: getStock(l.productId) || 0}"
+                  [(ngModel)]="l.quantity" (blur)="clampQuantity(i)" [ngModelOptions]="{standalone: true}"
+                  [name]="'cant' + i" />
+              </label>
+            </div>
+
+            <div class="linea__cell actions">
+              <button class="btn danger btn--icon" type="button" (click)="removeLine(i)"
+                [attr.title]="'sales.form.removeLineTitle' | translate">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+        }
+
+        <div class="right" style="grid-column: 1 / -1; margin-top: .5rem;">
+          <button class="btn" type="button" (click)="addLine()">
+            {{ 'sales.form.addProduct' | translate }}
+          </button>
+        </div>
 
         <div class="right" style="grid-column: 1 / -1;">
           <button class="btn success" type="submit" [disabled]="loading() || form.invalid">

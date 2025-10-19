@@ -9,18 +9,17 @@ export interface PurchaseSuccessData {
   total: number;
   distributor?: {
     dni?: string;
-    name: string;
+    name?: string;        
     phone?: string | null;
-    email: string;
+    email?: string;       
     address?: string | null;
     zone?: {
       id?: number;
-      name: string;
+      name?: string;      
       isHeadquarters?: boolean;
     } | null;
   } | null;
 }
-
 @Component({
   selector: 'app-purchase-success-modal',
   standalone: true,

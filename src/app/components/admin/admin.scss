@@ -24,8 +24,7 @@
 }
 
 .truncate {
-  display: inline-block;
-  max-width: 100%;
+  max-width: 250px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -34,7 +33,6 @@
 .mono {
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  
 }
 
 /* colapsable (panel crear/editar) */
@@ -87,8 +85,6 @@
     inset 1px 1px 2px rgba(255, 255, 255, .371),
     inset -1px -1px 2px rgba(0, 0, 0, .4),
     0 10px 28px rgba(0, 0, 0, .645);
-
-    
 }
 
 /* header */
@@ -183,21 +179,20 @@
   gap: var(--sp-3);
 }
 
-/* tabla */
+/* tabla - estructura mejorada */
 .table-wrap {
-  padding: 0;
-  overflow: auto;
+  width: 100%;
+  overflow-x: auto;
   margin: 0;
 }
 
 .table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  min-width: 800px;
+  border-collapse: collapse;
   background: linear-gradient(180deg, rgba(255, 255, 255, .015), transparent);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
 }
 
 .table thead th {
@@ -207,27 +202,49 @@
   text-transform: uppercase;
   font-size: 12px;
   letter-spacing: .5px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 2px solid var(--border);
+  text-align: center;
+  white-space: nowrap;
 }
 
 .table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
   vertical-align: middle;
+  text-align: center;
 }
 
 .table tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.table tbody tr:hover td {
+.table tbody tr {
+  transition: background-color .2s ease;
+}
+
+.table tbody tr:hover {
   background: rgba(255, 255, 255, .03);
 }
 
-.right {
-  text-align: right;
+.table tbody tr:hover td {
+  background: transparent;
+}
+
+/* Alineación de columnas */
+.table .right {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table thead th:last-child {
+  padding-right: 20px;
+  text-align: center;
+}
+
+.table tbody td:last-child {
+  text-align: center;
+  padding-right: 20px;
 }
 
 /* botones */
@@ -237,7 +254,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: 10px;
   cursor: pointer;
   border: 1px solid transparent;
@@ -249,6 +266,7 @@
   color: #1a1308;
   box-shadow: 0 6px 16px rgba(195, 164, 98, .22);
   transition: transform .06s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+  white-space: nowrap;
 }
 
 .btn:hover {
@@ -269,6 +287,12 @@
   background: transparent;
   color: var(--text);
   border-color: var(--border);
+  box-shadow: none;
+}
+
+.btn.ghost:hover {
+  background: rgba(255, 255, 255, .05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
 }
 
 .btn.success {
@@ -283,7 +307,8 @@
 
 /* helpers botones icónicos + a11y */
 .btn--icon {
-  padding: 6px 8px;
+  padding: 6px 10px;
+  font-size: 16px;
 }
 
 .sr-only {
@@ -298,7 +323,7 @@
   border: 0;
 }
 
-/* empty state — aseguramos fuente */
+/* empty state */
 .empty,
 .empty-state {
   font-family: 'Google Sans Code', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
