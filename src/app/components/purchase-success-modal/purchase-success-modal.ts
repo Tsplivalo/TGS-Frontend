@@ -1,20 +1,24 @@
-// src/app/components/purchase-success-modal/purchase-success-modal.component.ts
+// purchase-success-modal.ts
 
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+// ✅ TIPO ACTUALIZADO: Ahora acepta DistributorDTO completo
 export interface PurchaseSuccessData {
   saleId: number;
   total: number;
   distributor?: {
+    dni?: string;
     name: string;
-    phone: string;
+    phone?: string | null;
     email: string;
+    address?: string | null;
     zone?: {
+      id?: number;
       name: string;
-      isHeadquarters: boolean;
-    };
-  };
+      isHeadquarters?: boolean;
+    } | null;
+  } | null;
 }
 
 @Component({
@@ -23,77 +27,85 @@ export interface PurchaseSuccessData {
   imports: [CommonModule],
   template: `
     <div class="modal-overlay" (click)="onClose()">
-      <div class="modal success-modal" (click)="$event.stopPropagation()">
-        <!-- Header -->
+      <div class="modal purchase-success-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <div class="success-icon">✅</div>
-          <h2>¡Compra Registrada!</h2>
+          <h2>¡Compra Realizada con Éxito!</h2>
           <button class="close-btn" type="button" (click)="onClose()">×</button>
         </div>
 
-        <!-- Body -->
         <div class="modal-body">
-          <!-- Sale Info -->
-          <div class="sale-info">
-            <div class="info-item">
+          <div class="success-message">
+            <p>Tu compra ha sido registrada correctamente.</p>
+          </div>
+
+          <div class="purchase-details">
+            <div class="detail-item">
               <span class="label">Número de Venta:</span>
               <span class="value">#{{ data.saleId }}</span>
             </div>
-            <div class="info-item">
+
+            <div class="detail-item">
               <span class="label">Total:</span>
-              <span class="value total">\${{ data.total | number:'1.2-2' }}</span>
+              <span class="value total">$ {{ data.total | number:'1.2-2' }}</span>
             </div>
-          </div>
 
-          <!-- Instructions -->
-          <div class="instructions">
-            <h3>📍 Próximos Pasos</h3>
-            <p>
-              Para continuar con el pago, dirígete a la sede más cercana:
-            </p>
-          </div>
+            <!-- ✅ MEJORADO: Información del distribuidor -->
+            <div class="distributor-info" *ngIf="data.distributor as dist">
+              <h4>📍 Punto de Retiro</h4>
+              
+              <div class="distributor-details">
+                <div class="detail-row">
+                  <span class="detail-label">Sede:</span>
+                  <span class="detail-value">
+                    <strong>{{ dist.name }}</strong>
+                    <span class="badge badge--primary" *ngIf="dist.zone?.isHeadquarters">
+                      Casa Central
+                    </span>
+                  </span>
+                </div>
 
-          <!-- Location Info -->
-          <div class="location-card" *ngIf="data.distributor">
-            <div class="location-header">
-              <span class="location-icon">🏢</span>
-              <h4>{{ data.distributor.zone?.isHeadquarters ? 'Casa Central' : 'Sede' }}</h4>
+                <div class="detail-row" *ngIf="dist.zone">
+                  <span class="detail-label">Zona:</span>
+                  <span class="detail-value">{{ dist.zone.name }}</span>
+                </div>
+
+                <div class="detail-row" *ngIf="dist.address">
+                  <span class="detail-label">Dirección:</span>
+                  <span class="detail-value">{{ dist.address }}</span>
+                </div>
+
+                <div class="detail-row" *ngIf="dist.phone">
+                  <span class="detail-label">Teléfono:</span>
+                  <span class="detail-value">
+                    <a [href]="'tel:' + dist.phone">{{ dist.phone }}</a>
+                  </span>
+                </div>
+
+                <div class="detail-row" *ngIf="dist.email">
+                  <span class="detail-label">Email:</span>
+                  <span class="detail-value">
+                    <a [href]="'mailto:' + dist.email">{{ dist.email }}</a>
+                  </span>
+                </div>
+              </div>
+
+              <div class="info-box">
+                <span class="info-icon">ℹ️</span>
+                <p>Dirígete a esta sede para retirar tu compra. Recuerda llevar tu DNI.</p>
+              </div>
             </div>
-            
-            <div class="location-details">
-              <div class="detail-row">
-                <span class="icon">📍</span>
-                <span>{{ data.distributor.zone?.name || 'No especificada' }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="icon">👤</span>
-                <span>{{ data.distributor.name }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="icon">📞</span>
-                <a [href]="'tel:' + data.distributor.phone">{{ data.distributor.phone }}</a>
-              </div>
-              <div class="detail-row">
-                <span class="icon">✉️</span>
-                <a [href]="'mailto:' + data.distributor.email">{{ data.distributor.email }}</a>
-              </div>
-            </div>
-          </div>
 
-          <!-- Role Update Notification -->
-          <div class="role-update-notice">
-            <span class="icon">🎉</span>
-            <p>
-              <strong>¡Felicitaciones!</strong> Ahora eres un cliente registrado.
-              Tu rol ha sido actualizado automáticamente.
-            </p>
+            <!-- Fallback si no hay distribuidor -->
+            <div class="distributor-info" *ngIf="!data.distributor">
+              <h4>📍 Punto de Retiro</h4>
+              <p class="muted">Información de retiro no disponible. Contacta al vendedor.</p>
+            </div>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="modal-actions">
+        <div class="modal-footer">
           <button class="btn btn--accent" type="button" (click)="onClose()">
-            <span class="icon">👍</span>
             Entendido
           </button>
         </div>
@@ -119,11 +131,11 @@ export interface PurchaseSuccessData {
       to { opacity: 1; }
     }
 
-    .success-modal {
+    .purchase-success-modal {
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 12px;
-      max-width: 600px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      max-width: 550px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
@@ -147,21 +159,18 @@ export interface PurchaseSuccessData {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
-      padding: 24px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+      gap: 16px;
+      padding: 32px 24px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
       position: relative;
-
-      .success-icon {
-        font-size: 4rem;
-      }
 
       h2 {
         margin: 0;
         font-size: 1.5rem;
         font-weight: 800;
         color: #fff;
-        font-family: 'Google Sans Code', 'Montserrat', monospace;
+        text-align: center;
+        font-family: 'Google Sans Code', monospace;
       }
 
       .close-btn {
@@ -171,7 +180,7 @@ export interface PurchaseSuccessData {
         background: none;
         border: none;
         font-size: 2rem;
-        color: #9ca3af;
+        color: rgba(255, 255, 255, 0.6);
         cursor: pointer;
         line-height: 1;
         padding: 0;
@@ -190,153 +199,233 @@ export interface PurchaseSuccessData {
       }
     }
 
+    .success-icon {
+      font-size: 4rem;
+      animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
     .modal-body {
       padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
     }
 
-    .sale-info {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      padding: 16px;
-      border-radius: 12px;
-      backdrop-filter: blur(12px);
-
-      .info-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-
-        &:not(:last-child) {
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .label {
-          font-weight: 700;
-          color: #e5e7eb;
-          font-size: 0.9rem;
-        }
-
-        .value {
-          font-weight: 600;
-          color: #fff;
-          font-size: 1rem;
-
-          &.total {
-            font-size: 1.25rem;
-            color: #c3a462;
-            font-weight: 800;
-          }
-        }
-      }
-    }
-
-    .instructions {
-      h3 {
-        margin: 0 0 12px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #fff;
-      }
+    .success-message {
+      text-align: center;
+      margin-bottom: 24px;
 
       p {
         margin: 0;
-        color: #e5e7eb;
-        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        line-height: 1.5;
       }
     }
 
-    .location-card {
-      background: linear-gradient(135deg, rgba(195, 164, 98, 0.12), rgba(195, 164, 98, 0.08));
-      border: 1px solid rgba(195, 164, 98, 0.3);
-      border-radius: 12px;
-      padding: 16px;
-      backdrop-filter: blur(12px);
+    .purchase-details {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-      .location-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(195, 164, 98, 0.2);
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
 
-        .location-icon {
-          font-size: 1.5rem;
-        }
+      .label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+      }
 
-        h4 {
-          margin: 0;
-          font-size: 1rem;
-          font-weight: 700;
+      .value {
+        font-size: 1rem;
+        color: #fff;
+        font-weight: 700;
+
+        &.total {
+          font-size: 1.25rem;
           color: #c3a462;
         }
       }
+    }
 
-      .location-details {
+    .distributor-info {
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(195, 164, 98, 0.12), rgba(195, 164, 98, 0.08));
+      border: 1px solid rgba(195, 164, 98, 0.3);
+      border-radius: 12px;
+      margin-top: 8px;
+
+      h4 {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #c3a462;
         display: flex;
-        flex-direction: column;
+        align-items: center;
         gap: 8px;
+      }
 
-        .detail-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: #e5e7eb;
-          font-size: 0.9rem;
+      .muted {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+        margin: 0;
+      }
+    }
 
-          .icon {
-            font-size: 1rem;
-            width: 20px;
-          }
+    .distributor-details {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
 
-          a {
-            color: #fbbf24;
-            text-decoration: none;
-            font-weight: 600;
+    .detail-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
 
-            &:hover {
-              text-decoration: underline;
-            }
+      .detail-label {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+        min-width: 80px;
+        flex-shrink: 0;
+      }
+
+      .detail-value {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #fff;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        strong {
+          color: #fef3c7;
+          font-weight: 700;
+        }
+
+        a {
+          color: #c3a462;
+          text-decoration: none;
+          transition: color 0.2s;
+
+          &:hover {
+            color: #fef3c7;
+            text-decoration: underline;
           }
         }
       }
     }
 
-    .role-update-notice {
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &--primary {
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.2));
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #6ee7b7;
+      }
+    }
+
+    .info-box {
       display: flex;
       align-items: flex-start;
       gap: 12px;
       padding: 12px;
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08));
-      border-left: 3px solid #10b981;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
       border-radius: 8px;
 
-      .icon {
-        font-size: 1.5rem;
+      .info-icon {
+        font-size: 18px;
         flex-shrink: 0;
       }
 
       p {
         margin: 0;
-        color: #6ee7b7;
         font-size: 0.875rem;
-        line-height: 1.5;
-
-        strong {
-          font-weight: 800;
-        }
+        color: #fbbf24;
+        line-height: 1.4;
       }
     }
 
-    .modal-actions {
+    .modal-footer {
       display: flex;
       justify-content: center;
       padding: 24px;
-      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-weight: 700;
+      font-family: 'Google Sans Code', monospace;
+      transition: all 0.2s ease;
+    }
+
+    .btn--accent {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(0, 0, 0, .18)), 
+                  linear-gradient(180deg, #c3a462, #9e844e);
+      color: #1a1308;
+      box-shadow: 0 6px 16px rgba(195, 164, 98, .22);
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(195, 164, 98, .28);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .purchase-success-modal {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+      }
+
+      .detail-row {
+        flex-direction: column;
+        gap: 4px;
+
+        .detail-label {
+          min-width: auto;
+        }
+      }
     }
   `]
 })

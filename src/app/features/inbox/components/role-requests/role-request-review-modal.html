@@ -1,10 +1,9 @@
-<!-- role-request-review-modal.component.html -->
+<!-- role-request-review-modal.component.html (Updated con datos adicionales) -->
 <div class="modal-overlay" (click)="onOverlayClick($event)">
   <div class="modal review-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>{{ 'roleRequests.reviewModal.title' | translate }}</h2>
-      <button class="close-btn" type="button" (click)="onClose()">{{ 'roleRequests.reviewModal.close' | translate
-        }}</button>
+      <button class="close-btn" type="button" (click)="onClose()">×</button>
     </div>
 
     <form (ngSubmit)="onSubmit()" class="modal-body">
@@ -41,6 +40,53 @@
           <span class="label">{{ 'roleRequests.reviewModal.summary.justification' | translate }}</span>
           <p class="justification">{{ request.justification }}</p>
         </div>
+
+        <!-- ✅ NUEVO: Mostrar datos adicionales según el rol -->
+        <div *ngIf="request.additionalData" class="summary-item full-width">
+          <span class="label">Datos adicionales del rol</span>
+          <div class="additional-data-box">
+
+            <!-- Datos para DISTRIBUTOR -->
+            <ng-container *ngIf="request.requestedRole === 'DISTRIBUTOR'">
+              <div class="data-row">
+                <span class="data-label">Zona asignada:</span>
+                <span class="data-value">
+                  <strong>Zona {{ request.additionalData.zoneId }}</strong>
+                </span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">Dirección:</span>
+                <span class="data-value">{{ request.additionalData.address }}</span>
+              </div>
+              <div *ngIf="request.additionalData.productsIds && request.additionalData.productsIds.length > 0"
+                class="data-row">
+                <span class="data-label">Productos:</span>
+                <span class="data-value">
+                  <span class="product-badge" *ngFor="let id of request.additionalData.productsIds">
+                    Producto #{{ id }}
+                  </span>
+                </span>
+              </div>
+            </ng-container>
+
+            <!-- Datos para AUTHORITY -->
+            <ng-container *ngIf="request.requestedRole === 'AUTHORITY'">
+              <div class="data-row">
+                <span class="data-label">Rango:</span>
+                <span class="data-value">
+                  <strong>{{ getRankLabel(request.additionalData.rank!) }}</strong>
+                </span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">Zona asignada:</span>
+                <span class="data-value">
+                  <strong>Zona {{ request.additionalData.zoneId }}</strong>
+                </span>
+              </div>
+            </ng-container>
+
+          </div>
+        </div>
       </div>
 
       <div *ngIf="error" class="error-message">
@@ -66,7 +112,8 @@
       </div>
 
       <div class="form-group">
-        <label for="comments">{{ 'roleRequests.reviewModal.commentsLabel' | translate }}
+        <label for="comments">
+          {{ 'roleRequests.reviewModal.commentsLabel' | translate }}
           <span *ngIf="action === 'reject'">(recomendado)</span>:
         </label>
         <textarea id="comments" [(ngModel)]="comments" name="comments"

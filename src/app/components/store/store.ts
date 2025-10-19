@@ -1,14 +1,16 @@
-// src/app/pages/store/store.ts - VERSIÓN COMPLETA Y CORREGIDA
+// store.ts - Con selector de distribuidor
 
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product/product';
 import { ProductImageService } from '../../services/product-image/product-image';
 import { AuthService } from '../../services/auth/auth';
 import { SaleService } from '../../services/sale/sale';
-import { DistributorService } from '../../services/distributor/distributor'; // ✅ IMPORTAR
+import { DistributorService } from '../../services/distributor/distributor';
 import { ApiResponse, ProductDTO } from '../../models/product/product.model';
+import { DistributorDTO } from '../../models/distributor/distributor.model'; // ✅ IMPORTAR del modelo
 import { TranslateModule } from '@ngx-translate/core';
 import { PurchaseSuccessModalComponent, PurchaseSuccessData } from '../../components/purchase-success-modal/purchase-success-modal';
 
@@ -25,7 +27,8 @@ type CartItem = {
   standalone: true,
   imports: [
     CommonModule, 
-    RouterModule, 
+    RouterModule,
+    FormsModule, // ✅ IMPORTANTE: Agregar para ngModel
     TranslateModule,
     PurchaseSuccessModalComponent
   ],
@@ -33,57 +36,51 @@ type CartItem = {
   styleUrls: ['./store.scss'],
 })
 export class StoreComponent implements OnInit {
-  // --- Inyección ---
   private productsSrv = inject(ProductService);
   private imgSvc = inject(ProductImageService, { optional: true as any });
   private authService = inject(AuthService);
   private saleService = inject(SaleService);
-  private distributorService = inject(DistributorService); // ✅ AGREGAR
+  private distributorService = inject(DistributorService);
   private router = inject(Router);
 
-  // --- Estado base ---
   loading = signal(false);
   error = signal<string | null>(null);
-
-  // --- Datos de catálogo ---
   products = signal<ProductDTO[]>([]);
 
-  // --- Búsqueda ---
-  q = signal('');
+  searchInput = signal('');
+  searchQuery = signal('');
 
-  // --- UI: flash en card al agregar ---
   flashId = signal<number | null>(null);
-
-  // --- Drawer de carrito ---
   showCart = signal(false);
   toggleCartDrawer() { this.showCart.set(!this.showCart()); }
 
-  // --- ✅ Modal de éxito ---
   showSuccessModal = signal(false);
   purchaseData = signal<PurchaseSuccessData | null>(null);
-
-  // --- ✅ Estado de procesamiento de compra ---
   processing = signal(false);
 
-  // --- ✅ Distributor seleccionado ---
-  private selectedDistributorDni = signal<string | null>(null);
+  // ✅ NUEVO: Lista de distribuidores y selección
+  distributors = signal<DistributorDTO[]>([]);
+  selectedDistributorDni = signal<string | null>(null);
+  loadingDistributors = signal(true);
 
-  // --- ✅ Validación de compra ---
+  // ✅ Computed: Distribuidor seleccionado completo
+  selectedDistributor = computed(() => {
+    const dni = this.selectedDistributorDni();
+    if (!dni) return null;
+    return this.distributors().find(d => d.dni === dni) || null;
+  });
+
   canPurchase = computed(() => this.authService.canPurchase());
   isEmailVerified = computed(() => this.authService.user()?.emailVerified ?? false);
   isVerified = computed(() => (this.authService.user() as any)?.isVerified ?? false);
   profileCompleteness = computed(() => this.authService.profileCompleteness());
 
-  // --- Carrito en localStorage ---
   private LS_KEY = 'cart.v1';
   private itemsSig = signal<CartItem[]>(this.loadCart());
-
-  // Totales + pequeña animación (bump) del ícono
   private countSig = computed(() => this.itemsSig().reduce((a, it) => a + it.qty, 0));
   private totalSig = computed(() => this.itemsSig().reduce((a, it) => a + it.qty * (it.price ?? 0), 0));
   private bumpSig = signal(false);
 
-  // API de lectura para el template
   cart = {
     items: () => this.itemsSig(),
     count: () => this.countSig(),
@@ -91,9 +88,8 @@ export class StoreComponent implements OnInit {
   };
   bumpCart() { return this.bumpSig(); }
 
-  // --- Lista filtrada ---
   list = computed(() => {
-    const txt = this.q().toLowerCase().trim();
+    const txt = this.searchQuery().toLowerCase().trim();
     return this.products().filter((p) =>
       !txt ||
       (p.description ?? '').toLowerCase().includes(txt) ||
@@ -101,13 +97,11 @@ export class StoreComponent implements OnInit {
     );
   });
 
-  // --- Ciclo de vida ---
   ngOnInit() { 
     this.refresh();
-    this.loadDefaultDistributor(); // ✅ AGREGAR
+    this.loadDistributors();
   }
 
-  // --- Data fetching (catálogo) ---
   refresh() {
     this.loading.set(true);
     this.error.set(null);
@@ -125,24 +119,53 @@ export class StoreComponent implements OnInit {
     });
   }
 
-  // --- ✅ NUEVO: Cargar distribuidor por defecto ---
-  private loadDefaultDistributor(): void {
+  onSearch(): void {
+    this.searchQuery.set(this.searchInput());
+  }
+
+  onClearSearch(): void {
+    this.searchInput.set('');
+    this.searchQuery.set('');
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.onSearch();
+    }
+  }
+
+  // ✅ MEJORADO: Cargar distribuidores con información completa
+  private loadDistributors(): void {
+    this.loadingDistributors.set(true);
+    
     this.distributorService.getAll().subscribe({
       next: (distributors) => {
         console.log('📦 Distributors loaded:', distributors);
+        console.log('📊 Number of distributors:', distributors.length);
+        
+        // Log cada distribuidor
+        distributors.forEach((d, idx) => {
+          console.log(`  [${idx}] ${d.name} (DNI: ${d.dni}) - Zone: ${d.zone?.name || 'No zone'}${d.zone?.isHeadquarters ? ' ⭐' : ''}`);
+        });
+        
+        this.distributors.set(distributors);
+        this.loadingDistributors.set(false);
         
         if (distributors.length > 0) {
-          // Prioridad 1: Usar el de la zona headquarters (casa central)
+          // Prioridad 1: Sede central (headquarters)
           const headquarters = distributors.find(d => d.zone?.isHeadquarters);
           
           if (headquarters) {
             this.selectedDistributorDni.set(headquarters.dni);
-            console.log('✅ Selected headquarters distributor:', headquarters.name);
+            console.log('✅ Auto-selected headquarters:', headquarters.name, 'DNI:', headquarters.dni);
           } else {
-            // Prioridad 2: Usar el primero disponible
+            // Prioridad 2: Primer distribuidor
             this.selectedDistributorDni.set(distributors[0].dni);
-            console.log('✅ Selected first distributor:', distributors[0].name);
+            console.log('✅ Auto-selected first distributor:', distributors[0].name, 'DNI:', distributors[0].dni);
           }
+          
+          console.log('🎯 Selected DNI after load:', this.selectedDistributorDni());
+          console.log('🎯 Selected Distributor object:', this.selectedDistributor());
         } else {
           console.error('❌ No distributors available');
           this.error.set('No hay distribuidores disponibles. Contacta al soporte.');
@@ -150,12 +173,12 @@ export class StoreComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ Error loading distributors:', err);
+        this.loadingDistributors.set(false);
         this.error.set('Error al cargar distribuidores');
       }
     });
   }
 
-  // --- Persistencia del carrito ---
   private persistCart() {
     try { localStorage.setItem(this.LS_KEY, JSON.stringify(this.itemsSig())); } catch {}
   }
@@ -165,7 +188,6 @@ export class StoreComponent implements OnInit {
     catch { return []; }
   }
 
-  // Mueve el ítem tocado al frente (mejor UX en drawer)
   private moveToFront(items: CartItem[], id: number): CartItem[] {
     const idx = items.findIndex(i => i.id === id);
     if (idx <= 0) return items;
@@ -174,7 +196,6 @@ export class StoreComponent implements OnInit {
     return items;
   }
 
-  // Scroll al tope del carrito si está abierto
   private scrollCartTopSoon() {
     if (!this.showCart()) return;
     setTimeout(() => {
@@ -183,7 +204,6 @@ export class StoreComponent implements OnInit {
     }, 0);
   }
 
-  // --- Operaciones de carrito ---
   add(p: ProductDTO) {
     const items = [...this.itemsSig()];
     const idx = items.findIndex((it) => it.id === p.id);
@@ -235,92 +255,112 @@ export class StoreComponent implements OnInit {
     this.pulseCart();
   }
 
-  // --- ✅ REALIZAR COMPRA ---
-// store.component.ts - REEMPLAZAR goToCheckout() COMPLETO
+  // ✅ MEJORADO: Validar distribuidor seleccionado
+  goToCheckout() {
+    console.group('🛒 CHECKOUT DEBUG');
+    console.log('Can purchase:', this.canPurchase());
+    console.log('Cart count:', this.cart.count());
+    console.log('All distributors:', this.distributors());
+    console.log('Selected DNI:', this.selectedDistributorDni());
+    console.log('Selected Distributor object:', this.selectedDistributor());
+    console.groupEnd();
 
-goToCheckout() {
-  if (!this.canPurchase() || this.cart.count() === 0) {
-    return;
-  }
-
-  const distributorDni = this.selectedDistributorDni();
-  if (!distributorDni) {
-    this.error.set('No hay distribuidores disponibles.');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-
-  // ✅ Obtener DNI del usuario
-  const user = this.authService.user();
-  const clientDni = (user as any)?.person?.dni;
-
-  console.log('🔍 User DNI check:', {
-    user,
-    person: (user as any)?.person,
-    dni: clientDni
-  });
-
-  // ✅ Si NO tiene DNI, mostrar error claro
-  if (!clientDni) {
-    this.error.set('ERROR: Tu perfil no tiene DNI. Ve a "Mi Cuenta" y completa tus datos personales.');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-
-  this.processing.set(true);
-  this.error.set(null);
-
-  // ✅ SIEMPRE enviar clientDni explícitamente
-  const payload = {
-    clientDni: clientDni,  // ✅ FORZAR envío del DNI
-    distributorDni: distributorDni,
-    details: this.cart.items().map(item => ({
-      productId: item.id,
-      quantity: item.qty
-    }))
-  };
-
-  console.log('📤 Payload to send:', payload);
-
-  this.saleService.createSale(payload).subscribe({
-    next: (response) => {
-      console.log('✅ Sale created:', response);
-      
-      this.processing.set(false);
-      this.authService.forceRefresh();
-      
-      const saleData = response.data;
-      this.purchaseData.set({
-        saleId: saleData?.id || 0,
-        total: this.cart.total(),
-        distributor: (saleData as any)?.distributor
-      });
-      
-      this.showSuccessModal.set(true);
-      this.clear();
-      
-      if (this.showCart()) {
-        this.toggleCartDrawer();
-      }
-    },
-    error: (err) => {
-      console.error('❌ Full error:', err);
-      this.processing.set(false);
-      
-      let errorMessage = err.error?.message || 'Error al procesar la compra';
-      this.error.set(errorMessage);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!this.canPurchase() || this.cart.count() === 0) {
+      return;
     }
-  });
-}
 
-  // --- ✅ Cerrar modal de éxito ---
+    const distributorDni = this.selectedDistributorDni();
+    if (!distributorDni) {
+      this.error.set('⚠️ Debes seleccionar un distribuidor antes de comprar.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const user = this.authService.user();
+    const clientDni = (user as any)?.person?.dni;
+
+    if (!clientDni) {
+      this.error.set('ERROR: Tu perfil no tiene DNI. Ve a "Mi Cuenta" y completa tus datos personales.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    this.processing.set(true);
+    this.error.set(null);
+
+    const payload = {
+      clientDni: clientDni,
+      distributorDni: distributorDni,
+      details: this.cart.items().map(item => ({
+        productId: item.id,
+        quantity: item.qty
+      }))
+    };
+
+    console.log('🛒 Creating purchase with distributor:', {
+      distributor: this.selectedDistributor(),
+      payload
+    });
+
+    this.saleService.createSale(payload).subscribe({
+      next: (response) => {
+        console.log('✅ Sale created:', response);
+        
+        this.processing.set(false);
+        this.authService.forceRefresh();
+        
+        const saleData = response.data;
+        
+        // ✅ Usar el distribuidor seleccionado localmente
+        const selectedDist = this.selectedDistributor();
+        
+        console.log('📋 Purchase data to show in modal:', {
+          selectedDist,
+          saleId: saleData?.id,
+          total: this.cart.total()
+        });
+        
+        this.purchaseData.set({
+          saleId: saleData?.id || 0,
+          total: this.cart.total(),
+          distributor: selectedDist ? {
+            dni: selectedDist.dni,
+            name: selectedDist.name,
+            phone: selectedDist.phone ?? null,
+            email: selectedDist.email,
+            address: selectedDist.address ?? null,
+            zone: selectedDist.zone ? {
+              id: selectedDist.zone.id,
+              name: selectedDist.zone.name,
+              isHeadquarters: selectedDist.zone.isHeadquarters ?? false
+            } : null
+          } : null
+        });
+        
+        console.log('✅ Purchase data set:', this.purchaseData());
+        
+        this.showSuccessModal.set(true);
+        this.clear();
+        
+        if (this.showCart()) {
+          this.toggleCartDrawer();
+        }
+      },
+      error: (err) => {
+        console.error('❌ Purchase error:', err);
+        this.processing.set(false);
+        let errorMessage = err.error?.message || 'Error al procesar la compra';
+        this.error.set(errorMessage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+
   onCloseSuccessModal(): void {
     this.showSuccessModal.set(false);
     this.purchaseData.set(null);
   }
 
-  // --- UX: agregar desde card con animación ---
   onAddClick(ev: MouseEvent, p: ProductDTO, imgEl?: HTMLImageElement) {
     this.add(p);
     const btn = ev.currentTarget as HTMLElement | null;
@@ -336,7 +376,6 @@ goToCheckout() {
     this.flyToCart(sourceEl, fab, Boolean(imgFound));
   }
 
-  // Crea un clon/"burbuja" y anima su trayectoria hasta el ancla del carrito
   private flyToCart(fromEl: HTMLElement, toEl: HTMLElement, isImage: boolean) {
     const start = fromEl.getBoundingClientRect();
     const end = toEl.getBoundingClientRect();
@@ -395,7 +434,6 @@ goToCheckout() {
     anim.oncancel = () => { node.remove(); };
   }
 
-  // Pequeño "bump" del botón del carrito (para feedback)
   private pulseCart(): void {
     this.bumpSig.set(false);
     void document.body.offsetWidth;

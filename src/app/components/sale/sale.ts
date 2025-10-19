@@ -8,6 +8,7 @@ import {
 import { SaleService } from '../../services/sale/sale';
 import { ProductService } from '../../services/product/product';
 import { ClientService } from '../../services/client/client';
+import { StatsService, SalesStats } from '../../services/stats/stats'; // ⬅ NUEVO
 
 import {
   SaleDTO, CreateSaleDTO, ApiResponse as ApiSaleResp, SaleDetailDTO, SaleClientDTO
@@ -18,17 +19,13 @@ import { ClientDTO, ApiResponse as ApiCliResp } from '../../models/client/client
 import { forkJoin } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
-
-/**
- * SaleComponent - CORREGIDO
- * 
- * Crea ventas con múltiples líneas, requiriendo clientDni Y distributorDni.
- */
+import { ChartComponent } from '../chart/chart'; // ⬅ NUEVO
+import { ChartConfiguration } from 'chart.js'; // ⬅ NUEVO
 
 type SaleForm = {
   id: FormControl<number | null>;
   clientDni: FormControl<string | null>;
-  distributorDni: FormControl<string | null>; // ← NUEVO: requerido por backend
+  distributorDni: FormControl<string | null>;
   productId: FormControl<number | null>;
   quantity: FormControl<number>;
 };
@@ -43,7 +40,13 @@ interface DistributorDTO {
 @Component({
   selector: 'app-sale',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    TranslateModule,
+    ChartComponent // ⬅ NUEVO
+  ],
   templateUrl: './sale.html',
   styleUrls: ['./sale.scss'],
 })
@@ -55,15 +58,25 @@ export class SaleComponent implements OnInit {
   private prodSrv = inject(ProductService);
   private cliSrv = inject(ClientService);
   private t = inject(TranslateService);
+  private statsSrv = inject(StatsService); // ⬅ NUEVO
 
   // --- Estado base ---
   sales = signal<SaleDTO[]>([]);
   products = signal<ProductDTO[]>([]);
   clients = signal<ClientDTO[]>([]);
-  distributors = signal<DistributorDTO[]>([]); // ← NUEVO
+  distributors = signal<DistributorDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
+
+  // --- Stats y Charts (NUEVO) ---
+  stats = signal<SalesStats | null>(null);
+  loadingStats = signal(false);
+  showStats = signal(false); // Toggle para mostrar/ocultar estadísticas
+  
+  salesChartData = signal<ChartConfiguration['data'] | null>(null);
+  topProductsChartData = signal<ChartConfiguration['data'] | null>(null);
+  distributorsChartData = signal<ChartConfiguration['data'] | null>(null);
 
   // --- Filtros de listado ---
   fTextInput = signal('');
@@ -74,7 +87,7 @@ export class SaleComponent implements OnInit {
   // --- Filtros de selects ---
   productFilter = '';
   clientFilter = '';
-  distributorFilter = ''; // ← NUEVO
+  distributorFilter = '';
 
   // --- Líneas de la venta en edición ---
   lines = signal<Line[]>([{ productId: null, quantity: 1, filter: '' }]);
@@ -91,15 +104,31 @@ export class SaleComponent implements OnInit {
       validators: [Validators.required, Validators.minLength(6)] 
     }),
     distributorDni: this.fb.control<string | null>(null, { 
-      validators: [Validators.required, Validators.minLength(6)] // ← NUEVO: requerido
+      validators: [Validators.required, Validators.minLength(6)]
     }),
     productId: this.fb.control<number | null>(null, { validators: [Validators.min(1)] }),
     quantity: this.fb.nonNullable.control(1, { validators: [Validators.min(1)] }),
   });
 
-  // --- UI: abrir/cerrar sección "nueva venta" ---
+  // --- UI: abrir/cerrar secciones ---
   isNewOpen = false;
   toggleNew(){ this.isNewOpen = !this.isNewOpen; }
+  
+  // ⬅ NUEVO: Toggle para estadísticas
+  toggleStats() {
+    const newValue = !this.showStats();
+    console.log('🔄 Toggle stats:', { 
+      before: this.showStats(), 
+      after: newValue,
+      hasStats: !!this.stats()
+    });
+    this.showStats.set(newValue);
+    
+    if (newValue && !this.stats()) {
+      console.log('📊 Loading stats for first time...');
+      this.loadStats();
+    }
+  }
 
   // Expuesto al template
   get clientControl() { return this.form.controls.clientDni; }
@@ -107,12 +136,10 @@ export class SaleComponent implements OnInit {
 
   // --- Ciclo de vida ---
   ngOnInit(): void {
+    console.log('🚀 Component initialized. showStats:', this.showStats());
     this.loading.set(true);
     this.error.set(null);
 
-    
-
-    // ✅ Cargar productos, clientes Y distributores
     forkJoin({
       prods: this.prodSrv.getAllProducts(),
       clis: this.cliSrv.getAllClients(),
@@ -153,15 +180,9 @@ export class SaleComponent implements OnInit {
           distributorList = res.dists.distributors;
         }
         
-        console.log('📦 Products loaded:', productList.length, productList);
-        console.log('👥 Clients loaded:', clientList.length, clientList);
-        console.log('🚚 Distributors loaded:', distributorList.length, distributorList);
-        
         this.products.set(productList);
         this.clients.set(clientList);
         this.distributors.set(distributorList);
-        
-        console.log('✅ Products signal set:', this.products());
         
         this.loadSales();
       },
@@ -170,6 +191,172 @@ export class SaleComponent implements OnInit {
         this.loadSales(); 
       }
     });
+  }
+
+  // ⬅ NUEVO: Cargar estadísticas desde los datos locales
+  loadStats() {
+    console.log('📊 loadStats() called');
+    this.loadingStats.set(true);
+    
+    // Calcular estadísticas desde los datos de ventas existentes
+    const salesData = this.sales();
+    
+    if (!salesData || salesData.length === 0) {
+      console.warn('⚠️ No sales data available');
+      this.loadingStats.set(false);
+      return;
+    }
+
+    // Calcular totales
+    const totalRevenue = salesData.reduce((sum, sale) => sum + this.calculateTotal(sale), 0);
+    const totalSales = salesData.length;
+    const averageTicket = totalSales > 0 ? totalRevenue / totalSales : 0;
+
+    // Agrupar ventas por mes
+    const salesByMonth = this.groupSalesByMonth(salesData);
+
+    // Top productos más vendidos
+    const topProducts = this.getTopProducts(salesData);
+
+    // Ventas por distribuidor
+    const salesByDistributor = this.getSalesByDistributor(salesData);
+
+    const stats: SalesStats = {
+      totalSales,
+      totalRevenue,
+      averageTicket,
+      salesByMonth,
+      topProducts,
+      salesByDistributor
+    };
+
+    // Convertir a formato de gráficos
+    const salesChartData: ChartConfiguration['data'] = {
+      labels: salesByMonth.map(s => s.month),
+      datasets: [{
+        label: 'Ventas ($)',
+        data: salesByMonth.map(s => s.amount),
+        backgroundColor: 'rgba(195, 164, 98, 0.8)',
+        borderColor: 'rgba(195, 164, 98, 1)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    };
+
+    const productsChartData: ChartConfiguration['data'] = {
+      labels: topProducts.map(p => p.productName),
+      datasets: [{
+        label: 'Cantidad Vendida',
+        data: topProducts.map(p => p.quantity),
+        backgroundColor: [
+          'rgba(195, 164, 98, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(156, 163, 175, 0.6)'
+        ],
+        borderColor: [
+          'rgba(195, 164, 98, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(245, 158, 11, 1)',
+          'rgba(156, 163, 175, 1)'
+        ],
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    };
+
+    const distributorsChartData: ChartConfiguration['data'] = {
+      labels: salesByDistributor.map(d => d.distributorName),
+      datasets: [{
+        label: 'Ventas Totales ($)',
+        data: salesByDistributor.map(d => d.totalSales),
+        backgroundColor: 'rgba(195, 164, 98, 0.8)',
+        borderColor: 'rgba(195, 164, 98, 1)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    };
+
+    console.log('✅ Stats calculated:', stats);
+    
+    this.stats.set(stats);
+    this.salesChartData.set(salesChartData);
+    this.topProductsChartData.set(productsChartData);
+    this.distributorsChartData.set(distributorsChartData);
+    this.loadingStats.set(false);
+  }
+
+  // Agrupar ventas por mes
+  private groupSalesByMonth(sales: SaleDTO[]): { month: string; amount: number }[] {
+    const monthMap = new Map<string, number>();
+    
+    sales.forEach(sale => {
+      const date = new Date(sale.saleDate || sale.date || Date.now());
+      const monthKey = date.toLocaleDateString('es-AR', { year: 'numeric', month: 'long' });
+      const monthCapitalized = monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
+      
+      const currentAmount = monthMap.get(monthCapitalized) || 0;
+      monthMap.set(monthCapitalized, currentAmount + this.calculateTotal(sale));
+    });
+
+    return Array.from(monthMap.entries())
+      .map(([month, amount]) => ({ month, amount }))
+      .sort((a, b) => {
+        // Ordenar cronológicamente
+        const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const aMonth = a.month.split(' ')[0];
+        const bMonth = b.month.split(' ')[0];
+        return months.indexOf(aMonth) - months.indexOf(bMonth);
+      });
+  }
+
+  // Obtener top 5 productos más vendidos
+  private getTopProducts(sales: SaleDTO[]): { productId: number; productName: string; quantity: number }[] {
+    const productMap = new Map<number, { name: string; quantity: number }>();
+
+    sales.forEach(sale => {
+      if (sale.details && sale.details.length > 0) {
+        sale.details.forEach(detail => {
+          const productId = detail.productId;
+          const quantity = Number(detail.quantity) || 0;
+          const productName = this.detailDescription(detail);
+
+          if (productMap.has(productId)) {
+            const existing = productMap.get(productId)!;
+            existing.quantity += quantity;
+          } else {
+            productMap.set(productId, { name: productName, quantity });
+          }
+        });
+      }
+    });
+
+    return Array.from(productMap.entries())
+      .map(([productId, data]) => ({
+        productId,
+        productName: data.name,
+        quantity: data.quantity
+      }))
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+  }
+
+  // Obtener ventas por distribuidor
+  private getSalesByDistributor(sales: SaleDTO[]): { distributorName: string; totalSales: number }[] {
+    const distributorMap = new Map<string, number>();
+
+    sales.forEach(sale => {
+      const distributorName = sale.distributor?.name || 'Sin distribuidor';
+      const currentAmount = distributorMap.get(distributorName) || 0;
+      distributorMap.set(distributorName, currentAmount + this.calculateTotal(sale));
+    });
+
+    return Array.from(distributorMap.entries())
+      .map(([distributorName, totalSales]) => ({ distributorName, totalSales }))
+      .sort((a, b) => b.totalSales - a.totalSales);
   }
 
   // --- Stock y cantidades ---
@@ -198,24 +385,20 @@ export class SaleComponent implements OnInit {
     const dni = this.fClientDniApplied().trim();
     
     return this.sales().filter(v => {
-      // Buscar en descripción de productos
       const saleDescription = (v.details && v.details.length) 
         ? v.details.map(d => this.detailDescription(d)).join(' ').toLowerCase()
         : '';
       
-      // Buscar en nombre y DNI del cliente
       const clientName = v.client?.name?.toLowerCase() || '';
       const clientDni = v.client?.dni || '';
-      
-      // Buscar en nombre del distribuidor
       const distributorName = v.distributor?.name?.toLowerCase() || '';
       
       const hasText = (!q) || 
         saleDescription.includes(q) || 
         String(v.id).includes(q) ||
-        clientName.includes(q) ||        // ← NUEVO
-        clientDni.includes(q) ||         // ← NUEVO
-        distributorName.includes(q);     // ← NUEVO
+        clientName.includes(q) ||
+        clientDni.includes(q) ||
+        distributorName.includes(q);
       
       const matchDni = !dni || clientDni.includes(dni);
       
@@ -223,26 +406,19 @@ export class SaleComponent implements OnInit {
     });
   });
 
-  // Método para filtrar productos (NO usar computed porque necesita parámetro)
   filteredProductsBy(filter: string): ProductDTO[] {
     const allProds = this.products();
     const q = (filter || '').toLowerCase().trim();
     
-    console.log('🔍 filteredProductsBy called. Total products:', allProds.length, 'Filter:', q);
-    
     if (!q || q === '') {
-      console.log('✅ No filter, returning all', allProds.length, 'products');
       return allProds;
     }
     
-    const filtered = allProds.filter(p => {
+    return allProds.filter(p => {
       const matchId = String(p.id).includes(q);
       const matchDesc = (p.description || '').toLowerCase().includes(q);
       return matchId || matchDesc;
     });
-    
-    console.log('✅ Filtered to', filtered.length, 'products');
-    return filtered;
   }
 
   filteredClients = computed(() => {
@@ -254,7 +430,6 @@ export class SaleComponent implements OnInit {
     );
   });
 
-  // ← NUEVO: Filtro de distribuidores
   filteredDistributors = computed(() => {
     const q = (this.distributorFilter || '').toLowerCase().trim();
     if (!q) return this.distributors();
@@ -265,8 +440,8 @@ export class SaleComponent implements OnInit {
   });
 
   applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-  this.fClientDniApplied.set(this.fClientDniInput());
+    this.fTextApplied.set(this.fTextInput());
+    this.fClientDniApplied.set(this.fClientDniInput());
   }
 
   clearFilters() {
@@ -282,6 +457,11 @@ export class SaleComponent implements OnInit {
       next: (list: SaleDTO[]) => {
         this.sales.set(list);
         this.loading.set(false);
+        
+        // ⬅ Recalcular stats si están visibles
+        if (this.showStats() && this.stats()) {
+          this.loadStats();
+        }
       },
       error: (err) => {
         this.error.set(err?.error?.message || this.t.instant('sales.errorLoad'));
@@ -323,7 +503,6 @@ export class SaleComponent implements OnInit {
   getClient(v: SaleDTO): SaleClientDTO | null { return v.client ?? null; }
   hasDetails(v: SaleDTO): boolean { return !!(v.details && v.details.length > 0); }
   getDetails(v: SaleDTO): SaleDetailDTO[] { return v.details ?? []; }
-  getProductDesc(v: SaleDTO): string { return '—'; } // Legacy, no se usa
 
   // --- Validaciones ---
   private clientExists(dni: string | null): boolean {
@@ -347,7 +526,7 @@ export class SaleComponent implements OnInit {
 
     return { 
       clientDni, 
-      distributorDni, // ← NUEVO: requerido
+      distributorDni,
       details 
     };
   }
@@ -365,14 +544,11 @@ export class SaleComponent implements OnInit {
     return null;
   }
 
-  // Total de una venta
   calculateTotal(v: SaleDTO): number {
-    // Priorizar saleAmount que devuelve el backend
     if (typeof v.saleAmount === 'number') return v.saleAmount;
     if (typeof v.amount === 'number') return v.amount;
     if (typeof v.total === 'number') return v.total;
 
-    // Calcular desde detalles
     if (v.details && v.details.length) {
       return v.details.reduce((sum, d) => {
         const sub = (d as any).subtotal;
@@ -418,7 +594,6 @@ export class SaleComponent implements OnInit {
   save() {
     this.submitted.set(true);
     
-    // ✅ Validar cliente
     const clientDni = this.clientControl.value;
     if (!this.clientExists(clientDni)) {
       this.error.set(this.t.instant('sales.err.clientMissing'));
@@ -426,7 +601,6 @@ export class SaleComponent implements OnInit {
       return;
     }
 
-    // ✅ Validar distribuidor
     const distributorDni = this.distributorControl.value;
     if (!this.distributorExists(distributorDni)) {
       this.error.set(this.t.instant('sales.err.distributorMissing'));
@@ -434,7 +608,6 @@ export class SaleComponent implements OnInit {
       return;
     }
 
-    // ✅ Validar líneas
     const errLines = this.validateLines(this.lines());
     if (errLines) { 
       this.error.set(errLines); 
@@ -449,7 +622,11 @@ export class SaleComponent implements OnInit {
     this.saleSrv.createSale(payload).subscribe({
       next: () => { 
         this.new(); 
-        this.loadSales(); 
+        this.loadSales();
+        // ⬅ Recargar stats después de crear una venta si están visibles
+        if (this.showStats() && this.stats()) {
+          setTimeout(() => this.loadStats(), 500); // Delay para que se carguen las ventas primero
+        }
       },
       error: (err) => {
         const msg = err?.error?.message || this.t.instant('sales.err.create');

@@ -5,11 +5,34 @@
     <div class="store__filters">
       <label class="field">
         <span class="label">{{ 'store.search' | translate }}</span>
-        <input class="input" type="text" [placeholder]="'store.search' | translate" [value]="q()"
-          (input)="q.set($any($event.target).value)" />
+        <div class="search-wrapper">
+          <input class="input" type="text" [placeholder]="'store.search' | translate" [value]="searchInput()"
+            (input)="searchInput.set($any($event.target).value)" (keydown)="onSearchKeydown($event)" />
+
+          <!-- Botones de búsqueda -->
+          <div class="search-actions">
+            <button class="btn btn--search" type="button" (click)="onSearch()" [disabled]="!searchInput()">
+              🔍 Buscar
+            </button>
+
+            <button *ngIf="searchQuery()" class="btn btn--clear" type="button" (click)="onClearSearch()">
+              ✕
+            </button>
+          </div>
+        </div>
       </label>
     </div>
   </header>
+
+  <!-- Indicador de búsqueda activa -->
+  <div class="search-indicator" *ngIf="searchQuery()">
+    <span class="search-indicator__text">
+      🔍 Buscando: <strong>{{ searchQuery() }}</strong>
+    </span>
+    <span class="search-indicator__count">
+      {{ list().length }} {{ list().length === 1 ? 'resultado' : 'resultados' }}
+    </span>
+  </div>
 
   <div class="error" *ngIf="error() as e">{{ e }}</div>
   <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
@@ -43,8 +66,12 @@
   </div>
 
   <div class="store__empty" *ngIf="!loading() && list().length === 0">
-    <h3>{{ 'store.noProducts.title' | translate }}</h3>
-    <p>{{ 'store.noProducts.desc' | translate }}</p>
+    <h3>{{ searchQuery() ? 'Sin resultados' : ('store.noProducts.title' | translate) }}</h3>
+    <p>{{ searchQuery() ? 'No se encontraron productos con ese término de búsqueda.' : ('store.noProducts.desc' |
+      translate) }}</p>
+    <button *ngIf="searchQuery()" class="btn btn--accent" type="button" (click)="onClearSearch()">
+      Limpiar búsqueda
+    </button>
   </div>
 
   <!-- FAB -->
@@ -79,10 +106,7 @@
       </li>
     </ul>
 
-    <!-- REEMPLAZAR el footer del cart-drawer -->
-    
     <footer class="cart-drawer__footer">
-      <!-- ✅ Alerta si no puede comprar -->
       <div class="cart-purchase-alert" *ngIf="!canPurchase()">
         <div class="alert alert--warning">
           <span class="alert__icon">⚠️</span>
@@ -99,14 +123,12 @@
           </div>
         </div>
       </div>
-    
-      <!-- Total -->
+
       <div class="cart-drawer__total">
         <span>{{ 'store.cart.total' | translate }}</span>
         <strong>$ {{ cart.total() | number:'1.2-2' }}</strong>
       </div>
-    
-      <!-- ✅ ACTUALIZAR: Botón de compra -->
+
       <button class="btn btn--accent" type="button" [disabled]="!canPurchase() || cart.count() === 0 || processing()"
         [class.btn--disabled]="!canPurchase() || cart.count() === 0" (click)="goToCheckout()">
         <span class="icon" *ngIf="!processing()">🛒</span>
@@ -118,9 +140,7 @@
 
   <div class="cart-backdrop" *ngIf="showCart()" (click)="toggleCartDrawer()"></div>
 
-    <app-purchase-success-modal *ngIf="showSuccessModal() && purchaseData()" [data]="purchaseData()!"
-      (close)="onCloseSuccessModal()">
-    </app-purchase-success-modal>
+  <app-purchase-success-modal *ngIf="showSuccessModal() && purchaseData()" [data]="purchaseData()!"
+    (close)="onCloseSuccessModal()">
+  </app-purchase-success-modal>
 </section>
-
-<!-- Nota: Agregar RouterModule a los imports del componente si no está -->
