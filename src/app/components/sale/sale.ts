@@ -134,6 +134,9 @@ export class SaleComponent implements OnInit {
   get clientControl() { return this.form.controls.clientDni; }
   get distributorControl() { return this.form.controls.distributorDni; }
 
+
+
+  
   // --- Ciclo de vida ---
   ngOnInit(): void {
     console.log('🚀 Component initialized. showStats:', this.showStats());
@@ -143,7 +146,7 @@ export class SaleComponent implements OnInit {
     forkJoin({
       prods: this.prodSrv.getAllProducts(),
       clis: this.cliSrv.getAllClients(),
-      dists: this.http.get<any>('/api/distributors'),
+      dists: this.http.get<any>('/api/distributors', { withCredentials: true }), // ⬅ Agregar withCredentials
     }).subscribe({
       next: (res: { 
         prods: ApiProdResp<ProductDTO[]> | any; 
@@ -179,6 +182,10 @@ export class SaleComponent implements OnInit {
         } else if (res.dists?.distributors && Array.isArray(res.dists.distributors)) {
           distributorList = res.dists.distributors;
         }
+        
+        console.log('📦 Products loaded:', productList.length, productList);
+        console.log('👥 Clients loaded:', clientList.length, clientList);
+        console.log('🚚 Distributors loaded:', distributorList.length, distributorList);
         
         this.products.set(productList);
         this.clients.set(clientList);
@@ -292,30 +299,46 @@ export class SaleComponent implements OnInit {
   private groupSalesByMonth(sales: SaleDTO[]): { month: string; amount: number }[] {
     const monthMap = new Map<string, number>();
     
+    console.log('📅 Grouping sales by month...');
+    
     sales.forEach(sale => {
       const date = new Date(sale.saleDate || sale.date || Date.now());
-      const monthKey = date.toLocaleDateString('es-AR', { year: 'numeric', month: 'long' });
-      const monthCapitalized = monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
+      const year = date.getFullYear();
+      const month = date.getMonth(); // 0-11
+      const monthKey = `${year}-${String(month).padStart(2, '0')}`; // "2025-10"
       
-      const currentAmount = monthMap.get(monthCapitalized) || 0;
-      monthMap.set(monthCapitalized, currentAmount + this.calculateTotal(sale));
+      const saleTotal = this.calculateTotal(sale);
+      const currentAmount = monthMap.get(monthKey) || 0;
+      
+      console.log(`  Sale #${sale.id}: ${monthKey} -> ${saleTotal} (accumulated: ${currentAmount + saleTotal})`);
+      
+      monthMap.set(monthKey, currentAmount + saleTotal);
     });
 
-    return Array.from(monthMap.entries())
-      .map(([month, amount]) => ({ month, amount }))
-      .sort((a, b) => {
-        // Ordenar cronológicamente
-        const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const aMonth = a.month.split(' ')[0];
-        const bMonth = b.month.split(' ')[0];
-        return months.indexOf(aMonth) - months.indexOf(bMonth);
+    console.log('📅 Month map final:', Array.from(monthMap.entries()));
+
+    // Convertir el Map a array y ordenar por fecha
+    const result = Array.from(monthMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0])) // Ordenar por key "2025-10"
+      .map(([key, amount]) => {
+        const [year, monthNum] = key.split('-');
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        return {
+          month: `${monthNames[parseInt(monthNum)]} ${year}`,
+          amount
+        };
       });
+    
+    console.log('📅 Final result:', result);
+    return result;
   }
 
   // Obtener top 5 productos más vendidos
   private getTopProducts(sales: SaleDTO[]): { productId: number; productName: string; quantity: number }[] {
     const productMap = new Map<number, { name: string; quantity: number }>();
+
+    console.log('📦 Calculating top products from', sales.length, 'sales');
 
     sales.forEach(sale => {
       if (sale.details && sale.details.length > 0) {
@@ -324,17 +347,21 @@ export class SaleComponent implements OnInit {
           const quantity = Number(detail.quantity) || 0;
           const productName = this.detailDescription(detail);
 
+          console.log(`  - Product ${productId} (${productName}): +${quantity} units`);
+
           if (productMap.has(productId)) {
             const existing = productMap.get(productId)!;
             existing.quantity += quantity;
+            console.log(`    Updated total for ${productName}: ${existing.quantity} units`);
           } else {
             productMap.set(productId, { name: productName, quantity });
+            console.log(`    New product ${productName}: ${quantity} units`);
           }
         });
       }
     });
 
-    return Array.from(productMap.entries())
+    const result = Array.from(productMap.entries())
       .map(([productId, data]) => ({
         productId,
         productName: data.name,
@@ -342,21 +369,32 @@ export class SaleComponent implements OnInit {
       }))
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
+
+    console.log('🏆 Top products result:', result);
+    return result;
   }
 
   // Obtener ventas por distribuidor
   private getSalesByDistributor(sales: SaleDTO[]): { distributorName: string; totalSales: number }[] {
     const distributorMap = new Map<string, number>();
 
+    console.log('🚚 Calculating sales by distributor from', sales.length, 'sales');
+
     sales.forEach(sale => {
       const distributorName = sale.distributor?.name || 'Sin distribuidor';
       const currentAmount = distributorMap.get(distributorName) || 0;
-      distributorMap.set(distributorName, currentAmount + this.calculateTotal(sale));
+      const saleTotal = this.calculateTotal(sale);
+      
+      distributorMap.set(distributorName, currentAmount + saleTotal);
+      console.log(`  - ${distributorName}: +${saleTotal} (total: ${currentAmount + saleTotal})`);
     });
 
-    return Array.from(distributorMap.entries())
+    const result = Array.from(distributorMap.entries())
       .map(([distributorName, totalSales]) => ({ distributorName, totalSales }))
       .sort((a, b) => b.totalSales - a.totalSales);
+
+    console.log('🚚 Distributors result:', result);
+    return result;
   }
 
   // --- Stock y cantidades ---
@@ -455,11 +493,22 @@ export class SaleComponent implements OnInit {
   loadSales() {
     this.saleSrv.getAllSales().subscribe({
       next: (list: SaleDTO[]) => {
+        console.log('📋 Sales loaded:', list.length, 'sales');
+        
+        // ⬅ NUEVO: Debug - ver la estructura de las ventas
+        if (list.length > 0) {
+          console.log('🔍 First sale structure:', list[0]);
+          console.log('🔍 Distributor in first sale:', list[0].distributor);
+          console.log('🔍 Client in first sale:', list[0].client);
+        }
+        
         this.sales.set(list);
         this.loading.set(false);
         
-        // ⬅ Recalcular stats si están visibles
-        if (this.showStats() && this.stats()) {
+        // ⬅ NUEVO: Cargar stats automáticamente al cargar ventas
+        if (list.length > 0) {
+          console.log('📊 Auto-loading stats because sales exist');
+          this.showStats.set(true);
           this.loadStats();
         }
       },
@@ -503,6 +552,11 @@ export class SaleComponent implements OnInit {
   getClient(v: SaleDTO): SaleClientDTO | null { return v.client ?? null; }
   hasDetails(v: SaleDTO): boolean { return !!(v.details && v.details.length > 0); }
   getDetails(v: SaleDTO): SaleDetailDTO[] { return v.details ?? []; }
+  
+  // ⬅ NUEVO: Helper para buscar distribuidor por ID
+  getDistributorById(id: string): DistributorDTO | undefined {
+    return this.distributors().find(d => d.dni === id || (d as any).id === id);
+  }
 
   // --- Validaciones ---
   private clientExists(dni: string | null): boolean {

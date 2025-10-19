@@ -23,6 +23,23 @@ $spacing-md: 16px;
 $spacing-lg: 24px;
 $spacing-xl: 32px;
 
+/* ====== FIX GLOBAL - Opciones de select visibles ====== */
+select {
+  option {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    padding: 8px !important;
+    font-weight: 600 !important;
+
+    &:hover,
+    &:focus,
+    &:checked {
+      background: #334155 !important;
+      color: $primary-color !important;
+    }
+  }
+}
+
 /* ====== Common Styles ====== */
 .user-role-requests-inbox,
 .admin-role-requests-inbox {
@@ -1023,9 +1040,6 @@ $spacing-xl: 32px;
   }
 }
 
-
-// user-role-requests-inbox o en role-requests.scss
-
 .verification-required-warning {
   display: flex;
   align-items: center;
@@ -1071,8 +1085,6 @@ $spacing-xl: 32px;
     margin-right: auto;
   }
 }
-
-/* ====== AGREGAR ESTOS ESTILOS AL FINAL DE role-requests.scss ====== */
 
 /* ====== Additional Data Box (Review Modal) ====== */
 .additional-data-box {

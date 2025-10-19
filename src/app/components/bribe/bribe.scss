@@ -985,3 +985,54 @@ fieldset.group legend {
   opacity: 0.8;
   color: var(--muted);
 }
+
+.action-cell {
+  padding: 8px 14px !important;
+}
+
+.actions-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.paid-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(63, 125, 99, 0.15);
+  border: 1px solid rgba(63, 125, 99, 0.4);
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.paid-icon {
+  font-size: 16px;
+}
+
+.paid-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b8e6d3;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Animación sutil al aparecer */
+.paid-status {
+  animation: fadeInScale 0.3s ease;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

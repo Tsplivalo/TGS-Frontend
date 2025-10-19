@@ -127,17 +127,30 @@
               </span>
             </td>
             <td>{{ b.creationDate | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td class="right">
-              <button class="btn success btn--icon" (click)="markAsPaid(b)" [disabled]="b.paid" *ngIf="!b.paid"
-                [attr.title]="'bribes.actions.pay' | translate">
-                ✅
-              </button>
-              <button class="btn ghost btn--icon" (click)="edit(b)" [attr.title]="'common.edit' | translate">
-                ✏️
-              </button>
-              <button class="btn danger btn--icon" (click)="delete(b.id)" [attr.title]="'common.delete' | translate">
-                🗑️
-              </button>
+
+            <!-- ✅ MEJORA: Botón de pago mejorado -->
+            <td class="right action-cell">
+              <div class="actions-group">
+                <!-- Si NO está pagado: Botón activo -->
+                <button *ngIf="!b.paid" class="btn success btn--icon" (click)="markAsPaid(b)"
+                  [attr.title]="'bribes.actions.pay' | translate">
+                  ✅
+                </button>
+
+                <!-- Si YA está pagado: Badge indicador -->
+                <div *ngIf="b.paid" class="paid-status" [attr.title]="'bribes.status.alreadyPaid' | translate">
+                  <span class="paid-icon">🔒</span>
+                  <span class="paid-text">Pagado</span>
+                </div>
+
+                <button class="btn ghost btn--icon" (click)="edit(b)" [attr.title]="'common.edit' | translate">
+                  ✏️
+                </button>
+
+                <button class="btn danger btn--icon" (click)="delete(b.id)" [attr.title]="'common.delete' | translate">
+                  🗑️
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="filteredBribes().length === 0">
@@ -151,6 +164,82 @@
       </table>
     </div>
   </div>
+
+  <!-- ✅ ESTILOS ADICIONALES PARA EL BADGE DE PAGADO -->
+  <style>
+    .action-cell {
+      padding: 8px 14px !important;
+    }
+
+    .actions-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .paid-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: linear-gradient(135deg, rgba(63, 125, 99, 0.2) 0%, rgba(63, 125, 99, 0.1) 100%);
+      border: 1px solid rgba(63, 125, 99, 0.4);
+      border-radius: 8px;
+      white-space: nowrap;
+      cursor: default;
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .paid-icon {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .paid-text {
+      font-size: 11px;
+      font-weight: 700;
+      color: #b8e6d3;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: 'Google Sans Code', monospace;
+    }
+
+    .paid-status:hover {
+      background: linear-gradient(135deg, rgba(63, 125, 99, 0.25) 0%, rgba(63, 125, 99, 0.15) 100%);
+      border-color: rgba(63, 125, 99, 0.5);
+    }
+
+    /* Animación sutil al aparecer */
+    .paid-status {
+      animation: fadeInScale 0.3s cubic-bezier(0.25, 0.6, 0.3, 1);
+    }
+
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Responsive para móviles */
+    @media (max-width: 640px) {
+      .actions-group {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .paid-status {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
 
   <!-- NEW / EDIT FORM (COLLAPSIBLE) -->
   <div class="collapsible" [class.open]="isNewOpen">

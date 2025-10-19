@@ -322,7 +322,7 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 12, 12, 0.12);
   background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(0, 0, 0, .18)), linear-gradient(180deg, var(--accent), var(--accent-700));
   color: #1a1308;
   box-shadow: 0 10px 22px rgba(195, 164, 98, .28);
@@ -333,6 +333,7 @@
   /* asegura clickeable */
   transition: transform .12s ease, box-shadow .22s ease;
 }
+
 
 .cart-fab:hover {
   transform: translateY(-1px);
@@ -385,6 +386,7 @@
   transform: translateX(100%);
   transition: transform .28s ease;
   z-index: 1200;
+
 
   /* cuando está cerrado, que NO capture eventos */
   pointer-events: none;

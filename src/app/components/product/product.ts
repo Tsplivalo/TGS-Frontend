@@ -203,71 +203,160 @@ productsWithoutStock = computed(() => this.products().filter(p => (p.stock ?? 0)
   }
 
   // --- Guardar ---
-  save() {
-    if (this.form.invalid) {
-      // Marcar todos los campos como touched para mostrar errores
-      Object.keys(this.form.controls).forEach(key => {
-        this.form.get(key)?.markAsTouched();
-      });
-      return;
-    }
+  // Reemplazar el método save() completo en product.ts
 
-    this.loading.set(true);
-    this.error.set(null);
-
-    const raw = this.form.getRawValue();
-    const img = raw.imageUrl?.trim() || null;
-
-    if (this.editId() == null) {
-      // CREATE - Construir DTO explícitamente (NO enviar imageUrl al backend)
-      const dtoCreate: CreateProductDTO = {
-        description: raw.description,
-        detail: raw.detail,
-        price: raw.price,
-        stock: raw.stock,
-        isIllegal: raw.isIllegal
-      };
-
-      this.srv.createProduct(dtoCreate).subscribe({
-        next: (res: any) => {
-          const created = ('data' in res ? res.data : res) as ProductDTO | null;
-          if (created?.id) this.imgSvc.set(created.id, img);
-          this.loading.set(false);
-          this.new();
-          this.load();
-        },
-        error: err => {
-          this.loading.set(false);
-          this.error.set(err?.error?.message ?? 'Error al guardar producto');
-          console.error('Error creating product:', err);
-        }
-      });
-    } else {
-      // UPDATE - Construir DTO explícitamente (NO enviar imageUrl al backend)
-      const id = this.editId()!;
-      const dtoUpdate: UpdateProductDTO = {
-        description: raw.description,
-        detail: raw.detail,
-        price: raw.price,
-        stock: raw.stock,
-        isIllegal: raw.isIllegal
-      };
-
-      this.srv.updateProduct(id, dtoUpdate).subscribe({
-        next: _ => {
-          this.imgSvc.set(id, img);
-          this.loading.set(false);
-          this.new();
-          this.load();
-        },
-        error: err => {
-          this.loading.set(false);
-          this.error.set(err?.error?.message ?? 'Error al actualizar producto');
-          console.error('Error updating product:', err);
-        }
-      });
-    }
+save() {
+  if (this.form.invalid) {
+    Object.keys(this.form.controls).forEach(key => {
+      this.form.get(key)?.markAsTouched();
+    });
+    return;
   }
+
+  this.loading.set(true);
+  this.error.set(null);
+
+  const raw = this.form.getRawValue();
+  const img = raw.imageUrl?.trim() || null;
+
+  if (this.editId() == null) {
+    // ============================================================================
+    // CREATE
+    // ============================================================================
+    const dtoCreate: CreateProductDTO = {
+      description: raw.description,
+      detail: raw.detail,
+      price: raw.price,
+      stock: raw.stock,
+      isIllegal: raw.isIllegal
+    };
+
+    this.srv.createProduct(dtoCreate).subscribe({
+      next: (res: any) => {
+        const created = ('data' in res ? res.data : res) as ProductDTO | null;
+        if (created?.id) this.imgSvc.set(created.id, img);
+        this.loading.set(false);
+        this.new();
+        this.load();
+      },
+      error: err => {
+        this.loading.set(false);
+        this.error.set(this.parseErrorMessage(err, 'crear'));
+        console.error('Error creating product:', err);
+      }
+    });
+  } else {
+    // ============================================================================
+    // UPDATE
+    // ============================================================================
+    const id = this.editId()!;
+    const dtoUpdate: UpdateProductDTO = {
+      description: raw.description,
+      detail: raw.detail,
+      price: raw.price,
+      stock: raw.stock,
+      isIllegal: raw.isIllegal
+    };
+
+    this.srv.updateProduct(id, dtoUpdate).subscribe({
+      next: _ => {
+        this.imgSvc.set(id, img);
+        this.loading.set(false);
+        this.new();
+        this.load();
+      },
+      error: err => {
+        this.loading.set(false);
+        this.error.set(this.parseErrorMessage(err, 'actualizar'));
+        console.error('Error updating product:', err);
+      }
+    });
+  }
+}
+
+// ============================================================================
+// NUEVO MÉTODO: Parser de errores
+// ============================================================================
+/**
+ * Extrae un mensaje de error legible desde la respuesta HTTP
+ * @param err - Error de HttpClient
+ * @param action - Acción que se estaba realizando ('crear' o 'actualizar')
+ * @returns Mensaje de error formateado para el usuario
+ */
+private parseErrorMessage(err: any, action: 'crear' | 'actualizar'): string {
+  // Default message
+  let errorMessage = `Error al ${action} producto`;
+
+  if (!err.error) {
+    return errorMessage;
+  }
+
+  // Caso 1: String simple
+  if (typeof err.error === 'string') {
+    return err.error;
+  }
+
+  // Caso 2: Objeto con propiedad 'message'
+  if (err.error.message) {
+    errorMessage = err.error.message;
+    
+    // Mejorar mensajes comunes del backend
+    if (errorMessage.includes('already exists')) {
+      return `Ya existe un producto con esa descripción. Por favor, usá un nombre diferente.`;
+    }
+    
+    return errorMessage;
+  }
+
+  // Caso 3: Array de errores de validación
+  if (err.error.errors && Array.isArray(err.error.errors)) {
+    const errors = err.error.errors
+      .map((e: any) => {
+        const field = this.translateFieldName(e.field);
+        return `${field}: ${e.message}`;
+      })
+      .join(', ');
+    
+    return `Errores de validación: ${errors}`;
+  }
+
+  // Caso 4: Código de error HTTP específico
+  switch (err.status) {
+    case 400:
+      return `Datos inválidos. Revisá que todos los campos estén completos correctamente.`;
+    case 409:
+      return `Ya existe un producto con esa descripción.`;
+    case 401:
+      return `No tenés permisos para ${action} productos.`;
+    case 403:
+      return `Acceso denegado.`;
+    case 404:
+      return `Producto no encontrado.`;
+    case 500:
+      return `Error del servidor. Intentá de nuevo más tarde.`;
+    default:
+      return errorMessage;
+  }
+}
+
+/**
+ * Traduce nombres de campos técnicos a español
+ * @param field - Nombre técnico del campo
+ * @returns Nombre legible en español
+ */
+private translateFieldName(field: string | undefined): string {
+  if (!field) return 'Campo';
+  
+  const translations: Record<string, string> = {
+    'description': 'Descripción',
+    'detail': 'Detalle',
+    'price': 'Precio',
+    'stock': 'Stock',
+    'isIllegal': 'Es ilegal'
+  };
+  
+  return translations[field] || field;
+}
 
   // --- Borrado ---
   delete(id: number) {
