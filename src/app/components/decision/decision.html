@@ -4,7 +4,7 @@
       <h2>{{ 'decisions.title' | translate }}</h2>
       <div class="right">
         <button class="btn" (click)="toggleForm()" [attr.aria-expanded]="isFormOpen">
-          {{ isFormOpen ? ('Cerrar' | translate) : ('Nueva Decisión' | translate) }}
+          {{ isFormOpen ? ('decisions.toggle.close' | translate) : ('decisions.toggle.new' | translate) }}
         </button>
       </div>
     </div>
@@ -22,20 +22,20 @@
       </span>
     </div>
 
-
+    <!-- Filtros -->
     <div class="filters" style="align-items: flex-end;">
       <label class="label" style="flex: 1;">
         <span>{{ 'decisions.filters.search' | translate }}</span>
         <input class="input" [placeholder]="'decisions.filters.searchPh' | translate" [ngModel]="fTextInput()"
           (ngModelChange)="fTextInput.set($event)" (keyup.enter)="applyFilters()" />
       </label>
-
+    
       <label class="label" style="min-width: 200px;">
         <span>{{ 'decisions.filters.topic' | translate }}</span>
-        <input class="input" [placeholder]="'decisions.filters.topicPh' | translate" [ngModel]="topicFilterApplied()"
-          (ngModelChange)="topicFilterApplied.set($event)" (keyup.enter)="applyFilters()" />
+        <input class="input" [placeholder]="'decisions.filters.topicPh' | translate" [ngModel]="topicFilterInput()"
+          (ngModelChange)="topicFilterInput.set($event)" (keyup.enter)="applyFilters()" />
       </label>
-
+    
       <div style="display: flex; gap: var(--sp-2);">
         <button class="btn btn-primary" type="button" (click)="applyFilters()">
           🔍 {{ 'common.search' | translate }}
@@ -47,14 +47,14 @@
     </div>
 
     <div class="table-wrap">
-      <table class="table" *ngIf="filteredDecisions().length;">
+      <table class="table" *ngIf="filteredDecisions().length; else emptyState">
         <colgroup>
           <col style="width:90px" />
           <col style="width:220px" />
           <col />
           <col style="width:140px" />
           <col style="width:140px" />
-          <col style="width:160px" />
+          <col style="width:100px" />
         </colgroup>
 
         <thead>
@@ -79,8 +79,8 @@
               <ng-template #noThematic>—</ng-template>
             </td>
             <td><span class="truncate">{{ d.description }}</span></td>
-            <td>{{ d.startDate | date:'shortDate' }}</td>
-            <td>{{ d.endDate | date:'shortDate' }}</td>
+            <td>{{ formatDateDDMMYYYY(d.startDate) }}</td>
+            <td>{{ formatDateDDMMYYYY(d.endDate) }}</td>
             <td class="right">
               <button class="btn ghost btn--icon" (click)="edit(d); isFormOpen = true"
                 [attr.title]="'common.edit' | translate">✏️</button>
@@ -91,11 +91,17 @@
         </tbody>
       </table>
 
-      <div class="center muted">
-        {{ (fTextApplied() || topicFilterApplied())
-        ? 'Sin resultados para el filtro aplicado'
-        : ('decisions.empty' | translate) }}
-      </div>
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <h3>{{ (fTextApplied() || topicFilterApplied()) ? 'Sin resultados para el filtro aplicado' :
+            ('decisions.empty' | translate) }}</h3>
+          <p class="muted">
+            {{ (fTextApplied() || topicFilterApplied())
+            ? 'Probá ajustar los filtros'
+            : 'Creá una nueva decisión para comenzar.' }}
+          </p>
+        </div>
+      </ng-template>
     </div>
   </div>
 

@@ -5,7 +5,7 @@
       <h2 class="title">{{ 'distributors.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="new()">
-          {{ 'Nuevo Distribuidor' | translate }}
+          {{ 'distributors.new' | translate }}
         </button>
       </div>
     </header>
@@ -22,7 +22,6 @@
         <strong>{{ 'distributors.stats.filtered' | translate }}</strong> {{ filtered().length }}
       </span>
     </div>
-
 
     <div class="error" *ngIf="error() as err">
       <strong>{{ 'common.error' | translate }}:</strong> {{ err }}
@@ -51,35 +50,48 @@
 
       <div class="table-wrap" *ngIf="filtered().length; else empty">
         <table class="table">
+          <colgroup>
+            <col style="width: 120px;" /> <!-- DNI -->
+            <col style="width: 180px;" /> <!-- Name -->
+            <col style="width: 140px;" /> <!-- Phone -->
+            <col style="width: 220px;" /> <!-- Email -->
+            <col style="width: 150px;" /> <!-- Zone -->
+            <col style="width: 100px;" /> <!-- Products -->
+            <col style="width: 100px;" /> <!-- Actions -->
+          </colgroup>
+      
           <thead>
             <tr>
-              <th style="width:140px">{{ 'distributors.table.dni' | translate }}</th>
+              <th>{{ 'distributors.table.dni' | translate }}</th>
               <th>{{ 'distributors.table.name' | translate }}</th>
-              <th style="width:140px">{{ 'distributors.table.phone' | translate }}</th>
-              <th style="width:220px">{{ 'distributors.table.email' | translate }}</th>
-              <th style="width:160px">{{ 'distributors.table.zone' | translate }}</th>
-              <th style="width:120px" class="right">{{ 'distributors.table.products' | translate }}</th>
-              <th style="width:160px" class="right">{{ 'distributors.table.actions' | translate }}</th>
+              <th>{{ 'distributors.table.phone' | translate }}</th>
+              <th>{{ 'distributors.table.email' | translate }}</th>
+              <th>{{ 'distributors.table.zone' | translate }}</th>
+              <th class="center">{{ 'distributors.table.products' | translate }}</th>
+              <th style="text-align: right; padding-right: 14px;">{{ 'distributors.table.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let d of filtered()">
               <td>{{ d.dni }}</td>
-              <td>{{ d.name }}</td>
+              <td><span class="truncate" style="max-width: 160px;">{{ d.name }}</span></td>
               <td>{{ d.phone }}</td>
-              <td>{{ d.email }}</td>
-              <td>{{ d.zone?.name || ('#' + (d.zone?.id ?? d.zoneId ?? '')) }}</td>
-              <td class="right">{{ d.products?.length || 0 }}</td>
-              <td class="right">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(d)"
-                  [attr.title]="'common.edit' | translate">
-                  ✏️
-                </button>
-
-                <button class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
-                  [attr.title]="'common.delete' | translate">
-                  🗑️
-                </button>
+              <td><span class="truncate" style="max-width: 200px;">{{ d.email }}</span></td>
+              <td><span class="truncate" style="max-width: 130px;">{{ d.zone?.name || ('#' + (d.zone?.id ?? d.zoneId ?? ''))
+                  }}</span></td>
+              <td class="center"><strong>{{ d.products?.length || 0 }}</strong></td>
+              <td style="text-align: right; padding-right: 6px;">
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                  <button class="btn ghost btn--icon" type="button" (click)="edit(d)"
+                    [attr.title]="'common.edit' | translate">
+                    ✏️
+                  </button>
+      
+                  <button class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
+                    [attr.title]="'common.delete' | translate">
+                    🗑️
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -97,7 +109,7 @@
 
   <!-- FORM (COLLAPSIBLE) -->
   <div class="collapsible" [class.open]="isFormOpen">
-    <div class="collapsible__content panel panel--glass">
+    <div class="collapsible__content glass-dark card">
       <div class="header">
         <h2 class="title">
           {{ isEdit()
@@ -106,9 +118,9 @@
         </h2>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid form-grid--compact">
-        <div class="error" *ngIf="error()">{{ error() }}</div>
+      <div class="error" *ngIf="error()">{{ error() }}</div>
 
+      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
         <!-- DNI -->
         <label class="label">
           <span>{{ 'distributors.form.dni' | translate }} *</span>
@@ -168,26 +180,26 @@
           </small>
         </label>
 
-        <!-- Productos (Checkboxes en lugar de select múltiple) -->
+        <!-- Productos -->
         <div class="label col-2">
           <span>{{ 'distributors.form.products' | translate }}</span>
-          <div class="products-grid">
-            @for (p of products(); track p.id) {
-            <label class="checkbox-label">
-              <input type="checkbox" [value]="p.id" [checked]="isProductSelected(p.id)"
-                (change)="toggleProduct(p.id, $event)" />
-              <span>#{{ p.id }} — {{ p.description }}</span>
-            </label>
-            }
-            @if (products().length === 0) {
-            <span class="muted">{{ 'distributors.form.noProducts' | translate }}</span>
-            }
+          <div
+            style="display: flex; flex-wrap: wrap; gap: var(--sp-3); padding: var(--sp-3); background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--border);">
+            <ng-container *ngFor="let p of products()">
+              <label class="checkbox-label">
+                <input type="checkbox" [value]="p.id" [checked]="isProductSelected(p.id)"
+                  (change)="toggleProduct(p.id, $event)" />
+                <span>#{{ p.id }} — {{ p.description }}</span>
+              </label>
+            </ng-container>
+            <span class="muted" *ngIf="products().length === 0">{{ 'distributors.form.noProducts' | translate }}</span>
           </div>
           <small class="muted">
             {{ 'distributors.form.multiHint' | translate }}
           </small>
         </div>
 
+        <!-- Botones -->
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
             {{ isEdit() ? ('Guardar' | translate) : ('Crear' | translate) }}

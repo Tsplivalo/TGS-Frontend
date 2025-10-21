@@ -326,7 +326,7 @@
       "clear": "Limpiar formulario"
     },
     "filters": {
-      "search": "Buscar"
+      "search": "Buscar por DNI, nombre, email, teléfono o dirección"
     },
     "createMode": "¿Cómo querés crear el socio?",
     "mode": {
@@ -508,7 +508,9 @@
     "errorDelete": "No se pudo eliminar.",
     "filters": {
       "search": "Buscar",
-      "searchPh": "dni / nombre / rango",
+      "searchPh": "nombre / rango",
+      "dni": "DNI",
+      "dniPh": "Ej: 12345678",
       "zoneId": "ID de zona",
       "zoneIdPh": "ID de zona"
     },
@@ -571,6 +573,13 @@
     "confirmPay": "¿Confirmar el pago de este soborno?",
     "confirmDelete": "¿Eliminar este soborno? Esta acción no se puede deshacer.",
     "filters": {
+
+      "id": "ID Soborno",
+    "idPh": "Ej: 123",
+    "amount": "Monto",
+    "amountPh": "Ej: 600",
+    "authority": "Autoridad",
+    "authorityPh": "DNI o nombre...",
       "search": "Buscar",
       "searchPh": "Buscar por ID, monto, autoridad...",
       "paid": "Pagados",
@@ -638,7 +647,7 @@
   },
   "decisions": {
     "title": "Decisiones estratégicas",
-    "new": "Nueva",
+    "new": "Nueva decisión",
     "empty": "Sin decisiones",
     "filters": {
       "search": "Buscar",
@@ -715,7 +724,7 @@
   },
   "distributors": {
     "title": "Distribuidores",
-    "new": "+ Nuevo distribuidor",
+    "new": "Nuevo distribuidor",
     "list": "Listado",
     "loading": "Cargando distribuidores...",
     "filters": {
@@ -887,18 +896,19 @@
       "titleEdit": "Editar miembro #{{id}}"
     },
     "fields": {
-      "partnerDni": "DNI del socio",
-      "decisionId": "ID de decisión",
+      "partner": "Socio",
+      "decision": "ID de decisión",
       "joinDate": "Fecha de ingreso",
       "role": "Rol",
       "notes": "Notas"
     },
     "buttons": {
-      "new": "+ Nuevo",
+      "new": "Nuevo",
       "create": "Crear",
       "save": "Guardar",
       "cancel": "Cancelar",
-      "clear": "Limpiar"
+      "clear": "Limpiar",
+      "close": "Cerrar"
     },
     "errorCreate": "No se pudo crear",
     "errorSave": "No se pudo guardar",

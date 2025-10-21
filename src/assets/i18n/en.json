@@ -312,7 +312,7 @@
       "clear": "Clear form"
     },
     "filters": {
-      "search": "Search"
+      "search": "Search by ID, name, email, phone or address"
     },
     "createMode": "How do you want to create the partner?",
     "mode": {
@@ -494,7 +494,9 @@
     "errorDelete": "Could not delete.",
     "filters": {
       "search": "Search",
-      "searchPh": "dni / name / rank",
+      "searchPh": "name / rank",
+      "dni": "ID Number",
+      "dniPh": "e.g: 12345678",
       "zoneId": "Zone ID",
       "zoneIdPh": "Zone ID"
     },
@@ -560,6 +562,13 @@
       "search": "Search",
       "searchPh": "Search by ID, amount, authority...",
       "paid": "Paid",
+
+      "id": "Bribe ID",
+    "idPh": "e.g: 123",
+    "amount": "Amount",
+    "amountPh": "e.g: 600",
+    "authority": "Authority",
+    "authorityPh": "ID or name...",
       "paid_all": "All",
       "paid_yes": "Yes",
       "paid_no": "No",
@@ -624,7 +633,7 @@
   },
   "decisions": {
     "title": "Strategic decisions",
-    "new": "New",
+    "new": "New decision",
     "empty": "No decisions",
     "filters": {
       "search": "Search",
@@ -701,7 +710,7 @@
   },
   "distributors": {
     "title": "Distributors",
-    "new": "+ New distributor",
+    "new": "New distributor",
     "list": "List",
     "loading": "Loading distributors...",
     "filters": {
@@ -889,18 +898,19 @@
       "titleEdit": "Edit member #{{id}}"
     },
     "fields": {
-      "partnerDni": "Partner DNI",
-      "decisionId": "Decision ID",
+      "partner": "Partner",
+      "decision": "Decision ID",
       "joinDate": "Join date",
       "role": "Role",
       "notes": "Notes"
     },
     "buttons": {
-      "new": "+ New",
+      "new": "New",
       "create": "Create",
       "save": "Save",
       "cancel": "Cancel",
-      "clear": "Clear"
+      "clear": "Clear",
+      "close": "Close"
     },
     "errorCreate": "Could not create",
     "errorSave": "Could not save",

@@ -43,7 +43,7 @@ export class DecisionComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
-  isEdit = signal(false); // true si estamos editando una decisión existente
+  isEdit = signal(false);
 
   // --- Filtros del listado ---
   fTextInput = signal('');
@@ -100,17 +100,43 @@ export class DecisionComponent implements OnInit {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  // ✅ NUEVO: Convierte fecha YYYY-MM-DD a formato ISO con hora del mediodía UTC
+  // Esto evita problemas de timezone al enviar al backend
+  private dateToISO(dateStr: string): string {
+    if (!dateStr) return '';
+    // Agregar hora del mediodía UTC para evitar cambios de día por timezone
+    return `${dateStr}T12:00:00.000Z`;
+  }
+
+  // ✅ NUEVO: Formatea fecha ISO a DD/MM/YYYY para mostrar
+  formatDateDDMMYYYY(isoDate: string | undefined): string {
+    if (!isoDate) return '—';
+    
+    // Extraer solo la parte de la fecha (YYYY-MM-DD)
+    const dateOnly = isoDate.split('T')[0];
+    const [year, month, day] = dateOnly.split('-');
+    
+    return `${day}/${month}/${year}`;
+  }
+
   // --- Listados filtrados ---
   filteredDecisions = computed(() => {
-    const q = this.fTextApplied().toLowerCase().trim();
-    const tFilter = this.topicFilterApplied().trim();
-    return this.decisions().filter(d => {
-      const matchText = !q || (d.description || '').toLowerCase().includes(q) || String(d.id).includes(q);
-      const topicId = d.topic?.id != null ? String(d.topic.id) : '';
-      const matchTopic = !tFilter || topicId === tFilter;
-      return matchText && matchTopic;
-    });
+  const q = this.fTextApplied().toLowerCase().trim();
+  const tFilter = this.topicFilterApplied().trim();
+  
+  return this.decisions().filter(d => {
+    // Filtro por texto en descripción o ID
+    const matchText = !q || 
+      (d.description || '').toLowerCase().includes(q) || 
+      String(d.id).includes(q);
+    
+    // Filtro por tema específico
+    const topicId = d.topic?.id != null ? String(d.topic.id) : '';
+    const matchTopic = !tFilter || topicId === tFilter;
+    
+    return matchText && matchTopic;
   });
+});
 
   applyFilters() {
   this.fTextApplied.set(this.fTextInput());
@@ -129,7 +155,6 @@ export class DecisionComponent implements OnInit {
     const today = new Date().toISOString().split('T')[0];
     return this.decisions().filter(d => d.endDate >= today).length;
   });
-
   // --- Data fetching ---
   load() {
     this.loading.set(true);
@@ -183,8 +208,8 @@ export class DecisionComponent implements OnInit {
     return {
       topicId: Number(v.topicId),
       description: String(v.description).trim(),
-      startDate: String(v.startDate),
-      endDate: String(v.endDate),
+      startDate: this.dateToISO(v.startDate), // ✅ Convertir a ISO
+      endDate: this.dateToISO(v.endDate),     // ✅ Convertir a ISO
     };
   }
 
@@ -193,8 +218,8 @@ export class DecisionComponent implements OnInit {
     return {
       topicId: v.topicId != null ? Number(v.topicId) : undefined,
       description: v.description?.trim() || undefined,
-      startDate: v.startDate || undefined,
-      endDate: v.endDate || undefined,
+      startDate: v.startDate ? this.dateToISO(v.startDate) : undefined, // ✅ Convertir a ISO
+      endDate: v.endDate ? this.dateToISO(v.endDate) : undefined,       // ✅ Convertir a ISO
     };
   }
 
@@ -227,6 +252,7 @@ export class DecisionComponent implements OnInit {
     // CREATE
     if (!this.isEdit()) {
       const payload = this.buildCreate();
+      console.log('📤 CREATE Payload:', payload); // Debug
       this.srv.create(payload).subscribe({
         next: () => { this.new(); this.load(); },
         error: (err) => {
@@ -240,6 +266,7 @@ export class DecisionComponent implements OnInit {
     // UPDATE (PATCH parcial)
     const id = this.form.controls.id.value!;
     const payload = this.buildPatch();
+    console.log('📤 UPDATE Payload:', payload); // Debug
     this.srv.update(id, payload).subscribe({
       next: () => { this.new(); this.load(); },
       error: (err) => {

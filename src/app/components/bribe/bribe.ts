@@ -55,8 +55,12 @@ export class BribeComponent implements OnInit {
   sales = signal<SaleDTO[]>([]);
 
   // --- Filtros ---
-  fTextInput = signal('');
+  fTextInput = signal(''); 
   fTextApplied = signal('');
+  fAmountInput = signal(''); 
+  fAmountApplied = signal('');
+  fAuthorityInput = signal(''); 
+  fAuthorityApplied = signal('');
   fPaidInput = signal<'all' | 'true' | 'false'>('all');
   fPaidApplied = signal<'all' | 'true' | 'false'>('all');
   fDateTypeInput = signal<'all' | 'exact' | 'before' | 'after' | 'between'>('all');
@@ -66,28 +70,36 @@ export class BribeComponent implements OnInit {
   fEndDateInput = signal('');
   fEndDateApplied = signal('');
 
-  // Filtrado reactivo
+// Filtrado reactivo
   filteredBribes = computed(() => {
-  const txt = this.fTextApplied().toLowerCase().trim();
-  const paidFilter = this.fPaidApplied();
+    const idTxt = this.fTextApplied().trim();
+    const amountTxt = this.fAmountApplied().trim();
+    const authorityTxt = this.fAuthorityApplied().trim();
+    const paidFilter = this.fPaidApplied();
 
-  return this.bribes().filter(b => {
-    // Filtro por texto
-    const matchText = !txt
-      || String(b.id).includes(txt)
-      || String(b.amount).includes(txt)
-      || b.authority?.name.toLowerCase().includes(txt)
-      || b.authority?.dni.includes(txt)
-      || String(b.sale?.id).includes(txt);
+    return this.bribes().filter(b => {
+      // Filtro por ID
+      const matchId = !idTxt || String(b.id).includes(idTxt);
 
-    // Filtro por estado de pago
-    const matchPaid = paidFilter === 'all'
-      || (paidFilter === 'true' && b.paid)
-      || (paidFilter === 'false' && !b.paid);
+      // Filtro por monto
+      const matchAmount = !amountTxt || String(b.amount).includes(amountTxt);
 
-    return matchText && matchPaid;
+      // Filtro por autoridad (DNI o nombre)
+      let matchAuthority = true;
+      if (authorityTxt) {
+        const authorityName = b.authority?.name?.toLowerCase() || '';
+        const authorityDni = b.authority?.dni || '';
+        matchAuthority = authorityName.includes(authorityTxt) || authorityDni.includes(authorityTxt);
+      }
+
+      // Filtro por estado de pago
+      const matchPaid = paidFilter === 'all'
+        || (paidFilter === 'true' && b.paid)
+        || (paidFilter === 'false' && !b.paid);
+
+      return matchId && matchAmount && matchAuthority && matchPaid;
+    });
   });
-});
 
   // --- Form reactivo ---
   form = this.fb.group({
@@ -143,20 +155,26 @@ const bribesRequest = (this.fPaidApplied() !== 'all' || this.fDateTypeApplied() 
 
   applyFilters() {
   this.fTextApplied.set(this.fTextInput());
+  this.fAmountApplied.set(this.fAmountInput());
+  this.fAuthorityApplied.set(this.fAuthorityInput());
   this.fPaidApplied.set(this.fPaidInput());
   this.fDateTypeApplied.set(this.fDateTypeInput());
   this.fDateApplied.set(this.fDateInput());
   this.fEndDateApplied.set(this.fEndDateInput());
-  this.loadAll(); // Recarga datos si hay filtros de fecha
+  this.loadAll();
 }
 
 clearFilters() {
   this.fTextInput.set('');
+  this.fAmountInput.set('');
+  this.fAuthorityInput.set('');
   this.fPaidInput.set('all');
   this.fDateTypeInput.set('all');
   this.fDateInput.set('');
   this.fEndDateInput.set('');
   this.fTextApplied.set('');
+  this.fAmountApplied.set('');
+  this.fAuthorityApplied.set('');
   this.fPaidApplied.set('all');
   this.fDateTypeApplied.set('all');
   this.fDateApplied.set('');
