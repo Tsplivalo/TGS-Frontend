@@ -1,75 +1,58 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-type Channel = { label: string; value: string; href: string; hint?: string; icon?: string };
-type KV = { label: string; value: string };
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   standalone: true,
   selector: 'app-contact',
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './contact.html',
   styleUrls: ['./contact.scss'],
 })
 export class ContactComponent {
-  // ✅ Canales principales - ACTUALIZADOS CON ICONOS
-  channels: Channel[] = [
-    {
-      label: 'Email',
-      value: 'thegarrisonsystem@gmail.com',
-      href: 'mailto:thegarrisonsystem@gmail.com',
-      hint: 'Respondemos en ~24 hs hábiles',
-      icon: 'https://cdn.simpleicons.org/gmail/EA4335',
-    },
-    {
-      label: 'Teléfono',
-      value: '+54 341 555-1234',
-      href: 'tel:+543415551234',
-      hint: 'Lun a Vie · 09–18 h',
-      icon: 'https://api.iconify.design/heroicons:phone-solid.svg?color=%234285F4',
-    },
-    {
-      label: 'WhatsApp',
-      value: '+54 9 341 555-1234',
-      href: 'https://wa.me/5493415551234',
-      hint: 'Respuesta rápida',
-      icon: 'https://cdn.simpleicons.org/whatsapp/25D366',
-    },
-  ];
+  // Claves de canales
+  channelKeys = ['email', 'phone', 'whatsapp'];
 
-  // Horarios
-  hours: KV[] = [
-    { label: 'Soporte',   value: 'Lun a Vie · 09:00–18:00' },
-    { label: 'Comercial', value: 'Lun a Vie · 10:00–17:00' },
-  ];
+  // Iconos de canales
+  channelIcons: Record<string, string> = {
+    email: 'https://cdn.simpleicons.org/gmail/EA4335',
+    phone: 'https://api.iconify.design/heroicons:phone-solid.svg?color=%234285F4',
+    whatsapp: 'https://cdn.simpleicons.org/whatsapp/25D366',
+  };
 
-  // ✅ Dirección - ACTUALIZADA CON ICONO
-  address = 'Zeballos 1341, S2000 Rosario, Santa Fe, Argentina';
+  // Claves de horarios
+  hourKeys = ['support', 'commercial'];
+
+  // Mapa de Google
   mapHref = 'https://maps.app.goo.gl/us7wsEg9MFs9cfky7';
   mapIcon = 'https://cdn.simpleicons.org/googlemaps/4285F4';
 
-  // ✅ Enlaces útiles - ACTUALIZADOS CON ICONOS
-  links: Channel[] = [
-    { 
-      label: 'GitHub del Proyecto', 
-      value: 'github.com/lautaro-peralta', 
-      href: 'https://github.com/lautaro-peralta/TP-Desarrollo-de-Software', 
-      hint: 'Código fuente y documentación',
-      icon: 'https://cdn.simpleicons.org/github/FFFFFF',
-    },
-    { 
-      label: 'UTN Rosario',       
-      value: 'frro.utn.edu.ar',   
-      href: 'https://www.frro.utn.edu.ar/', 
-      hint: 'Facultad Regional Rosario',
-      icon: 'https://cdn.simpleicons.org/educative/0052CC',
-    },
-    { 
-      label: 'Soporte Técnico',            
-      value: 'thegarrisonsystem@gmail.com',           
-      href: 'mailto:thegarrisonsystem@gmail.com', 
-      hint: 'Contacto directo por email',
-      icon: 'https://cdn.simpleicons.org/gmail/EA4335',
-    },
-  ];
+  // Claves de enlaces útiles
+  linkKeys = ['github', 'utn', 'techSupport'];
+
+  // URLs de enlaces
+  linkHrefs: Record<string, string> = {
+    github: 'https://github.com/lautaro-peralta/TP-Desarrollo-de-Software',
+    utn: 'https://www.frro.utn.edu.ar/',
+    techSupport: 'mailto:thegarrisonsystem@gmail.com',
+  };
+
+  // Iconos de enlaces
+  linkIcons: Record<string, string> = {
+    github: 'https://cdn.simpleicons.org/github/FFFFFF',
+    utn: 'https://cdn.simpleicons.org/educative/0052CC',
+    techSupport: 'https://cdn.simpleicons.org/gmail/EA4335',
+  };
+
+  private t = inject(TranslateService);
+
+  // Método auxiliar para generar hrefs dinámicos de canales
+  getChannelHref(key: string): string {
+    const hrefs: Record<string, string> = {
+      email: 'mailto:thegarrisonsystem@gmail.com',
+      phone: 'tel:+543415551234',
+      whatsapp: 'https://wa.me/5493415551234',
+    };
+    return hrefs[key] || '#';
+  }
 }

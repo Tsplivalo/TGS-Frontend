@@ -16,7 +16,8 @@
     "about": "About us",
     "faqs": "FAQs",
     "contact": "Contact us",
-    "language": "Language"
+    "language": "Language",
+    "home": "Home"
   },
   "store": {
     "title": "Store",
@@ -365,15 +366,15 @@
     "new": "New",
     "newTitle": "New sale",
     "noResults": "No sales",
-      "loading": "Loading statistics...",
-  "totalRevenue": "Total revenue",
-  "totalSales": "Total sales",
-  "averageTicket": "Average ticket",
-  "salesByMonth": "Sales by month",
-  "topProducts": "Top products",
-  "salesByDistributor": "Sales by distributor",
-  "noData": "No statistics available",
-  "noDataDesc": "Statistics will appear here once there is data.",
+    "loading": "Loading statistics...",
+    "totalRevenue": "Total revenue",
+    "totalSales": "Total sales",
+    "averageTicket": "Average ticket",
+    "salesByMonth": "Sales by month",
+    "topProducts": "Top products",
+    "salesByDistributor": "Sales by distributor",
+    "noData": "No statistics available",
+    "noDataDesc": "Statistics will appear here once there is data.",
     "errorLoad": "Could not load sales.",
     "client": "Client",
     "itemsCount": "{{count}} item(s)",
@@ -562,13 +563,12 @@
       "search": "Search",
       "searchPh": "Search by ID, amount, authority...",
       "paid": "Paid",
-
       "id": "Bribe ID",
-    "idPh": "e.g: 123",
-    "amount": "Amount",
-    "amountPh": "e.g: 600",
-    "authority": "Authority",
-    "authorityPh": "ID or name...",
+      "idPh": "e.g: 123",
+      "amount": "Amount",
+      "amountPh": "e.g: 600",
+      "authority": "Authority",
+      "authorityPh": "ID or name...",
       "paid_all": "All",
       "paid_yes": "Yes",
       "paid_no": "No",
@@ -1330,5 +1330,129 @@
         "desc": "No requests were found with the selected filters"
       }
     }
-  }
-}
+  },
+  "about": {
+    "title": "About Us",
+    "lead": "We are a team passionate about creating efficient and scalable solutions.",
+    "mission": "We empower teams to work with clarity, focus, and simplicity.",
+    "sections": {
+      "missionTitle": "Our Mission",
+      "valuesTitle": "Our Values",
+      "teamTitle": "Our Team"
+    },
+    "values": {
+      "transparency": {
+        "title": "Transparency",
+        "desc": "Clear communication and visible decisions."
+      },
+      "quality": {
+        "title": "Quality",
+        "desc": "We care about every detail in each delivery."
+      },
+      "velocity": {
+        "title": "Speed",
+        "desc": "We iterate fast without losing stability."
+      },
+      "proximity": {
+        "title": "Closeness",
+        "desc": "We listen and support our clients."
+      },
+      "learning": {
+        "title": "Learning",
+        "desc": "Continuous improvement as culture."
+      },
+      "purpose": {
+        "title": "Purpose",
+        "desc": "We build products that matter."
+      }
+    },
+    "team": {
+      "roles": {
+        "backend": "Backend",
+        "frontend": "Frontend"
+      }
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "lead": "We're here to help. Reach out through any of our channels.",
+    "sections": {
+      "channels": "Main Channels",
+      "hours": "Business Hours",
+      "location": "Location",
+      "usefulLinksTitle": "Useful Links",
+      "usefulLinksLead": "Quick access to documentation and resources"
+    },
+    "channels": {
+      "email": {
+        "label": "Email",
+        "value": "thegarrisonsystem@gmail.com",
+        "hint": "We respond within ~24 business hours"
+      },
+      "phone": {
+        "label": "Phone",
+        "value": "+54 341 555-1234",
+        "hint": "Mon to Fri · 09–18 h"
+      },
+      "whatsapp": {
+        "label": "WhatsApp",
+        "value": "+54 9 341 555-1234",
+        "hint": "Quick response"
+      }
+    },
+    "hours": {
+      "support": {
+        "label": "Support",
+        "value": "Mon to Fri · 09:00–18:00"
+      },
+      "commercial": {
+        "label": "Sales",
+        "value": "Mon to Fri · 10:00–17:00"
+      }
+    },
+    "location": {
+      "address": "Zeballos 1341, S2000 Rosario, Santa Fe, Argentina"
+    },
+    "actions": {
+      "viewOnMaps": "View on Google Maps"
+    },
+    "links": {
+      "github": {
+        "label": "Project GitHub",
+        "value": "github.com/lautaro-peralta",
+        "hint": "Source code and documentation"
+      },
+      "utn": {
+        "label": "UTN Rosario",
+        "value": "frro.utn.edu.ar",
+        "hint": "Rosario Regional Faculty"
+      },
+      "techSupport": {
+        "label": "Technical Support",
+        "value": "thegarrisonsystem@gmail.com",
+        "hint": "Direct email contact"
+      }
+    }
+  },
+  "faqs": {
+    "title": "Frequently Asked Questions",
+    "lead": "Quick answers to common questions about our platform.",
+    "items": {
+      "howToStart": {
+        "q": "How do I get started?",
+        "a": "Create your account or sign in. Then load products and customers from Management."
+      },
+      "exportData": {
+        "q": "Can I export data?",
+        "a": "Yes, main views allow exporting lists for reports and audits."
+      },
+      "managePermissions": {
+        "q": "How do I manage permissions?",
+        "a": "Define roles by areas (sales, administration, etc.) and assign selective access."
+      },
+      "systemIntegration": {
+        "q": "Does it integrate with other systems?",
+        "a": "We offer API and importers to connect your current stack."
+      }
+    }
+  }}

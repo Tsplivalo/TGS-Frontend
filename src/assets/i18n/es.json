@@ -16,7 +16,8 @@
     "about": "Sobre nosotros",
     "faqs": "FAQs",
     "contact": "Contáctanos",
-    "language": "Idioma"
+    "language": "Idioma",
+    "home": "Inicio"
   },
   "mgmt": {
     "product": "Productos",
@@ -379,15 +380,15 @@
     "new": "Nueva",
     "newTitle": "Nueva venta",
     "noResults": "Sin ventas",
-      "loading": "Cargando estadísticas...",
-  "totalRevenue": "Ingresos Totales",
-  "totalSales": "Total de Ventas",
-  "averageTicket": "Ticket Promedio",
-  "salesByMonth": "Ventas por Mes",
-  "topProducts": "Productos Más Vendidos",
-  "salesByDistributor": "Ventas por Distribuidor",
-  "noData": "No hay estadísticas disponibles",
-  "noDataDesc": "Las estadísticas aparecerán aquí una vez que haya datos disponibles.",
+    "loading": "Cargando estadísticas...",
+    "totalRevenue": "Ingresos Totales",
+    "totalSales": "Total de Ventas",
+    "averageTicket": "Ticket Promedio",
+    "salesByMonth": "Ventas por Mes",
+    "topProducts": "Productos Más Vendidos",
+    "salesByDistributor": "Ventas por Distribuidor",
+    "noData": "No hay estadísticas disponibles",
+    "noDataDesc": "Las estadísticas aparecerán aquí una vez que haya datos disponibles.",
     "errorLoad": "No se pudieron cargar las ventas.",
     "client": "Cliente",
     "itemsCount": "{{count}} ítem(s)",
@@ -573,13 +574,12 @@
     "confirmPay": "¿Confirmar el pago de este soborno?",
     "confirmDelete": "¿Eliminar este soborno? Esta acción no se puede deshacer.",
     "filters": {
-
       "id": "ID Soborno",
-    "idPh": "Ej: 123",
-    "amount": "Monto",
-    "amountPh": "Ej: 600",
-    "authority": "Autoridad",
-    "authorityPh": "DNI o nombre...",
+      "idPh": "Ej: 123",
+      "amount": "Monto",
+      "amountPh": "Ej: 600",
+      "authority": "Autoridad",
+      "authorityPh": "DNI o nombre...",
       "search": "Buscar",
       "searchPh": "Buscar por ID, monto, autoridad...",
       "paid": "Pagados",
@@ -1313,5 +1313,128 @@
         "desc": "No se encontraron solicitudes con los filtros seleccionados"
       }
     }
+  },
+  
+  "about": {
+    "title": "Sobre nosotros",
+    "lead": "Somos un equipo apasionado por crear soluciones eficientes y escalables.",
+    "mission": "Impulsamos a equipos a trabajar con claridad, foco y simplicidad.",
+    "sections": {
+      "missionTitle": "Nuestra Misión",
+      "valuesTitle": "Nuestros Valores",
+      "teamTitle": "Nuestro Equipo"
+    },
+    "values": {
+      "transparency": {
+        "title": "Transparencia",
+        "desc": "Comunicación clara y decisiones a la vista."
+      },
+      "quality": {
+        "title": "Calidad",
+        "desc": "Cuidamos el detalle en cada entrega."
+      },
+      "velocity": {
+        "title": "Velocidad",
+        "desc": "Iteramos rápido sin perder solidez."
+      },
+      "proximity": {
+        "title": "Cercanía",
+        "desc": "Escuchamos y acompañamos al cliente."
+      },
+      "learning": {
+        "title": "Aprendizaje",
+        "desc": "Mejora continua como cultura."
+      },
+      "purpose": {
+        "title": "Propósito",
+        "desc": "Construimos productos que importan."
+      }
+    },
+    "team": {
+      "roles": {
+        "backend": "Backend",
+        "frontend": "Frontend"
+      }
+    }
+  },
+  "contact": {
+    "title": "Contacto",
+    "lead": "Estamos aquí para ayudarte. Comunicate por cualquiera de nuestros canales.",
+    "sections": {
+      "channels": "Canales Principales",
+      "hours": "Horarios de Atención",
+      "location": "Ubicación",
+      "usefulLinksTitle": "Enlaces Útiles",
+      "usefulLinksLead": "Acceso rápido a documentación y recursos"},
+    "channels": {
+      "email": {
+        "label": "Email",
+        "value": "thegarrisonsystem@gmail.com",
+        "hint": "Respondemos en ~24 hs hábiles"
+      },
+      "phone": {
+        "label": "Teléfono",
+        "value": "+54 341 555-1234",
+        "hint": "Lun a Vie · 09–18 h"
+      },
+      "whatsapp": {
+        "label": "WhatsApp",
+        "value": "+54 9 341 555-1234",
+        "hint": "Respuesta rápida"
+      }
+    },
+    "hours": {
+      "support": {
+        "label": "Soporte",
+        "value": "Lun a Vie · 09:00–18:00"
+      },
+      "commercial": {
+        "label": "Comercial",
+        "value": "Lun a Vie · 10:00–17:00"
+      }
+    },
+    "location": {
+      "address": "Zeballos 1341, S2000 Rosario, Santa Fe, Argentina"
+    },
+    "links": {
+      "github": {
+        "label": "GitHub del Proyecto",
+        "value": "github.com/lautaro-peralta",
+        "hint": "Código fuente y documentación"
+      },
+      "utn": {
+        "label": "UTN Rosario",
+        "value": "frro.utn.edu.ar",
+        "hint": "Facultad Regional Rosario"
+      },
+      "techSupport": {
+        "label": "Soporte Técnico",
+        "value": "thegarrisonsystem@gmail.com",
+        "hint": "Contacto directo por email"
+      }
+    }
+  },
+  "faqs": {
+    "title": "Preguntas Frecuentes",
+    "lead": "Respuestas rápidas a las dudas más comunes sobre nuestra plataforma.",
+    "items": {
+      "howToStart": {
+        "q": "¿Cómo comienzo?",
+        "a": "Creá tu cuenta o iniciá sesión. Luego cargá productos y clientes desde Gestión."
+      },
+      "exportData": {
+        "q": "¿Puedo exportar datos?",
+        "a": "Sí, las vistas principales permiten exportar listados para informes y auditorías."
+      },
+      "managePermissions": {
+        "q": "¿Cómo manejo permisos?",
+        "a": "Definí roles por áreas (ventas, administración, etc.) y asigná accesos selectivos."
+      },
+      "systemIntegration": {
+        "q": "¿Se integra con otros sistemas?",
+        "a": "Ofrecemos API e importadores para conectar tu stack actual."
+      }
+    }
   }
 }
+  
