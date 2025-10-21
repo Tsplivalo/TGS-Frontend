@@ -1,33 +1,28 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-type ValueItem = { title: string; desc: string };
-type TeamItem  = { name: string; role: string };
+type TeamItem = { name: string; roleKey: string };
 
 @Component({
   standalone: true,
   selector: 'app-about',
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './about.html',
   styleUrls: ['./about.scss'],
 })
 export class AboutComponent {
-  // Usá tus datos reales; dejo @Input por si ya los inyectás desde afuera.
-  @Input() mission = 'Impulsamos a equipos a trabajar con claridad, foco y simplicidad.';
-  @Input() values: ValueItem[] = [
-    { title: 'Transparencia', desc: 'Comunicación clara y decisiones a la vista.' },
-    { title: 'Calidad',       desc: 'Cuidamos el detalle en cada entrega.' },
-    { title: 'Velocidad',     desc: 'Iteramos rápido sin perder solidez.' },
-    { title: 'Cercanía',      desc: 'Escuchamos y acompañamos al cliente.' },
-    { title: 'Aprendizaje',   desc: 'Mejora continua como cultura.' },
-    { title: 'Propósito',     desc: 'Construimos productos que importan.' },
+  // Claves de valores para iterar
+  valueKeys = ['transparency', 'quality', 'velocity', 'proximity', 'learning', 'purpose'];
+
+  // Equipo con claves de roles
+  team: TeamItem[] = [
+    { name: 'Lautaro Peralta', roleKey: 'backend' },
+    { name: 'Tomas Splivalo', roleKey: 'frontend' },
+    { name: 'Luca Delprato', roleKey: 'frontend' },
   ];
-  @Input() team: TeamItem[] = [
-    { name: 'Lautaro Peralta',  role: 'Backend' },
-    { name: 'Tomas Splivalo',  role: 'Frontend' },
-    { name: 'Luca Delprato',  role: 'Frontend'  },
- 
-  ];
+
+  private t = inject(TranslateService);
 
   // Iniciales para avatar fallback
   initials(name: string) {
