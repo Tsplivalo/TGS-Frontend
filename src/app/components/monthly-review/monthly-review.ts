@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
+import { ChartConfiguration } from 'chart.js';
 
 // Services
 import { MonthlyReviewService } from '../../services/monthly-review/monthly-review';
@@ -17,10 +18,19 @@ import {
 } from '../../models/monthly-review/monthly-review.model';
 import { PartnerDTO } from '../../models/partner/partner.model';
 
+// ✅ IMPORTAR COMPONENTE DE CHART
+import { ChartComponent } from '../chart/chart';
+
 @Component({
   selector: 'app-monthly-review',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    TranslateModule,
+    ChartComponent
+  ],
   templateUrl: './monthly-review.html',
   styleUrls: ['./monthly-review.scss'],
 })
@@ -30,6 +40,9 @@ export class MonthlyReviewComponent implements OnInit {
   private partnerSrv = inject(PartnerService);
   private tr  = inject(TranslateService);
 
+  // ✅ FLAG PARA TESTING - Cambia a false cuando tengas datos reales
+  private readonly USE_MOCK_CHARTS = false; // Cambiado a false para usar datos reales
+
   // Estado
   items   = signal<MonthlyReviewDTO[]>([]);
   statistics = signal<any>(null);
@@ -38,7 +51,6 @@ export class MonthlyReviewComponent implements OnInit {
   isNewOpen = signal(false);
   isEdit    = signal(false);
 
-  // ✅ Datos para select
   partners = signal<PartnerDTO[]>([]);
 
   // Filtros
@@ -48,6 +60,16 @@ export class MonthlyReviewComponent implements OnInit {
   fMonthApplied = signal<number | null>(null);
   fStatusInput = signal<ReviewStatus | null>(null);
   fStatusApplied = signal<ReviewStatus | null>(null);
+
+  // ✅ DATOS PARA GRÁFICOS
+  statusChartData = signal<ChartConfiguration['data'] | null>(null);
+  reviewsTrendChartData = signal<ChartConfiguration['data'] | null>(null);
+  productSalesChartData = signal<ChartConfiguration['data'] | null>(null);
+
+  // Para mostrar gráficos incluso sin datos
+  showCharts = computed(() => {
+    return this.USE_MOCK_CHARTS || (!this.loading() && this.items().length > 0);
+  });
 
   // Formulario
   form = this.fb.group({
@@ -63,9 +85,13 @@ export class MonthlyReviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAll();
+    
+    // ✅ Si usamos mock, generar gráficos inmediatamente
+    if (this.USE_MOCK_CHARTS) {
+      this.generateMockCharts();
+    }
   }
 
-  // Lista filtrada por año/mes/status
   filtered = computed(() => {
     const y = this.fYearApplied();
     const m = this.fMonthApplied();
@@ -79,7 +105,6 @@ export class MonthlyReviewComponent implements OnInit {
     });
   });
 
-  // UI Actions
   toggleNew(): void {
     const open = !this.isNewOpen();
     this.isNewOpen.set(open);
@@ -102,8 +127,6 @@ export class MonthlyReviewComponent implements OnInit {
 
   edit(it: MonthlyReviewDTO): void {
     this.isEdit.set(true);
-    
-    // Convertir ISO datetime a date para el input
     const reviewDate = it.reviewDate ? it.reviewDate.substring(0, 10) : this.todayISO();
     
     this.form.patchValue({
@@ -131,12 +154,10 @@ export class MonthlyReviewComponent implements OnInit {
     const { id, ...rest } = this.form.getRawValue();
 
     if (!this.isEdit()) {
-      // CREAR - convertir date a ISO datetime
       const payload: CreateMonthlyReviewDTO = {
         year: rest.year!,
         month: rest.month!,
         partnerDni: rest.partnerDni!,
-        // Solo incluir reviewDate si existe y no está vacío
         ...(rest.reviewDate && rest.reviewDate.trim() !== '' && {
           reviewDate: this.toISODateTime(rest.reviewDate)
         }),
@@ -149,8 +170,6 @@ export class MonthlyReviewComponent implements OnInit {
         }),
       };
 
-      console.log('📤 Payload CREATE:', payload);
-
       this.srv.create(payload).subscribe({
         next: () => {
           this.new();
@@ -158,14 +177,12 @@ export class MonthlyReviewComponent implements OnInit {
           this.loadAll();
         },
         error: (e) => {
-          console.error('❌ Error CREATE:', e);
           const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorCreate')) || 'Error al crear';
           this.error.set(errorMsg);
           this.loading.set(false);
         }
       });
     } else {
-      // ACTUALIZAR
       const payload: PatchMonthlyReviewDTO = {
         ...(rest.reviewDate && rest.reviewDate.trim() !== '' && {
           reviewDate: this.toISODateTime(rest.reviewDate)
@@ -179,8 +196,6 @@ export class MonthlyReviewComponent implements OnInit {
         }),
       };
 
-      console.log('📤 Payload UPDATE:', payload);
-
       this.srv.update(id!, payload).subscribe({
         next: () => {
           this.new();
@@ -188,7 +203,6 @@ export class MonthlyReviewComponent implements OnInit {
           this.loadAll();
         },
         error: (e) => {
-          console.error('❌ Error UPDATE:', e);
           const errorMsg = (e?.error?.message ?? this.tr.instant('monthlyReview.errorSave')) || 'Error al guardar';
           this.error.set(errorMsg);
           this.loading.set(false);
@@ -214,12 +228,15 @@ export class MonthlyReviewComponent implements OnInit {
     });
   }
 
-  // Aplicar filtros y recargar estadísticas
   applyFilters(): void {
     this.fYearApplied.set(this.fYearInput());
     this.fMonthApplied.set(this.fMonthInput());
     this.fStatusApplied.set(this.fStatusInput());
     this.loadStatistics();
+    
+    if (!this.USE_MOCK_CHARTS) {
+      this.updateCharts();
+    }
   }
 
   clearFilters(): void {
@@ -231,36 +248,33 @@ export class MonthlyReviewComponent implements OnInit {
     this.fMonthApplied.set(null);
     this.fStatusApplied.set(null);
     this.loadStatistics();
+    
+    if (!this.USE_MOCK_CHARTS) {
+      this.updateCharts();
+    }
   }
-
 
   trackById = (_: number, it: MonthlyReviewDTO) => it.id;
 
-  /**
-   * ✅ Carga paralela de TODOS los datos necesarios
-   * - Revisiones mensuales
-   * - Partners
-   * - Estadísticas
-   */
   private loadAll(): void {
     this.loading.set(true);
     this.error.set(null);
 
     forkJoin({
-      reviews: this.srv.search(),
-      partners: this.partnerSrv.list()
+      reviews: this.srv.search(), // Retorna PaginatedResponse<MonthlyReviewDTO>
+      partners: this.partnerSrv.list() // Asume que retorna similar estructura
     }).subscribe({
       next: (res) => {
-        // Revisiones
+        // ✅ Usar res.reviews.data directamente (ya es array, no tiene .data dentro)
         this.items.set(res.reviews.data ?? []);
-        
-        // Partners
         this.partners.set(res.partners.data ?? []);
-        
         this.loading.set(false);
         
-        // Cargar estadísticas después
         this.loadStatistics();
+        
+        if (!this.USE_MOCK_CHARTS) {
+          this.updateCharts();
+        }
       },
       error: (e) => {
         const errorMsg = e?.error?.message || 'Error al cargar datos';
@@ -271,6 +285,7 @@ export class MonthlyReviewComponent implements OnInit {
   }
 
   totalReviews = computed(() => this.items().length);
+  
   reviewsByStatus = computed(() => {
     const byStatus: Record<ReviewStatus, number> = {
       PENDING: 0,
@@ -288,30 +303,191 @@ export class MonthlyReviewComponent implements OnInit {
   });
 
   private loadStatistics(): void {
-  const year = this.fYearApplied();
-  const month = this.fMonthApplied() ?? undefined;
-    // Validar que year sea un número válido antes de hacer la petición
+    const year = this.fYearApplied();
+    const month = this.fMonthApplied() ?? undefined;
+
     if (!year || isNaN(year) || year < 2000) {
-      console.warn('⚠️ Año inválido para estadísticas:', year);
       this.statistics.set(null);
       return;
     }
 
-    console.log('📊 Loading statistics:', { year, month, groupBy: 'product' });
-
     this.srv.statistics({ year, month, groupBy: 'product' }).subscribe({
       next: (res) => {
-        console.log('✅ Statistics loaded:', res.data);
         this.statistics.set(res.data);
       },
       error: (e) => {
-        console.error('❌ Error loading statistics:', e);
+        console.error('Error loading statistics:', e);
         this.statistics.set(null);
       }
     });
   }
 
-  // Helpers
+  // ✅ GENERAR GRÁFICOS CON DATOS MOCK
+  private generateMockCharts(): void {
+    console.log('📊 Generando gráficos MOCK para demostración');
+    
+    // Mock: Distribución por estado
+    this.statusChartData.set({
+      labels: ['Pendiente', 'En Revisión', 'Completado', 'Aprobado', 'Rechazado'],
+      datasets: [{
+        label: 'Revisiones',
+        data: [12, 8, 15, 22, 5],
+        backgroundColor: [
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(107, 114, 128, 0.8)',
+          'rgba(74, 141, 114, 0.8)',
+          'rgba(169, 69, 69, 0.8)'
+        ],
+        borderColor: [
+          'rgba(245, 158, 11, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(107, 114, 128, 1)',
+          'rgba(74, 141, 114, 1)',
+          'rgba(169, 69, 69, 1)'
+        ],
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    });
+
+    // Mock: Tendencia por mes
+    this.reviewsTrendChartData.set({
+      labels: ['Enero 2025', 'Febrero 2025', 'Marzo 2025', 'Abril 2025', 'Mayo 2025', 'Junio 2025'],
+      datasets: [{
+        label: 'Revisiones por Mes',
+        data: [8, 12, 10, 15, 14, 18],
+        backgroundColor: 'rgba(195, 164, 98, 0.2)',
+        borderColor: 'rgba(195, 164, 98, 1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: 'rgba(195, 164, 98, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    });
+
+    // Mock: Productos top
+    this.productSalesChartData.set({
+      labels: ['Antiparras', 'Botella', 'Vaso', 'Papel', 'Teclado', 'Mouse', 'Monitor', 'Teclado RGB'],
+      datasets: [{
+        label: 'Monto de Ventas ($)',
+        data: [160000, 60000, 40000, 5000, 3000, 25000, 85000, 42000],
+        backgroundColor: 'rgba(195, 164, 98, 0.8)',
+        borderColor: 'rgba(195, 164, 98, 1)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    });
+  }
+
+  // ✅ GENERAR DATOS REALES PARA GRÁFICOS
+  private updateCharts(): void {
+    this.updateStatusChart();
+    this.updateReviewsTrendChart();
+    this.updateProductSalesChart();
+  }
+
+  private updateStatusChart(): void {
+    const statusData = this.reviewsByStatus();
+    
+    this.statusChartData.set({
+      labels: ['Pendiente', 'En Revisión', 'Completado', 'Aprobado', 'Rechazado'],
+      datasets: [{
+        label: 'Revisiones',
+        data: [
+          statusData.PENDING,
+          statusData.IN_REVIEW,
+          statusData.COMPLETED,
+          statusData.APPROVED,
+          statusData.REJECTED
+        ],
+        backgroundColor: [
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(107, 114, 128, 0.8)',
+          'rgba(74, 141, 114, 0.8)',
+          'rgba(169, 69, 69, 0.8)'
+        ],
+        borderColor: [
+          'rgba(245, 158, 11, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(107, 114, 128, 1)',
+          'rgba(74, 141, 114, 1)',
+          'rgba(169, 69, 69, 1)'
+        ],
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    });
+  }
+
+  private updateReviewsTrendChart(): void {
+    const filtered = this.filtered();
+    
+    const byMonth = new Map<string, number>();
+    filtered.forEach(review => {
+      const key = `${review.year}-${String(review.month).padStart(2, '0')}`;
+      byMonth.set(key, (byMonth.get(key) || 0) + 1);
+    });
+
+    const sorted = Array.from(byMonth.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+    this.reviewsTrendChartData.set({
+      labels: sorted.map(([key]) => {
+        const [year, month] = key.split('-');
+        return `${this.getMonthName(parseInt(month))} ${year}`;
+      }),
+      datasets: [{
+        label: 'Revisiones por Mes',
+        data: sorted.map(([, count]) => count),
+        backgroundColor: 'rgba(195, 164, 98, 0.2)',
+        borderColor: 'rgba(195, 164, 98, 1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: 'rgba(195, 164, 98, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    });
+  }
+
+  private updateProductSalesChart(): void {
+    const stats = this.statistics();
+    
+    // ✅ Verificar si hay groupedData y si tiene elementos
+    if (!stats || !stats.groupedData || stats.groupedData.length === 0) {
+      this.productSalesChartData.set(null);
+      return;
+    }
+
+    // Tomar top 10 productos y ordenar por totalAmount
+    const topProducts = [...stats.groupedData]
+      .sort((a: any, b: any) => (b.totalAmount || 0) - (a.totalAmount || 0))
+      .slice(0, 10);
+
+    this.productSalesChartData.set({
+      labels: topProducts.map((p: any) => {
+        // Prioridad: productName > nombre del producto > ID
+        return p.productName || p.name || `Producto ${p.productId || p.id}`;
+      }),
+      datasets: [{
+        label: 'Monto de Ventas ($)',
+        data: topProducts.map((p: any) => p.totalAmount || 0),
+        backgroundColor: 'rgba(195, 164, 98, 0.8)',
+        borderColor: 'rgba(195, 164, 98, 1)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    });
+  }
+
   private todayISO(): string {
     const d = new Date();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -320,22 +496,24 @@ export class MonthlyReviewComponent implements OnInit {
   }
 
   private toISODateTime(dateStr: string): string {
-    // Si ya tiene formato ISO completo, devolverlo
     if (dateStr.includes('T')) return dateStr;
     
-    // Validar que la fecha sea válida
     const date = new Date(dateStr + 'T12:00:00.000Z');
     if (isNaN(date.getTime())) {
-      // Si la fecha no es válida, usar la fecha actual
-      console.warn('⚠️ Fecha inválida, usando fecha actual');
       return new Date().toISOString();
     }
     
-    // Agregar hora del mediodía UTC para evitar problemas de zona horaria
     return dateStr + 'T12:00:00.000Z';
   }
 
-  // Para usar en el template
+  private getMonthName(month: number): string {
+    const months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return months[month - 1] || '';
+  }
+
   formatCurrency(value: number | undefined): string {
     if (value === undefined || value === null) return '$0.00';
     return `$${value.toFixed(2)}`;

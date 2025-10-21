@@ -49,6 +49,8 @@ export class AuthorityComponent implements OnInit {
   private original: Partial<UpdateAuthorityDTO & { dni: string }> | null = null;
 
   // --- Filtros de listado ---
+  fDniInput = signal<string>('');      
+  fDniApplied = signal<string>(''); 
   fZoneIdInput = signal<string>('');
   fZoneIdApplied = signal<string>('');
   fTextInput = signal('');
@@ -91,39 +93,62 @@ export class AuthorityComponent implements OnInit {
 
   // Listado filtrado reactivo por texto y zona
   filteredAuthorities = computed(() => {
-    const arr = this.authorities();
-    const q = this.fTextApplied().trim();
-    const z = this.fZoneIdApplied().trim();
+  const arr = this.authorities();
+  const q = this.fTextApplied().trim().toLowerCase();
+  const dni = this.fDniApplied().trim();
+  const z = this.fZoneIdApplied().trim();
+  
+  return arr.filter(a => {
+    // Filtro por DNI específico
+    const matchDni = !dni || (a.dni ?? '').includes(dni);
     
-    return arr.filter(a => {
-      const matchQ = !q || this.includesTxt(a, q);
-      const zoneIdFromDto = a?.zone?.id != null ? String(a.zone.id) : '';
-      const matchZ = !z || zoneIdFromDto === z;
-      return matchQ && matchZ;
-    });
+    // Filtro por zona
+    const zoneIdFromDto = a?.zone?.id != null ? String(a.zone.id) : '';
+    const matchZ = !z || zoneIdFromDto === z;
+    
+    // Filtro por texto en nombre y rango
+    let matchQ = true;
+    if (q) {
+      const isNumericOnly = /^\d+$/.test(q);
+      
+      if (isNumericOnly) {
+        // Si es solo números, buscar SOLO por rango
+        const numValue = parseInt(q);
+        matchQ = a.rank === numValue;
+      } else {
+        // Si contiene letras, buscar SOLO en nombre
+        matchQ = (a.name ?? '').toLowerCase().includes(q);
+      }
+    }
+    
+    return matchDni && matchZ && matchQ;
   });
+});
 
   applyFilters() {
   this.fTextApplied.set(this.fTextInput());
+  this.fDniApplied.set(this.fDniInput());
   this.fZoneIdApplied.set(this.fZoneIdInput());
-  }
+}
 
-  totalAuthorities = computed(() => this.authorities().length);
-  authoritiesByRank = computed(() => {
-    const byRank = { 0: 0, 1: 0, 2: 0, 3: 0 };
-    this.authorities().forEach(a => {
-      const rank = a.rank ?? 0;
-      if (rank >= 0 && rank <= 3) byRank[rank as 0|1|2|3]++;
-    });
-    return byRank;
+totalAuthorities = computed(() => this.authorities().length);
+authoritiesByRank = computed(() => {
+  const byRank = { 0: 0, 1: 0, 2: 0, 3: 0 };
+  this.authorities().forEach(a => {
+    const rank = a.rank ?? 0;
+    if (rank >= 0 && rank <= 3) byRank[rank as 0|1|2|3]++;
   });
+  return byRank;
+});
 
-  clearFilters() {
-    this.fTextInput.set('');
-    this.fZoneIdInput.set('');
-    this.fTextApplied.set('');
-    this.fZoneIdApplied.set('');
-  }
+clearFilters() {
+  this.fTextInput.set('');
+  this.fDniInput.set('');
+  this.fZoneIdInput.set('');
+  this.fTextApplied.set('');
+  this.fDniApplied.set('');
+  this.fZoneIdApplied.set('');
+}
 
   // --- Data fetching ---
   load() {

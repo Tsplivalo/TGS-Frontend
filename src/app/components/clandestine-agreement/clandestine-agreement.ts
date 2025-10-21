@@ -106,13 +106,19 @@ export class ClandestineAgreementComponent implements OnInit {
   );
 
   toggleNew(): void {
-    const open = !this.isNewOpen();
-    this.isNewOpen.set(open);
-    if (!open) this.new();
+    const willOpen = !this.isNewOpen();
+    this.isNewOpen.set(willOpen);
+    
+    if (willOpen) {
+      this.new();
+    } else {
+      this.error.set(null);
+    }
   }
 
   new(): void {
     this.isEdit.set(false);
+    this.error.set(null);
     this.form.reset({
       id: null,
       shelbyCouncilId: null,
@@ -122,7 +128,15 @@ export class ClandestineAgreementComponent implements OnInit {
       description: '',
       status: 'ACTIVE'
     });
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
     this.isNewOpen.set(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancel(): void {
+    this.isNewOpen.set(false);
+    this.error.set(null);
   }
 
   edit(it: ClandestineAgreementDTO): void {
@@ -152,7 +166,6 @@ export class ClandestineAgreementComponent implements OnInit {
 
     if (!this.isEdit()) {
       // CREAR NUEVO ACUERDO
-      // ✅ Convertir fecha YYYY-MM-DD a ISO datetime
       let agreementDateISO: string | undefined;
       if (rest.agreementDate) {
         agreementDateISO = new Date(rest.agreementDate + 'T00:00:00.000Z').toISOString();
@@ -169,8 +182,7 @@ export class ClandestineAgreementComponent implements OnInit {
       
       this.srv.create(payload).subscribe({
         next: () => { 
-          this.new(); 
-          this.isNewOpen.set(false); 
+          this.cancel();
           this.loadAll(); 
         },
         error: (e) => { 
@@ -180,7 +192,6 @@ export class ClandestineAgreementComponent implements OnInit {
       });
     } else {
       // ACTUALIZAR ACUERDO EXISTENTE
-      // ✅ Convertir fecha YYYY-MM-DD a ISO datetime
       let agreementDateISO: string | undefined;
       if (rest.agreementDate) {
         agreementDateISO = new Date(rest.agreementDate + 'T00:00:00.000Z').toISOString();
@@ -194,8 +205,7 @@ export class ClandestineAgreementComponent implements OnInit {
       
       this.srv.update(id!, payload).subscribe({
         next: () => { 
-          this.new(); 
-          this.isNewOpen.set(false); 
+          this.cancel();
           this.loadAll(); 
         },
         error: (e) => { 
@@ -222,13 +232,6 @@ export class ClandestineAgreementComponent implements OnInit {
 
   trackById = (_: number, it: ClandestineAgreementDTO) => it.id;
 
-  /**
-   * ✅ Carga paralela de TODOS los datos necesarios
-   * - Acuerdos clandestinos
-   * - Autoridades
-   * - Administradores
-   * - Consejos Shelby
-   */
   private loadAll(): void {
     this.loading.set(true);
     this.error.set(null);

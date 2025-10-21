@@ -8,8 +8,8 @@
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
           {{ isNewOpen()
-          ? ('Cerrar' | translate : {} : 'Cerrar')
-          : ('Nuevo' | translate : {} : 'Nuevo') }}
+          ? ('shelbyCouncil.buttons.close' | translate : {} : 'Cerrar')
+          : ('shelbyCouncil.buttons.new' | translate : {} : 'Nuevo') }}
         </button>
       </div>
     </header>
@@ -162,7 +162,7 @@
         <!-- PARTNER -->
         <label class="label" [class.error]="partnerDniInvalid">
           <span class="label-text">
-            👤 {{ 'shelbyCouncil.fields.partnerDni' | translate : {} : 'Socio' }}
+            👤 {{ 'shelbyCouncil.fields.partner' | translate : {} : 'Socio' }}
             <span class="required">*</span>
           </span>
           <select class="input" formControlName="partnerDni" [disabled]="isEdit()">
@@ -185,7 +185,7 @@
         <!-- DECISION -->
         <label class="label" [class.error]="decisionIdInvalid">
           <span class="label-text">
-            📊 {{ 'shelbyCouncil.fields.decisionId' | translate : {} : 'Decisión' }}
+            📊 {{ 'shelbyCouncil.fields.decision' | translate : {} : 'Decisión' }}
             <span class="required">*</span>
           </span>
           <select class="input" formControlName="decisionId" [disabled]="isEdit()">
@@ -245,14 +245,14 @@
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
             {{ isEdit()
-            ? ('Guardar' | translate : {} : 'Guardar cambios')
-            : ('Crear' | translate : {} : 'Crear registro') }}
+            ? ('shelbyCouncil.buttons.save' | translate : {} : 'Guardar cambios')
+            : ('shelbyCouncil.buttons.create' | translate : {} : 'Crear registro') }}
           </button>
           <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'Limpiar' | translate : {} : 'Limpiar' }}
+            {{ 'shelbyCouncil.buttons.clear' | translate : {} : 'Limpiar' }}
           </button>
           <button class="btn ghost" type="button" (click)="toggleNew()" [disabled]="loading()">
-            {{ 'Cancelar' | translate : {} : 'Cancelar' }}
+            {{ 'shelbyCouncil.buttons.cancel' | translate : {} : 'Cancelar' }}
           </button>
         </div>
       </form>

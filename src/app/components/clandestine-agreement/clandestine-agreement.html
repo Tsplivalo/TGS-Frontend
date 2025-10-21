@@ -5,7 +5,8 @@
       <h2 class="title">{{ 'clandestineAgreement.title' | translate }}</h2>
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
-          {{ isNewOpen() ? ('Cerrar' | translate) : ('Nuevo Acuerdo' | translate) }}
+          {{ isNewOpen() ? ('shelbyCouncil.buttons.close' | translate) : ('clandestineAgreement.buttons.new' |
+          translate) }}
         </button>
       </div>
     </header>
@@ -77,27 +78,54 @@
 
       <div class="table-wrap" *ngIf="filtered().length; else emptyState">
         <table class="table">
+          <colgroup>
+            <col style="width: 80px;" /> <!-- ID -->
+            <col style="width: 100px;" /> <!-- Shelby Council -->
+            <col style="width: 180px;" /> <!-- Admin -->
+            <col style="width: 180px;" /> <!-- Authority -->
+            <col style="width: 120px;" /> <!-- Date -->
+            <col style="width: 110px;" /> <!-- Status -->
+            <col /> <!-- Description (flexible) -->
+            <col style="width: 100px;" /> <!-- Actions -->
+          </colgroup>
+
           <thead>
             <tr>
-              <th style="width:80px;">ID</th>
-              <th style="width:120px;">{{ 'clandestineAgreement.table.shelbyCouncil' | translate }}</th>
+              <th>ID</th>
+              <th>{{ 'clandestineAgreement.table.shelbyCouncil' | translate }}</th>
               <th>{{ 'clandestineAgreement.table.admin' | translate }}</th>
               <th>{{ 'clandestineAgreement.table.authority' | translate }}</th>
-              <th style="width:140px;">{{ 'clandestineAgreement.table.date' | translate }}</th>
-              <th style="width:120px;">{{ 'clandestineAgreement.table.status' | translate }}</th>
+              <th>{{ 'clandestineAgreement.table.date' | translate }}</th>
+              <th>{{ 'clandestineAgreement.table.status' | translate }}</th>
               <th>{{ 'clandestineAgreement.table.description' | translate }}</th>
-              <th class="right" style="width:160px;">{{ 'common.actions' | translate }}</th>
+              <th class="right">{{ 'common.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let it of filtered(); trackBy: trackById">
               <td>#{{ it.id }}</td>
-              <td>{{ it.shelbyCouncil?.id }}</td>
-              <td>{{ it.admin?.dni }} — {{ it.admin?.name }}</td>
-              <td>{{ it.authority?.dni }} — {{ it.authority?.name }}</td>
-              <td>{{ it.agreementDate | date:'yyyy-MM-dd' }}</td>
-              <td><span class="badge {{ it.status }}">{{ ('status.' + it.status) | translate }}</span></td>
-              <td class="truncate">{{ it.description || '—' }}</td>
+              <td>{{ it.shelbyCouncil?.id || '—' }}</td>
+              <td>
+                <span class="truncate" style="max-width: 160px;">
+                  {{ it.admin?.dni }} — {{ it.admin?.name }}
+                </span>
+              </td>
+              <td>
+                <span class="truncate" style="max-width: 160px;">
+                  {{ it.authority?.dni }} — {{ it.authority?.name }}
+                </span>
+              </td>
+              <td>{{ it.agreementDate | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="badge {{ it.status }}">
+                  {{ ('status.' + it.status) | translate }}
+                </span>
+              </td>
+              <td>
+                <span class="truncate" style="max-width: 200px;">
+                  {{ it.description || '—' }}
+                </span>
+              </td>
               <td class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
                   [attr.title]="'common.edit' | translate">
@@ -125,7 +153,7 @@
     </section>
   </div>
 
-  <!-- FORM (COLAPSABLE) -->
+  <!-- FORM (COLLAPSIBLE) -->
   <div class="collapsible" [class.open]="isNewOpen()">
     <div class="collapsible__content glass-dark card">
       <div class="header">
@@ -135,6 +163,8 @@
           : ('clandestineAgreement.form.titleCreate' | translate) }}
         </h2>
       </div>
+
+      <div class="error" *ngIf="error()">{{ error() }}</div>
 
       <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
         <!-- SHELBY COUNCIL -->
@@ -223,10 +253,10 @@
         <!-- ACTIONS -->
         <div class="form-actions">
           <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ isEdit() ? ('Guardar' | translate) : ('Crear' | translate) }}
+            {{ isEdit() ? ('common.save' | translate) : ('common.create' | translate) }}
           </button>
-          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'Limpiar' | translate }}
+          <button class="btn ghost" type="button" (click)="cancel()" [disabled]="loading()">
+            {{ 'common.cancel' | translate }}
           </button>
         </div>
       </form>

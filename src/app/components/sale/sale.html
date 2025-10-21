@@ -146,7 +146,7 @@
             @for (v of filteredSales(); track v.id) {
             <tr>
               <td>#{{ v.id }}</td>
-              <td>{{ (v.saleDate || v.date) | date:'short' }}</td>
+              <td>{{ formatDateTimeDDMMYYYY(v.saleDate || v.date) }}</td>
               <td>
                 @if (getClient(v); as cli) {
                 {{ cli.dni }} - {{ cli.name || ('sales.client' | translate) }}
