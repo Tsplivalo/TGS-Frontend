@@ -1,9 +1,9 @@
-// purchase-success-modal.ts
+// purchase-success-modal.ts - VERSIÓN CON MÚLTIPLES VENTAS
 
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-// ✅ TIPO ACTUALIZADO: Ahora acepta DistributorDTO completo
+// ✅ INTERFAZ ACTUALIZADA: Soporte para múltiples ventas
 export interface PurchaseSuccessData {
   saleId: number;
   total: number;
@@ -19,7 +19,31 @@ export interface PurchaseSuccessData {
       isHeadquarters?: boolean;
     } | null;
   } | null;
+  // ✅ NUEVO: Múltiples ventas
+  multipleSales?: Array<{
+    saleId: number;
+    distributor: {
+      dni: string;
+      name: string;
+      phone?: string | null;
+      email: string;
+      address?: string | null;
+      zone?: {
+        id: number;
+        name: string;
+        isHeadquarters?: boolean;
+      } | null;
+    };
+    products: Array<{
+      id: number;
+      description: string | null;
+      price: number;
+      qty: number;
+    }>;
+    subtotal: number;
+  }>;
 }
+
 @Component({
   selector: 'app-purchase-success-modal',
   standalone: true,
@@ -29,16 +53,25 @@ export interface PurchaseSuccessData {
       <div class="modal purchase-success-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <div class="success-icon">✅</div>
-          <h2>¡Compra Realizada con Éxito!</h2>
+          <h2>
+            {{ isMultipleSales() 
+              ? '¡' + data.multipleSales!.length + ' Compras Realizadas!' 
+              : '¡Compra Realizada con Éxito!' 
+            }}
+          </h2>
           <button class="close-btn" type="button" (click)="onClose()">×</button>
         </div>
 
         <div class="modal-body">
           <div class="success-message">
-            <p>Tu compra ha sido registrada correctamente.</p>
+            <p *ngIf="!isMultipleSales()">Tu compra ha sido registrada correctamente.</p>
+            <p *ngIf="isMultipleSales()">
+              Tus compras han sido registradas exitosamente. Recibirás confirmación por cada una.
+            </p>
           </div>
 
-          <div class="purchase-details">
+          <!-- VISTA: COMPRA ÚNICA -->
+          <div class="purchase-details" *ngIf="!isMultipleSales()">
             <div class="detail-item">
               <span class="label">Número de Venta:</span>
               <span class="value">#{{ data.saleId }}</span>
@@ -49,7 +82,6 @@ export interface PurchaseSuccessData {
               <span class="value total">$ {{ data.total | number:'1.2-2' }}</span>
             </div>
 
-            <!-- ✅ MEJORADO: Información del distribuidor -->
             <div class="distributor-info" *ngIf="data.distributor as dist">
               <h4>📍 Punto de Retiro</h4>
               
@@ -94,11 +126,65 @@ export interface PurchaseSuccessData {
                 <p>Dirígete a esta sede para retirar tu compra. Recuerda llevar tu DNI.</p>
               </div>
             </div>
+          </div>
 
-            <!-- Fallback si no hay distribuidor -->
-            <div class="distributor-info" *ngIf="!data.distributor">
-              <h4>📍 Punto de Retiro</h4>
-              <p class="muted">Información de retiro no disponible. Contacta al vendedor.</p>
+          <!-- VISTA: MÚLTIPLES COMPRAS -->
+          <div class="multiple-sales-container" *ngIf="isMultipleSales()">
+            <div class="total-summary">
+              <span class="label">Total General:</span>
+              <span class="value">$ {{ data.total | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="sales-grid">
+              <div class="sale-card" *ngFor="let sale of data.multipleSales; let i = index">
+                <div class="sale-header">
+                  <div class="sale-number">{{ i + 1 }}</div>
+                  <div class="sale-title">
+                    <strong>Venta #{{ sale.saleId }}</strong>
+                    <span class="sale-distributor">
+                      📍 {{ sale.distributor.name }}
+                      <span class="zone-badge" *ngIf="sale.distributor.zone">
+                        {{ sale.distributor.zone.name }}
+                        <span *ngIf="sale.distributor.zone.isHeadquarters">⭐</span>
+                      </span>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="sale-products">
+                  <div class="products-label">Productos:</div>
+                  <ul class="products-list">
+                    <li *ngFor="let product of sale.products">
+                      <span class="product-name">{{ product.description }}</span>
+                      <span class="product-qty">x{{ product.qty }}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="sale-footer">
+                  <span class="subtotal-label">Subtotal</span>
+                  <strong class="subtotal-value">$ {{ sale.subtotal | number:'1.2-2' }}</strong>
+                </div>
+
+                <div class="sale-contact" *ngIf="sale.distributor.phone || sale.distributor.email">
+                  <div class="contact-item" *ngIf="sale.distributor.phone">
+                    <span class="contact-icon">📞</span>
+                    <a [href]="'tel:' + sale.distributor.phone">{{ sale.distributor.phone }}</a>
+                  </div>
+                  <div class="contact-item" *ngIf="sale.distributor.email">
+                    <span class="contact-icon">✉️</span>
+                    <a [href]="'mailto:' + sale.distributor.email">{{ sale.distributor.email }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-box">
+              <span class="info-icon">ℹ️</span>
+              <p>
+                Deberás retirar tus productos en {{ data.multipleSales!.length }} ubicaciones diferentes.
+                Recuerda llevar tu DNI en cada retiro.
+              </p>
             </div>
           </div>
         </div>
@@ -134,7 +220,7 @@ export interface PurchaseSuccessData {
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 16px;
-      max-width: 550px;
+      max-width: 650px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
@@ -351,6 +437,198 @@ export interface PurchaseSuccessData {
       }
     }
 
+    /* ESTILOS MÚLTIPLES VENTAS */
+
+    .multiple-sales-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .total-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(195, 164, 98, 0.15), rgba(195, 164, 98, 0.08));
+      border: 2px solid rgba(195, 164, 98, 0.4);
+      border-radius: 12px;
+
+      .label {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 700;
+      }
+
+      .value {
+        font-size: 1.5rem;
+        color: #c3a462;
+        font-weight: 900;
+      }
+    }
+
+    .sales-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sale-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: rgba(195, 164, 98, 0.4);
+        background: rgba(255, 255, 255, 0.06);
+      }
+    }
+
+    .sale-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+      .sale-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      .sale-title {
+        flex: 1;
+
+        strong {
+          display: block;
+          font-size: 15px;
+          color: #fff;
+          margin-bottom: 4px;
+        }
+
+        .sale-distributor {
+          display: block;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.7);
+
+          .zone-badge {
+            margin-left: 8px;
+            padding: 2px 6px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 4px;
+            font-size: 12px;
+            color: #93c5fd;
+          }
+        }
+      }
+    }
+
+    .sale-products {
+      padding: 16px;
+
+      .products-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .products-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        li {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 12px;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 6px;
+
+          .product-name {
+            flex: 1;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+          }
+
+          .product-qty {
+            font-size: 13px;
+            color: #c3a462;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    .sale-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.15);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+      .subtotal-label {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+      }
+
+      .subtotal-value {
+        font-size: 17px;
+        color: #c3a462;
+        font-weight: 800;
+      }
+    }
+
+    .sale-contact {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(59, 130, 246, 0.08);
+      border-top: 1px solid rgba(59, 130, 246, 0.2);
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+
+        .contact-icon {
+          font-size: 14px;
+        }
+
+        a {
+          color: #93c5fd;
+          text-decoration: none;
+          transition: color 0.2s;
+
+          &:hover {
+            color: #dbeafe;
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
     .info-box {
       display: flex;
       align-items: flex-start;
@@ -425,12 +703,21 @@ export interface PurchaseSuccessData {
           min-width: auto;
         }
       }
+
+      .sale-contact {
+        flex-direction: column;
+        gap: 8px;
+      }
     }
   `]
 })
 export class PurchaseSuccessModalComponent {
   @Input() data!: PurchaseSuccessData;
   @Output() close = new EventEmitter<void>();
+
+  isMultipleSales(): boolean {
+    return !!(this.data.multipleSales && this.data.multipleSales.length > 0);
+  }
 
   onClose(): void {
     this.close.emit();
