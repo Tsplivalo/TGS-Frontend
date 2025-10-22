@@ -9,7 +9,6 @@
           <input class="input" type="text" [placeholder]="'store.search' | translate" [value]="searchInput()"
             (input)="searchInput.set($any($event.target).value)" (keydown)="onSearchKeydown($event)" />
 
-          <!-- Botones de búsqueda -->
           <div class="search-actions">
             <button class="btn btn--search" type="button" (click)="onSearch()" [disabled]="!searchInput()">
               🔍 Buscar
@@ -24,7 +23,6 @@
     </div>
   </header>
 
-  <!-- Indicador de búsqueda activa -->
   <div class="search-indicator" *ngIf="searchQuery()">
     <span class="search-indicator__text">
       🔍 Buscando: <strong>{{ searchQuery() }}</strong>
@@ -38,7 +36,8 @@
   <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
 
   <div class="store__grid" *ngIf="!loading() && list().length > 0">
-    <article class="store-card" *ngFor="let p of list()" [class.flash]="flashId() === p.id">
+    <article class="store-card" *ngFor="let p of list()" [class.flash]="flashId() === p.id"
+      [class.unavailable]="!isProductAvailable(p.id)">
       <div class="store-card__media">
         <ng-container *ngIf="p.imageUrl as url; else noimg">
           <img [src]="url" [alt]="p.description || ('Producto ' + p.id)" loading="lazy" />
@@ -46,6 +45,11 @@
         <ng-template #noimg>
           <div class="noimg">{{ 'store.noImage' | translate }}</div>
         </ng-template>
+
+        <!-- Badge de "No disponible" -->
+        <div class="unavailable-badge" *ngIf="!isProductAvailable(p.id)">
+          <span>⚠️ No disponible</span>
+        </div>
       </div>
 
       <div class="store-card__body">
@@ -58,8 +62,10 @@
           <span class="amount">{{ p.price | number: '1.2-2' }}</span>
         </div>
 
-        <button class="btn btn--accent" type="button" (click)="onAddClick($event, p)">
-          {{ 'store.add' | translate }}
+        <button class="btn btn--accent" type="button" (click)="onAddClick($event, p)"
+          [disabled]="!isProductAvailable(p.id)"
+          [title]="!isProductAvailable(p.id) ? 'Producto no disponible - Ningún distribuidor lo tiene' : ''">
+          {{ !isProductAvailable(p.id) ? '🚫 No disponible' : ('store.add' | translate) }}
         </button>
       </div>
     </article>
@@ -107,19 +113,110 @@
     </ul>
 
     <footer class="cart-drawer__footer">
+      <!-- Alertas de compra -->
       <div class="cart-purchase-alert" *ngIf="!canPurchase()">
         <div class="alert alert--warning">
           <span class="alert__icon">⚠️</span>
           <div class="alert__content">
             <strong>No puedes comprar aún</strong>
             <p *ngIf="!isVerified()">
-              Debes verificar tu cuenta con un administrador para poder realizar compras.
+              Debes verificar tu cuenta con un administrador.
               <a routerLink="/inbox/verification" (click)="toggleCartDrawer()">Solicitar verificación</a>
             </p>
             <p *ngIf="isVerified() && profileCompleteness() < 100">
-              Completa tu perfil al 100% para poder comprar.
+              Completa tu perfil al 100% para comprar.
               <a routerLink="/mi-cuenta" (click)="toggleCartDrawer()">Completar perfil</a>
             </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Información del distribuidor seleccionado (ÚNICO distribuidor) -->
+      <div class="distributor-info" *ngIf="!hasMultipleDistributors() && selectedDistributor() as dist">
+        <ng-container *ngIf="cart.count() > 0">
+          <div class="info-badge">
+            <span class="icon">🏢</span>
+            <div class="info-content">
+              <strong>{{ dist.name }}</strong>
+              <small *ngIf="dist.zone">
+                {{ dist.zone.name }}
+                <span *ngIf="dist.zone.isHeadquarters" class="hq-badge">⭐ Sede Central</span>
+              </small>
+              <small *ngIf="!dist.zone" class="muted">Sin zona asignada</small>
+            </div>
+          </div>
+          <div class="distributor-hint">
+            <span class="hint-icon">📍</span>
+            <span class="hint-text">Tu pedido se procesará en esta ubicación</span>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- 📍 MEJORADO: Información de MÚLTIPLES distribuidores -->
+      <div class="multiple-distributors-info" *ngIf="hasMultipleDistributors() && cart.count() > 0">
+        <div class="alert-header">
+          <span class="alert-icon">📦</span>
+          <div class="alert-content">
+            <strong>Pedido dividido en {{ selectedDistributors().length }} ubicaciones</strong>
+            <p>Crearemos {{ selectedDistributors().length }} órdenes de compra, una por cada ubicación.</p>
+          </div>
+        </div>
+
+        <div class="distributors-grid">
+          <div class="distributor-card" *ngFor="let dist of selectedDistributors(); let i = index">
+            <div class="card-header">
+              <div class="card-number">{{ i + 1 }}</div>
+              <div class="card-title">
+                <strong>{{ dist.name }}</strong>
+                <span class="zone-badge" *ngIf="dist.zone">
+                  <span class="zone-icon">📍</span>
+                  {{ dist.zone.name }}
+                  <span class="hq-star" *ngIf="dist.zone.isHeadquarters">⭐</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="card-products">
+              <div class="products-header">
+                <span class="products-count">{{ productsByDistributor().get(dist.dni)?.length || 0 }} producto(s)</span>
+              </div>
+              <ul class="compact-products-list">
+                <li *ngFor="let item of productsByDistributor().get(dist.dni)">
+                  <span class="product-info">
+                    <span class="product-name">{{ item.description }}</span>
+                    <span class="product-detail">x{{ item.qty }} · ${{ (item.price * item.qty) | number:'1.2-2'
+                      }}</span>
+                  </span>
+                  <button type="button" class="btn-remove-product" (click)="remove(item.id)" title="Quitar">
+                    <span class="remove-icon">×</span>
+                  </button>
+                </li>
+              </ul>
+
+              <div class="card-subtotal">
+                <span>Subtotal</span>
+                <strong>${{ getDistributorSubtotal(dist.dni) | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="multiple-purchase-note">
+          <span class="note-icon">ℹ️</span>
+          <span class="note-text">
+            Se crearán {{ selectedDistributors().length }} compras separadas. Recibirás una confirmación por cada una.
+          </span>
+        </div>
+      </div>
+
+      <!-- ⚠️ Mensaje cuando NO hay distribuidor disponible -->
+      <div class="distributor-warning" *ngIf="selectedDistributors().length === 0 && cart.count() > 0">
+        <div class="alert alert--error">
+          <span class="alert__icon">⚠️</span>
+          <div class="alert__content">
+            <strong>Productos no disponibles</strong>
+            <p>Ningún distribuidor tiene los productos de tu carrito. Por favor, elimina algunos items o contacta al
+              administrador.</p>
           </div>
         </div>
       </div>
@@ -129,18 +226,37 @@
         <strong>$ {{ cart.total() | number:'1.2-2' }}</strong>
       </div>
 
-      <button class="btn btn--accent" type="button" [disabled]="!canPurchase() || cart.count() === 0 || processing()"
-        [class.btn--disabled]="!canPurchase() || cart.count() === 0" (click)="goToCheckout()">
+      <button class="btn btn--accent" type="button"
+        [disabled]="!canPurchase() || cart.count() === 0 || processing() || selectedDistributors().length === 0"
+        [class.btn--disabled]="!canPurchase() || cart.count() === 0 || selectedDistributors().length === 0"
+        (click)="goToCheckout()">
         <span class="icon" *ngIf="!processing()">🛒</span>
         <span *ngIf="processing()">⏳</span>
-        {{ processing() ? 'Procesando...' : 'Realizar Compra' }}
+        <span *ngIf="!processing()">
+          {{ hasMultipleDistributors()
+          ? 'Crear ' + selectedDistributors().length + ' Compras'
+          : 'Realizar Compra'
+          }}
+        </span>
+        <span *ngIf="processing()">
+          {{ hasMultipleDistributors()
+          ? 'Creando compras...'
+          : 'Procesando...'
+          }}
+        </span>
       </button>
     </footer>
   </div>
 
   <div class="cart-backdrop" *ngIf="showCart()" (click)="toggleCartDrawer()"></div>
 
+  <!-- Modal de éxito -->
   <app-purchase-success-modal *ngIf="showSuccessModal() && purchaseData()" [data]="purchaseData()!"
     (close)="onCloseSuccessModal()">
   </app-purchase-success-modal>
 </section>
+
+
+
+
+

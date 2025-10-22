@@ -1,16 +1,17 @@
-// store.ts - Con selector de distribuidor
+// store.ts - Selección Inteligente Visual con Rotación por Zona (FIXED)
 
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, Observable } from 'rxjs';
 import { ProductService } from '../../services/product/product';
 import { ProductImageService } from '../../services/product-image/product-image';
 import { AuthService } from '../../services/auth/auth';
 import { SaleService } from '../../services/sale/sale';
 import { DistributorService } from '../../services/distributor/distributor';
 import { ApiResponse, ProductDTO } from '../../models/product/product.model';
-import { DistributorDTO } from '../../models/distributor/distributor.model'; // ✅ IMPORTAR del modelo
+import { DistributorDTO } from '../../models/distributor/distributor.model';
 import { TranslateModule } from '@ngx-translate/core';
 import { PurchaseSuccessModalComponent, PurchaseSuccessData } from '../../components/purchase-success-modal/purchase-success-modal';
 
@@ -28,7 +29,7 @@ type CartItem = {
   imports: [
     CommonModule, 
     RouterModule,
-    FormsModule, // ✅ IMPORTANTE: Agregar para ngModel
+    FormsModule,
     TranslateModule,
     PurchaseSuccessModalComponent
   ],
@@ -43,6 +44,8 @@ export class StoreComponent implements OnInit {
   private distributorService = inject(DistributorService);
   private router = inject(Router);
 
+  private readonly PURCHASE_COUNT_KEY = 'distributor_purchase_rotation_v1';
+  
   loading = signal(false);
   error = signal<string | null>(null);
   products = signal<ProductDTO[]>([]);
@@ -58,17 +61,117 @@ export class StoreComponent implements OnInit {
   purchaseData = signal<PurchaseSuccessData | null>(null);
   processing = signal(false);
 
-  // ✅ NUEVO: Lista de distribuidores y selección
   distributors = signal<DistributorDTO[]>([]);
-  selectedDistributorDni = signal<string | null>(null);
+  
+  // ✅ Cambio: Ahora puede ser un array de distribuidores
+  selectedDistributors = signal<DistributorDTO[]>([]);
+  
   loadingDistributors = signal(true);
 
-  // ✅ Computed: Distribuidor seleccionado completo
-  selectedDistributor = computed(() => {
-    const dni = this.selectedDistributorDni();
-    if (!dni) return null;
-    return this.distributors().find(d => d.dni === dni) || null;
+  // ✅ Mapa: Producto → Distribuidores
+  private productDistributorsMap = signal<Map<number, DistributorDTO[]>>(new Map());
+
+  // ✅ IDs de productos que tienen al menos 1 distribuidor
+  availableProductIds = computed(() => {
+    const map = this.productDistributorsMap();
+    const ids = new Set<number>();
+    
+    map.forEach((dists, productId) => {
+      if (dists.length > 0) {
+        ids.add(productId);
+      }
+    });
+    
+    return ids;
   });
+
+  // ✅ Verificar si un producto está disponible
+  isProductAvailable = (productId: number): boolean => {
+    return this.availableProductIds().has(productId);
+  };
+
+  // ✅ Distribuidores que tienen TODOS los productos del carrito
+  compatibleDistributors = computed(() => {
+    const cartItems = this.itemsSig();
+    if (cartItems.length === 0) return this.distributors();
+    
+    return this.findDistributorsWithAllProducts(cartItems.map(item => item.id));
+  });
+
+  // ✅ Auto-selección inteligente con prioridad de zona
+  constructor() {
+    effect(() => {
+      const cartItems = this.itemsSig();
+      const productIds = cartItems.map(i => i.id);
+      
+      console.log('🔄 EFFECT TRIGGERED - Cart changed');
+      console.log('   📦 Cart items:', cartItems.length);
+      console.log('   🆔 Product IDs:', productIds);
+      
+      const compatible = this.compatibleDistributors();
+      console.log('   ✅ Compatible distributors:', compatible.length);
+      compatible.forEach(d => {
+        console.log(`      - ${d.name} (${d.dni}) - Zone: ${d.zone?.name}`);
+      });
+      
+      if (compatible.length > 0) {
+        // ✅ Hay UN distribuidor que tiene TODOS los productos
+        const selected = this.selectBestDistributor(compatible);
+        this.selectedDistributors.set([selected]);
+        console.log('🎯 Single distributor selected:', selected.name, '(Zone:', selected.zone?.name, ')');
+      } else {
+        // ❌ NO hay un distribuidor con todos → Seleccionar MÚLTIPLES
+        const multipleDistributors = this.selectMultipleDistributors();
+        this.selectedDistributors.set(multipleDistributors);
+        
+        if (multipleDistributors.length === 0) {
+          console.log('❌ No distributors available for any product');
+        } else if (multipleDistributors.length === 1) {
+          console.log('⚠️ Partial match, using:', multipleDistributors[0].name);
+        } else {
+          console.log('📍 Multiple distributors needed:');
+          multipleDistributors.forEach(d => {
+            console.log(`   - ${d.name} (${d.zone?.name})`);
+          });
+        }
+      }
+    }, { allowSignalWrites: true });
+  }
+
+  // ✅ Computed: Primer distribuidor (para compatibilidad con código existente)
+  selectedDistributor = computed(() => {
+    const distributors = this.selectedDistributors();
+    return distributors.length > 0 ? distributors[0] : null;
+  });
+
+  // ✅ Computed: Verificar si hay múltiples distribuidores
+  hasMultipleDistributors = computed(() => this.selectedDistributors().length > 1);
+
+  // ✅ Computed: Mapear qué productos se retiran en cada distribuidor
+  productsByDistributor = computed(() => {
+    const distributors = this.selectedDistributors();
+    const cartItems = this.itemsSig();
+    const map = this.productDistributorsMap();
+    
+    const result = new Map<string, CartItem[]>();
+    
+    distributors.forEach(dist => {
+      const productsForThisDist = cartItems.filter(item => {
+        const productDists = map.get(item.id) || [];
+        return productDists.some(pd => pd.dni === dist.dni);
+      });
+      
+      result.set(dist.dni, productsForThisDist);
+    });
+    
+    return result;
+  });
+
+  // ✅ Calcular subtotal de un distribuidor específico
+  getDistributorSubtotal(dni: string): number {
+    const products = this.productsByDistributor().get(dni) || [];
+    return products.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  }
 
   canPurchase = computed(() => this.authService.canPurchase());
   isEmailVerified = computed(() => this.authService.user()?.emailVerified ?? false);
@@ -134,42 +237,46 @@ export class StoreComponent implements OnInit {
     }
   }
 
-  // ✅ MEJORADO: Cargar distribuidores con información completa
+  // ✅ Cargar distribuidores y construir mapa
   private loadDistributors(): void {
     this.loadingDistributors.set(true);
     
     this.distributorService.getAll().subscribe({
       next: (distributors) => {
-        console.log('📦 Distributors loaded:', distributors);
-        console.log('📊 Number of distributors:', distributors.length);
+        console.log('📦 RAW RESPONSE from backend:', distributors);
+        console.log('📦 Distributors loaded:', distributors.length);
         
-        // Log cada distribuidor
-        distributors.forEach((d, idx) => {
-          console.log(`  [${idx}] ${d.name} (DNI: ${d.dni}) - Zone: ${d.zone?.name || 'No zone'}${d.zone?.isHeadquarters ? ' ⭐' : ''}`);
+        const map = new Map<number, DistributorDTO[]>();
+        
+        distributors.forEach((dist, idx) => {
+          console.log(`\n  [${idx}] ${dist.name} (${dist.dni})`);
+          console.log(`       RAW products from backend:`, dist.products);
+          console.log(`       Type of products:`, typeof dist.products);
+          console.log(`       Is array:`, Array.isArray(dist.products));
+          
+          const productIds = (dist.products || []).map(p => p.id);
+          
+          console.log(`       Zone: ${dist.zone?.name || 'Sin zona'}${dist.zone?.isHeadquarters ? ' ⭐' : ''}`);
+          console.log(`       Product IDs extracted: [${productIds.join(', ') || 'none'}]`);
+          
+          // Mapear producto → distribuidores
+          productIds.forEach(productId => {
+            if (!map.has(productId)) {
+              map.set(productId, []);
+            }
+            map.get(productId)!.push(dist);
+          });
         });
         
+        this.productDistributorsMap.set(map);
         this.distributors.set(distributors);
         this.loadingDistributors.set(false);
         
-        if (distributors.length > 0) {
-          // Prioridad 1: Sede central (headquarters)
-          const headquarters = distributors.find(d => d.zone?.isHeadquarters);
-          
-          if (headquarters) {
-            this.selectedDistributorDni.set(headquarters.dni);
-            console.log('✅ Auto-selected headquarters:', headquarters.name, 'DNI:', headquarters.dni);
-          } else {
-            // Prioridad 2: Primer distribuidor
-            this.selectedDistributorDni.set(distributors[0].dni);
-            console.log('✅ Auto-selected first distributor:', distributors[0].name, 'DNI:', distributors[0].dni);
-          }
-          
-          console.log('🎯 Selected DNI after load:', this.selectedDistributorDni());
-          console.log('🎯 Selected Distributor object:', this.selectedDistributor());
-        } else {
-          console.error('❌ No distributors available');
-          this.error.set('No hay distribuidores disponibles. Contacta al soporte.');
-        }
+        console.log('🗺️ Product-Distributor map created');
+        console.log('📊 Map contents:');
+        map.forEach((dists, productId) => {
+          console.log(`   Product ${productId}: ${dists.map(d => d.name).join(', ')}`);
+        });
       },
       error: (err) => {
         console.error('❌ Error loading distributors:', err);
@@ -177,6 +284,253 @@ export class StoreComponent implements OnInit {
         this.error.set('Error al cargar distribuidores');
       }
     });
+  }
+
+  // ✅ ALGORITMO PRINCIPAL: Encontrar distribuidores con TODOS los productos
+  private findDistributorsWithAllProducts(productIds: number[]): DistributorDTO[] {
+    if (productIds.length === 0) return this.distributors();
+
+    const map = this.productDistributorsMap();
+    const allDists = this.distributors();
+    
+    console.log('🔍 Finding distributors with ALL products:', productIds);
+    console.log('📊 Total distributors:', allDists.length);
+    
+    // Filtrar distribuidores que tienen TODOS los productos
+    const result = allDists.filter(dist => {
+      const distProductIds = (dist.products || []).map(p => p.id);
+      console.log(`   🏢 Checking ${dist.name} (${dist.dni})`);
+      console.log(`      Has products: [${distProductIds.join(', ')}]`);
+      
+      const hasAll = productIds.every(productId => {
+        const productDists = map.get(productId) || [];
+        const hasProduct = productDists.some(pd => pd.dni === dist.dni);
+        
+        if (!hasProduct) {
+          console.log(`      ❌ Missing product ${productId}`);
+        }
+        
+        return hasProduct;
+      });
+      
+      if (hasAll) {
+        console.log(`      ✅ ${dist.name} - tiene TODOS los productos`);
+      } else {
+        console.log(`      ❌ ${dist.name} - NO tiene todos`);
+      }
+      
+      return hasAll;
+    });
+    
+    console.log(`✅ Found ${result.length} distributors with all products`);
+    return result;
+  }
+
+  // ✅ Seleccionar el MEJOR distribuidor (prioridad: zona común, headquarters, rotación)
+  private selectBestDistributor(distributors: DistributorDTO[]): DistributorDTO {
+    if (distributors.length === 0) {
+      return this.distributors()[0]; // Fallback
+    }
+    
+    if (distributors.length === 1) {
+      return distributors[0];
+    }
+
+    console.log('🎯 Selecting best from', distributors.length, 'distributors');
+
+    // 1️⃣ PRIORIDAD: Agrupar por zona
+    const byZone = new Map<string, DistributorDTO[]>();
+    distributors.forEach(d => {
+      const zoneName = d.zone?.name || 'Sin Zona';
+      if (!byZone.has(zoneName)) {
+        byZone.set(zoneName, []);
+      }
+      byZone.get(zoneName)!.push(d);
+    });
+
+    console.log('📍 Distributors by zone:');
+    byZone.forEach((dists, zone) => {
+      console.log(`   ${zone}: ${dists.map(d => d.name).join(', ')}`);
+    });
+
+    // 2️⃣ Elegir la zona con MÁS distribuidores (más opciones)
+    let bestZone = '';
+    let maxCount = 0;
+    byZone.forEach((dists, zone) => {
+      if (dists.length > maxCount) {
+        maxCount = dists.length;
+        bestZone = zone;
+      }
+    });
+
+    const candidatesInBestZone = byZone.get(bestZone) || [];
+    console.log(`🏆 Best zone: "${bestZone}" with ${candidatesInBestZone.length} distributors`);
+
+    // 3️⃣ Si solo hay 1 candidato en la mejor zona, retornarlo
+    if (candidatesInBestZone.length === 1) {
+      console.log(`✅ Only one distributor in zone: ${candidatesInBestZone[0].name}`);
+      return candidatesInBestZone[0];
+    }
+
+    // 4️⃣ Rotación determinista basada en el contador de compras
+    const purchaseCount = this.getPurchaseCount();
+    
+    // 🎲 Priorizar HQ en las primeras compras (compra 0, 3, 6, 9...)
+    const hqInZone = candidatesInBestZone.find(d => d.zone?.isHeadquarters);
+    if (hqInZone && purchaseCount % 3 === 0) {
+      console.log(`⭐ Selected headquarters (priority rotation #${purchaseCount}):`, hqInZone.name);
+      return hqInZone;
+    }
+
+    // 5️⃣ Rotación equitativa entre TODOS los distribuidores de la zona
+    const index = purchaseCount % candidatesInBestZone.length;
+    const selected = candidatesInBestZone[index];
+    
+    console.log(`🔄 Rotation: purchase #${purchaseCount}, index ${index}/${candidatesInBestZone.length} → ${selected.name}`);
+    return selected;
+  }
+
+  // ✅ Seleccionar MÚLTIPLES distribuidores cuando no hay uno con todos los productos
+  private selectMultipleDistributors(): DistributorDTO[] {
+    const cartItems = this.itemsSig();
+    if (cartItems.length === 0) return [];
+
+    const map = this.productDistributorsMap();
+    const allDists = this.distributors();
+
+    console.log('📍 MULTIPLE DISTRIBUTORS MODE: Finding best combination');
+    console.log(`   Cart has ${cartItems.length} items:`, cartItems.map(i => `${i.id} (${i.description})`));
+
+    // Crear un mapa: productId → mejor distribuidor para ese producto
+    const productToDistributor = new Map<number, DistributorDTO>();
+    const distributorsUsed = new Set<string>(); // DNIs de distribuidores ya usados
+    
+    // Para cada producto del carrito, encontrar el mejor distribuidor
+    cartItems.forEach(item => {
+      const productDists = map.get(item.id) || [];
+      
+      if (productDists.length === 0) {
+        console.log(`   ❌ Product ${item.id} (${item.description}): NO distributors available`);
+        return;
+      }
+
+      // Priorizar distribuidores que ya estamos usando (para minimizar zonas)
+      let bestDist = productDists.find(d => distributorsUsed.has(d.dni));
+      
+      if (!bestDist) {
+        // Si no hay overlap, elegir el primero (o aplicar lógica de prioridad)
+        // Priorizar HQ si existe
+        bestDist = productDists.find(d => d.zone?.isHeadquarters) || productDists[0];
+      }
+
+      console.log(`   ✅ Product ${item.id} (${item.description}): ${bestDist.name} (${bestDist.zone?.name})`);
+      
+      productToDistributor.set(item.id, bestDist);
+      distributorsUsed.add(bestDist.dni);
+    });
+
+    // Obtener lista única de distribuidores
+    const uniqueDistributors = Array.from(new Set(
+      Array.from(productToDistributor.values()).map(d => d.dni)
+    )).map(dni => allDists.find(d => d.dni === dni)!).filter(Boolean);
+
+    console.log(`📊 Result: ${uniqueDistributors.length} distributor(s) needed`);
+    uniqueDistributors.forEach(d => {
+      const productsFromThis = cartItems.filter(item => 
+        productToDistributor.get(item.id)?.dni === d.dni
+      );
+      console.log(`   🏢 ${d.name} (${d.zone?.name}): ${productsFromThis.length} products`);
+      console.log(`      Products: ${productsFromThis.map(p => p.description).join(', ')}`);
+    });
+
+    return uniqueDistributors;
+  }
+
+  // ✅ Fallback: Si ningún distribuidor tiene TODOS los productos
+  private selectFallbackDistributor(): DistributorDTO | null {
+    const cartItems = this.itemsSig();
+    if (cartItems.length === 0) return null;
+
+    const map = this.productDistributorsMap();
+    const allDists = this.distributors();
+
+    console.log('⚠️ FALLBACK MODE: No distributor has ALL products');
+    console.log(`   Cart has ${cartItems.length} items:`, cartItems.map(i => i.id));
+
+    // Contar cuántos productos tiene cada distribuidor
+    const scores = allDists.map(dist => {
+      const matchingProducts = cartItems.filter(item => {
+        const productDists = map.get(item.id) || [];
+        const hasProduct = productDists.some(pd => pd.dni === dist.dni);
+        return hasProduct;
+      });
+      
+      const count = matchingProducts.length;
+      
+      console.log(`   ${dist.name}: ${count}/${cartItems.length} products`);
+      if (count > 0) {
+        console.log(`      Has: ${matchingProducts.map(p => p.id).join(', ')}`);
+      }
+      
+      return { dist, count };
+    });
+
+    // Ordenar por mayor cantidad de productos
+    scores.sort((a, b) => b.count - a.count);
+
+    // ✅ FILTRAR: Solo distribuidores que tienen AL MENOS 1 producto
+    const validScores = scores.filter(s => s.count > 0);
+    
+    if (validScores.length === 0) {
+      console.log('❌ NO DISTRIBUTOR has ANY product from the cart!');
+      return null;  // ✅ Retornar null si ninguno tiene productos
+    }
+
+    const best = validScores[0];
+    console.log(`✅ Fallback selected: ${best.dist.name} (has ${best.count}/${cartItems.length} products)`);
+    
+    return best.dist;
+  }
+
+  // ✅ Contador de rotación
+  private getPurchaseCount(): number {
+    try {
+      const count = localStorage.getItem(this.PURCHASE_COUNT_KEY);
+      return count ? parseInt(count, 10) : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  private incrementPurchaseCount(): void {
+    try {
+      const count = this.getPurchaseCount();
+      localStorage.setItem(this.PURCHASE_COUNT_KEY, String(count + 1));
+      console.log(`📊 Purchase counter incremented: ${count} → ${count + 1}`);
+    } catch {}
+  }
+
+  // ✅ Funciones de carrito (sin restricciones)
+  add(p: ProductDTO) {
+    const items = [...this.itemsSig()];
+    const idx = items.findIndex((it) => it.id === p.id);
+
+    if (idx >= 0) {
+      items[idx] = { ...items[idx], qty: items[idx].qty + 1 };
+      this.itemsSig.set(this.moveToFront(items, p.id as number));
+    } else {
+      items.unshift({
+        id: p.id as number,
+        description: p.description ?? null,
+        price: p.price ?? 0,
+        imageUrl: p.imageUrl ?? null,
+        qty: 1,
+      });
+      this.itemsSig.set(items);
+    }
+    this.persistCart();
+    this.scrollCartTopSoon();
+    this.pulseCart();
   }
 
   private persistCart() {
@@ -202,27 +556,6 @@ export class StoreComponent implements OnInit {
       const el = document.querySelector('.cart-drawer__list') as HTMLElement | null;
       el?.scrollTo({ top: 0, behavior: 'smooth' });
     }, 0);
-  }
-
-  add(p: ProductDTO) {
-    const items = [...this.itemsSig()];
-    const idx = items.findIndex((it) => it.id === p.id);
-
-    if (idx >= 0) {
-      items[idx] = { ...items[idx], qty: items[idx].qty + 1 };
-      this.itemsSig.set(this.moveToFront(items, p.id as number));
-    } else {
-      items.unshift({
-        id: p.id as number,
-        description: p.description ?? null,
-        price: p.price ?? 0,
-        imageUrl: p.imageUrl ?? null,
-        qty: 1,
-      });
-      this.itemsSig.set(items);
-    }
-    this.persistCart();
-    this.scrollCartTopSoon();
   }
 
   inc(id: number) {
@@ -255,23 +588,22 @@ export class StoreComponent implements OnInit {
     this.pulseCart();
   }
 
-  // ✅ MEJORADO: Validar distribuidor seleccionado
+  // ✅ Checkout con selección inteligente (soporta múltiples distribuidores)
   goToCheckout() {
-    console.group('🛒 CHECKOUT DEBUG');
-    console.log('Can purchase:', this.canPurchase());
-    console.log('Cart count:', this.cart.count());
-    console.log('All distributors:', this.distributors());
-    console.log('Selected DNI:', this.selectedDistributorDni());
-    console.log('Selected Distributor object:', this.selectedDistributor());
+    console.group('🛒 CHECKOUT');
+    console.log('Cart items:', this.cart.items());
+    console.log('Selected distributors:', this.selectedDistributors());
+    console.log('Has multiple:', this.hasMultipleDistributors());
     console.groupEnd();
 
     if (!this.canPurchase() || this.cart.count() === 0) {
       return;
     }
 
-    const distributorDni = this.selectedDistributorDni();
-    if (!distributorDni) {
-      this.error.set('⚠️ Debes seleccionar un distribuidor antes de comprar.');
+    const selectedDists = this.selectedDistributors();
+    
+    if (selectedDists.length === 0) {
+      this.error.set('⚠️ No hay distribuidores disponibles en este momento.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -280,7 +612,7 @@ export class StoreComponent implements OnInit {
     const clientDni = (user as any)?.person?.dni;
 
     if (!clientDni) {
-      this.error.set('ERROR: Tu perfil no tiene DNI. Ve a "Mi Cuenta" y completa tus datos personales.');
+      this.error.set('Tu perfil no tiene DNI. Completa tus datos en "Mi Cuenta".');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -288,56 +620,73 @@ export class StoreComponent implements OnInit {
     this.processing.set(true);
     this.error.set(null);
 
-    const payload = {
-      clientDni: clientDni,
-      distributorDni: distributorDni,
-      details: this.cart.items().map(item => ({
-        productId: item.id,
-        quantity: item.qty
-      }))
-    };
+    // ✅ Si hay múltiples distribuidores, crear múltiples ventas
+    if (this.hasMultipleDistributors()) {
+      this.createMultipleSales(clientDni, selectedDists);
+    } else {
+      // ✅ Compra simple (un solo distribuidor)
+      this.createSingleSale(clientDni, selectedDists[0]);
+    }
+  }
 
-    console.log('🛒 Creating purchase with distributor:', {
-      distributor: this.selectedDistributor(),
-      payload
+  // ✅ Crear múltiples ventas (una por distribuidor)
+  private createMultipleSales(clientDni: string, distributors: DistributorDTO[]) {
+    console.log('📦 Creating multiple sales for', distributors.length, 'distributors');
+    
+    const productsByDist = this.productsByDistributor();
+    const requests: Observable<any>[] = [];
+    
+    distributors.forEach(dist => {
+      const products = productsByDist.get(dist.dni) || [];
+      
+      if (products.length === 0) return;
+      
+      const payload = {
+        clientDni: clientDni,
+        distributorDni: dist.dni,
+        details: products.map(item => ({
+          productId: item.id,
+          quantity: item.qty
+        }))
+      };
+      
+      console.log(`  📦 Sale for ${dist.name}:`, payload);
+      requests.push(this.saleService.createSale(payload));
     });
 
-    this.saleService.createSale(payload).subscribe({
-      next: (response) => {
-        console.log('✅ Sale created:', response);
+    // Ejecutar todas las ventas en paralelo
+    forkJoin(requests).subscribe({
+      next: (responses) => {
+        console.log('✅ All sales created:', responses);
         
         this.processing.set(false);
         this.authService.forceRefresh();
+        this.incrementPurchaseCount();
         
-        const saleData = response.data;
-        
-        // ✅ Usar el distribuidor seleccionado localmente
-        const selectedDist = this.selectedDistributor();
-        
-        console.log('📋 Purchase data to show in modal:', {
-          selectedDist,
-          saleId: saleData?.id,
-          total: this.cart.total()
-        });
+        // Preparar datos para modal de éxito (mostrar resumen de todas las ventas)
+        const totalAmount = this.cart.total();
+        const allSales = responses.map(r => r.data);
         
         this.purchaseData.set({
-          saleId: saleData?.id || 0,
-          total: this.cart.total(),
-          distributor: selectedDist ? {
-            dni: selectedDist.dni,
-            name: selectedDist.name,
-            phone: selectedDist.phone ?? null,
-            email: selectedDist.email,
-            address: selectedDist.address ?? null,
-            zone: selectedDist.zone ? {
-              id: selectedDist.zone.id,
-              name: selectedDist.zone.name,
-              isHeadquarters: selectedDist.zone.isHeadquarters ?? false
-            } : null
-          } : null
+          saleId: allSales.length, // Cantidad de ventas
+          total: totalAmount,
+          distributor: {
+            dni: 'multiple',
+            name: `${distributors.length} ubicaciones`,
+            phone: null,
+            email: '',
+            address: null,
+            zone: null
+          },
+          multipleSales: allSales.map((sale, index) => ({
+            saleId: sale.id,
+            distributor: distributors[index],
+            products: productsByDist.get(distributors[index].dni) || [],
+            subtotal: this.getDistributorSubtotal(distributors[index].dni)
+          }))
         });
         
-        console.log('✅ Purchase data set:', this.purchaseData());
+        console.log('✅ Multiple purchase data:', this.purchaseData());
         
         this.showSuccessModal.set(true);
         this.clear();
@@ -349,8 +698,69 @@ export class StoreComponent implements OnInit {
       error: (err) => {
         console.error('❌ Purchase error:', err);
         this.processing.set(false);
-        let errorMessage = err.error?.message || 'Error al procesar la compra';
-        this.error.set(errorMessage);
+        this.error.set(err.error?.message || 'Error al procesar las compras');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+
+  // ✅ Crear venta simple (un solo distribuidor)
+  private createSingleSale(clientDni: string, distributor: DistributorDTO) {
+    const payload = {
+      clientDni: clientDni,
+      distributorDni: distributor.dni,
+      details: this.cart.items().map(item => ({
+        productId: item.id,
+        quantity: item.qty
+      }))
+    };
+
+    console.log('🛒 Creating single sale with distributor:', {
+      distributor: distributor.name,
+      zone: distributor.zone?.name,
+      payload
+    });
+
+    this.saleService.createSale(payload).subscribe({
+      next: (response) => {
+        console.log('✅ Sale created:', response);
+        
+        this.processing.set(false);
+        this.authService.forceRefresh();
+        this.incrementPurchaseCount();
+        
+        const saleData = response.data;
+        
+        this.purchaseData.set({
+          saleId: saleData?.id || 0,
+          total: this.cart.total(),
+          distributor: {
+            dni: distributor.dni,
+            name: distributor.name,
+            phone: distributor.phone ?? null,
+            email: distributor.email,
+            address: distributor.address ?? null,
+            zone: distributor.zone ? {
+              id: distributor.zone.id,
+              name: distributor.zone.name,
+              isHeadquarters: distributor.zone.isHeadquarters ?? false
+            } : null
+          }
+        });
+        
+        console.log('✅ Purchase data for modal:', this.purchaseData());
+        
+        this.showSuccessModal.set(true);
+        this.clear();
+        
+        if (this.showCart()) {
+          this.toggleCartDrawer();
+        }
+      },
+      error: (err) => {
+        console.error('❌ Purchase error:', err);
+        this.processing.set(false);
+        this.error.set(err.error?.message || 'Error al procesar la compra');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
@@ -361,7 +771,7 @@ export class StoreComponent implements OnInit {
     this.purchaseData.set(null);
   }
 
-  onAddClick(ev: MouseEvent, p: ProductDTO, imgEl?: HTMLImageElement) {
+  onAddClick(ev: MouseEvent, p: ProductDTO) {
     this.add(p);
     const btn = ev.currentTarget as HTMLElement | null;
     const card = btn?.closest('.store-card') as HTMLElement | null;
@@ -371,7 +781,7 @@ export class StoreComponent implements OnInit {
     }
     const fab = document.getElementById('cartAnchor');
     if (!fab) { this.pulseCart(); return; }
-    const imgFound = imgEl ?? (card?.querySelector('.store-card__media img') as HTMLImageElement | null);
+    const imgFound = card?.querySelector('.store-card__media img') as HTMLImageElement | null;
     const sourceEl: HTMLElement = imgFound ?? btn!;
     this.flyToCart(sourceEl, fab, Boolean(imgFound));
   }
