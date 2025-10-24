@@ -93,9 +93,18 @@ export class StoreComponent implements OnInit {
   // ✅ Distribuidores que tienen TODOS los productos del carrito
   compatibleDistributors = computed(() => {
     const cartItems = this.itemsSig();
-    if (cartItems.length === 0) return this.distributors();
-    
-    return this.findDistributorsWithAllProducts(cartItems.map(item => item.id));
+    const user = this.authService.user();
+    const currentUserDni = (user as any)?.person?.dni;
+
+    if (cartItems.length === 0) {
+      // Excluir el DNI del usuario actual de los distribuidores
+      return this.distributors().filter(d => d.dni !== currentUserDni);
+    }
+
+    const allCompatible = this.findDistributorsWithAllProducts(cartItems.map(item => item.id));
+
+    // Excluir el DNI del usuario actual para evitar auto-compra
+    return allCompatible.filter(d => d.dni !== currentUserDni);
   });
 
   // ✅ Auto-selección inteligente con prioridad de zona
@@ -240,11 +249,15 @@ export class StoreComponent implements OnInit {
   // ✅ Cargar distribuidores y construir mapa
   private loadDistributors(): void {
     this.loadingDistributors.set(true);
-    
+
     this.distributorService.getAll().subscribe({
       next: (distributors) => {
+        const user = this.authService.user();
+        const currentUserDni = (user as any)?.person?.dni;
+
         console.log('📦 RAW RESPONSE from backend:', distributors);
         console.log('📦 Distributors loaded:', distributors.length);
+        console.log('👤 Current user DNI:', currentUserDni);
         
         const map = new Map<number, DistributorDTO[]>();
         
@@ -396,7 +409,11 @@ export class StoreComponent implements OnInit {
     if (cartItems.length === 0) return [];
 
     const map = this.productDistributorsMap();
-    const allDists = this.distributors();
+    const user = this.authService.user();
+    const currentUserDni = (user as any)?.person?.dni;
+
+    // Excluir el usuario actual de la lista de distribuidores disponibles
+    const allDists = this.distributors().filter(d => d.dni !== currentUserDni);
 
     console.log('📍 MULTIPLE DISTRIBUTORS MODE: Finding best combination');
     console.log(`   Cart has ${cartItems.length} items:`, cartItems.map(i => `${i.id} (${i.description})`));
@@ -452,7 +469,11 @@ export class StoreComponent implements OnInit {
     if (cartItems.length === 0) return null;
 
     const map = this.productDistributorsMap();
-    const allDists = this.distributors();
+    const user = this.authService.user();
+    const currentUserDni = (user as any)?.person?.dni;
+
+    // Excluir el usuario actual de la lista de distribuidores disponibles
+    const allDists = this.distributors().filter(d => d.dni !== currentUserDni);
 
     console.log('⚠️ FALLBACK MODE: No distributor has ALL products');
     console.log(`   Cart has ${cartItems.length} items:`, cartItems.map(i => i.id));
@@ -601,9 +622,19 @@ export class StoreComponent implements OnInit {
     }
 
     const selectedDists = this.selectedDistributors();
-    
+
     if (selectedDists.length === 0) {
-      this.error.set('⚠️ No hay distribuidores disponibles en este momento.');
+      const user = this.authService.user();
+      const currentUserDni = (user as any)?.person?.dni;
+      const allDists = this.distributors();
+
+      // Verificar si el único distribuidor disponible eres tú mismo
+      if (allDists.length > 0 && allDists.every(d => d.dni === currentUserDni)) {
+        this.error.set('⚠️ No puedes comprarte productos a ti mismo. Necesitas que otro distribuidor tenga estos productos.');
+      } else {
+        this.error.set('⚠️ No hay distribuidores disponibles para estos productos en este momento.');
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -696,9 +727,27 @@ export class StoreComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('❌ Purchase error:', err);
+        console.error('❌ Multiple purchase error:', err);
+        console.error('❌ Error status:', err.status);
+        console.error('❌ Error body:', err.error);
+        console.error('❌ Error body (stringified):', JSON.stringify(err.error, null, 2));
+        console.error('❌ Error message:', err.message);
+
         this.processing.set(false);
-        this.error.set(err.error?.message || 'Error al procesar las compras');
+
+        // Extraer el mensaje de error apropiadamente
+        let errorMessage = 'Error al procesar las compras';
+        if (err.error?.message) {
+          errorMessage = err.error.message;
+        } else if (err.error?.error) {
+          errorMessage = err.error.error;
+        } else if (typeof err.error === 'string') {
+          errorMessage = err.error;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+
+        this.error.set(errorMessage);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
@@ -720,6 +769,11 @@ export class StoreComponent implements OnInit {
       zone: distributor.zone?.name,
       payload
     });
+    console.log('📦 Payload details:');
+    console.log('  - clientDni:', clientDni, typeof clientDni);
+    console.log('  - distributorDni:', distributor.dni, typeof distributor.dni);
+    console.log('  - details:', payload.details);
+    console.log('📤 Full payload being sent:', JSON.stringify(payload, null, 2));
 
     this.saleService.createSale(payload).subscribe({
       next: (response) => {
@@ -759,8 +813,26 @@ export class StoreComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ Purchase error:', err);
+        console.error('❌ Error status:', err.status);
+        console.error('❌ Error body:', err.error);
+        console.error('❌ Error body (stringified):', JSON.stringify(err.error, null, 2));
+        console.error('❌ Error message:', err.message);
+
         this.processing.set(false);
-        this.error.set(err.error?.message || 'Error al procesar la compra');
+
+        // Extraer el mensaje de error apropiadamente
+        let errorMessage = 'Error al procesar la compra';
+        if (err.error?.message) {
+          errorMessage = err.error.message;
+        } else if (err.error?.error) {
+          errorMessage = err.error.error;
+        } else if (typeof err.error === 'string') {
+          errorMessage = err.error;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+
+        this.error.set(errorMessage);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });

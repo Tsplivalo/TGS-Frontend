@@ -67,24 +67,37 @@ export class SaleService {
 // src/app/services/sale/sale.service.ts - SOLO CAMBIAR createSale()
 
   createSale(payload: CreateSaleDTO): Observable<ApiResponse<SaleDTO>> {
-    const normalizedPayload: CreateSaleDTO = {
+    console.log('🔵 SaleService.createSale - Raw payload received:', payload);
+
+    const detailsArray = (payload.details || []).map((d: SaleDetailDTO) => ({
+      productId: Number(d.productId),
+      quantity: Number(d.quantity),
+    }));
+
+    const normalizedPayload: any = {
       clientDni: payload.clientDni ? String(payload.clientDni).trim() : undefined,
       distributorDni: String(payload.distributorDni).trim(),
-      details: (payload.details || []).map((d: SaleDetailDTO) => ({
-        productId: Number(d.productId),
-        quantity: Number(d.quantity),
-      })),
-      person: payload.person ? {
+      // ⚠️ El backend parece requerir AMBOS campos
+      detail: JSON.stringify(detailsArray), // Backend valida este campo como string
+      details: detailsArray, // Backend también valida este campo como array
+    };
+
+    // Agregar person si existe
+    if (payload.person) {
+      normalizedPayload.person = {
         name: String(payload.person.name).trim(),
         email: String(payload.person.email).trim(),
         phone: payload.person.phone ? String(payload.person.phone).trim() : undefined,
         address: payload.person.address ? String(payload.person.address).trim() : undefined,
-      } : undefined,
-    };
+      };
+    }
+
+    console.log('🔵 SaleService.createSale - Normalized payload:', normalizedPayload);
+    console.log('🔵 Sending POST to:', this.base);
 
     // ✅ AGREGAR withCredentials
     return this.http.post<ApiResponse<SaleDTO>>(
-      this.base, 
+      this.base,
       normalizedPayload,
       { withCredentials: true } // ✅ ESTO
     );
