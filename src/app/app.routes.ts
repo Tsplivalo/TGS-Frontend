@@ -55,6 +55,23 @@ export const routes: Routes = [
     loadComponent: () => import('./components/pages/contact/contact').then(m => m.ContactComponent)
   },
 
+  // Páginas legales
+  {
+    path: 'terminos',
+    loadComponent: () => import('./components/legal/terms').then(m => m.TermsComponent),
+    title: 'Términos y Condiciones - GarrSYS'
+  },
+  {
+    path: 'privacidad',
+    loadComponent: () => import('./components/legal/privacy').then(m => m.PrivacyComponent),
+    title: 'Política de Privacidad - GarrSYS'
+  },
+  {
+    path: 'cookies',
+    loadComponent: () => import('./components/legal/cookies').then(m => m.CookiesComponent),
+    title: 'Política de Cookies - GarrSYS'
+  },
+
   // ═══════════════════════════════════════════════════════════════════════
   // RUTAS DE AUTENTICACIÓN (redirigen a home que tiene el panel integrado)
   // ═══════════════════════════════════════════════════════════════════════

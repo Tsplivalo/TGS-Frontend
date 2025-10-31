@@ -1512,6 +1512,236 @@
     "roleRequestRejected": "Solicitud de rol rechazada correctamente.",
     "userVerificationApproved": "Verificación de usuario aprobada correctamente.",
     "userVerificationRejected": "Verificación de usuario rechazada correctamente."
+  },
+  "legal": {
+    "backHome": "Volver al inicio",
+    "lastUpdated": "Última actualización",
+    "lastUpdatedDate": "Noviembre 2025",
+    "questions": "¿Tenés dudas sobre estos términos?",
+    "contactUs": "Contactanos",
+    "terms": {
+      "title": "Términos y Condiciones",
+      "sections": {
+        "acceptance": {
+          "title": "1. Aceptación de los Términos",
+          "content": [
+            "Al acceder y utilizar GarrSYS, usted acepta estar sujeto a estos Términos y Condiciones. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestro sistema.",
+            "GarrSYS es una plataforma de gestión empresarial diseñada para facilitar la administración de productos, ventas, socios comerciales y operaciones relacionadas."
+          ]
+        },
+        "usage": {
+          "title": "2. Uso del Sistema",
+          "content": ["El sistema GarrSYS está destinado exclusivamente para uso interno de la organización y sus miembros autorizados. Usted se compromete a:"],
+          "list": [
+            "Utilizar el sistema de manera responsable y conforme a la ley",
+            "Mantener la confidencialidad de sus credenciales de acceso",
+            "No intentar acceder a áreas del sistema para las que no tiene autorización",
+            "No compartir información sensible fuera de la plataforma",
+            "Reportar cualquier actividad sospechosa o vulnerabilidad de seguridad"
+          ]
+        },
+        "roles": {
+          "title": "3. Roles y Permisos",
+          "content": ["GarrSYS implementa un sistema de roles con diferentes niveles de acceso:"],
+          "list": [
+            "ADMIN: Acceso completo al sistema, gestión de usuarios y configuración",
+            "DISTRIBUTOR: Gestión de productos, inventario y operaciones comerciales",
+            "PARTNER: Acceso a información relevante y funcionalidades específicas",
+            "CLANDESTINE: Operaciones especiales con permisos limitados",
+            "SHELBY: Supervisión y aprobación de decisiones estratégicas"
+          ]
+        },
+        "responsibilities": {
+          "title": "4. Responsabilidades del Usuario",
+          "content": [
+            "Como usuario de GarrSYS, usted es responsable de todas las actividades realizadas bajo su cuenta. Debe notificar inmediatamente cualquier uso no autorizado de su cuenta.",
+            "La información ingresada al sistema debe ser precisa y actualizada. Los datos incorrectos pueden afectar la operación del negocio."
+          ]
+        },
+        "intellectual": {
+          "title": "5. Propiedad Intelectual",
+          "content": [
+            "Todo el contenido, diseño, código fuente y funcionalidades de GarrSYS son propiedad de la organización y están protegidos por las leyes de propiedad intelectual aplicables.",
+            "No está permitido copiar, modificar, distribuir o vender ninguna parte del sistema sin autorización expresa."
+          ]
+        },
+        "liability": {
+          "title": "6. Limitación de Responsabilidad",
+          "content": [
+            "GarrSYS se proporciona \"tal cual\" sin garantías de ningún tipo. No nos hacemos responsables por pérdidas de datos, interrupciones del servicio o daños derivados del uso del sistema.",
+            "Es responsabilidad del usuario mantener copias de seguridad de información crítica."
+          ]
+        },
+        "modifications": {
+          "title": "7. Modificaciones",
+          "content": [
+            "Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigor inmediatamente después de su publicación en el sistema.",
+            "Es responsabilidad del usuario revisar periódicamente estos términos."
+          ]
+        }
+      }
+    },
+    "privacy": {
+      "title": "Política de Privacidad",
+      "sections": {
+        "information": {
+          "title": "1. Información que Recopilamos",
+          "content": ["GarrSYS recopila y almacena información necesaria para el funcionamiento del sistema de gestión empresarial. Esta información incluye:"],
+          "list": [
+            "Datos de perfil: nombre, email, nombre de usuario",
+            "Información de roles y permisos dentro del sistema",
+            "Datos de productos, inventario y transacciones comerciales",
+            "Registros de actividad y auditoría del sistema",
+            "Información de socios comerciales y distribuidores"
+          ]
+        },
+        "usage": {
+          "title": "2. Cómo Utilizamos su Información",
+          "content": ["La información recopilada se utiliza exclusivamente para los siguientes propósitos:"],
+          "list": [
+            "Gestión de cuentas de usuario y autenticación",
+            "Administración de inventario y operaciones comerciales",
+            "Generación de reportes y estadísticas empresariales",
+            "Auditoría y seguimiento de transacciones",
+            "Comunicaciones relacionadas con el negocio",
+            "Mejora y optimización del sistema"
+          ]
+        },
+        "protection": {
+          "title": "3. Protección de Datos",
+          "content": ["Implementamos medidas de seguridad técnicas y organizativas para proteger su información:"],
+          "list": [
+            "Encriptación de contraseñas mediante Argon2",
+            "Autenticación basada en JWT (JSON Web Tokens)",
+            "Control de acceso basado en roles (RBAC)",
+            "Registros de auditoría de acciones críticas",
+            "Protección contra accesos no autorizados"
+          ]
+        },
+        "sharing": {
+          "title": "4. Compartir Información",
+          "content": ["No vendemos, alquilamos ni compartimos su información personal con terceros, excepto en los siguientes casos:"],
+          "list": [
+            "Cuando sea necesario para cumplir con obligaciones legales",
+            "Con socios comerciales autorizados dentro del sistema",
+            "Para proteger los derechos y seguridad de la organización",
+            "En caso de fusión, adquisición o venta de activos"
+          ]
+        },
+        "retention": {
+          "title": "5. Retención de Datos",
+          "content": [
+            "Conservamos su información personal durante el tiempo necesario para cumplir con los propósitos descritos en esta política, incluyendo requisitos legales, contables o de auditoría.",
+            "Los datos de transacciones comerciales se mantienen de acuerdo con las regulaciones fiscales y contables aplicables."
+          ]
+        },
+        "rights": {
+          "title": "6. Sus Derechos",
+          "content": ["Como usuario de GarrSYS, usted tiene los siguientes derechos sobre sus datos personales:"],
+          "list": [
+            "Acceder a la información que tenemos sobre usted",
+            "Solicitar la corrección de datos inexactos",
+            "Solicitar la eliminación de su cuenta y datos asociados",
+            "Exportar sus datos en un formato estructurado",
+            "Retirar el consentimiento para el procesamiento de datos"
+          ]
+        },
+        "cookies": {
+          "title": "7. Cookies y Tecnologías Similares",
+          "content": ["GarrSYS utiliza localStorage y sessionStorage para mantener su sesión activa y mejorar la experiencia de usuario. Para más detalles, consulte nuestra Política de Cookies."]
+        },
+        "changes": {
+          "title": "8. Cambios a esta Política",
+          "content": [
+            "Podemos actualizar esta Política de Privacidad periódicamente. Le notificaremos sobre cambios significativos a través del sistema.",
+            "La fecha de última actualización se muestra en la parte superior de este documento."
+          ]
+        }
+      }
+    },
+    "cookies": {
+      "title": "Política de Cookies",
+      "sections": {
+        "what": {
+          "title": "1. ¿Qué son las Cookies y Tecnologías de Almacenamiento?",
+          "content": [
+            "Las cookies son pequeños archivos de texto que se almacenan en su navegador cuando visita un sitio web. GarrSYS utiliza tecnologías de almacenamiento web modernas para mejorar su experiencia.",
+            "Utilizamos principalmente localStorage y sessionStorage en lugar de cookies tradicionales para gestionar la sesión y preferencias del usuario."
+          ]
+        },
+        "technologies": {
+          "title": "2. Tecnologías que Utilizamos",
+          "content": ["GarrSYS emplea las siguientes tecnologías de almacenamiento:"],
+          "list": [
+            "localStorage: Para almacenar tokens de autenticación y preferencias persistentes",
+            "sessionStorage: Para datos temporales durante su sesión",
+            "IndexedDB: Para almacenamiento local de datos de la aplicación (si aplica)"
+          ]
+        },
+        "purpose": {
+          "title": "3. Propósito del Almacenamiento Local",
+          "content": ["Utilizamos estas tecnologías para los siguientes propósitos esenciales:"],
+          "list": [
+            "Mantener su sesión activa mientras navega por el sistema",
+            "Recordar sus preferencias de idioma (español/inglés)",
+            "Almacenar tokens JWT para autenticación segura",
+            "Guardar configuraciones de interfaz de usuario",
+            "Mejorar el rendimiento mediante caché de datos"
+          ]
+        },
+        "types": {
+          "title": "4. Tipos de Almacenamiento que Usamos",
+          "list": [
+            "Estrictamente Necesario: Tokens de autenticación (accessToken, refreshToken) - Estos son esenciales para el funcionamiento del sistema",
+            "Funcional: Preferencias de idioma y configuración de usuario - Mejoran su experiencia en el sistema",
+            "De Rendimiento: Caché de datos para reducir llamadas al servidor - Optimizan la velocidad del sistema"
+          ]
+        },
+        "management": {
+          "title": "5. Gestión de Datos Almacenados",
+          "content": ["Usted tiene control total sobre los datos almacenados en su navegador:"],
+          "list": [
+            "Puede cerrar sesión en cualquier momento para eliminar tokens de autenticación",
+            "Puede limpiar el localStorage manualmente desde las herramientas de desarrollo del navegador",
+            "Los tokens de sesión expiran automáticamente después de un período de inactividad",
+            "Al cerrar el navegador, los datos en sessionStorage se eliminan automáticamente"
+          ]
+        },
+        "security": {
+          "title": "6. Seguridad",
+          "content": ["Los tokens almacenados están protegidos mediante las siguientes medidas:"],
+          "list": [
+            "Los tokens JWT están firmados criptográficamente",
+            "Los refresh tokens tienen una vida útil limitada",
+            "No almacenamos contraseñas en el navegador",
+            "Los datos sensibles están encriptados antes de almacenarse"
+          ]
+        },
+        "thirdParty": {
+          "title": "7. Cookies de Terceros",
+          "content": [
+            "GarrSYS no utiliza cookies de terceros para publicidad o seguimiento. Sin embargo, si integramos servicios externos en el futuro (como análisis o mapas), estos podrían establecer sus propias cookies.",
+            "Le notificaremos cualquier cambio en el uso de cookies de terceros."
+          ]
+        },
+        "disable": {
+          "title": "8. Cómo Deshabilitar el Almacenamiento",
+          "content": ["Si desea deshabilitar el almacenamiento local, puede hacerlo desde la configuración de su navegador. Sin embargo, tenga en cuenta que esto afectará significativamente la funcionalidad del sistema:"],
+          "list": [
+            "No podrá iniciar sesión ni mantener su sesión activa",
+            "Sus preferencias de idioma no se guardarán",
+            "La experiencia de usuario será degradada"
+          ]
+        },
+        "updates": {
+          "title": "9. Actualizaciones de esta Política",
+          "content": [
+            "Podemos actualizar esta Política de Cookies cuando implementemos nuevas funcionalidades o tecnologías de almacenamiento.",
+            "La fecha de última actualización se muestra en la parte superior de este documento."
+          ]
+        }
+      }
+    }
   }
 
 }

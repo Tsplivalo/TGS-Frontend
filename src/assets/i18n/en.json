@@ -1,5 +1,4 @@
-﻿{
-  
+{
   "brand": {
     "name": "GarrSYS"
   },
@@ -1498,41 +1497,294 @@
       }
     },
     "footer": {
-    "tagline": "The platform that takes your business to the next level",
-    "rights": "All rights reserved",
-    "sections": {
-      "company": "Company",
-      "legal": "Legal",
-      "resources": "Resources"
-    },
-    "links": {
-      "about": "About us",
-      "contact": "Contact",
-      "faqs": "FAQs",
-      "terms": "Terms and conditions",
-      "privacy": "Privacy policy",
-      "cookies": "Cookie policy",
-      "docs": "Documentation",
-      "api": "API",
-      "support": "Support"
-    },
-    "social": {
-      "github": "Visit GitHub",
-      "email": "Send email"
-    },
-    "university": {
-      "prefix": "Academic project by",
-      "name": "UTN Rosario"
+      "tagline": "The platform that takes your business to the next level",
+      "rights": "All rights reserved",
+      "sections": {
+        "company": "Company",
+        "legal": "Legal",
+        "resources": "Resources"
+      },
+      "links": {
+        "about": "About us",
+        "contact": "Contact",
+        "faqs": "FAQs",
+        "terms": "Terms and conditions",
+        "privacy": "Privacy policy",
+        "cookies": "Cookie policy",
+        "docs": "Documentation",
+        "api": "API",
+        "support": "Support"
+      },
+      "social": {
+        "github": "Visit GitHub",
+        "email": "Send email"
+      },
+      "university": {
+        "prefix": "Academic project by",
+        "name": "UTN Rosario"
+      }
     }
-  }
-  ,
+  },
   "notifications": {
     "roleRequestApproved": "Role request approved successfully.",
     "roleRequestRejected": "Role request rejected successfully.",
     "userVerificationApproved": "User verification approved successfully.",
     "userVerificationRejected": "User verification rejected successfully."
+  },
+  "legal": {
+    "backHome": "Back to home",
+    "lastUpdated": "Last updated",
+    "questions": "Have questions about these terms?",
+    "contactUs": "Contact us",
+    "terms": {
+      "title": "Terms and Conditions",
+      "sections": {
+        "acceptance": {
+          "title": "1. Acceptance of Terms",
+          "content": [
+            "By accessing and using GarrSYS, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you should not use our system.",
+            "GarrSYS is a business management platform designed to facilitate the administration of products, sales, business partners and related operations."
+          ]
+        },
+        "usage": {
+          "title": "2. System Usage",
+          "content": [
+            "The GarrSYS system is intended exclusively for internal use by the organization and its authorized members. You agree to:"
+          ],
+          "list": [
+            "Use the system responsibly and in accordance with the law",
+            "Maintain the confidentiality of your access credentials",
+            "Not attempt to access areas of the system for which you are not authorized",
+            "Not share sensitive information outside the platform",
+            "Report any suspicious activity or security vulnerabilities"
+          ]
+        },
+        "roles": {
+          "title": "3. Roles and Permissions",
+          "content": [
+            "GarrSYS implements a role-based system with different access levels:"
+          ],
+          "list": [
+            "ADMIN: Full system access, user management and configuration",
+            "DISTRIBUTOR: Product, inventory and business operations management",
+            "PARTNER: Access to relevant information and specific functionalities",
+            "CLANDESTINE: Special operations with limited permissions",
+            "SHELBY: Supervision and approval of strategic decisions"
+          ]
+        },
+        "responsibilities": {
+          "title": "4. User Responsibilities",
+          "content": [
+            "As a GarrSYS user, you are responsible for all activities performed under your account. You must immediately notify any unauthorized use of your account.",
+            "Information entered into the system must be accurate and up-to-date. Incorrect data can affect business operations."
+          ]
+        },
+        "intellectual": {
+          "title": "5. Intellectual Property",
+          "content": [
+            "All content, design, source code and functionalities of GarrSYS are property of the organization and are protected by applicable intellectual property laws.",
+            "Copying, modifying, distributing or selling any part of the system without express authorization is not permitted."
+          ]
+        },
+        "liability": {
+          "title": "6. Limitation of Liability",
+          "content": [
+            "GarrSYS is provided \"as is\" without warranties of any kind. We are not responsible for data loss, service interruptions or damages arising from the use of the system.",
+            "It is the user's responsibility to maintain backups of critical information."
+          ]
+        },
+        "modifications": {
+          "title": "7. Modifications",
+          "content": [
+            "We reserve the right to modify these terms at any time. Changes will take effect immediately after publication in the system.",
+            "It is the user's responsibility to periodically review these terms."
+          ]
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "sections": {
+        "information": {
+          "title": "1. Information We Collect",
+          "content": [
+            "GarrSYS collects and stores information necessary for the operation of the business management system. This information includes:"
+          ],
+          "list": [
+            "Profile data: name, email, username",
+            "Role and permission information within the system",
+            "Product, inventory and business transaction data",
+            "Activity logs and system audits",
+            "Business partner and distributor information"
+          ]
+        },
+        "usage": {
+          "title": "2. How We Use Your Information",
+          "content": [
+            "The information collected is used exclusively for the following purposes:"
+          ],
+          "list": [
+            "User account management and authentication",
+            "Inventory and business operations administration",
+            "Report and business statistics generation",
+            "Transaction auditing and tracking",
+            "Business-related communications",
+            "System improvement and optimization"
+          ]
+        },
+        "protection": {
+          "title": "3. Data Protection",
+          "content": [
+            "We implement technical and organizational security measures to protect your information:"
+          ],
+          "list": [
+            "Password encryption using Argon2",
+            "JWT (JSON Web Tokens) based authentication",
+            "Role-based access control (RBAC)",
+            "Audit logs of critical actions",
+            "Protection against unauthorized access"
+          ]
+        },
+        "sharing": {
+          "title": "4. Sharing Information",
+          "content": [
+            "We do not sell, rent or share your personal information with third parties, except in the following cases:"
+          ],
+          "list": [
+            "When necessary to comply with legal obligations",
+            "With authorized business partners within the system",
+            "To protect the organization's rights and security",
+            "In case of merger, acquisition or asset sale"
+          ]
+        },
+        "retention": {
+          "title": "5. Data Retention",
+          "content": [
+            "We retain your personal information for as long as necessary to fulfill the purposes described in this policy, including legal, accounting or audit requirements.",
+            "Business transaction data is maintained in accordance with applicable tax and accounting regulations."
+          ]
+        },
+        "rights": {
+          "title": "6. Your Rights",
+          "content": [
+            "As a GarrSYS user, you have the following rights regarding your personal data:"
+          ],
+          "list": [
+            "Access the information we have about you",
+            "Request correction of inaccurate data",
+            "Request deletion of your account and associated data",
+            "Export your data in a structured format",
+            "Withdraw consent for data processing"
+          ]
+        },
+        "cookies": {
+          "title": "7. Cookies and Similar Technologies",
+          "content": [
+            "GarrSYS uses localStorage and sessionStorage to maintain your active session and improve user experience. For more details, see our Cookie Policy."
+          ]
+        },
+        "changes": {
+          "title": "8. Changes to this Policy",
+          "content": [
+            "We may update this Privacy Policy periodically. We will notify you of significant changes through the system.",
+            "The last updated date is shown at the top of this document."
+          ]
+        }
+      }
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "sections": {
+        "what": {
+          "title": "1. What are Cookies and Storage Technologies?",
+          "content": [
+            "Cookies are small text files that are stored in your browser when you visit a website. GarrSYS uses modern web storage technologies to enhance your experience.",
+            "We primarily use localStorage and sessionStorage instead of traditional cookies to manage sessions and user preferences."
+          ]
+        },
+        "technologies": {
+          "title": "2. Technologies We Use",
+          "content": [
+            "GarrSYS employs the following storage technologies:"
+          ],
+          "list": [
+            "localStorage: To store authentication tokens and persistent preferences",
+            "sessionStorage: For temporary data during your session",
+            "IndexedDB: For local storage of application data (if applicable)"
+          ]
+        },
+        "purpose": {
+          "title": "3. Purpose of Local Storage",
+          "content": [
+            "We use these technologies for the following essential purposes:"
+          ],
+          "list": [
+            "Maintain your active session while navigating the system",
+            "Remember your language preferences (English/Spanish)",
+            "Store JWT tokens for secure authentication",
+            "Save user interface settings",
+            "Improve performance through data caching"
+          ]
+        },
+        "types": {
+          "title": "4. Types of Storage We Use",
+          "list": [
+            "Strictly Necessary: Authentication tokens (accessToken, refreshToken) - These are essential for system operation",
+            "Functional: Language preferences and user configuration - Improve your system experience",
+            "Performance: Data cache to reduce server calls - Optimize system speed"
+          ]
+        },
+        "management": {
+          "title": "5. Stored Data Management",
+          "content": [
+            "You have full control over the data stored in your browser:"
+          ],
+          "list": [
+            "You can log out at any time to delete authentication tokens",
+            "You can manually clear localStorage from browser developer tools",
+            "Session tokens automatically expire after a period of inactivity",
+            "When closing the browser, sessionStorage data is automatically deleted"
+          ]
+        },
+        "security": {
+          "title": "6. Security",
+          "content": [
+            "Stored tokens are protected by the following measures:"
+          ],
+          "list": [
+            "JWT tokens are cryptographically signed",
+            "Refresh tokens have a limited lifespan",
+            "We do not store passwords in the browser",
+            "Sensitive data is encrypted before being stored"
+          ]
+        },
+        "thirdParty": {
+          "title": "7. Third-Party Cookies",
+          "content": [
+            "GarrSYS does not use third-party cookies for advertising or tracking. However, if we integrate external services in the future (such as analytics or maps), they may set their own cookies.",
+            "We will notify you of any changes in the use of third-party cookies."
+          ]
+        },
+        "disable": {
+          "title": "8. How to Disable Storage",
+          "content": [
+            "If you wish to disable local storage, you can do so from your browser settings. However, please note that this will significantly affect system functionality:"
+          ],
+          "list": [
+            "You will not be able to log in or maintain your active session",
+            "Your language preferences will not be saved",
+            "The user experience will be degraded"
+          ]
+        },
+        "updates": {
+          "title": "9. Updates to this Policy",
+          "content": [
+            "We may update this Cookie Policy when we implement new functionalities or storage technologies.",
+            "The last updated date is shown at the top of this document."
+          ]
+        }
+      }
+    },
+    "lastUpdatedDate": "November 2025"
   }
 }
-  }
-
-

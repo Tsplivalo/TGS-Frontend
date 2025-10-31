@@ -7,7 +7,9 @@
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
       "Bash(cat:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(node -e:*)",
+      "Bash(powershell -Command:*)"
     ],
     "deny": [],
     "ask": []
