@@ -139,7 +139,7 @@ export class AccountComponent implements OnInit, OnDestroy {
           this.saving.set(false);
           this.ok.set('¡Perfil completado exitosamente! 🎉');
           this.showCompleteProfileMessage.set(false);
-          
+
           // Limpiar mensaje después de 3 segundos
           setTimeout(() => {
             if (this.ok() === '¡Perfil completado exitosamente! 🎉') {

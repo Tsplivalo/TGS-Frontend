@@ -19,6 +19,7 @@ export interface User {
   email: string;
   roles: Role[];
   isActive: boolean;
+  isVerified: boolean;
   emailVerified: boolean;
   profileCompleteness: number;
   hasPersonalInfo: boolean;
@@ -362,6 +363,8 @@ export class AuthService {
     );
   }
 
+
+  
   /**
    * Refresca el perfil del usuario desde el backend.
    * Útil después de actualizar datos del usuario.
@@ -583,5 +586,54 @@ export class AuthService {
     }
 
     return suggestions;
+  }
+
+  /**
+   * Obtiene todos los usuarios verificados elegibles para conversión de roles.
+   * 
+   * Criterios:
+   * - isVerified = true (verificado por admin)
+   * - profileCompleteness = 100 (datos personales completos)
+   * - hasPersonalInfo = true (todos los campos de person completados)
+   * 
+   * Puede filtrar por rol objetivo para asegurar compatibilidad:
+   * - AUTHORITY: excluye usuarios con roles PARTNER, DISTRIBUTOR, ADMIN
+   * - PARTNER: excluye usuarios con rol AUTHORITY
+   * - DISTRIBUTOR: excluye usuarios con rol AUTHORITY
+   * 
+   * @param targetRole - Rol objetivo opcional para filtrar por compatibilidad
+   * @returns Observable con array de usuarios verificados
+   * 
+   * @example
+   * // Sin filtro
+   * this.authSrv.getAllVerifiedUsers().subscribe({
+   *   next: (users) => console.log('Verified users:', users),
+   *   error: (err) => console.error('Failed to load users')
+   * });
+   * 
+   * // Con filtro por rol
+   * this.authSrv.getAllVerifiedUsers('AUTHORITY').subscribe({
+   *   next: (users) => console.log('Users eligible for AUTHORITY:', users)
+   * });
+   */
+  getAllVerifiedUsers(targetRole?: 'AUTHORITY' | 'PARTNER' | 'DISTRIBUTOR'): Observable<User[]> {
+    const url = targetRole 
+      ? `/api/users/verified?targetRole=${targetRole}`
+      : '/api/users/verified';
+
+    return this.http.get<ApiResponse<User[]>>(
+      url,
+      { withCredentials: true }
+    ).pipe(
+      switchMap(res => {
+        const verified = res.data || [];
+        console.log(`[AuthService] Loaded ${verified.length} verified users${targetRole ? ` eligible for ${targetRole}` : ''}`);
+        return of(verified);
+      }),
+      catchError(err => {
+        console.error('[AuthService] Error fetching verified users:', err);
+        return of([]);  // Retornar array vacío en caso de error
+      })
+    );
   }
 }

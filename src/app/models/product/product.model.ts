@@ -22,20 +22,32 @@ export interface ProductDTO {
   imageUrl?: string;           // URL de la imagen (solo frontend)
   distributorsCount?: number;  // Cantidad de distribuidores asociados
   detailsCount?: number;       // Cantidad de detalles del producto
+  
+  // ✅ NUEVO: Información de distribuidores asociados
+  distributors?: Array<{
+    dni: string;
+    name: string;
+    zone?: {
+      id: number;
+      name: string;
+      isHeadquarters?: boolean;
+    } | null;
+  }>;
 }
 
 /**
  * DTO para crear un nuevo producto
- * 
+ *
  * Contiene los datos mínimos requeridos para crear un producto
  * en el sistema. El campo detail es obligatorio.
  */
 export interface CreateProductDTO {
-  description: string;  // Descripción principal del producto
-  detail: string;       // Detalles adicionales (requerido)
-  price: number;        // Precio del producto
-  stock: number;        // Cantidad inicial en inventario
-  isIllegal: boolean;   // Indica si el producto es ilegal
+  description: string;    // Descripción principal del producto
+  detail: string;         // Detalles adicionales (requerido)
+  price: number;          // Precio del producto
+  stock: number;          // Cantidad inicial en inventario
+  isIllegal: boolean;     // Indica si el producto es ilegal
+  distributorsIds?: string[];  // ✅ Array de DNIs de distribuidores (opcional)
 }
 
 /**
@@ -64,4 +76,68 @@ export interface ApiResponse<T> {
   success: boolean;  // Indica si la operación fue exitosa
   message: string;   // Mensaje descriptivo de la respuesta
   data: T;          // Datos de la respuesta
+}
+
+// ============================================================================
+// ✅ NUEVAS INTERFACES PARA EL MARKETPLACE (STORE)
+// ============================================================================
+
+/**
+ * Representa una "oferta" de producto en el marketplace
+ * 
+ * Un mismo producto puede tener múltiples ofertas de diferentes distribuidores
+ * con distintos precios y disponibilidad.
+ */
+export interface ProductOffer {
+  // Información del producto base
+  productId: number;
+  description: string;
+  detail?: string;
+  imageUrl?: string;
+  isIllegal: boolean;
+  
+  // Información específica del distribuidor
+  distributorDni: string;
+  distributorName: string;
+  price: number;           // Precio definido por este distribuidor
+  stock: number;           // Stock disponible en este distribuidor
+  
+  // Información de la zona
+  zone?: {
+    id: number;
+    name: string;
+    isHeadquarters?: boolean;
+  } | null;
+  
+  // Identificador único de la oferta (para el carrito)
+  offerId: string;  // Formato: "productId-distributorDni"
+}
+
+/**
+ * Item en el carrito del marketplace
+ * Basado en una oferta específica de un distribuidor
+ */
+export interface CartItem {
+  offerId: string;         // ID único de la oferta
+  productId: number;       // ID del producto base
+  distributorDni: string;  // DNI del distribuidor
+  description: string;
+  imageUrl?: string;
+  price: number;
+  qty: number;
+}
+
+/**
+ * Agrupación de productos por distribuidor en el carrito
+ */
+export interface CartByDistributor {
+  distributorDni: string;
+  distributorName: string;
+  zone?: {
+    id: number;
+    name: string;
+    isHeadquarters?: boolean;
+  } | null;
+  items: CartItem[];
+  subtotal: number;
 }

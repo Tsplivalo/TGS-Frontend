@@ -18,7 +18,7 @@
 
     <!-- ========== COLUMNA IZQUIERDA: ESTADÍSTICAS Y GRÁFICOS ========== -->
     <div class="stack-md">
-      <div class="glass-dark card stack-md">
+      <div class="glass-dark card stack-md monthly-shell">
 
         <!-- ESTADÍSTICAS RÁPIDAS -->
         <div *ngIf="!loading() && items().length > 0"
@@ -153,7 +153,7 @@
 
         <!-- FILTROS -->
         <section>
-          
+
 
           <div style="display: grid; gap: var(--sp-3);">
             <label class="label">
@@ -263,94 +263,101 @@
     </div>
   </div>
 
-  <!-- ========== PANEL COLAPSABLE: CREAR/EDITAR (FULL WIDTH ABAJO) ========== -->
-  <div class="collapsible" [class.open]="isNewOpen()">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
-        <h2 class="title">
-          {{ isEdit()
-          ? ('monthlyReview.form.titleEdit' | translate : { id: form.value.id } : ('Editar #' + form.value.id))
-          : ('monthlyReview.form.titleCreate' | translate : {} : 'Crear Revisión Mensual') }}
-        </h2>
-      </div>
-
-      <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
-        <!-- DNI del Socio Revisor -->
-        <label class="label">
-          <span>{{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'Socio Revisor' }} *</span>
-          <select class="input" formControlName="partnerDni">
-            <option value="" disabled>— Seleccioná un socio —</option>
-            <option *ngFor="let p of partners()" [value]="p.dni">
-              {{ p.dni }} — {{ p.name }}
-            </option>
-          </select>
-          <small class="muted" *ngIf="!partners().length && !loading()">
-            No hay socios disponibles. Creá uno primero.
-          </small>
-          <small class="error" *ngIf="form.controls.partnerDni.invalid && form.controls.partnerDni.touched">
-            {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'Socio requerido' }}
-          </small>
-        </label>
-
-        <!-- Año -->
-        <label class="label">
-          <span>{{ 'monthlyReview.form.fields.year' | translate : {} : 'Año' }} *</span>
-          <input class="input" type="number" formControlName="year"
-            [attr.aria-label]="'monthlyReview.form.fields.year' | translate : {} : 'Año'" />
-        </label>
-
-        <!-- Mes -->
-        <label class="label">
-          <span>{{ 'monthlyReview.form.fields.month' | translate : {} : 'Mes (1-12)' }} *</span>
-          <input class="input" type="number" formControlName="month" min="1" max="12"
-            [attr.aria-label]="'monthlyReview.form.fields.month' | translate : {} : 'Mes'" />
-        </label>
-
-        <!-- Fecha de Revisión -->
-        <label class="label">
-          <span>{{ 'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisión' }}</span>
-          <input class="input" type="date" formControlName="reviewDate"
-            [attr.aria-label]="'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisión'" />
-        </label>
-
-        <!-- Estado -->
-        <label class="label">
-          <span>{{ 'monthlyReview.form.fields.status' | translate : {} : 'Estado' }}</span>
-          <select class="input" formControlName="status">
-            <option value="PENDING">{{ 'status.PENDING' | translate : {} : 'Pendiente' }}</option>
-            <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate : {} : 'En Revisión' }}</option>
-            <option value="COMPLETED">{{ 'status.COMPLETED' | translate : {} : 'Completado' }}</option>
-            <option value="APPROVED">{{ 'status.APPROVED' | translate : {} : 'Aprobado' }}</option>
-            <option value="REJECTED">{{ 'status.REJECTED' | translate : {} : 'Rechazado' }}</option>
-          </select>
-        </label>
-
-        <!-- Observaciones -->
-        <label class="label col-2">
-          <span>{{ 'monthlyReview.form.fields.observations' | translate : {} : 'Observaciones' }}</span>
-          <textarea class="input" rows="3" formControlName="observations"
-            [placeholder]="'monthlyReview.form.placeholders.observations' | translate : {} : 'Observaciones sobre las ventas del período...'"></textarea>
-        </label>
-
-        <!-- Recomendaciones -->
-        <label class="label col-2">
-          <span>{{ 'monthlyReview.form.fields.recommendations' | translate : {} : 'Recomendaciones' }}</span>
-          <textarea class="input" rows="3" formControlName="recommendations"
-            [placeholder]="'monthlyReview.form.placeholders.recommendations' | translate : {} : 'Recomendaciones o acciones a tomar...'"></textarea>
-        </label>
-
-        <!-- Botones de acción -->
-        <div class="form-actions">
-          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ isEdit()
-            ? ('Guardar' | translate : {} : 'Guardar')
-            : ('Crear' | translate : {} : 'Crear') }}
-          </button>
-          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'Limpiar' | translate : {} : 'Limpiar' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 </section>
+
+<!-- Overlay flotante para crear/editar revisi�n -->
+<div class="monthly-overlay" [class.is-open]="isNewOpen()" [attr.aria-hidden]="!isNewOpen()">
+  <button type="button" class="monthly-overlay__backdrop" (click)="cancel()" aria-label="Cerrar"></button>
+
+  <div class="monthly-overlay__panel glass-dark card" role="dialog" aria-modal="true"
+    (click)="$event.stopPropagation()">
+    <div class="header compact">
+      <h2 class="title">
+        {{ isEdit()
+        ? ('monthlyReview.form.titleEdit' | translate : { id: form.value.id } : ('Editar #' + form.value.id))
+        : ('monthlyReview.form.titleCreate' | translate : {} : 'Crear Revisi�n Mensual') }}
+      </h2>
+      <button type="button" class="btn-close" (click)="cancel()" aria-label="Cerrar">&times;</button>
+    </div>
+
+    <div class="error" *ngIf="error()">{{ error() }}</div>
+
+    <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
+      <!-- DNI del Socio Revisor -->
+      <label class="label">
+        <span>{{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'Socio Revisor' }} *</span>
+        <select class="input" formControlName="partnerDni">
+          <option value="" disabled>� Seleccion� un socio �</option>
+          <option *ngFor="let p of partners()" [value]="p.dni">
+            {{ p.dni }} � {{ p.name }}
+          </option>
+        </select>
+        <small class="muted" *ngIf="!partners().length && !loading()">
+          No hay socios disponibles. Cre� uno primero.
+        </small>
+        <small class="error" *ngIf="form.controls.partnerDni.invalid && form.controls.partnerDni.touched">
+          {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'Socio requerido' }}
+        </small>
+      </label>
+
+      <!-- A�o -->
+      <label class="label">
+        <span>{{ 'monthlyReview.form.fields.year' | translate : {} : 'A�o' }} *</span>
+        <input class="input" type="number" formControlName="year"
+          [attr.aria-label]="'monthlyReview.form.fields.year' | translate : {} : 'A�o'" />
+      </label>
+
+      <!-- Mes -->
+      <label class="label">
+        <span>{{ 'monthlyReview.form.fields.month' | translate : {} : 'Mes (1-12)' }} *</span>
+        <input class="input" type="number" formControlName="month" min="1" max="12"
+          [attr.aria-label]="'monthlyReview.form.fields.month' | translate : {} : 'Mes'" />
+      </label>
+
+      <!-- Fecha de Revisi�n -->
+      <label class="label">
+        <span>{{ 'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisi�n' }}</span>
+        <input class="input" type="date" formControlName="reviewDate"
+          [attr.aria-label]="'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisi�n'" />
+      </label>
+
+      <!-- Estado -->
+      <label class="label">
+        <span>{{ 'monthlyReview.form.fields.status' | translate : {} : 'Estado' }}</span>
+        <select class="input" formControlName="status">
+          <option value="PENDING">{{ 'status.PENDING' | translate : {} : 'Pendiente' }}</option>
+          <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate : {} : 'En Revisi�n' }}</option>
+          <option value="COMPLETED">{{ 'status.COMPLETED' | translate : {} : 'Completado' }}</option>
+          <option value="APPROVED">{{ 'status.APPROVED' | translate : {} : 'Aprobado' }}</option>
+          <option value="REJECTED">{{ 'status.REJECTED' | translate : {} : 'Rechazado' }}</option>
+        </select>
+      </label>
+
+      <!-- Observaciones -->
+      <label class="label col-2">
+        <span>{{ 'monthlyReview.form.fields.observations' | translate : {} : 'Observaciones' }}</span>
+        <textarea class="input" rows="3" formControlName="observations"
+          [placeholder]="'monthlyReview.form.placeholders.observations' | translate : {} : 'Observaciones sobre las ventas del per�odo...'"></textarea>
+      </label>
+
+      <!-- Recomendaciones -->
+      <label class="label col-2">
+        <span>{{ 'monthlyReview.form.fields.recommendations' | translate : {} : 'Recomendaciones' }}</span>
+        <textarea class="input" rows="3" formControlName="recommendations"
+          [placeholder]="'monthlyReview.form.placeholders.recommendations' | translate : {} : 'Recomendaciones o acciones a tomar...'"></textarea>
+      </label>
+
+      <!-- Botones de acci�n -->
+      <div class="form-actions">
+        <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+          {{ isEdit()
+          ? ('common.save' | translate : {} : 'Guardar')
+          : ('common.create' | translate : {} : 'Crear') }}
+        </button>
+        <button class="btn ghost" type="button" (click)="cancel()" [disabled]="loading()">
+          {{ 'common.cancel' | translate : {} : 'Cancelar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -35,19 +35,21 @@
           <div class="stat-card">
             <div class="stat-icon">📊</div>
             <div class="stat-content">
-              <span class="stat-label">{{ 'sales.stats.averageTicket' | translate : {} : 'Ticket Promedio' }}</span>
+              <span class="stat-label">{{ 'sales.stats.averageTicket' | translate : {} : 'Importe promedio por venta' }}</span>
               <span class="stat-value">{{ stats()!.averageTicket | currency:'ARS' }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Gráficos -->
+        <!-- Gráficos CON OPCIONES -->
         <div class="charts-grid">
           <!-- Ventas por Mes -->
           <div class="chart-card">
             <h3 class="chart-title">📈 {{ 'sales.stats.salesByMonth' | translate : {} : 'Ventas por Mes' }}</h3>
             @if (salesChartData()) {
-            <app-chart [type]="'bar'" [data]="salesChartData()!" [height]="'280px'"></app-chart>
+            <!-- 🔥 AGREGADO [options] -->
+            <app-chart [type]="'bar'" [data]="salesChartData()!" [options]="getSalesChartOptions()" [height]="'300px'">
+            </app-chart>
             }
           </div>
 
@@ -55,7 +57,10 @@
           <div class="chart-card">
             <h3 class="chart-title">🏆 {{ 'sales.stats.topProducts' | translate : {} : 'Productos Más Vendidos' }}</h3>
             @if (topProductsChartData()) {
-            <app-chart [type]="'doughnut'" [data]="topProductsChartData()!" [height]="'280px'"></app-chart>
+            <!-- 🔥 AGREGADO [options] -->
+            <app-chart [type]="'doughnut'" [data]="topProductsChartData()!" [options]="getTopProductsChartOptions()"
+              [height]="'320px'">
+            </app-chart>
             }
           </div>
 
@@ -64,7 +69,10 @@
             <h3 class="chart-title">🚚 {{ 'sales.stats.salesByDistributor' | translate : {} : 'Ventas por Distribuidor'
               }}</h3>
             @if (distributorsChartData()) {
-            <app-chart [type]="'bar'" [data]="distributorsChartData()!" [height]="'280px'"></app-chart>
+            <!-- 🔥 AGREGADO [options] -->
+            <app-chart [type]="'bar'" [data]="distributorsChartData()!" [options]="getDistributorsChartOptions()"
+              [height]="'300px'">
+            </app-chart>
             }
           </div>
         </div>
@@ -81,12 +89,12 @@
       </div>
     </aside>
 
-    <!-- COLUMNA DERECHA: LISTA DE VENTAS (SIN CAMBIOS) -->
+    <!-- COLUMNA DERECHA: LISTA DE VENTAS -->
     <div class="glass-dark card stack-md">
       <div class="header">
         <h2>{{ 'sales.title' | translate }}</h2>
         <div class="right">
-          <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
+          <button class="btn" type="button" (click)="new(); toggleNew()" [attr.aria-expanded]="isNewOpen">
             {{ isNewOpen ? ('sales.toggle.close' | translate) : ('sales.toggle.new' | translate) }}
           </button>
         </div>
@@ -184,13 +192,16 @@
         </table>
       </div>
     </div>
-  </div> <!-- FIN sales-main-grid -->
+  </div>
 
-  <!-- CREATE FORM (COLLAPSIBLE) - ANCHO COMPLETO (SE MANTIENE) -->
-  <div class="collapsible" [class.open]="isNewOpen">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
-        <h2>{{ 'sales.newTitle' | translate }}</h2>
+  <!-- CREATE FORM (RESTO DEL HTML SIN CAMBIOS) -->
+  <div class="new-sale-overlay" [class.is-open]="isNewOpen" [attr.aria-hidden]="!isNewOpen">
+    <button type="button" class="new-sale-overlay__backdrop" (click)="toggleNew()" aria-label="Cerrar"></button>
+
+    <div class="new-sale-overlay__panel glass-dark card" (click)="$event.stopPropagation()">
+      <div class="header compact">
+        <h2 class="title">{{ 'sales.newTitle' | translate }}</h2>
+        <button type="button" class="btn-close" (click)="toggleNew()" aria-label="Cerrar">&times;</button>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
@@ -302,7 +313,7 @@
           <button class="btn success" type="submit" [disabled]="loading() || form.invalid">
             {{ 'sales.form.create' | translate }}
           </button>
-          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
+          <button class="btn ghost" type="button" (click)="new(); toggleNew()" [disabled]="loading()">
             {{ 'common.cancel' | translate }}
           </button>
         </div>

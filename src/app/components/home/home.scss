@@ -13,7 +13,7 @@
 
 :root {
   --auth-width: 640px;
-  /* ancho del “cuadrado” (columna izquierda) */
+  /* ancho del "cuadrado" (columna izquierda) */
   --auth-min-h: 620px;
   /* alto mínimo del panel */
 }
@@ -21,6 +21,8 @@
 /* ===== Layout ===== */
 .home {
   padding: 1rem;
+  /* ✅ Agregamos padding-bottom para separar del footer */
+  padding-bottom: clamp(3rem, 6vw, 5rem);
 }
 
 .layout {
@@ -162,8 +164,35 @@
   box-shadow: 0 0 0 3px var(--focus);
 }
 
+/* Input con botón de mostrar/ocultar contraseña */
+.input-with-toggle { position: relative; display: block; }
+.input-with-toggle > input { display: block; width: 100%; padding-right: 2.8rem; }
+
+/* Botón compacto, fijo dentro del input (derecha) */
+.pwd-toggle {
+  position: absolute;
+  top: 50%;
+  right: .45rem;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  line-height: 0;
+}
+
+.pwd-toggle:hover { color: var(--text-strong); }
+.pwd-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus); border-radius: .4rem; }
+
+.pwd-toggle .material-symbols-outlined { font-size: 20px; line-height: 1; }
+
 /* botones */
-.auth-form button {
+.auth-form button:not(.pwd-toggle) {
   margin-top: .25rem;
   width: 100%;
   padding: .65rem .8rem;
@@ -176,14 +205,47 @@
   transition: transform .15s ease, background .2s ease, border-color .2s ease;
 }
 
-.auth-form button:hover {
+.auth-form button:not(.pwd-toggle):hover {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, .14);
 }
 
-.auth-form button:disabled {
+.auth-form button:not(.pwd-toggle):disabled {
   opacity: .7;
   cursor: default;
+}
+
+/* Botón login con spinner */
+.auth-form .btn-main {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+}
+
+.auth-form .btn-main .btn-label {
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.auth-form .btn-main.is-loading .btn-label {
+  opacity: .0;
+  transform: translateY(4px);
+}
+
+.auth-form .btn-main .spinner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, .35);
+  border-top-color: var(--accent);
+  animation: spin .9s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(195, 164, 98, .35));
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg) }
+  to   { transform: rotate(360deg) }
 }
 
 .auth-error {
@@ -368,7 +430,7 @@
 }
 
 /* ------------------------------------------------------------------
-   INTRODUCCIÓN v2 — contenedor base
+   INTRODUCCIÓN - CARDS EXPANDIBLES
 -------------------------------------------------------------------*/
 .intro-v2 {
   --intro-bg: rgba(17, 25, 40, .62);
@@ -380,6 +442,8 @@
   margin: clamp(1.6rem, 4vw, 3rem) auto 0;
   padding: 0 1rem;
   color: var(--text);
+  /* ✅ SOLUCIÓN: Agregamos margin-bottom generoso */
+  margin-bottom: clamp(3rem, 6vw, 5rem);
 }
 
 .intro-shell {
@@ -473,7 +537,7 @@
   outline-offset: 3px;
 }
 
-/* Superficie “glass” */
+/* Superficie "glass" */
 .card-surface {
   border: 1px solid rgba(255, 255, 255, .14);
   border-radius: .9rem;
@@ -658,6 +722,15 @@
   .intro-grid {
     grid-template-columns: 1fr;
   }
+
+  /* ✅ Reducimos el espacio en móvil pero mantenemos separación */
+  .home {
+    padding-bottom: 2rem;
+  }
+
+  .intro-v2 {
+    margin-bottom: 2rem;
+  }
 }
 
 /* Banner de verificación compacto */
@@ -735,5 +808,435 @@
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+/* ✅ Banner de verificación mejorado */
+.verification-banner {
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.7rem;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(234, 88, 12, 0.06));
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  animation: slideDown 0.35s cubic-bezier(.25, .6, .3, 1);
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.banner-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  gap: 0.5rem;
+
+  strong {
+    color: #f97316;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+}
+
+.banner-close {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.2rem 0.35rem;
+  border-radius: 0.3rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.banner-text {
+  margin: 0 0 0.65rem 0;
+  color: var(--muted, #cbd5e1);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.banner-success {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 0.65rem;
+  border-radius: 0.5rem;
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+
+  .success-icon {
+    font-size: 1rem;
+    font-weight: 900;
+  }
+}
+
+.btn-resend {
+  width: 100%;
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(0, 0, 0, .12)),
+    linear-gradient(180deg, #f97316, #ea580c);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(.25, .6, .3, 1);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+    border-color: rgba(249, 115, 22, 0.5);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.loading-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+
+  .dots {
+    display: inline-block;
+    animation: dotPulse 1.4s infinite;
+  }
+}
+
+@keyframes dotPulse {
+
+  0%,
+  20% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------
+   LOGIN VEIL (BLURRED BACKDROP + DELAY)
+-------------------------------------------------------------------*/
+.auth-veil {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  pointer-events: auto;
+  background: rgba(10, 14, 22, .28);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  backdrop-filter: blur(14px) saturate(1.05);
+  animation: veilIn .22s ease-out both;
+}
+
+@keyframes veilIn { from { opacity: 0 } to { opacity: 1 } }
+
+.auth-veil .veil-card {
+  pointer-events: none;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: linear-gradient(180deg, rgba(17, 25, 40, .72), rgba(17, 25, 40, .52));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 255, 255, .06);
+  padding: 1.1rem 1.3rem;
+  display: grid;
+  place-items: center;
+  gap: .6rem;
+  transform: translateY(6px) scale(.98);
+  animation: veilPop .32s cubic-bezier(.25, .6, .3, 1) both;
+}
+
+@keyframes veilPop {
+  to { transform: translateY(0) scale(1); opacity: 1 }
+}
+
+.auth-veil .loader-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.auth-veil .loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: conic-gradient(var(--accent) 0deg, rgba(255,255,255,.18) 0deg);
+  animation: ringSpin .9s linear infinite;
+  mask: radial-gradient(circle 28px, #0000 31px, #000 32px);
+}
+
+@keyframes ringSpin {
+  to { transform: rotate(360deg) }
+}
+
+.auth-veil .loader-core {
+  position: absolute;
+  inset: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+.auth-veil .loader-check {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #1a1308;
+  font-weight: 900;
+  font-size: 1.35rem;
+  opacity: 0;
+  transform: scale(.9);
+}
+
+.auth-veil.success .loader-ring { animation: none; background: linear-gradient(var(--accent), var(--accent-700)); filter: drop-shadow(0 8px 18px rgba(195,164,98,.28)); }
+.auth-veil.success .loader-core { background: rgba(255,255,255,.10); }
+.auth-veil.success .loader-check { opacity: 1; transform: scale(1); transition: opacity .18s ease, transform .18s ease; }
+
+.auth-veil .veil-text { text-align: center; color: var(--text-strong); font-weight: 800; letter-spacing: .2px; }
+.auth-veil .veil-text .brand { display: block; font-size: 1rem; }
+.auth-veil .veil-text .sub { display: block; margin-top: .15rem; color: var(--muted); font-size: .9rem; }
+
+
+/* ✅ Banner de verificación STANDALONE (reemplaza el formulario) */
+.verification-standalone {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 1.5rem;
+  cursor: default;
+}
+
+.verification-banner-large {
+  max-width: 460px;
+  width: 100%;
+  padding: 1.8rem 1.6rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.14), rgba(234, 88, 12, 0.08));
+  border: 1.5px solid rgba(249, 115, 22, 0.4);
+  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.15), inset 0 1px rgba(255, 255, 255, 0.08);
+  animation: bannerPop 0.4s cubic-bezier(.25, .6, .3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
+}
+
+@keyframes bannerPop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.banner-icon-large {
+  font-size: 3rem;
+  filter: drop-shadow(0 2px 8px rgba(249, 115, 22, 0.3));
+  animation: iconBounce 0.6s cubic-bezier(.25, .6, .3, 1) 0.2s both;
+}
+
+@keyframes iconBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.banner-content-large {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.banner-header-large {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.7rem;
+  position: relative;
+
+  strong {
+    color: #f97316;
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .banner-close {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+.banner-text-large {
+  margin: 0;
+  color: var(--text, #e5e7eb);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.banner-success-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.6rem;
+  background: rgba(76, 175, 80, 0.18);
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  color: #4caf50;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  animation: successSlide 0.4s cubic-bezier(.25, .6, .3, 1) 0.3s both;
+
+  .success-icon {
+    font-size: 1.1rem;
+    font-weight: 900;
+  }
+}
+
+@keyframes successSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.banner-info-large {
+  padding: 0.8rem 1rem;
+  border-radius: 0.6rem;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+
+  p {
+    margin: 0;
+    color: #60a5fa;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+}
+
+.btn-resend-large {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(0, 0, 0, .1)),
+    linear-gradient(180deg, #f97316, #ea580c);
+  border: 1.5px solid rgba(249, 115, 22, 0.45);
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(.25, .6, .3, 1);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);
+    border-color: rgba(249, 115, 22, 0.6);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+/* ✅ Responsive para banner standalone */
+@media (max-width: 640px) {
+  .verification-standalone {
+    min-height: 320px;
+    padding: 1rem;
+  }
+
+  .verification-banner-large {
+    padding: 1.4rem 1.2rem;
+  }
+
+  .banner-icon-large {
+    font-size: 2.5rem;
+  }
+
+  .banner-header-large strong {
+    font-size: 1.05rem;
+  }
+
+  .banner-text-large {
+    font-size: 0.88rem;
   }
 }

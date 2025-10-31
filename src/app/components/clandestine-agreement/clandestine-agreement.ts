@@ -131,7 +131,7 @@ export class ClandestineAgreementComponent implements OnInit {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.isNewOpen.set(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
   }
 
   cancel(): void {

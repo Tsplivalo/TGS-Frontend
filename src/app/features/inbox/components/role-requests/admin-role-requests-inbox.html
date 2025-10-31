@@ -12,6 +12,10 @@
     </div>
   </div>
 
+  <div *ngIf="successKey" class="inline-notification success" role="status">
+    {{ successKey | translate }}
+  </div>
+
   <div *ngIf="loading" class="loading">{{ 'roleRequests.adminInbox.loading' | translate }}</div>
 
   <div *ngIf="error && !loading" class="error-message">
@@ -63,6 +67,6 @@
   </div>
 
   <app-role-request-review-modal *ngIf="reviewingRequest" [request]="reviewingRequest" (close)="closeReviewModal()"
-    (reviewComplete)="handleReviewComplete()">
+    (reviewComplete)="handleReviewComplete($event)">
   </app-role-request-review-modal>
 </div>

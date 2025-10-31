@@ -124,8 +124,12 @@
             </div>
 
             <!-- ✅ Componente de solicitud -->
-            <app-user-role-requests-inbox [currentRoles]="currentRoles()" [hasCompleteProfile]="hasCompleteProfile()"
-              [isVerified]="isVerified()">
+            <app-user-role-requests-inbox
+              [currentRoles]="currentRoles()"
+              [hasCompleteProfile]="hasCompleteProfile()"
+              [isVerified]="isVerified()"
+              [userName]="getUserDisplayName()"
+              [userEmail]="getUserEmail()">
             </app-user-role-requests-inbox>
           </div>
         </div>

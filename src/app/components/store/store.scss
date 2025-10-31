@@ -1731,3 +1731,398 @@
     font-weight: 500;
   }
 }
+
+/* ============================================================================
+   ESTILOS ADICIONALES PARA MARKETPLACE
+   ============================================================================
+   Agregar estos estilos al archivo store.scss existente
+   ============================================================================ */
+
+/* ============================================================================
+   STORE CARD - Información de Distribuidor
+   ============================================================================ */
+
+.store-card__distributor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(var(--border-rgb), 0.1);
+}
+
+.distributor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #2196f3;
+  font-weight: 500;
+}
+
+.distributor-icon {
+  font-size: 1rem;
+}
+
+.distributor-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.zone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.zone-icon {
+  font-size: 0.9rem;
+}
+
+.zone-name {
+  font-weight: 500;
+}
+
+.hq-star {
+  font-size: 0.85rem;
+  margin-left: 2px;
+}
+
+/* ============================================================================
+   CART DRAWER - Información del Distribuidor en Items
+   ============================================================================ */
+
+.cart-drawer__distributor {
+  font-size: 0.75rem;
+  color: rgba(var(--text-rgb), 0.6);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============================================================================
+   MULTIPLE DISTRIBUTORS INFO - Mejorado
+   ============================================================================ */
+
+.multiple-distributors-info {
+  margin: 16px 0;
+  padding: 16px;
+  background: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 12px;
+}
+
+.alert-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.alert-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-content strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.alert-content p {
+  font-size: 0.85rem;
+  color: rgba(var(--text-rgb), 0.7);
+  margin: 0;
+}
+
+/* ============================================================================
+   DISTRIBUTORS GRID - Cards por Distribuidor
+   ============================================================================ */
+
+.distributors-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.distributor-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(var(--border-rgb), 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.distributor-card:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(195, 164, 98, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(var(--border-rgb), 0.2);
+}
+
+.card-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #c3a462, #a08548);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.card-title {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-title strong {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   CARD PRODUCTS - Lista de Productos
+   ============================================================================ */
+
+.card-products {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.products-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.products-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(var(--text-rgb), 0.8);
+}
+
+.compact-products-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compact-products-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(var(--border-rgb), 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.compact-products-list li:hover {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(195, 164, 98, 0.4);
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.product-detail {
+  font-size: 0.8rem;
+  color: rgba(var(--text-rgb), 0.6);
+}
+
+.btn-remove-product {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 6px;
+  color: #f44336;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-remove-product:hover {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: rgba(244, 67, 54, 0.5);
+  transform: scale(1.1);
+}
+
+.remove-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* ============================================================================
+   CARD SUBTOTAL
+   ============================================================================ */
+
+.card-subtotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-top: 4px;
+  border-top: 1px solid rgba(var(--border-rgb), 0.2);
+  font-size: 1rem;
+}
+
+.card-subtotal span {
+  color: rgba(var(--text-rgb), 0.7);
+  font-weight: 500;
+}
+
+.card-subtotal strong {
+  color: #c3a462;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ============================================================================
+   MULTIPLE PURCHASE NOTE
+   ============================================================================ */
+
+.multiple-purchase-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(33, 150, 243, 0.08);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: rgba(var(--text-rgb), 0.8);
+}
+
+.note-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.note-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .store-card__distributor {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .distributor-badge,
+  .zone-badge {
+    font-size: 0.75rem;
+    padding: 3px 6px;
+  }
+
+  .distributor-name {
+    max-width: 120px;
+  }
+
+  .distributors-grid {
+    gap: 10px;
+  }
+
+  .distributor-card {
+    padding: 12px;
+  }
+
+  .card-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+
+  .compact-products-list li {
+    padding: 8px 10px;
+  }
+
+  .product-name {
+    font-size: 0.85rem;
+  }
+
+  .product-detail {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================================================
+   ROLE INDICATOR (Product Component)
+   ============================================================================ */
+
+.role-indicator {
+  background: rgba(33, 150, 243, 0.1);
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.role-indicator .muted {
+  margin: 0;
+}

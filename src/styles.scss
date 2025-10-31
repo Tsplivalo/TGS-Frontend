@@ -60,7 +60,7 @@ body {
 
   --container-max: 1200px;
 
---app-bg:
+  --app-bg:
     radial-gradient(1200px 600px at 20% 80%,
       rgba(160, 170, 209, 0.8) 0%,
       rgba(160, 170, 209, 0.4) 40%,
@@ -135,7 +135,7 @@ h3 {
   justify-content: space-between;
 }
 
-/* Cards con marco “art déco” */
+/* Cards con marco "art déco" */
 .card {
   background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, 0)), var(--bg-elev);
   border-radius: var(--radius);
@@ -280,22 +280,35 @@ h3 {
   opacity: .9;
 }
 
-/* ========== Helpers de layout fullscreen ========== */
+/* ========== ✅ LAYOUT FLEXBOX PARA FOOTER FIJO ========== */
 app-root,
 app {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   width: 100%;
-  min-height: 100%;
 }
 
 .app-shell {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  flex: 1;
 }
 
 .app-main {
-  flex: 1 1 auto;
+  flex: 1 0 auto;
+  /* ✅ Esto hace que el contenido empuje el footer hacia abajo */
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ✅ El footer se quedará siempre al fondo */
+.app-footer {
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 /* Sección fullscreen */
@@ -354,4 +367,50 @@ canvas {
   --nav-h: 72px;
 }
 
-/* ajustá si tu navbar es más alto/bajo */
+// ============================================
+// SCROLLBAR PERSONALIZADA
+// ============================================
+
+// Variables para scrollbar (puedes ajustarlas)
+$scrollbar-width: 10px;
+$scrollbar-bg: #0a0e27;
+$scrollbar-thumb: rgba(100, 200, 255, 0.25);
+$scrollbar-thumb-hover: rgba(100, 200, 255, 0.4);
+
+// Para Firefox
+* {
+  scrollbar-width: thin;
+  scrollbar-color: $scrollbar-thumb $scrollbar-bg;
+}
+
+// Para Chrome, Safari, Edge
+::-webkit-scrollbar {
+  width: $scrollbar-width;
+  height: $scrollbar-width;
+}
+
+::-webkit-scrollbar-track {
+  background: $scrollbar-bg;
+  border-radius: calc($scrollbar-width / 2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: $scrollbar-thumb;
+  border-radius: calc($scrollbar-width / 2);
+  border: 2px solid $scrollbar-bg;
+
+  &:hover {
+    background: $scrollbar-thumb-hover;
+  }
+
+  &:active {
+    background: lighten($scrollbar-thumb-hover, 10%);
+  }
+}
+
+// Para contenedores específicos con scroll
+.scrollable-container {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+}

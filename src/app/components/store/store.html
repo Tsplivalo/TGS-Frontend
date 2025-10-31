@@ -28,44 +28,61 @@
       🔍 Buscando: <strong>{{ searchQuery() }}</strong>
     </span>
     <span class="search-indicator__count">
-      {{ list().length }} {{ list().length === 1 ? 'resultado' : 'resultados' }}
+      {{ list().length }} {{ list().length === 1 ? 'oferta' : 'ofertas' }}
     </span>
   </div>
 
   <div class="error" *ngIf="error() as e">{{ e }}</div>
   <div class="muted" *ngIf="loading()">{{ 'account.loading' | translate }}</div>
 
+  <!-- ✅ GRID DE OFERTAS (anteriormente productos) -->
   <div class="store__grid" *ngIf="!loading() && list().length > 0">
-    <article class="store-card" *ngFor="let p of list()" [class.flash]="flashId() === p.id"
-      [class.unavailable]="!isProductAvailable(p.id)">
+    <article class="store-card" *ngFor="let offer of list()" [class.flash]="flashId() === offer.offerId"
+      [class.unavailable]="!isOfferAvailable(offer.offerId)">
+
       <div class="store-card__media">
-        <ng-container *ngIf="p.imageUrl as url; else noimg">
-          <img [src]="url" [alt]="p.description || ('Producto ' + p.id)" loading="lazy" />
+        <ng-container *ngIf="offer.imageUrl as url; else noimg">
+          <img [src]="url" [alt]="offer.description || ('Producto ' + offer.productId)" loading="lazy" />
         </ng-container>
         <ng-template #noimg>
           <div class="noimg">{{ 'store.noImage' | translate }}</div>
         </ng-template>
 
         <!-- Badge de "No disponible" -->
-        <div class="unavailable-badge" *ngIf="!isProductAvailable(p.id)">
+        <div class="unavailable-badge" *ngIf="!isOfferAvailable(offer.offerId)">
           <span>⚠️ No disponible</span>
         </div>
       </div>
 
       <div class="store-card__body">
-        <h4 class="store-card__title">{{ p.description || ('Producto ' + p.id) }}</h4>
+        <h4 class="store-card__title">{{ offer.description || ('Producto ' + offer.productId) }}</h4>
+
+        <!-- ✅ NUEVO: Información del distribuidor -->
+        <div class="store-card__distributor">
+          <span class="distributor-badge">
+            <span class="distributor-icon">🏢</span>
+            <span class="distributor-name">{{ offer.distributorName }}</span>
+          </span>
+
+          <!-- Badge de zona -->
+          <span class="zone-badge" *ngIf="offer.zone">
+            <span class="zone-icon">📍</span>
+            <span class="zone-name">{{ offer.zone.name }}</span>
+            <span class="hq-star" *ngIf="offer.zone.isHeadquarters" title="Sede Central">⭐</span>
+          </span>
+        </div>
       </div>
 
       <div class="store-card__footer">
         <div class="store-card__price">
           <span class="currency">$</span>
-          <span class="amount">{{ p.price | number: '1.2-2' }}</span>
+          <span class="amount">{{ offer.price | number: '1.2-2' }}</span>
         </div>
 
-        <button class="btn btn--accent" type="button" (click)="onAddClick($event, p)"
-          [disabled]="!isProductAvailable(p.id)"
-          [title]="!isProductAvailable(p.id) ? 'Producto no disponible - Ningún distribuidor lo tiene' : ''">
-          {{ !isProductAvailable(p.id) ? '🚫 No disponible' : ('store.add' | translate) }}
+        <button class="btn btn--accent" type="button" (click)="onAddClick($event, offer)"
+          [disabled]="!isOfferAvailable(offer.offerId)"
+          [title]="!isOfferAvailable(offer.offerId) ? 'Producto no disponible - Sin stock' : ''">
+          {{ !isOfferAvailable(offer.offerId) ? '🚫 Sin stock' : ('store.add' | translate) }}
         </button>
       </div>
     </article>
@@ -73,7 +90,7 @@
 
   <div class="store__empty" *ngIf="!loading() && list().length === 0">
     <h3>{{ searchQuery() ? 'Sin resultados' : ('store.noProducts.title' | translate) }}</h3>
-    <p>{{ searchQuery() ? 'No se encontraron productos con ese término de búsqueda.' : ('store.noProducts.desc' |
+    <p>{{ searchQuery() ? 'No se encontraron ofertas con ese término de búsqueda.' : ('store.noProducts.desc' |
       translate) }}</p>
     <button *ngIf="searchQuery()" class="btn btn--accent" type="button" (click)="onClearSearch()">
       Limpiar búsqueda
@@ -102,13 +119,18 @@
         <div class="cart-drawer__meta">
           <div class="cart-drawer__title">{{ it.description }}</div>
           <div class="cart-drawer__price">$ {{ it.price | number:'1.2-2' }}</div>
+          <!-- ✅ NUEVO: Mostrar distribuidor en cada item -->
+          <small class="cart-drawer__distributor">
+            🏢 {{ it.distributorName }}
+            <span *ngIf="it.zone"> · 📍 {{ it.zone.name }}</span>
+          </small>
         </div>
         <div class="cart-drawer__qty">
-          <button type="button" (click)="dec(it.id)">-</button>
+          <button type="button" (click)="dec(it.offerId)">-</button>
           <span>{{ it.qty }}</span>
-          <button type="button" (click)="inc(it.id)">+</button>
+          <button type="button" (click)="inc(it.offerId)">+</button>
         </div>
-        <button type="button" class="cart-drawer__remove" (click)="remove(it.id)">✕</button>
+        <button type="button" class="cart-drawer__remove" (click)="remove(it.offerId)">✕</button>
       </li>
     </ul>
 
@@ -178,16 +200,16 @@
 
             <div class="card-products">
               <div class="products-header">
-                <span class="products-count">{{ productsByDistributor().get(dist.dni)?.length || 0 }} producto(s)</span>
+                <span class="products-count">{{ dist.items.length }} producto(s)</span>
               </div>
               <ul class="compact-products-list">
-                <li *ngFor="let item of productsByDistributor().get(dist.dni)">
+                <li *ngFor="let item of dist.items">
                   <span class="product-info">
                     <span class="product-name">{{ item.description }}</span>
                     <span class="product-detail">x{{ item.qty }} · ${{ (item.price * item.qty) | number:'1.2-2'
                       }}</span>
                   </span>
-                  <button type="button" class="btn-remove-product" (click)="remove(item.id)" title="Quitar">
+                  <button type="button" class="btn-remove-product" (click)="remove(item.offerId)" title="Quitar">
                     <span class="remove-icon">×</span>
                   </button>
                 </li>
@@ -195,7 +217,7 @@
 
               <div class="card-subtotal">
                 <span>Subtotal</span>
-                <strong>${{ getDistributorSubtotal(dist.dni) | number:'1.2-2' }}</strong>
+                <strong>${{ dist.subtotal | number:'1.2-2' }}</strong>
               </div>
             </div>
           </div>
@@ -215,8 +237,7 @@
           <span class="alert__icon">⚠️</span>
           <div class="alert__content">
             <strong>Productos no disponibles</strong>
-            <p>Ningún distribuidor tiene los productos de tu carrito. Por favor, elimina algunos items o contacta al
-              administrador.</p>
+            <p>Los productos de tu carrito no están disponibles. Por favor, elimina algunos items.</p>
           </div>
         </div>
       </div>
@@ -255,8 +276,3 @@
     (close)="onCloseSuccessModal()">
   </app-purchase-success-modal>
 </section>
-
-
-
-
-

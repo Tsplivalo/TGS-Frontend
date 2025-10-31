@@ -25,6 +25,7 @@ export class AdminUserVerificationInboxComponent implements OnInit {
   filteredVerifications: UserVerification[] = [];
   loading: boolean = true;
   error: string | null = null;
+  successKey: string | null = null;
 
   private t = inject(TranslateService);
 
@@ -80,9 +81,13 @@ export class AdminUserVerificationInboxComponent implements OnInit {
     this.reviewingVerification = null;
   }
 
-  async handleReviewComplete(): Promise<void> {
+  async handleReviewComplete(action?: 'approve' | 'reject'): Promise<void> {
     this.closeReviewModal();
     await this.loadVerifications();
+    this.successKey = action === 'approve'
+      ? 'notifications.userVerificationApproved'
+      : 'notifications.userVerificationRejected';
+    setTimeout(() => (this.successKey = null), 3000);
   }
 
   get pendingCount(): number {

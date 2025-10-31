@@ -1,4 +1,5 @@
-{
+﻿{
+  
   "brand": {
     "name": "GarrSYS"
   },
@@ -74,15 +75,16 @@
     "infoSection": {
       "title": "Account information",
       "status": "Account status:",
-      "active": "✓ Active",
-      "inactive": "✗ Inactive",
+      "active": "âœ“ Active",
+      "inactive": "âœ— Inactive",
       "emailVerified": "Email verified:",
-      "emailVerifiedYes": "✓ Yes",
-      "emailVerifiedNo": "✗ No",
+      "adminVerified": "Admin verified",
+      "emailVerifiedYes": "âœ“ Yes",
+      "emailVerifiedNo": "âœ— No",
       "roles": "Roles:",
       "memberSince": "Member since:"
     },
-    "readonlyNote": "ℹ️ Personal data cannot be modified once completed."
+    "readonlyNote": "â„¹ï¸ Personal data cannot be modified once completed."
   },
   "product": {
     "title": "Products",
@@ -176,7 +178,7 @@
     "placeholders": {
       "username": "Your name",
       "email": "you@email.com",
-      "password": "••••••••"
+      "password": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
     },
     "errors": {
       "missingFields": "Please complete all fields.",
@@ -317,15 +319,15 @@
     },
     "createMode": "How do you want to create the partner?",
     "mode": {
-      "fromClient": "From existing client",
+      "fromUser": "From existing user",
       "manual": "Manual"
     },
-    "client": {
-      "search": "Search client",
+    "user": {
+      "search": "Search user",
       "searchPh": "DNI, name or email...",
-      "select": "Select client",
-      "selectPh": "Choose a client",
-      "hint": "Selecting a client fills the form; you can adjust afterwards."
+      "select": "Select user",
+      "selectPh": "Choose a user",
+      "hint": "Selecting a user fills the form; you can adjust afterwards."
     },
     "fields": {
       "dni": "DNI",
@@ -416,8 +418,8 @@
       "distributorRequired": "Distributor is required",
       "clientRequired": "Client required",
       "noProductsAvailable": "No products available",
-      "noProductsLoaded": "⚠️ No products loaded. Total: {{count}}",
-      "availableProductsCount": "✅ {{count}} products available",
+      "noProductsLoaded": "âš ï¸ No products loaded. Total: {{count}}",
+      "availableProductsCount": "âœ… {{count}} products available",
       "removeLineTitle": "Remove line"
     },
     "err": {
@@ -434,6 +436,15 @@
       "new": "New Sale"
     },
     "stats": {
+      "loading": "Loading statistics...",
+      "totalRevenue": "Total revenue",
+      "totalSales": "Total sales",
+      "averageTicket": "Average ticket",
+      "salesByMonth": "Sales by month",
+      "topProducts": "Top products",
+      "salesByDistributor": "Sales by distributor",
+      "noData": "No statistics available",
+      "noDataDesc": "Statistics will appear here once data is available.",
       "totalLabel": "Total sales:",
       "revenueLabel": "Total revenue:",
       "filteredLabel": "Filtered:"
@@ -444,12 +455,12 @@
     "title": "Zones",
     "new": "New Zone",
     "close": "Close",
-    "loading": "Loading zones…",
+    "loading": "Loading zonesâ€¦",
     "headquarters": "Headquarters",
     "noHeadquarters": "No headquarters set.",
     "filters": {
       "search": "Search zone",
-      "searchPh": "Search by name or description…"
+      "searchPh": "Search by name or descriptionâ€¦"
     },
     "table": {
       "id": "ID",
@@ -605,8 +616,8 @@
       "sale": "Sale ID",
       "salePh": "Enter sale ID",
       "editNote": "You can only edit the amount and payment status.",
-      "authority_placeholder": "— Select an authority —",
-      "sale_placeholder": "— Select a sale —"
+      "authority_placeholder": "â€” Select an authority â€”",
+      "sale_placeholder": "â€” Select a sale â€”"
     },
     "errors": {
       "amountRequired": "Amount is required",
@@ -782,6 +793,7 @@
     "zone": "Zones",
     "authority": "Authorities",
     "bribe": "Bribes",
+    "myBribes": "My Bribes",
     "decision": "Decisions",
     "topic": "Topics",
     "distributor": "Distributors",
@@ -952,6 +964,11 @@
       "rejected": "Rejected",
       "filtered": "Filtered"
     },
+    "charts": {
+      "statusDistribution": "Status distribution",
+      "trend": "Review trend by month",
+      "topProducts": "Top products by sales"
+    },
     "list": "List of Reviews",
     "emptyTitle": "No reviews",
     "emptyHint": "Adjust filters or create a new review.",
@@ -1056,13 +1073,13 @@
     "title": "Inbox",
     "loading": "Loading inbox...",
     "profileCompletenessSuffix": "% complete",
-    "verified": "✅ Verified",
-    "notVerified": "⏳ Not Verified",
+    "verified": "âœ… Verified",
+    "notVerified": "â³ Not Verified",
     "tabs": {
-      "userVerificationPlural": "✅ User verification",
-      "roleRequestsPlural": "📋 Role requests",
-      "userVerification": "✅ User verification",
-      "roleRequest": "📋 Role request"
+      "userVerificationPlural": "âœ… User verification",
+      "roleRequestsPlural": "ðŸ“‹ Role requests",
+      "userVerification": "âœ… User verification",
+      "roleRequest": "ðŸ“‹ Role request"
     },
     "blocked": {
       "title": "Blocked section",
@@ -1093,10 +1110,10 @@
         "desc": "Your account has been verified successfully by an administrator.",
         "benefitsTitle": "Benefits of verification:",
         "benefits": [
-          "✓ Full access to advanced features",
-          "✓ Ability to make purchases",
-          "✓ Ability to request special roles",
-          "✓ Priority technical support"
+          "âœ“ Full access to advanced features",
+          "âœ“ Ability to make purchases",
+          "âœ“ Ability to request special roles",
+          "âœ“ Priority technical support"
         ]
       },
       "request": {
@@ -1141,7 +1158,7 @@
         },
         "infoBox": {
           "waitTitle": "Estimated time:",
-          "waitDesc": "Verifications are usually processed within 24–48 business hours."
+          "waitDesc": "Verifications are usually processed within 24â€“48 business hours."
         }
       },
       "rejected": {
@@ -1227,6 +1244,31 @@
     "inbox": {
       "title": "My Role Requests",
       "subtitle": "Manage your special role requests",
+      "roleSummary": {
+        "connectedAs": "Signed in as",
+        "fallbackName": "Guest user",
+        "noRoles": "You do not have any roles yet.",
+        "readyHint": "You can request a new role or swap the ones you already have here.",
+        "incompleteHint": "Complete your profile to unlock new role requests."
+      },
+      "guidelines": {
+        "title": "How role requests work",
+        "description": "Check the allowed combinations before submitting your request.",
+        "rules": {
+          "distributor": "If you are a Distributor you may request the Partner role, but not the Authority role.",
+          "partner": "If you are a Partner you may request the Distributor role, but not the Authority role.",
+          "authority": "If you are an Authority you cannot combine that role with Partner or Distributor."
+        },
+        "footer": "Need to replace an incompatible role? Enable the change option in the form."
+      },
+      "roleLabels": {
+        "admin": "Administrator",
+        "partner": "Partner",
+        "distributor": "Distributor",
+        "client": "Client",
+        "user": "User",
+        "authority": "Authority"
+      },
       "newBtn": "New Request",
       "verifyRequiredBadge": "Verify your account to request roles",
       "completeProfileRequired": "Complete your profile to request roles",
@@ -1392,7 +1434,7 @@
       "phone": {
         "label": "Phone",
         "value": "+54 341 555-1234",
-        "hint": "Mon to Fri · 09–18 h"
+        "hint": "Mon to Fri Â· 09â€“18 h"
       },
       "whatsapp": {
         "label": "WhatsApp",
@@ -1403,11 +1445,11 @@
     "hours": {
       "support": {
         "label": "Support",
-        "value": "Mon to Fri · 09:00–18:00"
+        "value": "Mon to Fri Â· 09:00â€“18:00"
       },
       "commercial": {
         "label": "Sales",
-        "value": "Mon to Fri · 10:00–17:00"
+        "value": "Mon to Fri Â· 10:00â€“17:00"
       }
     },
     "location": {
@@ -1454,5 +1496,43 @@
         "q": "Does it integrate with other systems?",
         "a": "We offer API and importers to connect your current stack."
       }
+    },
+    "footer": {
+    "tagline": "The platform that takes your business to the next level",
+    "rights": "All rights reserved",
+    "sections": {
+      "company": "Company",
+      "legal": "Legal",
+      "resources": "Resources"
+    },
+    "links": {
+      "about": "About us",
+      "contact": "Contact",
+      "faqs": "FAQs",
+      "terms": "Terms and conditions",
+      "privacy": "Privacy policy",
+      "cookies": "Cookie policy",
+      "docs": "Documentation",
+      "api": "API",
+      "support": "Support"
+    },
+    "social": {
+      "github": "Visit GitHub",
+      "email": "Send email"
+    },
+    "university": {
+      "prefix": "Academic project by",
+      "name": "UTN Rosario"
     }
-  }}
+  }
+  ,
+  "notifications": {
+    "roleRequestApproved": "Role request approved successfully.",
+    "roleRequestRejected": "Role request rejected successfully.",
+    "userVerificationApproved": "User verification approved successfully.",
+    "userVerificationRejected": "User verification rejected successfully."
+  }
+}
+  }
+
+

@@ -106,9 +106,20 @@ export class MonthlyReviewComponent implements OnInit {
   });
 
   toggleNew(): void {
-    const open = !this.isNewOpen();
-    this.isNewOpen.set(open);
-    if (!open) this.new();
+    if (this.isNewOpen()) {
+      this.cancel();
+      return;
+    }
+
+    this.new();
+    this.error.set(null);
+    this.isNewOpen.set(true);
+  }
+
+  cancel(): void {
+    this.new();
+    this.isNewOpen.set(false);
+    this.error.set(null);
   }
 
   new(): void {
@@ -139,6 +150,7 @@ export class MonthlyReviewComponent implements OnInit {
       observations: it.observations ?? null,
       recommendations: it.recommendations ?? null,
     });
+    this.error.set(null);
     this.isNewOpen.set(true);
   }
 
@@ -172,8 +184,7 @@ export class MonthlyReviewComponent implements OnInit {
 
       this.srv.create(payload).subscribe({
         next: () => {
-          this.new();
-          this.isNewOpen.set(false);
+          this.cancel();
           this.loadAll();
         },
         error: (e) => {
@@ -198,8 +209,7 @@ export class MonthlyReviewComponent implements OnInit {
 
       this.srv.update(id!, payload).subscribe({
         next: () => {
-          this.new();
-          this.isNewOpen.set(false);
+          this.cancel();
           this.loadAll();
         },
         error: (e) => {

@@ -126,7 +126,7 @@ export const routes: Routes = [
   {
     path: 'venta',
     loadComponent: () => import('./components/sale/sale.js').then(m => m.SaleComponent),
-    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.DISTRIBUTOR])]
+    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.DISTRIBUTOR, Role.AUTHORITY])] // ✅ AGREGADO AUTHORITY
   },
   {
     path: 'zona',
@@ -141,7 +141,7 @@ export const routes: Routes = [
   {
     path: 'sobornos',
     loadComponent: () => import('./components/bribe/bribe.js').then(m => m.BribeComponent),
-    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER])]
+    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER, Role.AUTHORITY])] // ✅ AGREGADO AUTHORITY
   },
   {
     path: 'distribuidor',
@@ -171,7 +171,7 @@ export const routes: Routes = [
   {
     path: 'acuerdos-clandestinos',
     loadComponent: () => import('./components/clandestine-agreement/clandestine-agreement.js').then(m => m.ClandestineAgreementComponent),
-    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER])]
+    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER, Role.AUTHORITY])]
   },
   {
     path: 'revisiones-mensuales',

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormsModule, ReactiveFormsModule,
@@ -9,6 +9,8 @@ import { SaleService } from '../../services/sale/sale';
 import { ProductService } from '../../services/product/product';
 import { ClientService } from '../../services/client/client';
 import { StatsService, SalesStats } from '../../services/stats/stats';
+import { AuthService } from '../../services/auth/auth';
+import { Role } from '../../models/user/user.model';
 
 import {
   SaleDTO, CreateSaleDTO, ApiResponse as ApiSaleResp, SaleDetailDTO, SaleClientDTO
@@ -51,7 +53,7 @@ interface DistributorDTO {
   styleUrls: ['./sale.scss'],
 })
 export class SaleComponent implements OnInit {
-  // --- Inyección ---
+  // --- InyecciÃ³n ---
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private saleSrv = inject(SaleService);
@@ -59,6 +61,7 @@ export class SaleComponent implements OnInit {
   private cliSrv = inject(ClientService);
   private t = inject(TranslateService);
   private statsSrv = inject(StatsService);
+  private authService = inject(AuthService);
 
   // --- Estado base ---
   sales = signal<SaleDTO[]>([]);
@@ -68,6 +71,23 @@ export class SaleComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
+
+  // --- Usuario y roles ---
+  currentUser = this.authService.user;
+  isAdmin = computed(() => this.authService.hasRole(Role.ADMIN));
+  isDistributor = computed(() => this.authService.hasRole(Role.DISTRIBUTOR));
+  currentUserDni = computed(() => {
+    const user = this.currentUser();
+    const dni = (user as any)?.person?.dni;
+    console.log('[SaleComponent] ðŸ” Current user DNI:', {
+      hasUser: !!user,
+      hasPerson: !!(user as any)?.person,
+      dni: dni,
+      username: user?.username,
+      roles: user?.roles
+    });
+    return dni;
+  });
 
   // --- Stats y Charts ---
   stats = signal<SalesStats | null>(null);
@@ -89,7 +109,7 @@ export class SaleComponent implements OnInit {
   clientFilter = '';
   distributorFilter = '';
 
-  // --- Líneas de la venta en edición ---
+  // --- LÃ­neas de la venta en ediciÃ³n ---
   lines = signal<Line[]>([{ productId: null, quantity: 1, filter: '' }]);
 
   totalSales = computed(() => this.sales().length);
@@ -116,7 +136,7 @@ export class SaleComponent implements OnInit {
   
   toggleStats() {
     const newValue = !this.showStats();
-    console.log('🔄 Toggle stats:', { 
+    console.log('ðŸ”„ Toggle stats:', { 
       before: this.showStats(), 
       after: newValue,
       hasStats: !!this.stats()
@@ -124,7 +144,7 @@ export class SaleComponent implements OnInit {
     this.showStats.set(newValue);
     
     if (newValue && !this.stats()) {
-      console.log('📊 Loading stats for first time...');
+      console.log('ðŸ“Š Loading stats for first time...');
       this.loadStats();
     }
   }
@@ -133,9 +153,9 @@ export class SaleComponent implements OnInit {
   get clientControl() { return this.form.controls.clientDni; }
   get distributorControl() { return this.form.controls.distributorDni; }
 
-  // ✅ NUEVO: Formatea fecha ISO a DD/MM/YYYY HH:mm
+  // âœ… NUEVO: Formatea fecha ISO a DD/MM/YYYY HH:mm
   formatDateTimeDDMMYYYY(isoDate: string | undefined): string {
-    if (!isoDate) return '—';
+    if (!isoDate) return 'â€”';
     
     try {
       const date = new Date(isoDate);
@@ -149,13 +169,13 @@ export class SaleComponent implements OnInit {
       return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (e) {
       console.error('Error formatting date:', e);
-      return '—';
+      return 'â€”';
     }
   }
   
   // --- Ciclo de vida ---
   ngOnInit(): void {
-    console.log('🚀 Component initialized. showStats:', this.showStats());
+    console.log('ðŸš€ Component initialized. showStats:', this.showStats());
     this.loading.set(true);
     this.error.set(null);
 
@@ -199,9 +219,9 @@ export class SaleComponent implements OnInit {
           distributorList = res.dists.distributors;
         }
         
-        console.log('📦 Products loaded:', productList.length, productList);
-        console.log('👥 Clients loaded:', clientList.length, clientList);
-        console.log('🚚 Distributors loaded:', distributorList.length, distributorList);
+        console.log('ðŸ“¦ Products loaded:', productList.length, productList);
+        console.log('ðŸ‘¥ Clients loaded:', clientList.length, clientList);
+        console.log('ðŸšš Distributors loaded:', distributorList.length, distributorList);
         
         this.products.set(productList);
         this.clients.set(clientList);
@@ -210,20 +230,20 @@ export class SaleComponent implements OnInit {
         this.loadSales();
       },
       error: (err) => { 
-        console.error('❌ Error loading catalog:', err);
+        console.error('âŒ Error loading catalog:', err);
         this.loadSales(); 
       }
     });
   }
 
   loadStats() {
-    console.log('📊 loadStats() called');
+    console.log('ðŸ“Š loadStats() called');
     this.loadingStats.set(true);
     
     const salesData = this.sales();
     
     if (!salesData || salesData.length === 0) {
-      console.warn('⚠️ No sales data available');
+      console.warn('âš ï¸ No sales data available');
       this.loadingStats.set(false);
       return;
     }
@@ -293,7 +313,7 @@ export class SaleComponent implements OnInit {
       }]
     };
 
-    console.log('✅ Stats calculated:', stats);
+    console.log('âœ… Stats calculated:', stats);
     
     this.stats.set(stats);
     this.salesChartData.set(salesChartData);
@@ -305,7 +325,7 @@ export class SaleComponent implements OnInit {
   private groupSalesByMonth(sales: SaleDTO[]): { month: string; amount: number }[] {
     const monthMap = new Map<string, number>();
     
-    console.log('📅 Grouping sales by month...');
+    console.log('ðŸ“… Grouping sales by month...');
     
     sales.forEach(sale => {
       const date = new Date(sale.saleDate || sale.date || Date.now());
@@ -321,7 +341,7 @@ export class SaleComponent implements OnInit {
       monthMap.set(monthKey, currentAmount + saleTotal);
     });
 
-    console.log('📅 Month map final:', Array.from(monthMap.entries()));
+    console.log('ðŸ“… Month map final:', Array.from(monthMap.entries()));
 
     const result = Array.from(monthMap.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
@@ -335,14 +355,14 @@ export class SaleComponent implements OnInit {
         };
       });
     
-    console.log('📅 Final result:', result);
+    console.log('ðŸ“… Final result:', result);
     return result;
   }
 
   private getTopProducts(sales: SaleDTO[]): { productId: number; productName: string; quantity: number }[] {
     const productMap = new Map<number, { name: string; quantity: number }>();
 
-    console.log('📦 Calculating top products from', sales.length, 'sales');
+    console.log('ðŸ“¦ Calculating top products from', sales.length, 'sales');
 
     sales.forEach(sale => {
       if (sale.details && sale.details.length > 0) {
@@ -374,14 +394,14 @@ export class SaleComponent implements OnInit {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
 
-    console.log('🏆 Top products result:', result);
+    console.log('ðŸ† Top products result:', result);
     return result;
   }
 
   private getSalesByDistributor(sales: SaleDTO[]): { distributorName: string; totalSales: number }[] {
     const distributorMap = new Map<string, number>();
 
-    console.log('🚚 Calculating sales by distributor from', sales.length, 'sales');
+    console.log('ðŸšš Calculating sales by distributor from', sales.length, 'sales');
 
     sales.forEach(sale => {
       const distributorName = sale.distributor?.name || 'Sin distribuidor';
@@ -396,7 +416,7 @@ export class SaleComponent implements OnInit {
       .map(([distributorName, totalSales]) => ({ distributorName, totalSales }))
       .sort((a, b) => b.totalSales - a.totalSales);
 
-    console.log('🚚 Distributors result:', result);
+    console.log('ðŸšš Distributors result:', result);
     return result;
   }
 
@@ -436,14 +456,14 @@ export class SaleComponent implements OnInit {
       const matchId = String(v.id) === q;
       if (matchId) return true;
       
-      // Si no es un número puro, buscar en otros campos
+      // Si no es un nÃºmero puro, buscar en otros campos
       const isNumericOnly = /^\d+$/.test(q);
       
       if (isNumericOnly) {
-        // Si es solo números, buscar SOLO en ID
+        // Si es solo nÃºmeros, buscar SOLO en ID
         return false;
       } else {
-        // Si tiene letras, buscar en descripción de productos, cliente y distribuidor
+        // Si tiene letras, buscar en descripciÃ³n de productos, cliente y distribuidor
         const saleDescription = (v.details && v.details.length) 
           ? v.details.map(d => this.detailDescription(d)).join(' ').toLowerCase()
           : '';
@@ -510,19 +530,43 @@ export class SaleComponent implements OnInit {
   loadSales() {
     this.saleSrv.getAllSales().subscribe({
       next: (list: SaleDTO[]) => {
-        console.log('📋 Sales loaded:', list.length, 'sales');
-        
+        console.log('ðŸ“‹ Sales loaded from backend:', list.length, 'sales');
+
         if (list.length > 0) {
-          console.log('🔍 First sale structure:', list[0]);
-          console.log('🔍 Distributor in first sale:', list[0].distributor);
-          console.log('🔍 Client in first sale:', list[0].client);
+          console.log('ðŸ” First sale structure:', list[0]);
+          console.log('ðŸ” Distributor in first sale:', list[0].distributor);
+          console.log('ðŸ” Client in first sale:', list[0].client);
         }
-        
-        this.sales.set(list);
+
+        // Filtrar por distribuidor si no es admin
+        let filteredSales = list;
+        if (this.isDistributor() && !this.isAdmin()) {
+          const userDni = this.currentUserDni();
+          console.log('ðŸ” Filtering sales for distributor DNI:', userDni);
+
+          if (userDni) {
+            filteredSales = list.filter(sale => {
+              const distributorDni = sale.distributor?.dni;
+              const matches = distributorDni === userDni;
+              if (!matches) {
+                console.log('âŒ Filtered out sale:', sale.id, 'distributor:', distributorDni);
+              }
+              return matches;
+            });
+            console.log('âœ… Filtered sales for distributor:', filteredSales.length, 'of', list.length);
+          } else {
+            console.warn('âš ï¸ Distributor DNI not found, showing no sales');
+            filteredSales = [];
+          }
+        } else if (this.isAdmin()) {
+          console.log('ðŸ‘‘ Admin user - showing all sales');
+        }
+
+        this.sales.set(filteredSales);
         this.loading.set(false);
-        
-        if (list.length > 0) {
-          console.log('📊 Auto-loading stats because sales exist');
+
+        if (filteredSales.length > 0) {
+          console.log('ðŸ“Š Auto-loading stats because sales exist');
           this.showStats.set(true);
           this.loadStats();
         }
@@ -552,7 +596,7 @@ export class SaleComponent implements OnInit {
       if (p?.description) return p.description;
       return `#${pid}`;
     }
-    return '—';
+    return 'â€”';
   }
 
   detailPrice(d: SaleDetailDTO): number {
@@ -699,4 +743,231 @@ export class SaleComponent implements OnInit {
       }
     });
   }
+
+  getSalesChartOptions(): ChartConfiguration['options'] {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart'
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          color: '#f3f4f6',
+          font: { size: 13, weight: 'bold' as any },
+          padding: 16,
+          usePointStyle: true
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+        titleColor: '#ffffff',
+        bodyColor: '#e5e7eb',
+        borderColor: 'rgba(255, 215, 0, 0.7)',
+        borderWidth: 3,
+        padding: 18,
+        cornerRadius: 12,
+        displayColors: true,
+        titleFont: {
+          size: 15,
+          weight: 'bold' as any
+        },
+        bodyFont: {
+          size: 13
+        },
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed.y ?? 0;
+            return `ðŸ’° Ventas: ${new Intl.NumberFormat('es-AR', {
+              style: 'currency',
+              currency: 'ARS',
+              minimumFractionDigits: 0
+            }).format(value)}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: '#d1d5db',
+          font: { size: 11, weight: 600 }
+        }
+      },
+      y: {
+        grid: { color: 'rgba(255, 255, 255, 0.08)' },
+        ticks: {
+          color: '#d1d5db',
+          font: { size: 11, weight: 600 },
+          callback: function(value) {
+            return new Intl.NumberFormat('es-AR', {
+              style: 'currency',
+              currency: 'ARS',
+              minimumFractionDigits: 0,
+              notation: 'compact'
+            }).format(value as number);
+          }
+        }
+      }
+    }
+  };
 }
+
+/**
+ * ðŸ© Opciones para grÃ¡fico de TOP PRODUCTOS
+ * GrÃ¡fico de dona con colores diferentes
+ */
+getTopProductsChartOptions(): ChartConfiguration['options'] {
+  const doughnutOptions: ChartConfiguration<'doughnut'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 1200,
+      easing: 'easeInOutQuart'
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'right',
+        labels: {
+          color: '#f3f4f6',
+          font: { size: 12, weight: 'bold' as any },
+          padding: 14,
+          usePointStyle: true,
+          boxWidth: 15,
+          boxHeight: 15,
+          generateLabels: (chart) => {
+            const data = chart.data;
+            if (data.labels && data.datasets.length) {
+              return (data.labels as string[]).map((label, i) => {
+                const value = (data.datasets[0].data[i] as number) || 0;
+                return {
+                  text: `${label}: ${value}`,
+                  fillStyle: (data.datasets[0].backgroundColor as string[])[i],
+                  strokeStyle: (data.datasets[0].borderColor as string[])[i],
+                  lineWidth: 2,
+                  hidden: false,
+                  index: i
+                };
+              });
+            }
+            return [];
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+        titleColor: '#ffffff',
+        bodyColor: '#e5e7eb',
+        borderColor: 'rgba(255, 215, 0, 0.7)',
+        borderWidth: 3,
+        padding: 18,
+        cornerRadius: 12,
+        displayColors: true,
+        titleFont: {
+          size: 15,
+          weight: 'bold' as any
+        },
+        bodyFont: {
+          size: 13
+        },
+        callbacks: {
+          label: (context) => {
+            const label = context.label || '';
+            const value = context.parsed ?? 0;
+            const datasetValues = context.dataset.data as Array<number | null | undefined>;
+            const total = datasetValues.reduce((acc: number, entry) => acc + (entry ?? 0), 0);
+            const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+            return `ðŸ“¦ ${label}: ${value} uds (${percentage}%)`;
+          }
+        }
+      }
+    },
+    cutout: '60%', // Grosor de la dona
+  };
+
+  return doughnutOptions as ChartConfiguration['options'];
+}
+
+/**
+ * ðŸ“Š Opciones para grÃ¡fico de DISTRIBUIDORES
+ * GrÃ¡fico de barras horizontales con colores diferentes
+ */
+getDistributorsChartOptions(): ChartConfiguration['options'] {
+  return {
+    indexAxis: 'y' as const, // Barras horizontales
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart'
+    },
+    plugins: {
+      legend: {
+        display: false // Ocultamos leyenda porque cada barra tiene su color
+      },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+        titleColor: '#ffffff',
+        bodyColor: '#e5e7eb',
+        borderColor: 'rgba(255, 215, 0, 0.7)',
+        borderWidth: 3,
+        padding: 18,
+        cornerRadius: 12,
+        displayColors: true,
+        titleFont: {
+          size: 15,
+          weight: 'bold' as any
+        },
+        bodyFont: {
+          size: 13
+        },
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed.x ?? 0;
+            return `ðŸšš Ventas: ${new Intl.NumberFormat('es-AR', {
+              style: 'currency',
+              currency: 'ARS',
+              minimumFractionDigits: 0
+            }).format(value)}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          color: 'rgba(255, 255, 255, 0.08)'
+        },
+        ticks: {
+          color: '#d1d5db',
+          font: { size: 11, weight: 600 },
+          callback: function(value) {
+            return new Intl.NumberFormat('es-AR', {
+              style: 'currency',
+              currency: 'ARS',
+              minimumFractionDigits: 0,
+              notation: 'compact'
+            }).format(value as number);
+          }
+        }
+      },
+      y: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          color: '#d1d5db',
+          font: { size: 12, weight: 600 }
+        }
+      }
+    }
+  };
+}
+}
+

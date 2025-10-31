@@ -29,8 +29,7 @@ export class StatsService {
   private http = inject(HttpClient);
   private readonly baseUrl = 'http://localhost:3000/api/stats';
   
-  // ⬅ NUEVO: Flag para usar datos mock
-  private readonly USE_MOCK_DATA = true; // Cambia a false cuando tengas el backend listo
+  private readonly USE_MOCK_DATA = true;
 
   /**
    * Datos mock para testing
@@ -41,32 +40,29 @@ export class StatsService {
       totalRevenue: 1250000,
       averageTicket: 5060.73,
       salesByMonth: [
-        { month: 'Enero 2025', amount: 185000 },
-        { month: 'Febrero 2025', amount: 220000 },
-        { month: 'Marzo 2025', amount: 198000 },
-        { month: 'Abril 2025', amount: 245000 },
-        { month: 'Mayo 2025', amount: 210000 },
-        { month: 'Junio 2025', amount: 192000 }
+        { month: 'Enero', amount: 185000 },
+        { month: 'Febrero', amount: 220000 },
+        { month: 'Marzo', amount: 198000 },
+        { month: 'Abril', amount: 245000 },
+        { month: 'Mayo', amount: 210000 },
+        { month: 'Junio', amount: 192000 }
       ],
       topProducts: [
-        { productId: 1, productName: 'Vino Malbec Reserva', quantity: 89 },
-        { productId: 2, productName: 'Champagne Brut', quantity: 67 },
-        { productId: 3, productName: 'Whisky Premium', quantity: 54 },
-        { productId: 4, productName: 'Vodka Importado', quantity: 42 },
-        { productId: 5, productName: 'Ron Añejo', quantity: 31 }
+        { productId: 1, productName: 'Vino Malbec', quantity: 89 },
+        { productId: 2, productName: 'Champagne', quantity: 67 },
+        { productId: 3, productName: 'Whisky', quantity: 54 },
+        { productId: 4, productName: 'Vodka', quantity: 42 },
+        { productId: 5, productName: 'Ron', quantity: 31 }
       ],
       salesByDistributor: [
-        { distributorName: 'Distribuidora Norte SA', totalSales: 385000 },
-        { distributorName: 'Logística Sur SRL', totalSales: 298000 },
-        { distributorName: 'Comercial Este & Oeste', totalSales: 325000 },
-        { distributorName: 'Transporte Central', totalSales: 242000 }
+        { distributorName: 'Norte SA', totalSales: 385000 },
+        { distributorName: 'Sur SRL', totalSales: 298000 },
+        { distributorName: 'Este & Oeste', totalSales: 325000 },
+        { distributorName: 'Central', totalSales: 242000 }
       ]
     };
   }
 
-  /**
-   * Obtiene las estadísticas generales
-   */
   getStats(): Observable<SalesStats> {
     if (this.USE_MOCK_DATA) {
       console.log('📊 Using MOCK stats data');
@@ -81,7 +77,8 @@ export class StatsService {
   }
 
   /**
-   * Convierte datos del backend a formato Chart.js para ventas por mes
+   * 📊 GRÁFICO DE BARRAS - Ventas por mes
+   * Con gradiente dorado brillante
    */
   getSalesChartData(): Observable<ChartConfiguration['data']> {
     return this.getStats().pipe(
@@ -89,12 +86,18 @@ export class StatsService {
         labels: stats.salesByMonth.map(s => s.month),
         datasets: [
           {
-            label: 'Ventas ($)',
+            label: 'Ventas Mensuales',
             data: stats.salesByMonth.map(s => s.amount),
-            backgroundColor: 'rgba(195, 164, 98, 0.8)',
-            borderColor: 'rgba(195, 164, 98, 1)',
-            borderWidth: 2,
-            borderRadius: 8
+            // 🔥 Colores MÁS BRILLANTES
+            backgroundColor: 'rgba(255, 215, 0, 0.9)', // Dorado brillante
+            borderColor: 'rgba(255, 215, 0, 1)',
+            borderWidth: 4,
+            borderRadius: 16,
+            hoverBackgroundColor: 'rgba(255, 223, 50, 1)',
+            hoverBorderColor: 'rgba(255, 255, 255, 0.9)',
+            hoverBorderWidth: 5,
+            // 🌟 Efectos adicionales
+            borderSkipped: false,
           }
         ]
       }))
@@ -102,7 +105,8 @@ export class StatsService {
   }
 
   /**
-   * Convierte datos del backend a formato Chart.js para productos top
+   * 🍩 GRÁFICO DE DONA - Top productos
+   * Cada producto con color COMPLETAMENTE DIFERENTE
    */
   getTopProductsChartData(): Observable<ChartConfiguration['data']> {
     return this.getStats().pipe(
@@ -110,24 +114,28 @@ export class StatsService {
         labels: stats.topProducts.map(p => p.productName),
         datasets: [
           {
-            label: 'Cantidad Vendida',
+            label: 'Unidades',
             data: stats.topProducts.map(p => p.quantity),
+            // 🌈 COLORES ULTRA VIBRANTES Y DIFERENTES
             backgroundColor: [
-              'rgba(195, 164, 98, 0.8)',
-              'rgba(16, 185, 129, 0.8)',
-              'rgba(59, 130, 246, 0.8)',
-              'rgba(245, 158, 11, 0.8)',
-              'rgba(156, 163, 175, 0.6)'
+              'rgba(255, 215, 0, 0.95)',    // Dorado brillante
+              'rgba(0, 255, 127, 0.95)',    // Verde neón
+              'rgba(30, 144, 255, 0.95)',   // Azul eléctrico
+              'rgba(255, 69, 0, 0.95)',     // Rojo-naranja vibrante
+              'rgba(186, 85, 211, 0.95)'    // Púrpura intenso
             ],
             borderColor: [
-              'rgba(195, 164, 98, 1)',
-              'rgba(16, 185, 129, 1)',
-              'rgba(59, 130, 246, 1)',
-              'rgba(245, 158, 11, 1)',
-              'rgba(156, 163, 175, 1)'
+              'rgba(255, 215, 0, 1)',
+              'rgba(0, 255, 127, 1)',
+              'rgba(30, 144, 255, 1)',
+              'rgba(255, 69, 0, 1)',
+              'rgba(186, 85, 211, 1)'
             ],
-            borderWidth: 2,
-            hoverOffset: 8
+            borderWidth: 4,
+            hoverOffset: 25, // 🚀 Efecto MUCHO más grande al pasar el mouse
+            hoverBorderWidth: 6,
+            hoverBorderColor: 'rgba(255, 255, 255, 1)',
+            spacing: 4
           }
         ]
       }))
@@ -135,7 +143,8 @@ export class StatsService {
   }
 
   /**
-   * Convierte datos del backend a formato Chart.js para distribuidores
+   * 📊 GRÁFICO HORIZONTAL - Distribuidores
+   * Cada barra con color diferente
    */
   getDistributorsChartData(): Observable<ChartConfiguration['data']> {
     return this.getStats().pipe(
@@ -143,12 +152,31 @@ export class StatsService {
         labels: stats.salesByDistributor.map(d => d.distributorName),
         datasets: [
           {
-            label: 'Ventas Totales ($)',
+            label: 'Ventas ($)',
             data: stats.salesByDistributor.map(d => d.totalSales),
-            backgroundColor: 'rgba(195, 164, 98, 0.8)',
-            borderColor: 'rgba(195, 164, 98, 1)',
-            borderWidth: 2,
-            borderRadius: 8
+            // 🎨 Cada distribuidor con color DIFERENTE
+            backgroundColor: [
+              'rgba(255, 215, 0, 0.9)',     // Dorado
+              'rgba(0, 255, 127, 0.9)',     // Verde neón
+              'rgba(30, 144, 255, 0.9)',    // Azul
+              'rgba(255, 69, 0, 0.9)'       // Rojo-naranja
+            ],
+            borderColor: [
+              'rgba(255, 215, 0, 1)',
+              'rgba(0, 255, 127, 1)',
+              'rgba(30, 144, 255, 1)',
+              'rgba(255, 69, 0, 1)'
+            ],
+            borderWidth: 4,
+            borderRadius: 12,
+            hoverBackgroundColor: [
+              'rgba(255, 225, 50, 1)',
+              'rgba(50, 255, 150, 1)',
+              'rgba(60, 160, 255, 1)',
+              'rgba(255, 100, 50, 1)'
+            ],
+            hoverBorderColor: 'rgba(255, 255, 255, 0.9)',
+            hoverBorderWidth: 5
           }
         ]
       }))

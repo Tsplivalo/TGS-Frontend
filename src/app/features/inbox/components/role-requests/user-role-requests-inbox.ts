@@ -1,4 +1,4 @@
-import { Component, OnInit, Input,inject } from '@angular/core';
+import { Component, OnInit, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Role } from '../../../../models/user/user.model';
 import { RoleRequestService } from '../../services/role-request';
@@ -26,11 +26,19 @@ export class UserRoleRequestsInboxComponent implements OnInit {
   @Input() currentRoles: Role[] = [];
   @Input() hasCompleteProfile: boolean = false;
   @Input() isVerified: boolean = false;
+  @Input() userName: string = '';
+  @Input() userEmail: string = '';
 
   requests: RoleRequest[] = [];
   loading: boolean = true;
   error: string | null = null;
   isModalOpen: boolean = false;
+
+  readonly compatibilityRuleKeys: Array<'distributor' | 'partner' | 'authority'> = [
+    'distributor',
+    'partner',
+    'authority',
+  ];
 
   ngOnInit(): void {
     this.loadRequests();
@@ -71,4 +79,15 @@ export class UserRoleRequestsInboxComponent implements OnInit {
     });
     this.closeModal();
   }
+
+  roleTranslationKey(role: Role): string {
+    return `roleRequests.inbox.roleLabels.${role.toLowerCase()}`;
+  }
+
+  userInitial(): string {
+    const source = this.userName || this.userEmail || '';
+    return source.trim().charAt(0).toUpperCase() || 'U';
+  }
+
+  trackRole = (_: number, role: Role) => role;
 }

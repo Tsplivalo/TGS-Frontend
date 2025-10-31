@@ -349,7 +349,7 @@ export class EmailVerificationComponent implements OnInit {
         try {
           const { email, password } = JSON.parse(raw);
           console.log('[EmailVerification] Intentando auto-login para:', email);
-          
+
           await firstValueFrom(this.auth.login({ email, password }));
           
           this.autoLogged.set(true);

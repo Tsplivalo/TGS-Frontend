@@ -2,9 +2,10 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { HttpClient } from '@angular/common/http';
 
 import { PartnerService } from '../../services/partner/partner';
-import { ClientService } from '../../services/client/client';
+import { AuthService, User } from '../../services/user/user';
 
 import {
   PartnerDTO,
@@ -12,9 +13,8 @@ import {
   PatchPartnerDTO,
   PartnerDecisionRefDTO
 } from '../../models/partner/partner.model';
-import { ClientDTO } from '../../models/client/client.model';
 
-type Mode = 'fromClient' | 'manual';
+type Mode = 'fromUser' | 'manual';
 
 @Component({
   selector: 'app-partner',
@@ -28,12 +28,13 @@ export class PartnerComponent implements OnInit {
   private tr = inject(TranslateService);
   private fb = inject(FormBuilder);
   private srv = inject(PartnerService);
-  private clientsSrv = inject(ClientService);
+  private authSrv = inject(AuthService);
 
   // Estado base
   items = signal<PartnerDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+  success = signal<string | null>(null); // ✅ Mensaje de éxito
 
   // Filtros / UI
   fTextInput = signal('');
@@ -42,22 +43,26 @@ export class PartnerComponent implements OnInit {
   isEdit = signal(false);
 
   // Modo de creación
-  mode = signal<Mode>('fromClient');
+  mode = signal<Mode>('fromUser');
 
-  // Clientes (selector)
-  clients = signal<ClientDTO[]>([]);
-  clientSearch = signal<string>('');
-  selectedClientDni = signal<string | null>(null);
+  // Usuarios verificados (selector)
+  users = signal<User[]>([]);
+  userSearch = signal<string>('');
+  selectedUserDni = signal<string | null>(null);
 
-  filteredClients = computed(() => {
-    const q = this.clientSearch().toLowerCase().trim();
-    const arr = this.clients();
+  filteredUsers = computed(() => {
+    const q = this.userSearch().toLowerCase().trim();
+    const arr = this.users();
     if (!q) return arr;
-    return arr.filter(c =>
-      c.dni.toLowerCase().includes(q) ||
-      (c.name ?? '').toLowerCase().includes(q) ||
-      (c.email ?? '').toLowerCase().includes(q)
-    );
+    return arr.filter(u => {
+      const person = (u as any).person;
+      if (!person) return false;
+      return (
+        (person.dni ?? '').toLowerCase().includes(q) ||
+        (person.name ?? '').toLowerCase().includes(q) ||
+        (u.email ?? '').toLowerCase().includes(q)
+      );
+    });
   });
 
   // Listado filtrado de socios
@@ -104,7 +109,7 @@ export class PartnerComponent implements OnInit {
 
   // Aplica disponibilidad según modo
   private applyCredsAvailabilityByMode(mode: Mode) {
-    if (mode === 'fromClient') {
+    if (mode === 'fromUser') {
       // Forzar oculto y limpio
       this.form.patchValue({ createCreds: false, username: '', password: '' });
       this.toggleCredsValidators(false);
@@ -125,7 +130,7 @@ export class PartnerComponent implements OnInit {
   // ciclo de vida
   ngOnInit(): void {
     this.load();
-    this.loadClients();
+    this.loadVerifiedUsers();
     this.applyCredsAvailabilityByMode(this.mode());
   }
 
@@ -143,8 +148,8 @@ export class PartnerComponent implements OnInit {
   }
 
   applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-  this.load(); // Recarga con el nuevo filtro
+    this.fTextApplied.set(this.fTextInput());
+    this.load(); // Recarga con el nuevo filtro
   }
 
   clearFilters() {
@@ -158,11 +163,29 @@ export class PartnerComponent implements OnInit {
     this.items().filter(p => p.decisions && p.decisions.length > 0).length
   );
 
-  private loadClients(): void {
-    this.clientsSrv.getAllClients().subscribe({
-      next: (res) => { this.clients.set((res as any)?.data ?? (res as any) ?? []); },
-      error: () => { /* no bloquea el alta */ }
+  private loadVerifiedUsers(): void {
+    // Filtrar usuarios elegibles para ser PARTNER (excluye AUTHORITY y usuarios que ya son PARTNER)
+    this.authSrv.getAllVerifiedUsers('PARTNER').subscribe({
+      next: (verifiedUsers) => {
+        this.users.set(verifiedUsers);
+        console.log(`[PartnerComponent] Loaded ${verifiedUsers.length} verified users eligible for PARTNER role`);
+      },
+      error: (err) => {
+        console.error('[PartnerComponent] Error loading verified users:', err);
+        this.users.set([]);  // Array vacío en caso de error
+      }
     });
+  }
+
+  private http = inject(HttpClient);
+
+  // Helper para obtener datos de persona desde usuario
+  getUserPerson(user: User): any {
+    return (user as any).person;
+  }
+
+  getUserPersonDni(user: User): string {
+    return (user as any).person?.dni ?? '';
   }
 
   // UI
@@ -174,14 +197,15 @@ export class PartnerComponent implements OnInit {
 
   new() {
     this.isEdit.set(false);
-    this.mode.set('fromClient');
-    this.selectedClientDni.set(null);
-    this.clientSearch.set('');
+    this.mode.set('fromUser');
+    this.selectedUserDni.set(null);
+    this.userSearch.set('');
     this.form.reset({
       dni: '', name: '', email: '', address: '', phone: '',
       createCreds: false, username: '', password: ''
     });
-    this.applyCredsAvailabilityByMode('fromClient');
+    this.applyCredsAvailabilityByMode('fromUser');
+    this.clearMessages();
   }
 
   edit(p: PartnerDTO) {
@@ -199,6 +223,7 @@ export class PartnerComponent implements OnInit {
       password: ''
     });
     this.applyCredsAvailabilityByMode('manual');
+    this.clearMessages();
   }
 
   onModeChange(ev: Event) {
@@ -206,25 +231,46 @@ export class PartnerComponent implements OnInit {
     this.mode.set(val);
     this.applyCredsAvailabilityByMode(val);
     if (val === 'manual') {
-      this.selectedClientDni.set(null);
+      this.selectedUserDni.set(null);
     }
   }
 
-  onSelectClient(ev: Event) {
+  onSelectUser(ev: Event) {
     const dni = (ev.target as HTMLSelectElement).value || '';
     if (!dni) {
-      this.selectedClientDni.set(null);
+      this.selectedUserDni.set(null);
       return;
     }
-    this.selectedClientDni.set(dni);
-    const c = this.clients().find(x => x.dni === dni);
-    if (c) {
+    this.selectedUserDni.set(dni);
+    const u = this.users().find(x => (x as any).person?.dni === dni);
+    if (u && (u as any).person) {
+      const person = (u as any).person;
       this.form.patchValue({
-        dni: c.dni,
-        name: c.name ?? '',
-        email: c.email ?? '',
-        address: c.address ?? '',
-        phone: c.phone ?? ''
+        dni: person.dni ?? '',
+        name: person.name ?? '',
+        email: u.email ?? '',
+        address: person.address ?? '',
+        phone: person.phone ?? ''
+      });
+    }
+  }
+
+  // Método para seleccionar usuario directamente desde la lista
+  selectUserByDni(dni: string) {
+    if (!dni) {
+      this.selectedUserDni.set(null);
+      return;
+    }
+    this.selectedUserDni.set(dni);
+    const u = this.users().find(x => (x as any).person?.dni === dni);
+    if (u && (u as any).person) {
+      const person = (u as any).person;
+      this.form.patchValue({
+        dni: person.dni ?? '',
+        name: person.name ?? '',
+        email: u.email ?? '',
+        address: person.address ?? '',
+        phone: person.phone ?? ''
       });
     }
   }
@@ -237,7 +283,7 @@ export class PartnerComponent implements OnInit {
     }
 
     this.loading.set(true);
-    this.error.set(null);
+    this.clearMessages();
 
     const v = this.form.getRawValue();
     const isManual = this.mode() === 'manual';
@@ -258,7 +304,19 @@ export class PartnerComponent implements OnInit {
     if (!this.isEdit()) {
       // CREATE
       this.srv.create(payload).subscribe({
-        next: () => { this.new(); this.load(); this.loading.set(false); },
+        next: () => { 
+          // ✅ Mensaje de éxito
+          this.success.set(`Socio "${payload.name}" creado correctamente`);
+          
+          this.new(); 
+          this.load(); 
+          
+          // ✅ Cerrar formulario
+          this.isNewOpen.set(false);
+          
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
+        },
         error: (e) => {
           this.error.set(e?.error?.message ?? this.tr.instant('partner.errorCreate'));
           this.loading.set(false);
@@ -273,7 +331,19 @@ export class PartnerComponent implements OnInit {
         phone: payload.phone ?? undefined
       };
       this.srv.update(this.form.controls.dni.value, patch).subscribe({
-        next: () => { this.new(); this.load(); this.loading.set(false); },
+        next: () => { 
+          // ✅ Mensaje de éxito
+          this.success.set(`Socio "${patch.name}" actualizado correctamente`);
+          
+          this.new(); 
+          this.load(); 
+          
+          // ✅ Cerrar formulario
+          this.isNewOpen.set(false);
+          
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
+        },
         error: (e) => {
           this.error.set(e?.error?.message ?? this.tr.instant('partner.errorUpdate'));
           this.loading.set(false);
@@ -284,12 +354,70 @@ export class PartnerComponent implements OnInit {
 
   delete(p: PartnerDTO) {
     if (!p?.dni) return;
+
+    // Confirmación antes de eliminar
+    const confirmed = confirm(
+      this.tr.instant('partner.confirmDelete', { name: p.name, dni: p.dni }) ||
+      `¿Estás seguro de eliminar al socio ${p.name} (DNI: ${p.dni})?`
+    );
+
+    if (!confirmed) return;
+
     this.loading.set(true);
-    this.error.set(null);
+    this.clearMessages();
+
     this.srv.delete(p.dni).subscribe({
-      next: () => { this.load(); },
+      next: () => {
+        // ✅ Mensaje de éxito
+        this.success.set(`Socio "${p.name}" eliminado correctamente`);
+        
+        this.load();
+        
+        // ✅ Auto-ocultar después de 5 segundos
+        setTimeout(() => this.success.set(null), 5000);
+      },
       error: (e) => {
+        console.error('[PartnerComponent] Error deleting partner:', e);
         this.error.set(e?.error?.message ?? this.tr.instant('partner.errorDelete'));
+        this.loading.set(false);
+      }
+    });
+  }
+
+  // ✅ Limpiar mensajes
+  private clearMessages(): void {
+    this.error.set(null);
+    this.success.set(null);
+  }
+
+  // ✅ Migración: Asignar roles PARTNER a socios existentes
+  runMigration() {
+    if (!confirm('¿Estás seguro de ejecutar la migración de roles? Esto asignará el rol PARTNER a todos los usuarios que tienen un socio asociado.')) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.clearMessages();
+
+    this.srv.migratePartnerRoles().subscribe({
+      next: (result) => {
+        console.log('[PartnerComponent] Migration result:', result);
+        this.success.set(
+          `Migración completada: ${result.data?.rolesAssigned || 0} roles asignados, ` +
+          `${result.data?.alreadyHadRole || 0} ya tenían el rol, ` +
+          `${result.data?.userNotFound || 0} sin usuario asociado`
+        );
+        this.loading.set(false);
+
+        // Recargar la lista de usuarios verificados
+        this.loadVerifiedUsers();
+
+        // Auto-ocultar después de 10 segundos
+        setTimeout(() => this.success.set(null), 10000);
+      },
+      error: (e) => {
+        console.error('[PartnerComponent] Migration error:', e);
+        this.error.set(e?.error?.message ?? 'Error al ejecutar la migración');
         this.loading.set(false);
       }
     });

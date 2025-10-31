@@ -28,6 +28,7 @@ export class ZoneComponent implements OnInit {
   // --- Estado ---
   loading = signal(false);
   error   = signal<string | null>(null);
+  success = signal<string | null>(null); // ✅ Mensaje de éxito
   editId  = signal<number | null>(null); // null → creando, número → editando
 
   // --- Datos ---
@@ -89,7 +90,7 @@ export class ZoneComponent implements OnInit {
   new() {
     this.editId.set(null);
     this.form.reset({ name: '', description: '', isHeadquarters: false });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     this.error.set(null);
   }
 
@@ -100,7 +101,7 @@ export class ZoneComponent implements OnInit {
       description: z.description ?? '',
       isHeadquarters: !!z.isHeadquarters
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     this.error.set(null);
   }
 
@@ -121,7 +122,19 @@ export class ZoneComponent implements OnInit {
     // CREATE
     if (id == null) {
       this.srv.createZone(payloadCreate).subscribe({
-        next: () => { this.new(); this.load(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+        next: () => { 
+          // ✅ Mostrar mensaje de éxito
+          this.success.set(`Zona "${name}" creada correctamente`);
+          
+          this.new(); 
+          this.load();
+          
+          // ✅ Cerrar formulario
+          this.isFormOpen = false;
+          
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
+        },
         error: (e) => this.handleSaveError(e),
       });
       return;
@@ -134,12 +147,24 @@ export class ZoneComponent implements OnInit {
         const ctrl = this.form.controls['name'];
         ctrl.setErrors({ ...(ctrl.errors ?? {}), duplicateName: true });
         ctrl.markAsTouched();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         return;
       }
 
       this.srv.updateZone(id, payloadUpdate).subscribe({
-        next: () => { this.new(); this.load(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+        next: () => { 
+          // ✅ Mostrar mensaje de éxito
+          this.success.set(`Zona "${name}" actualizada correctamente`);
+          
+          this.new(); 
+          this.load();
+          
+          // ✅ Cerrar formulario
+          this.isFormOpen = false;
+          
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
+        },
         error: (e) => this.handleSaveError(e),
       });
     });
@@ -155,7 +180,7 @@ export class ZoneComponent implements OnInit {
       const ctrl = this.form.controls['name'];
       ctrl.setErrors({ ...(ctrl.errors ?? {}), duplicateName: true });
       ctrl.markAsTouched();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       return;
     }
 
@@ -166,12 +191,12 @@ export class ZoneComponent implements OnInit {
         ctrl.setErrors({ ...(ctrl.errors ?? {}), required: true });
         ctrl.markAsTouched();
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       return;
     }
 
     this.error.set(backendMsg || this.t.instant('zones.errorSave'));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
   }
 
   // --- Borrado ---
@@ -179,15 +204,27 @@ export class ZoneComponent implements OnInit {
     // Bloquea eliminación de la sede central con mensaje i18n
     if (z.isHeadquarters) {
       this.error.set(this.t.instant('zones.err.cannotDeleteHq', { name: z.name }));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       return;
     }
 
     if (!confirm(this.t.instant('zones.confirmDelete', { name: z.name }))) return;
 
     this.loading.set(true);
+    this.success.set(null); // ✅ Limpiar mensaje previo
+    
     this.srv.deleteZone(z.id).subscribe({
-      next: () => { this.error.set(null); this.load(); },
+      next: () => { 
+        this.error.set(null); 
+        
+        // ✅ Mostrar mensaje de éxito
+        this.success.set(`Zona "${z.name}" eliminada correctamente`);
+        
+        this.load();
+        
+        // ✅ Auto-ocultar después de 5 segundos
+        setTimeout(() => this.success.set(null), 5000);
+      },
       error: () => {
         this.error.set(this.t.instant('zones.errorDelete'));
         this.loading.set(false);

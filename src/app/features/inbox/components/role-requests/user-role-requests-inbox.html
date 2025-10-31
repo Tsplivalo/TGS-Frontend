@@ -1,32 +1,82 @@
 <!-- user-role-requests-inbox.html -->
 <div class="user-role-requests-inbox">
   <div class="inbox-header">
-    <div>
+    <div class="header-content">
       <h2>{{ 'roleRequests.inbox.title' | translate }}</h2>
       <p class="subtitle">{{ 'roleRequests.inbox.subtitle' | translate }}</p>
     </div>
 
-    <!-- Botón nuevo -->
-    <button *ngIf="hasCompleteProfile && isVerified" class="btn btn-primary" (click)="openModal()">
-      <span class="icon">+</span>
-      {{ 'roleRequests.inbox.newBtn' | translate }}
-    </button>
+    <div class="header-actions">
+      <div *ngIf="!isVerified" class="verification-required-warning">
+        <span class="icon">!</span>
+        <span>{{ 'roleRequests.inbox.verifyRequiredBadge' | translate }}</span>
+      </div>
 
-    <!-- Badge verificación requerida -->
-    <div *ngIf="!isVerified" class="verification-required-warning">
-      <span class="icon">⚠️</span>
-      <span>{{ 'roleRequests.inbox.verifyRequiredBadge' | translate }}</span>
-    </div>
+      <div *ngIf="!hasCompleteProfile && isVerified" class="incomplete-profile-warning">
+        <span class="icon">!</span>
+        <span>{{ 'roleRequests.inbox.completeProfileRequired' | translate }}</span>
+      </div>
 
-    <div *ngIf="!hasCompleteProfile && isVerified" class="incomplete-profile-warning">
-      <span class="icon">⚠️</span>
-      <span>{{ 'roleRequests.inbox.completeProfileRequired' | translate }}</span>
+      <button *ngIf="hasCompleteProfile && isVerified" class="btn btn-primary" (click)="openModal()">
+        <span class="icon">+</span>
+        {{ 'roleRequests.inbox.newBtn' | translate }}
+      </button>
     </div>
   </div>
 
+  <section class="user-overview">
+    <div class="profile-summary-card">
+      <div class="identity-block">
+        <div class="avatar">{{ userInitial() }}</div>
+        <div class="identity-texts">
+          <span class="label">{{ 'roleRequests.inbox.roleSummary.connectedAs' | translate }}</span>
+          <h3 class="username">
+            {{ userName || (userEmail || ('roleRequests.inbox.roleSummary.fallbackName' | translate)) }}
+          </h3>
+          <span class="email" *ngIf="userEmail">{{ userEmail }}</span>
+        </div>
+      </div>
+
+      <div class="roles-badges" *ngIf="currentRoles.length > 0; else noRoles">
+        <span class="role-badge" *ngFor="let role of currentRoles; trackBy: trackRole">
+          {{ roleTranslationKey(role) | translate }}
+        </span>
+      </div>
+
+      <ng-template #noRoles>
+        <p class="no-roles-hint">{{ 'roleRequests.inbox.roleSummary.noRoles' | translate }}</p>
+      </ng-template>
+
+      <p class="summary-hint" *ngIf="hasCompleteProfile">
+        {{ 'roleRequests.inbox.roleSummary.readyHint' | translate }}
+      </p>
+      <p class="summary-hint muted" *ngIf="!hasCompleteProfile">
+        {{ 'roleRequests.inbox.roleSummary.incompleteHint' | translate }}
+      </p>
+    </div>
+
+    <div class="role-guidelines-card">
+      <div class="guidelines-header">
+        <div class="guidelines-icon">i</div>
+        <div>
+          <h3>{{ 'roleRequests.inbox.guidelines.title' | translate }}</h3>
+          <p>{{ 'roleRequests.inbox.guidelines.description' | translate }}</p>
+        </div>
+      </div>
+      <ul class="guidelines-list">
+        <li *ngFor="let ruleKey of compatibilityRuleKeys">
+          {{ ('roleRequests.inbox.guidelines.rules.' + ruleKey) | translate }}
+        </li>
+      </ul>
+      <p class="guidelines-footer">
+        {{ 'roleRequests.inbox.guidelines.footer' | translate }}
+      </p>
+    </div>
+  </section>
+
   <!-- Mensaje si no está verificado -->
   <div *ngIf="!loading && !error && !isVerified" class="verification-required-state">
-    <div class="warning-icon">🔒</div>
+    <div class="warning-icon">!</div>
     <h3>{{ 'roleRequests.inbox.verifyRequiredTitle' | translate }}</h3>
     <p>{{ 'roleRequests.inbox.verifyRequiredDesc' | translate }}</p>
   </div>
@@ -34,19 +84,19 @@
   <div *ngIf="loading" class="loading">{{ 'roleRequests.inbox.loading' | translate }}</div>
 
   <div *ngIf="error && !loading" class="error-message">
-    <span class="icon">❌</span>
+    <span class="icon">!</span>
     {{ error }}
     <button class="btn-link" (click)="loadRequests()">{{ 'roleRequests.inbox.errorRetry' | translate }}</button>
   </div>
 
   <!-- Empty state (verificado) -->
   <div *ngIf="isVerified && !loading && !error && requests.length === 0" class="empty-state">
-    <div class="empty-icon">📋</div>
+    <div class="empty-icon">:)</div>
     <h3>{{ 'roleRequests.inbox.emptyTitle' | translate }}</h3>
     <p>
       {{ hasCompleteProfile
-      ? ('roleRequests.inbox.emptyDescVerified' | translate)
-      : ('roleRequests.inbox.emptyDescIncomplete' | translate) }}
+        ? ('roleRequests.inbox.emptyDescVerified' | translate)
+        : ('roleRequests.inbox.emptyDescIncomplete' | translate) }}
     </p>
     <button *ngIf="hasCompleteProfile" class="btn btn-primary" (click)="openModal()">
       {{ 'roleRequests.inbox.createFirstBtn' | translate }}
@@ -55,12 +105,19 @@
 
   <!-- Listado -->
   <div *ngIf="isVerified && !loading && !error && requests.length > 0" class="requests-list">
-    <app-role-request-card *ngFor="let request of requests" [request]="request"
-      [isAdmin]="false"></app-role-request-card>
+    <app-role-request-card
+      *ngFor="let request of requests"
+      [request]="request"
+      [isAdmin]="false">
+    </app-role-request-card>
   </div>
 
   <!-- Modal -->
-  <app-role-request-modal *ngIf="hasCompleteProfile && isVerified" [isOpen]="isModalOpen" [currentRoles]="currentRoles"
-    (close)="closeModal()" (requestSubmitted)="handleRequestSubmitted()">
+  <app-role-request-modal
+    *ngIf="hasCompleteProfile && isVerified"
+    [isOpen]="isModalOpen"
+    [currentRoles]="currentRoles"
+    (close)="closeModal()"
+    (requestSubmitted)="handleRequestSubmitted()">
   </app-role-request-modal>
 </div>

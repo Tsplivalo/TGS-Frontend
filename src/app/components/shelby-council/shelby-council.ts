@@ -36,7 +36,7 @@ export class ShelbyCouncilComponent implements OnInit {
   items   = signal<ShelbyCouncilDTO[]>([]);
   loading = signal(false);
   error   = signal<string | null>(null);
-  success = signal<string | null>(null);
+  success = signal<string | null>(null); // ✅ Mensaje de éxito
   isNewOpen = signal(false);
   isEdit    = signal(false);
 
@@ -47,6 +47,7 @@ export class ShelbyCouncilComponent implements OnInit {
   // Filtros
   fTextInput = signal('');
   fTextApplied = signal('');
+  
   // Formulario con validaciones mejoradas
   form = this.fb.group({
     id: this.fb.control<number | null>(null),
@@ -69,7 +70,7 @@ export class ShelbyCouncilComponent implements OnInit {
   }
 
   // Lista filtrada por texto local
-    filtered = computed(() => {
+  filtered = computed(() => {
     const q = this.fTextApplied().toLowerCase().trim();
     if (!q) return this.items();
 
@@ -87,9 +88,8 @@ export class ShelbyCouncilComponent implements OnInit {
     });
   });
 
-
   applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
+    this.fTextApplied.set(this.fTextInput());
   }
 
   clearFilters() {
@@ -179,11 +179,16 @@ export class ShelbyCouncilComponent implements OnInit {
 
       this.srv.create(payload).subscribe({
         next: () => {
-          this.success.set(this.tr.instant('shelbyCouncil.successCreate') || 'Registro creado exitosamente');
+          // ✅ Mensaje de éxito
+          const partnerName = this.partners().find(p => p.dni === payload.partnerDni)?.name || 'Socio';
+          this.success.set(`Registro creado: ${partnerName} en consejo #${payload.decisionId}`);
+          
           this.new();
           this.isNewOpen.set(false);
           this.loadAll();
-          setTimeout(() => this.clearMessages(), 3000);
+          
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
         },
         error: (e) => {
           this.handleError(e, 'shelbyCouncil.errorCreate', 'Error al crear el registro');
@@ -199,11 +204,15 @@ export class ShelbyCouncilComponent implements OnInit {
 
       this.srv.update(id!, payload).subscribe({
         next: () => {
-          this.success.set(this.tr.instant('shelbyCouncil.successUpdate') || 'Registro actualizado exitosamente');
+          // ✅ Mensaje de éxito
+          this.success.set(`Registro #${id} actualizado correctamente`);
+          
           this.new();
           this.isNewOpen.set(false);
           this.loadAll();
-          setTimeout(() => this.clearMessages(), 3000);
+          
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
         },
         error: (e) => {
           this.handleError(e, 'shelbyCouncil.errorSave', 'Error al actualizar el registro');
@@ -225,9 +234,13 @@ export class ShelbyCouncilComponent implements OnInit {
 
     this.srv.delete(it.id).subscribe({
       next: () => { 
-        this.success.set(this.tr.instant('shelbyCouncil.successDelete') || 'Registro eliminado exitosamente');
+        // ✅ Mensaje de éxito
+        this.success.set(`Registro #${it.id} eliminado correctamente`);
+        
         this.loadAll();
-        setTimeout(() => this.clearMessages(), 3000);
+        
+        // ✅ Auto-ocultar después de 5 segundos
+        setTimeout(() => this.success.set(null), 5000);
       },
       error: (e) => {
         this.handleError(e, 'shelbyCouncil.errorDelete', 'No se pudo eliminar el registro');

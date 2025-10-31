@@ -21,6 +21,7 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
   filteredRequests: RoleRequest[] = [];
   loading: boolean = true;
   error: string | null = null;
+  successKey: string | null = null;
 
   statusFilter: RequestStatus | 'ALL' = RequestStatus.PENDING;
   roleFilter: Role | 'ALL' = 'ALL';
@@ -85,9 +86,13 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
     this.reviewingRequest = null;
   }
 
-  async handleReviewComplete(): Promise<void> {
+  async handleReviewComplete(approvedUserId?: string): Promise<void> {
     this.closeReviewModal();
     await this.loadRequests();
+    this.successKey = approvedUserId
+      ? 'notifications.roleRequestApproved'
+      : 'notifications.roleRequestRejected';
+    setTimeout(() => (this.successKey = null), 3000);
   }
 
   get pendingCount(): number {

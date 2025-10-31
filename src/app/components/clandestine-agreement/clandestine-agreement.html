@@ -152,16 +152,20 @@
       </ng-template>
     </section>
   </div>
+</section>
 
-  <!-- FORM (COLLAPSIBLE) -->
-  <div class="collapsible" [class.open]="isNewOpen()">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
+<!-- FORM OVERLAY -->
+  <div class="clandestine-overlay" [class.is-open]="isNewOpen()" [attr.aria-hidden]="!isNewOpen()">
+    <button type="button" class="clandestine-overlay__backdrop" (click)="cancel()" aria-label="Cerrar"></button>
+
+    <div class="clandestine-overlay__panel glass-dark card" (click)="$event.stopPropagation()">
+      <div class="header compact">
         <h2 class="title">
           {{ isEdit()
           ? ('clandestineAgreement.form.titleEdit' | translate:{ id: form.value.id })
           : ('clandestineAgreement.form.titleCreate' | translate) }}
         </h2>
+        <button type="button" class="btn-close" (click)="cancel()" aria-label="Cerrar">&times;</button>
       </div>
 
       <div class="error" *ngIf="error()">{{ error() }}</div>
@@ -263,4 +267,4 @@
     </div>
   </div>
 
-</section>
+

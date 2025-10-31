@@ -10,7 +10,13 @@
       </div>
     </div>
 
-    <!-- Estadísticas -->
+    <!-- ✅ Success message -->
+    <div *ngIf="success()"
+      style="background: rgba(76, 175, 80, 0.15); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 20px;">✓</span>
+      <strong>{{ success() }}</strong>
+    </div>
+
     <!-- Estadísticas -->
     <div *ngIf="!loading() && authorities().length > 0"
       style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-bottom: var(--sp-3);">
@@ -47,7 +53,6 @@
     </div>
 
     <!-- Filtros -->
-<!-- Filtros -->
     <div class="filters" style="align-items: flex-end;">
       <!-- Búsqueda general por nombre/rango -->
       <label class="label" style="flex: 1;">
@@ -56,11 +61,11 @@
           (ngModelChange)="fTextInput.set($event)" (keyup.enter)="applyFilters()" />
       </label>
 
-      <!-- ✅ NUEVO: Filtro por DNI -->
+      <!-- ✅ Filtro por DNI -->
       <label class="label" style="min-width: 150px;">
         <span>{{ 'authorities.filters.dni' | translate }}</span>
-        <input class="input" maxlength="8" [placeholder]="'authorities.filters.dniPh' | translate" [ngModel]="fDniInput()"
-          (ngModelChange)="fDniInput.set($event)" (keyup.enter)="applyFilters()" />
+        <input class="input" maxlength="8" [placeholder]="'authorities.filters.dniPh' | translate"
+          [ngModel]="fDniInput()" (ngModelChange)="fDniInput.set($event)" (keyup.enter)="applyFilters()" />
       </label>
 
       <!-- Filtro por zona -->
@@ -130,75 +135,183 @@
     </div>
   </div>
 
-  <div class="collapsible" [class.open]="isFormOpen">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
-        <h2>
-          {{ editDni() == null
-          ? ('authorities.form.newTitle' | translate)
-          : ('authorities.form.editTitle' | translate: { dni: editDni() }) }}
-        </h2>
+</section>
+
+<div class="authority-overlay" [class.is-open]="isFormOpen" [attr.aria-hidden]="!isFormOpen">
+  <button type="button" class="authority-overlay__backdrop" (click)="toggleForm()" aria-label="Cerrar"></button>
+
+  <div class="authority-overlay__panel glass-dark card" (click)="$event.stopPropagation()">
+    <div class="header compact">
+      <h2 class="title">
+        {{ editDni() == null
+        ? ('authorities.form.newTitle' | translate)
+        : ('authorities.form.editTitle' | translate: { dni: editDni() }) }}
+      </h2>
+      <button type="button" class="btn-close" (click)="toggleForm()" aria-label="Cerrar">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+      <div class="error" *ngIf="error()">{{ error() }}</div>
+      <div class="error" *ngIf="submitted() && form.invalid">
+        {{ editDni() == null
+        ? ('authorities.form.err.create' | translate)
+        : ('authorities.form.err.edit' | translate) }}
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-        <div class="error" *ngIf="error()">{{ error() }}</div>
-        <div class="error" *ngIf="submitted() && form.invalid">
-          {{ editDni() == null
-          ? ('authorities.form.err.create' | translate)
-          : ('authorities.form.err.edit' | translate) }}
+      <!-- Selector de modo (solo al crear) -->
+      <fieldset class="group col-2" *ngIf="editDni() === null">
+        <legend>{{ 'authority.createMode' | translate : {} : '¿Cómo querés crear la autoridad?' }}</legend>
+
+        <label class="radio">
+          <input type="radio" name="mode" value="fromUser" [checked]="mode() === 'fromUser'"
+            (change)="onModeChange($event)" />
+          <span>{{ 'authority.mode.fromUser' | translate : {} : 'Desde usuario existente' }}</span>
+        </label>
+
+        <label class="radio">
+          <input type="radio" name="mode" value="manual" [checked]="mode() === 'manual'"
+            (change)="onModeChange($event)" />
+          <span>{{ 'authority.mode.manual' | translate : {} : 'Manual' }}</span>
+        </label>
+      </fieldset>
+
+      <!-- Buscador + listado de usuarios (solo modo fromUser) -->
+      <ng-container *ngIf="mode() === 'fromUser' && editDni() === null">
+        <label class="label col-2">
+          <span class="label-text">{{ 'authority.user.search' | translate : {} : 'Buscar usuario' }}</span>
+          <input class="input" type="text" [value]="userSearch()" (input)="userSearch.set($any($event.target).value)"
+            [placeholder]="'authority.user.searchPh' | translate : {} : 'DNI, nombre o email...'" />
+        </label>
+
+        <div class="col-2">
+          <!-- Listado de usuarios verificados -->
+          <div *ngIf="filteredUsers().length > 0"
+            style="padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2);">
+            <h4 style="margin: 0 0 var(--sp-2) 0; font-size: 0.875rem; color: rgba(195, 164, 98, 0.9);">Usuarios
+              verificados disponibles ({{ filteredUsers().length }})</h4>
+            <div
+              style="display: flex; flex-direction: column; gap: var(--sp-2); max-height: 300px; overflow-y: auto;">
+              <div *ngFor="let u of filteredUsers()" (click)="selectUserByDni(getUserPersonDni(u))"
+                style="padding: var(--sp-2); background: rgba(0, 0, 0, 0.2); border-radius: 6px; cursor: pointer; border: 1px solid rgba(195, 164, 98, 0.3); transition: all 0.2s;"
+                [style.background]="selectedUserDni() === getUserPersonDni(u) ? 'rgba(195, 164, 98, 0.3)' : 'rgba(0, 0, 0, 0.2)'"
+                onmouseenter="this.style.background='rgba(195, 164, 98, 0.2)'"
+                onmouseleave="this.style.background=this.getAttribute('data-selected') === 'true' ? 'rgba(195, 164, 98, 0.3)' : 'rgba(0, 0, 0, 0.2)'"
+                [attr.data-selected]="selectedUserDni() === getUserPersonDni(u)">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-weight: 600; color: rgba(195, 164, 98, 1);">{{ getUserPerson(u)?.name }}</div>
+                    <div style="font-size: 0.813rem; color: rgba(255, 255, 255, 0.8); font-family: monospace;">DNI: {{
+                      getUserPerson(u)?.dni }} • {{ u.email }}</div>
+                    <div style="font-size: 0.75rem; margin-top: 4px;">
+                      <span
+                        style="background: rgba(76, 175, 80, 0.25); padding: 2px 6px; border-radius: 4px; color: #81c784; font-weight: 500;">✓
+                        Verificado</span>
+                      <span
+                        style="background: rgba(33, 150, 243, 0.25); padding: 2px 6px; border-radius: 4px; color: #64b5f6; font-weight: 500; margin-left: 4px;">Perfil
+                        100%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="filteredUsers().length === 0"
+            style="padding: var(--sp-3); text-align: center; color: var(--clr-text-muted); background: rgba(195, 164, 98, 0.05); border-radius: 8px; border: 1px dashed rgba(195, 164, 98, 0.3);">
+            <p style="margin: 0;">No hay usuarios verificados disponibles</p>
+            <small style="display: block; margin-top: var(--sp-1);">Los usuarios deben tener su cuenta verificada por
+              un administrador y perfil completo al 100%</small>
+          </div>
         </div>
+      </ng-container>
 
-        <label class="label">
-          <span>{{ 'authorities.form.dni' | translate }}</span>
-          <input class="input" formControlName="dni" maxlength="8" [placeholder]="'authorities.form.dniPh' | translate"
-            [readonly]="editDni() !== null" />
-        </label>
+      <!-- Campos de la autoridad (solo modo manual) -->
+      <ng-container *ngIf="mode() === 'manual'">
+      <label class="label">
+        <span>{{ 'authorities.form.dni' | translate }}</span>
+        <input class="input" formControlName="dni" maxlength="8" [placeholder]="'authorities.form.dniPh' | translate"
+          [readonly]="editDni() !== null" />
+      </label>
 
-        <label class="label">
-          <span>{{ 'authorities.form.name' | translate }}</span>
-          <input class="input" formControlName="name" [placeholder]="'authorities.form.namePh' | translate" />
-        </label>
+      <label class="label">
+        <span>{{ 'authorities.form.name' | translate }}</span>
+        <input class="input" formControlName="name" [placeholder]="'authorities.form.namePh' | translate" />
+      </label>
 
-        <label class="label">
-          <span>{{ 'authorities.form.email' | translate }}</span>
-          <input class="input" type="email" formControlName="email"
-            [placeholder]="'authorities.form.emailPh' | translate" />
-        </label>
+      <label class="label">
+        <span>{{ 'authorities.form.email' | translate }}</span>
+        <input class="input" type="email" formControlName="email"
+          [placeholder]="'authorities.form.emailPh' | translate" />
+      </label>
 
-        <label class="label">
-          <span>{{ 'authorities.form.phone' | translate }}</span>
-          <input class="input" formControlName="phone" [placeholder]="'authorities.form.phonePh' | translate" />
-        </label>
+      <label class="label">
+        <span>{{ 'authorities.form.phone' | translate }}</span>
+        <input class="input" formControlName="phone" [placeholder]="'authorities.form.phonePh' | translate" />
+      </label>
 
-        <label class="label">
-          <span>{{ 'authorities.form.address' | translate }}</span>
-          <input class="input" formControlName="address" [placeholder]="'authorities.form.addressPh' | translate" />
-        </label>
+      <label class="label">
+        <span>{{ 'authorities.form.address' | translate }}</span>
+        <input class="input" formControlName="address" [placeholder]="'authorities.form.addressPh' | translate" />
+      </label>
+      </ng-container>
 
-        <label class="label">
-          <span>{{ 'authorities.form.rank' | translate }}</span>
-          <select class="input" formControlName="rank">
-            <option value="0">0 - {{ 'authorities.form.rank0' | translate }}</option>
-            <option value="1">1 - {{ 'authorities.form.rank1' | translate }}</option>
-            <option value="2">2 - {{ 'authorities.form.rank2' | translate }}</option>
-            <option value="3">3 - {{ 'authorities.form.rank3' | translate }}</option>
-          </select>
-        </label>
+      <!-- Rango (visible en ambos modos) -->
+      <label class="label">
+        <span>{{ 'authorities.form.rank' | translate }}</span>
+        <select class="input" formControlName="rank">
+          <option value="0">0 - {{ 'authorities.form.rank0' | translate }}</option>
+          <option value="1">1 - {{ 'authorities.form.rank1' | translate }}</option>
+          <option value="2">2 - {{ 'authorities.form.rank2' | translate }}</option>
+          <option value="3">3 - {{ 'authorities.form.rank3' | translate }}</option>
+        </select>
+      </label>
 
-        <label class="label">
-          <span>{{ 'authorities.form.zoneId' | translate }}</span>
-          <input class="input" formControlName="zoneId" [placeholder]="'authorities.form.zoneIdPh' | translate" />
-        </label>
+      <!-- Zona (visible en ambos modos) -->
+      <label class="label">
+        <span>{{ 'authorities.form.zoneId' | translate }}</span>
+        <input class="input" formControlName="zoneId" [placeholder]="'authorities.form.zoneIdPh' | translate" />
+      </label>
 
-        <div class="right form-actions">
-          <button class="btn success" type="submit" [disabled]="loading()">
-            {{ editDni() == null ? ('common.create' | translate) : ('common.save' | translate) }}
-          </button>
-          <button class="btn ghost" type="button" (click)="new(); isFormOpen = false">
-            {{ 'common.cancel' | translate }}
-          </button>
-        </div>
-      </form>
-    </div>
+      <!-- Credenciales: SOLO modo manual y solo al crear -->
+      <ng-container *ngIf="mode() === 'manual' && editDni() === null">
+        <fieldset class="group col-2">
+          <label class="switch">
+            <input type="checkbox" [checked]="form.controls.createCreds.value" (change)="onCredsToggle($event)" />
+            <span>{{ 'authority.creds.toggle' | translate : {} : 'Crear cuenta para la autoridad' }}</span>
+          </label>
+
+          <div class="grid-2" *ngIf="form.controls.createCreds.value">
+            <label class="label">
+              <span>{{ 'authority.fields.username' | translate : {} : 'Usuario' }}</span>
+              <input class="input" formControlName="username" (blur)="form.controls.username.markAsTouched()" />
+              <small class="hint" *ngIf="form.controls.username.invalid && form.controls.username.touched">
+                {{ 'authority.errors.username' | translate : {} : 'Usuario requerido (mín. 3).' }}
+              </small>
+            </label>
+
+            <label class="label">
+              <span>{{ 'authority.fields.password' | translate : {} : 'Contraseña' }}</span>
+              <input class="input" type="password" formControlName="password"
+                (blur)="form.controls.password.markAsTouched()" />
+              <small class="hint" *ngIf="form.controls.password.invalid && form.controls.password.touched">
+                {{ 'authority.errors.password' | translate : {} : 'Contraseña requerida (mín. 6).' }}
+              </small>
+            </label>
+          </div>
+          <small class="muted">
+            {{ 'authority.creds.hint' | translate : {} :
+            'Si no marcás esta opción, se crea la autoridad sin usuario/contraseña.' }}
+          </small>
+        </fieldset>
+      </ng-container>
+
+      <div class="right form-actions">
+        <button class="btn success" type="submit" [disabled]="loading()">
+          {{ editDni() == null ? ('common.create' | translate) : ('common.save' | translate) }}
+        </button>
+        <button class="btn ghost" type="button" (click)="new(); toggleForm()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
   </div>
-</section>
+</div>

@@ -14,6 +14,7 @@ import { TopicDTO } from '../../models/topic/topic.model';
  * Administra decisiones con filtro por texto y tema, validación de fechas (hoy en adelante)
  * y guardado como CREATE (POST) o UPDATE parcial (PATCH). Comentarios enfocados en decisiones
  * de diseño, validaciones y construcción de payloads.
+ * ✅ Notificaciones de éxito y cierre automático del formulario
  */
 
 type DecisionForm = {
@@ -42,6 +43,7 @@ export class DecisionComponent implements OnInit {
   topics = signal<TopicDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+  success = signal<string | null>(null); // ✅ Mensaje de éxito
   submitted = signal(false);
   isEdit = signal(false);
 
@@ -100,47 +102,40 @@ export class DecisionComponent implements OnInit {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // ✅ NUEVO: Convierte fecha YYYY-MM-DD a formato ISO con hora del mediodía UTC
-  // Esto evita problemas de timezone al enviar al backend
+  // ✅ Convierte fecha YYYY-MM-DD a formato ISO con hora del mediodía UTC
   private dateToISO(dateStr: string): string {
     if (!dateStr) return '';
-    // Agregar hora del mediodía UTC para evitar cambios de día por timezone
     return `${dateStr}T12:00:00.000Z`;
   }
 
-  // ✅ NUEVO: Formatea fecha ISO a DD/MM/YYYY para mostrar
+  // ✅ Formatea fecha ISO a DD/MM/YYYY para mostrar
   formatDateDDMMYYYY(isoDate: string | undefined): string {
     if (!isoDate) return '—';
-    
-    // Extraer solo la parte de la fecha (YYYY-MM-DD)
     const dateOnly = isoDate.split('T')[0];
     const [year, month, day] = dateOnly.split('-');
-    
     return `${day}/${month}/${year}`;
   }
 
   // --- Listados filtrados ---
   filteredDecisions = computed(() => {
-  const q = this.fTextApplied().toLowerCase().trim();
-  const tFilter = this.topicFilterApplied().trim();
-  
-  return this.decisions().filter(d => {
-    // Filtro por texto en descripción o ID
-    const matchText = !q || 
-      (d.description || '').toLowerCase().includes(q) || 
-      String(d.id).includes(q);
+    const q = this.fTextApplied().toLowerCase().trim();
+    const tFilter = this.topicFilterApplied().trim();
     
-    // Filtro por tema específico
-    const topicId = d.topic?.id != null ? String(d.topic.id) : '';
-    const matchTopic = !tFilter || topicId === tFilter;
-    
-    return matchText && matchTopic;
+    return this.decisions().filter(d => {
+      const matchText = !q || 
+        (d.description || '').toLowerCase().includes(q) || 
+        String(d.id).includes(q);
+      
+      const topicId = d.topic?.id != null ? String(d.topic.id) : '';
+      const matchTopic = !tFilter || topicId === tFilter;
+      
+      return matchText && matchTopic;
+    });
   });
-});
 
   applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-  this.topicFilterApplied.set(this.topicFilterInput());
+    this.fTextApplied.set(this.fTextInput());
+    this.topicFilterApplied.set(this.topicFilterInput());
   }
 
   clearFilters() {
@@ -155,13 +150,20 @@ export class DecisionComponent implements OnInit {
     const today = new Date().toISOString().split('T')[0];
     return this.decisions().filter(d => d.endDate >= today).length;
   });
+  
   // --- Data fetching ---
   load() {
     this.loading.set(true);
     this.error.set(null);
     this.srv.getAll().subscribe({
-      next: (list: DecisionDTO[]) => { this.decisions.set(list); this.loading.set(false); },
-      error: (err) => { this.error.set(err?.error?.message || 'Could not load decisions.'); this.loading.set(false); }
+      next: (list: DecisionDTO[]) => { 
+        this.decisions.set(list); 
+        this.loading.set(false); 
+      },
+      error: (err) => { 
+        this.error.set(err?.error?.message || 'Could not load decisions.'); 
+        this.loading.set(false); 
+      }
     });
   }
 
@@ -175,7 +177,13 @@ export class DecisionComponent implements OnInit {
   // --- Crear / Editar ---
   new() {
     this.isEdit.set(false);
-    this.form.reset({ id: null, topicId: null, description: '', startDate: this.today, endDate: this.today });
+    this.form.reset({ 
+      id: null, 
+      topicId: null, 
+      description: '', 
+      startDate: this.today, 
+      endDate: this.today 
+    });
     this.submitted.set(false);
     this.error.set(null);
   }
@@ -194,11 +202,26 @@ export class DecisionComponent implements OnInit {
   }
 
   delete(id: number) {
+    if (!confirm('¿Eliminar esta decisión?')) return;
+    
     this.loading.set(true);
     this.error.set(null);
+    this.success.set(null); // ✅ Limpiar mensaje previo
+    
     this.srv.delete(id).subscribe({
-      next: () => this.load(),
-      error: (err) => { this.error.set(err?.error?.message || 'Could not delete.'); this.loading.set(false); }
+      next: () => {
+        // ✅ Mostrar mensaje de éxito
+        this.success.set('Decisión eliminada correctamente');
+        
+        this.load();
+        
+        // ✅ Auto-ocultar después de 5 segundos
+        setTimeout(() => this.success.set(null), 5000);
+      },
+      error: (err) => { 
+        this.error.set(err?.error?.message || 'Could not delete.'); 
+        this.loading.set(false); 
+      }
     });
   }
 
@@ -208,8 +231,8 @@ export class DecisionComponent implements OnInit {
     return {
       topicId: Number(v.topicId),
       description: String(v.description).trim(),
-      startDate: this.dateToISO(v.startDate), // ✅ Convertir a ISO
-      endDate: this.dateToISO(v.endDate),     // ✅ Convertir a ISO
+      startDate: this.dateToISO(v.startDate),
+      endDate: this.dateToISO(v.endDate),
     };
   }
 
@@ -218,8 +241,8 @@ export class DecisionComponent implements OnInit {
     return {
       topicId: v.topicId != null ? Number(v.topicId) : undefined,
       description: v.description?.trim() || undefined,
-      startDate: v.startDate ? this.dateToISO(v.startDate) : undefined, // ✅ Convertir a ISO
-      endDate: v.endDate ? this.dateToISO(v.endDate) : undefined,       // ✅ Convertir a ISO
+      startDate: v.startDate ? this.dateToISO(v.startDate) : undefined,
+      endDate: v.endDate ? this.dateToISO(v.endDate) : undefined,
     };
   }
 
@@ -234,7 +257,7 @@ export class DecisionComponent implements OnInit {
   save() {
     this.submitted.set(true);
 
-    // Normaliza topicId vacío a null para que falle la validación requerida
+    // Normaliza topicId vacío a null
     const t = this.form.controls.topicId.value;
     if ((t as any) === '') this.form.controls.topicId.setValue(null);
 
@@ -248,16 +271,30 @@ export class DecisionComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
+    this.success.set(null); // ✅ Limpiar mensaje previo
 
     // CREATE
     if (!this.isEdit()) {
       const payload = this.buildCreate();
-      console.log('📤 CREATE Payload:', payload); // Debug
       this.srv.create(payload).subscribe({
-        next: () => { this.new(); this.load(); },
+        next: () => { 
+          // ✅ Mostrar mensaje de éxito
+          this.success.set(`Decisión "${payload.description}" creada correctamente`);
+          
+          this.new(); 
+          this.load();
+          
+          // ✅ Cerrar formulario
+          this.isFormOpen = false;
+          
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
+        },
         error: (err) => {
-          const raw = err?.error; const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not create.');
-          this.error.set(msg); this.loading.set(false);
+          const raw = err?.error; 
+          const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not create.');
+          this.error.set(msg); 
+          this.loading.set(false);
         }
       });
       return;
@@ -266,12 +303,25 @@ export class DecisionComponent implements OnInit {
     // UPDATE (PATCH parcial)
     const id = this.form.controls.id.value!;
     const payload = this.buildPatch();
-    console.log('📤 UPDATE Payload:', payload); // Debug
     this.srv.update(id, payload).subscribe({
-      next: () => { this.new(); this.load(); },
+      next: () => { 
+        // ✅ Mostrar mensaje de éxito
+        this.success.set('Decisión actualizada correctamente');
+        
+        this.new(); 
+        this.load();
+        
+        // ✅ Cerrar formulario
+        this.isFormOpen = false;
+        
+        // ✅ Auto-ocultar después de 5 segundos
+        setTimeout(() => this.success.set(null), 5000);
+      },
       error: (err) => {
-        const raw = err?.error; const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not save.');
-        this.error.set(msg); this.loading.set(false);
+        const raw = err?.error; 
+        const msg = raw?.message || (typeof raw === 'string' ? raw : 'Could not save.');
+        this.error.set(msg); 
+        this.loading.set(false);
       }
     });
   }

@@ -27,6 +27,7 @@
     "zone": "Zonas",
     "authority": "Autoridades",
     "bribe": "Sobornos",
+    "myBribes": "Mis Sobornos",
     "decision": "Decisiones",
     "topic": "Temáticas",
     "distributor": "Distribuidores",
@@ -94,6 +95,7 @@
       "active": "✓ Activa",
       "inactive": "✗ Inactiva",
       "emailVerified": "Email verificado:",
+      "adminVerified": "Verificada por admin",
       "emailVerifiedYes": "✓ Sí",
       "emailVerifiedNo": "✗ No",
       "roles": "Roles:",
@@ -331,14 +333,14 @@
     },
     "createMode": "¿Cómo querés crear el socio?",
     "mode": {
-      "fromClient": "Desde cliente existente",
+      "fromUser": "Desde usuario existente",
       "manual": "Manual"
     },
-    "client": {
-      "search": "Buscar cliente",
+    "user": {
+      "search": "Buscar usuario",
       "searchPh": "DNI, nombre o email...",
-      "select": "Seleccionar cliente",
-      "selectPh": "Elegí un cliente",
+      "select": "Seleccionar usuario",
+      "selectPh": "Elegí un usuario",
       "hint": "Al seleccionar se completa el formulario; luego podés ajustar."
     },
     "fields": {
@@ -383,7 +385,7 @@
     "loading": "Cargando estadísticas...",
     "totalRevenue": "Ingresos Totales",
     "totalSales": "Total de Ventas",
-    "averageTicket": "Ticket Promedio",
+    "averageTicket": "Importe promedio por venta",
     "salesByMonth": "Ventas por Mes",
     "topProducts": "Productos Más Vendidos",
     "salesByDistributor": "Ventas por Distribuidor",
@@ -448,6 +450,15 @@
       "new": "Nueva Venta"
     },
     "stats": {
+      "loading": "Cargando estadísticas...",
+      "totalRevenue": "Ingresos Totales",
+      "totalSales": "Total de Ventas",
+      "averageTicket": "Importe promedio por venta",
+      "salesByMonth": "Ventas por Mes",
+      "topProducts": "Productos Más Vendidos",
+      "salesByDistributor": "Ventas por Distribuidor",
+      "noData": "No hay estadísticas disponibles",
+      "noDataDesc": "Las estadísticas aparecerán aquí una vez que haya datos disponibles.",
       "totalLabel": "Total ventas:",
       "revenueLabel": "Ingresos totales:",
       "filteredLabel": "Filtradas:"
@@ -955,6 +966,11 @@
       "rejected": "Rechazados",
       "filtered": "Filtrados"
     },
+    "charts": {
+      "statusDistribution": "Distribución por Estado",
+      "trend": "Tendencia de Revisiones por Mes",
+      "topProducts": "Top Productos por Ventas"
+    },
     "list": "Listado de Revisiones",
     "emptyTitle": "No hay revisiones",
     "emptyHint": "Ajustá los filtros o creá una nueva revisión.",
@@ -1210,6 +1226,31 @@
     "inbox": {
       "title": "Mis Solicitudes de Rol",
       "subtitle": "Gestioná tus solicitudes de roles especiales",
+      "roleSummary": {
+        "connectedAs": "Conectado como",
+        "fallbackName": "Usuario sin nombre",
+        "noRoles": "Todavía no tenés roles asignados.",
+        "readyHint": "Podés solicitar nuevos roles o cambiar los actuales desde esta bandeja.",
+        "incompleteHint": "Completá tu perfil para habilitar nuevas solicitudes."
+      },
+      "guidelines": {
+        "title": "Cómo funcionan las solicitudes de rol",
+        "description": "Revisá qué combinaciones están permitidas antes de enviar tu solicitud.",
+        "rules": {
+          "distributor": "Si sos Distribuidor, podés sumar el rol Socio pero no Autoridad.",
+          "partner": "Si sos Socio, podés sumar el rol Distribuidor pero no Autoridad.",
+          "authority": "Si sos Autoridad, no podés combinarlo con Socio ni Distribuidor."
+        },
+        "footer": "Si necesitás reemplazar un rol incompatible, activá la opción de cambio en el formulario."
+      },
+      "roleLabels": {
+        "admin": "Administrador",
+        "partner": "Socio",
+        "distributor": "Distribuidor",
+        "client": "Cliente",
+        "user": "Usuario",
+        "authority": "Autoridad"
+      },
       "newBtn": "Nueva Solicitud",
       "verifyRequiredBadge": "Verificá tu cuenta para solicitar roles",
       "completeProfileRequired": "Completá tu perfil para solicitar roles",
@@ -1435,6 +1476,43 @@
         "a": "Ofrecemos API e importadores para conectar tu stack actual."
       }
     }
+  },
+    "footer": {
+    "tagline": "La plataforma que lleva tu negocio al siguiente nivel",
+    "rights": "Todos los derechos reservados",
+    "sections": {
+      "company": "Empresa",
+      "legal": "Legal",
+      "resources": "Recursos"
+    },
+    "links": {
+      "about": "Sobre nosotros",
+      "contact": "Contacto",
+      "faqs": "Preguntas frecuentes",
+      "terms": "Términos y condiciones",
+      "privacy": "Política de privacidad",
+      "cookies": "Política de cookies",
+      "docs": "Documentación",
+      "api": "API",
+      "support": "Soporte"
+    },
+    "social": {
+      "github": "Visitar GitHub",
+      "email": "Enviar email"
+    },
+    "university": {
+      "prefix": "Proyecto académico de",
+      "name": "UTN Rosario"
+    }
   }
+
+  ,
+  "notifications": {
+    "roleRequestApproved": "Solicitud de rol aprobada correctamente.",
+    "roleRequestRejected": "Solicitud de rol rechazada correctamente.",
+    "userVerificationApproved": "Verificación de usuario aprobada correctamente.",
+    "userVerificationRejected": "Verificación de usuario rechazada correctamente."
+  }
+
 }
   

@@ -11,6 +11,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { EmailVerificationService } from '../../features/inbox/services/email.verification';
+import { AuthTransitionService } from '../../services/ui/auth-transition';
 import { AuthService } from '../../services/auth/auth';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -28,6 +29,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private emailVerificationService = inject(EmailVerificationService);
+  private transition = inject(AuthTransitionService);
   private translate = inject(TranslateService);
 
   user = computed(() => this.auth.user());
@@ -74,6 +76,19 @@ export class HomeComponent implements OnInit, OnDestroy {
   loadingRegister = false;
   errorLogin: string | null = null;
   errorRegister: string | null = null;
+
+  // Mostrar/ocultar contraseña
+  showLoginPwd = false;
+  showRegisterPwd = false;
+
+  // Transición de login (velo con blur)
+  authTransitioning = false;
+  authPhase: 'loading' | 'success' = 'loading';
+  private authTimers: any[] = [];
+
+  // --- Animación de éxito de login ---
+  authSuccess = false;
+  private authSuccessTimer?: any;
 
   // --- Placeholders animados ---
   animatedPlaceholder = '';       // email (login/register)
@@ -155,6 +170,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.entering = true;
       queueMicrotask(() => setTimeout(() => (this.entering = false), 200));
     } else if (!mustShow && this.showAuthPanel) {
+      // Durante la transición post-login (global), retenemos el panel
+      if (this.transition.transitioning()) return;
       this.hiding = true;
       setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 220);
     }
@@ -447,6 +464,24 @@ export class HomeComponent implements OnInit, OnDestroy {
       // ✅ Login exitoso - limpiar pendingAuth y cerrar panel
       localStorage.removeItem('pendingAuth');
       console.log('[Home] Login exitoso, cerrando panel auth');
+
+      // Transición con velo y blur antes de mostrar el home
+      this.authTransitioning = true;
+      this.authPhase = 'loading';
+      this.transition.start('login');
+      this.authTimers.forEach(t => clearTimeout(t));
+      this.authTimers = [];
+
+      const __t1 = setTimeout(() => { this.authPhase = 'success'; this.transition.setSuccess(); }, 1400);
+      const __t2 = setTimeout(() => {
+        this.authTransitioning = false;
+        this.transition.finish();
+        if (this.showAuthPanel) {
+          this.hiding = true;
+          setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 240);
+        }
+      }, 2400);
+      this.authTimers.push(__t1, __t2);
 
     } catch (error: any) {
       // ✅ Detectar error de verificación

@@ -4,10 +4,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ClientService } from '../../services/client/client';
 import { SaleService } from '../../services/sale/sale';
-import { 
-  ApiResponse, 
-  ClientDTO, 
-  CreateClientDTO, 
+import { AuthService } from '../../services/auth/auth';
+import { Role } from '../../models/user/user.model';
+import {
+  ApiResponse,
+  ClientDTO,
+  CreateClientDTO,
   UpdateClientDTO
 } from '../../models/client/client.model';
 import { SaleDTO } from '../../models/sale/sale.model';
@@ -25,24 +27,76 @@ export class ClientComponent implements OnInit {
   private srv = inject(ClientService);
   private saleSrv = inject(SaleService);
   private t = inject(TranslateService);
+  private authService = inject(AuthService);
 
   loading = signal(false);
   error = signal<string | null>(null);
+  success = signal<string | null>(null);
   clients = signal<ClientDTO[]>([]);
   sales = signal<SaleDTO[]>([]);
   editDni = signal<string | null>(null);
   isNewOpen = false;
+
+  // --- Usuario y roles ---
+  currentUser = this.authService.user;
+  isAdmin = computed(() => this.authService.hasRole(Role.ADMIN));
+  isDistributor = computed(() => this.authService.hasRole(Role.DISTRIBUTOR));
+  currentUserDni = computed(() => {
+    const user = this.currentUser();
+    const dni = (user as any)?.person?.dni;
+    console.log('[ClientComponent] 🔍 Current user DNI:', {
+      hasUser: !!user,
+      hasPerson: !!(user as any)?.person,
+      dni: dni,
+      username: user?.username,
+      roles: user?.roles
+    });
+    return dni;
+  });
 
   fTextInput = signal('');
   fTextApplied = signal('');
   fPurchasesInput = signal<'all' | 'yes' | 'no'>('all');
   fPurchasesApplied = signal<'all' | 'yes' | 'no'>('all');
 
+  // ✅ NUEVO: Obtener DNIs únicos de clientes que aparecen en las ventas
+  clientsFromSales = computed(() => {
+    const uniqueDnis = new Set<string>();
+    this.sales().forEach(sale => {
+      if (sale.client?.dni) {
+        uniqueDnis.add(sale.client.dni);
+      }
+    });
+    return uniqueDnis;
+  });
+
+  // ✅ Filtrar clientes según rol
+  myClients = computed(() => {
+    const allClients = this.clients();
+    const clientDnis = this.clientsFromSales();
+
+    // Admin ve todos los clientes
+    if (this.isAdmin()) {
+      console.log('👑 Admin - showing all clients:', allClients.length);
+      return allClients;
+    }
+
+    // Distribuidor solo ve clientes que le compraron
+    if (this.isDistributor()) {
+      const filtered = allClients.filter(client => clientDnis.has(client.dni));
+      console.log('🚚 Distributor - filtered clients:', filtered.length, 'of', allClients.length);
+      return filtered;
+    }
+
+    // Otros roles: sin clientes
+    console.log('⚠️ User has no permission to view clients');
+    return [];
+  });
+
   // ✅ Mapa de compras por cliente DNI
   purchasesByClient = computed(() => {
     const map = new Map<string, number>();
     this.sales().forEach(sale => {
-      // ✅ El sale tiene 'client.dni', no 'clientDni'
       const clientDni = sale.client?.dni;
       if (clientDni) {
         const current = map.get(clientDni) || 0;
@@ -52,24 +106,26 @@ export class ClientComponent implements OnInit {
     return map;
   });
 
-  totalClients = computed(() => this.clients().length);
+  // ✅ CAMBIADO: Usar myClients() en lugar de clients()
+  totalClients = computed(() => this.myClients().length);
   
   clientsWithPurchases = computed(() => {
     const purchasesMap = this.purchasesByClient();
-    return this.clients().filter(c => (purchasesMap.get(c.dni) || 0) > 0).length;
+    return this.myClients().filter(c => (purchasesMap.get(c.dni) || 0) > 0).length;
   });
   
   clientsWithoutPurchases = computed(() => {
     const purchasesMap = this.purchasesByClient();
-    return this.clients().filter(c => (purchasesMap.get(c.dni) || 0) === 0).length;
+    return this.myClients().filter(c => (purchasesMap.get(c.dni) || 0) === 0).length;
   });
 
+  // ✅ CAMBIADO: Filtrar sobre myClients() en lugar de clients()
   filteredClients = computed(() => {
     const txt = this.fTextApplied().toLowerCase().trim();
     const filter = this.fPurchasesApplied();
     const purchasesMap = this.purchasesByClient();
 
-    return this.clients().filter(c => {
+    return this.myClients().filter(c => {
       const matchText = !txt
         || c.dni.toLowerCase().includes(txt)
         || c.name.toLowerCase().includes(txt)
@@ -113,14 +169,36 @@ export class ClientComponent implements OnInit {
   load() {
     this.loading.set(true);
     this.error.set(null);
-    
-    // ✅ Cargar clientes Y ventas en paralelo
+
+    // Cargar clientes Y ventas en paralelo
     Promise.all([
       this.srv.getAllClients().toPromise(),
       this.saleSrv.getAllSales().toPromise()
-    ]).then(([clientsRes, sales]) => {
+    ]).then(([clientsRes, salesList]) => {
+      console.log('📋 Clients loaded:', clientsRes?.data?.length ?? 0);
+      console.log('📋 Sales loaded:', salesList?.length ?? 0);
+
       this.clients.set(clientsRes?.data ?? []);
-      this.sales.set(sales ?? []);
+
+      // Filtrar ventas por distribuidor si no es admin
+      let filteredSales = salesList ?? [];
+      if (this.isDistributor() && !this.isAdmin()) {
+        const userDni = this.currentUserDni();
+        console.log('🔍 Filtering sales for distributor DNI:', userDni);
+
+        if (userDni) {
+          filteredSales = filteredSales.filter(sale => {
+            const distributorDni = sale.distributor?.dni;
+            return distributorDni === userDni;
+          });
+          console.log('✅ Filtered sales for distributor:', filteredSales.length);
+        } else {
+          console.warn('⚠️ Distributor DNI not found');
+          filteredSales = [];
+        }
+      }
+
+      this.sales.set(filteredSales);
       this.loading.set(false);
     }).catch((err) => {
       const msg = err?.error?.message || this.t.instant('clients.errorLoad');
@@ -170,10 +248,13 @@ export class ClientComponent implements OnInit {
     
     this.loading.set(true);
     this.error.set(null);
+    this.success.set(null);
     
     this.srv.deleteClient(dni).subscribe({
       next: () => {
+        this.success.set('Cliente eliminado correctamente');
         this.load();
+        setTimeout(() => this.success.set(null), 5000);
       },
       error: (err) => {
         const msg = err?.error?.message || this.t.instant('clients.errorDelete');
@@ -205,9 +286,11 @@ export class ClientComponent implements OnInit {
 
       this.srv.updateClient(this.editDni()!, updateData).subscribe({
         next: () => {
+          this.success.set(`Cliente "${value.name}" actualizado correctamente`);
           this.resetForm();
           this.isNewOpen = false;
           this.load();
+          setTimeout(() => this.success.set(null), 5000);
         },
         error: (err) => {
           const msg = err?.error?.message || this.t.instant('clients.errorSave');
@@ -226,9 +309,11 @@ export class ClientComponent implements OnInit {
 
       this.srv.createClient(createData).subscribe({
         next: () => {
+          this.success.set(`Cliente "${value.name}" creado correctamente`);
           this.resetForm();
           this.isNewOpen = false;
           this.load();
+          setTimeout(() => this.success.set(null), 5000);
         },
         error: (err) => {
           const msg = err?.error?.message || this.t.instant('clients.errorCreate');
@@ -266,12 +351,10 @@ export class ClientComponent implements OnInit {
     return this.t.instant('clients.errors.invalid');
   }
 
-  // ✅ Obtener cantidad de compras desde el mapa
   getPurchaseCount(client: ClientDTO): number {
     return this.purchasesByClient().get(client.dni) || 0;
   }
 
-  // ✅ Verificar si tiene compras
   hasPurchases(client: ClientDTO): boolean {
     return (this.purchasesByClient().get(client.dni) || 0) > 0;
   }

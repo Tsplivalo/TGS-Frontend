@@ -49,11 +49,31 @@ select {
 
   .inbox-header {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: $spacing-md;
     margin-bottom: $spacing-lg;
     padding-bottom: $spacing-md;
     border-bottom: 1px solid $border-glass;
+
+    .header-content {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      min-width: 240px;
+
+      button {
+        flex-shrink: 0;
+      }
+    }
 
     h2 {
       margin: 0;
@@ -109,12 +129,186 @@ select {
     }
   }
 
+  .user-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: $spacing-lg;
+    margin-bottom: $spacing-xl;
+  }
+
+  .profile-summary-card,
+  .role-guidelines-card {
+    background: $glass-bg;
+    border: 1px solid $border-glass;
+    border-radius: $border-radius;
+    padding: $spacing-lg;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+    backdrop-filter: blur(10px);
+  }
+
+  .identity-block {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.16);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: $text-strong;
+    text-transform: uppercase;
+  }
+
+  .identity-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .label {
+      font-size: 0.75rem;
+      color: $text-muted;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .username {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: $text-strong;
+    }
+
+    .email {
+      font-size: 0.85rem;
+      color: $text-muted;
+      font-weight: 600;
+    }
+  }
+
+  .roles-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+
+    .role-badge {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: $text-strong;
+      letter-spacing: 0.02em;
+    }
+  }
+
+  .no-roles-hint {
+    margin: 0;
+    font-size: 0.9rem;
+    color: $text-muted;
+    font-weight: 600;
+  }
+
+  .summary-hint {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $text-strong;
+
+    &.muted {
+      color: $text-muted;
+    }
+  }
+
+  .role-guidelines-card {
+    .guidelines-header {
+      display: flex;
+      align-items: flex-start;
+      gap: $spacing-md;
+    }
+
+    .guidelines-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: $text-strong;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: $text-strong;
+    }
+
+    p {
+      margin: 0;
+      color: $text-muted;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .guidelines-list {
+      margin: 0;
+      padding-left: $spacing-lg;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-sm;
+
+      li {
+        color: $text-strong;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+    }
+
+    .guidelines-footer {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: $text-muted;
+    }
+  }
+
   .loading {
     text-align: center;
     padding: $spacing-xl * 2;
     color: $text-muted;
     font-size: 1rem;
     font-weight: 600;
+  }
+
+  .inline-notification {
+    margin: 0 0 $spacing-md;
+    padding: $spacing-sm + 4 $spacing-md;
+    border-radius: 8px;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+    border: 1px solid transparent;
+    &.success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #86efac;
+    }
   }
 
   .error-message {
@@ -1238,3 +1432,470 @@ select {
     background: $border-glass;
   }
 }
+
+/* ====== MEJORAS ADICIONALES - role-requests.scss ====== */
+
+/* ✅ Notificación de éxito profesional */
+.success-notification {
+  margin: 0 0 $spacing-lg;
+  padding: 0;
+  animation: slideInDown 0.4s cubic-bezier(0.25, 0.6, 0.3, 1);
+
+  .notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-md;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.12));
+    border: 1.5px solid rgba(16, 185, 129, 0.4);
+    border-radius: $border-radius;
+    padding: $spacing-md $spacing-lg;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2), inset 0 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, $success-color, #059669);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+    }
+  }
+
+  .notification-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.15));
+    border-radius: 50%;
+    color: #86efac;
+    animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .notification-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #d1fae5;
+      font-family: 'Google Sans Code', monospace;
+      letter-spacing: 0.2px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #a7f3d0;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+  }
+
+  .notification-close {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #a7f3d0;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: $text-strong;
+      transform: scale(1.05);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+/* ✅ Header compacto para múltiples roles */
+.user-role-requests-inbox,
+.admin-role-requests-inbox {
+  .inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $border-glass;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+
+    .header-content {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    h2 {
+      margin: 0 0 4px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: $text-strong;
+      font-family: 'Google Sans Code', monospace;
+      letter-spacing: 0.2px;
+      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: $text-muted;
+      font-size: 0.875rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .pending-badge {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.2));
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      padding: $spacing-sm $spacing-md;
+      border-radius: 8px;
+      font-weight: 700;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+      flex-shrink: 0;
+      height: fit-content;
+
+      .count {
+        font-size: 1.25rem;
+        line-height: 1;
+      }
+
+      .label {
+        font-size: 0.875rem;
+        line-height: 1;
+      }
+    }
+  }
+}
+
+/* ✅ Información de roles actuales en modal */
+.current-roles-info {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.12), rgba(100, 116, 139, 0.08));
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+  padding: $spacing-md;
+  margin-bottom: $spacing-lg;
+  backdrop-filter: blur(8px);
+
+  .info-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-sm;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+
+    strong {
+      font-weight: 800;
+      font-family: 'Google Sans Code', monospace;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  .roles-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      background: linear-gradient(180deg, rgba(195, 164, 98, 0.25), rgba(195, 164, 98, 0.15));
+      border: 1px solid rgba(195, 164, 98, 0.35);
+      color: $primary-color;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+      text-transform: capitalize;
+      letter-spacing: 0.3px;
+    }
+  }
+}
+
+/* ✅ Advertencia de incompatibilidad con diseño profesional */
+.incompatibility-warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1));
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  border-radius: 10px;
+  padding: $spacing-md;
+  margin: $spacing-lg 0;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, $warning-color, #d97706);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  }
+
+  .warning-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+    color: #fbbf24;
+
+    svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      stroke: currentColor;
+    }
+
+    strong {
+      font-size: 1rem;
+      font-weight: 800;
+      font-family: 'Google Sans Code', monospace;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  .warning-content {
+    color: #fde68a;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    font-weight: 600;
+
+    p {
+      margin: 0 0 $spacing-sm;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul {
+      margin: $spacing-sm 0;
+      padding-left: $spacing-lg;
+      list-style: none;
+
+      li {
+        position: relative;
+        padding-left: $spacing-md;
+        margin-bottom: $spacing-xs;
+
+        &::before {
+          content: '▸';
+          position: absolute;
+          left: 0;
+          color: $warning-color;
+          font-weight: bold;
+        }
+
+        strong {
+          color: #fcd34d;
+          font-weight: 700;
+        }
+      }
+    }
+
+    strong {
+      color: #fcd34d;
+    }
+  }
+}
+
+/* ✅ Loading spinner mejorado */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  padding: $spacing-xl * 2;
+  text-align: center;
+
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  span {
+    color: $text-muted;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ✅ Responsive mejorado */
+@media (max-width: 768px) {
+
+  .user-role-requests-inbox,
+  .admin-role-requests-inbox {
+    .inbox-header {
+      flex-direction: column;
+      align-items: stretch;
+
+      .header-content {
+        width: 100%;
+      }
+
+      .pending-badge {
+        align-self: flex-start;
+      }
+    }
+  }
+
+  .success-notification {
+    .notification-content {
+      padding: $spacing-md;
+      gap: $spacing-sm;
+    }
+
+    .notification-icon {
+      width: 32px;
+      height: 32px;
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .notification-text {
+      strong {
+        font-size: 0.9rem;
+      }
+
+      p {
+        font-size: 0.85rem;
+      }
+    }
+
+    .notification-close {
+      width: 28px;
+      height: 28px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  .current-roles-info {
+    .roles-badges {
+      .role-badge {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+      }
+    }
+  }
+
+  .incompatibility-warning {
+    padding: $spacing-sm;
+
+    .warning-header {
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      strong {
+        font-size: 0.9rem;
+      }
+    }
+
+    .warning-content {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+/* ✅ Accesibilidad mejorada */
+.notification-close:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid $primary-color;
+  outline-offset: 2px;
+}
+
+/* ✅ Dark mode refinement */
+@media (prefers-color-scheme: dark) {
+  .success-notification {
+    .notification-content {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.15));
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25), inset 0 1px rgba(255, 255, 255, 0.12);
+    }
+  }
+}
+
+

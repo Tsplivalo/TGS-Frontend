@@ -1,7 +1,7 @@
 <section class="stack-lg">
 
   <!-- LISTADO / PANEL PRINCIPAL -->
-  <div class="glass-dark card stack-md">
+  <div class="glass-dark card stack-md product-shell">
     <!-- Toolbar -->
     <header class="header">
       <h2 class="title">{{ 'product.title' | translate }}</h2>
@@ -13,12 +13,20 @@
     </header>
 
     <!-- Mensajes -->
+    <div class="success" *ngIf="success()"
+      style="background: rgba(76, 175, 80, 0.15); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 20px;">✔</span>
+      <strong>{{ success() }}</strong>
+    </div>
+
     <div class="error" *ngIf="error() as err">
       <strong>{{ 'common.error' | translate: {} : 'Error' }}</strong> {{ err }}
     </div>
     <div class="muted" *ngIf="loading()">
       {{ 'product.loading' | translate : {} : 'Cargando productos...' }}
     </div>
+
+    
 
     <!-- Estadísticas -->
     <div *ngIf="!loading() && products().length > 0" class="filters"
@@ -81,6 +89,8 @@
               <th style="width:140px;">{{ 'product.fields.price' | translate }}</th>
               <th style="width:120px;">{{ 'product.fields.stock' | translate }}</th>
               <th style="width:120px;">{{ 'product.fields.illegal' | translate }}</th>
+              <!-- ✅ NUEVA COLUMNA: Distribuidor (solo si es admin) -->
+              <th *ngIf="isAdmin()" style="width:180px;">Distribuidor(es)</th>
               <th style="width:140px;" class="right">{{ 'product.table.actions' | translate }}</th>
             </tr>
           </thead>
@@ -101,6 +111,12 @@
               <td>
                 <span class="badge" [class.badge-danger]="p.isIllegal" [class.badge-ok]="!p.isIllegal">
                   {{ p.isIllegal ? ('product.badges.yes' | translate) : ('product.badges.no' | translate) }}
+                </span>
+              </td>
+              <!-- ✅ NUEVA CELDA: Mostrar distribuidores (solo admins) -->
+              <td *ngIf="isAdmin()">
+                <span class="truncate" style="max-width: 160px;" [title]="getDistributorNames(p)">
+                  {{ getDistributorNames(p) }}
                 </span>
               </td>
               <td class="right">
@@ -132,104 +148,113 @@
             ? ('product.noResults.desc' | translate)
             : ('product.empty.desc' | translate) }}
           </p>
+          <!-- ✅ NUEVO: Mensaje especial para distribuidores sin productos -->
+          <p *ngIf="isDistributor() && !fTextApplied() && totalProducts() === 0" style="margin-top: 16px;">
+            💡 <strong>Consejo:</strong> Creá tu primer producto haciendo clic en "Nuevo Producto" arriba.
+          </p>
         </div>
       </ng-template>
     </section>
   </div>
 
-  <!-- FORMULARIO (PLEGABLE) -->
-  <div class="collapsible" [class.open]="isNewOpen">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
-        <h2 class="title">
-          {{ editId() == null
-          ? ('product.create' | translate)
-          : ('product.editTitle' | translate : { id: editId() } : ('Editar producto #' + editId())) }}
-        </h2>
+</section>
+
+<!-- MODAL/OVERLAY DE FORMULARIO (FUERA DEL SHELL) -->
+<div class="new-product-overlay" [class.is-open]="isNewOpen" [attr.aria-hidden]="!isNewOpen">
+  <button type="button" class="new-product-overlay__backdrop" (click)="toggleNew()" aria-label="Cerrar"></button>
+
+  <div class="new-product-overlay__panel glass-dark card">
+    <div class="header compact">
+      <h2 class="title">
+        {{ editId() == null
+        ? ('product.create' | translate)
+        : ('product.editTitle' | translate : { id: editId() } : ('Editar producto #' + editId())) }}
+      </h2>
+      <button type="button" class="btn-close" (click)="toggleNew()" aria-label="Cerrar">
+        ×
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+      <!-- DESCRIPCIÓN (3-50 chars) -->
+      <label class="label">
+        <span>{{ 'product.fields.description' | translate }} *</span>
+        <input class="input" formControlName="description" [placeholder]="'product.fields.description' | translate"
+          maxlength="50" />
+        <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
+          {{ 'product.descriptionRequired' | translate : {} : 'Descripción requerida (3-50 caracteres)' }}
+        </small>
+      </label>
+
+      <!-- DETALLE (3-200 chars) -->
+      <label class="label col-2">
+        <span>{{ 'product.fields.detail' | translate }} *</span>
+        <textarea class="input" formControlName="detail"
+          [placeholder]="'product.fields.detailPlaceholder' | translate : {} : 'Ingresá una descripción detallada del producto'"
+          rows="3" maxlength="200"></textarea>
+        <small class="hint" *ngIf="form.controls.detail.invalid && form.controls.detail.touched">
+          {{ 'product.detailRequired' | translate : {} : 'Detalle requerido (3-200 caracteres)' }}
+        </small>
+      </label>
+
+      <!-- PRECIO -->
+      <label class="label">
+        <span>{{ 'product.fields.price' | translate }} *</span>
+        <input class="input" type="number" min="0.01" step="0.01" formControlName="price"
+          (input)="coerceNumber('price', $event)" />
+        <small class="hint" *ngIf="form.controls.price.invalid && form.controls.price.touched">
+          {{ 'product.priceInvalid' | translate : {} : 'Ingresá un precio válido (mayor a 0)' }}
+        </small>
+      </label>
+
+      <!-- STOCK -->
+      <label class="label">
+        <span>{{ 'product.fields.stock' | translate }} *</span>
+        <input class="input" type="number" min="0" formControlName="stock" (input)="coerceNumber('stock', $event)" />
+        <small class="hint" *ngIf="form.controls.stock.invalid && form.controls.stock.touched">
+          {{ 'product.stockInvalid' | translate : {} : 'Ingresá un stock válido (0 o mayor)' }}
+        </small>
+      </label>
+
+      <!-- IS ILLEGAL -->
+      <label class="label switch">
+        <input type="checkbox" formControlName="isIllegal" />
+        <span>{{ 'product.fields.illegal' | translate }}</span>
+      </label>
+
+      <!-- Imagen (URL) -->
+      <label class="label col-2">
+        <span>{{ 'product.fields.imageUrl' | translate }}</span>
+        <input class="input" type="url" formControlName="imageUrl" placeholder="https://..."
+          (input)="onImageUrlInput($event)" />
+        <small class="muted">
+          {{ 'product.imageUrlHint' | translate : {} : 'Pegá un link a una imagen (JPG/PNG/WebP). Si preferís subir
+          archivo, usá el campo de abajo.' }}
+        </small>
+      </label>
+
+      <!-- Imagen (archivo) -->
+      <label class="label">
+        <span>{{ 'product.imageFile' | translate }}</span>
+        <input class="input" type="file" accept="image/*" (change)="onFileSelected($event)" />
+        <small class="muted">
+          {{ 'product.imageFileHint' | translate : {} : 'Opcional: subí una imagen desde tu dispositivo' }}
+        </small>
+      </label>
+
+      <!-- Preview -->
+      <div *ngIf="imagePreview() as img" class="image-preview col-2">
+        <img [src]="img" [alt]="'product.preview' | translate" />
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-        <!-- DESCRIPCIÓN (3-50 chars) -->
-        <label class="label">
-          <span>{{ 'product.fields.description' | translate }} *</span>
-          <input class="input" formControlName="description" [placeholder]="'product.fields.description' | translate"
-            maxlength="50" />
-          <small class="hint" *ngIf="form.controls.description.invalid && form.controls.description.touched">
-            {{ 'product.descriptionRequired' | translate : {} : 'Descripción requerida (3-50 caracteres)' }}
-          </small>
-        </label>
-
-        <!-- DETALLE (3-200 chars) -->
-        <label class="label col-2">
-          <span>{{ 'product.fields.detail' | translate }} *</span>
-          <textarea class="input" formControlName="detail"
-            [placeholder]="'product.fields.detailPlaceholder' | translate : {} : 'Ingresá una descripción detallada del producto'"
-            rows="3" maxlength="200"></textarea>
-          <small class="hint" *ngIf="form.controls.detail.invalid && form.controls.detail.touched">
-            {{ 'product.detailRequired' | translate : {} : 'Detalle requerido (3-200 caracteres)' }}
-          </small>
-        </label>
-
-        <!-- PRECIO -->
-        <label class="label">
-          <span>{{ 'product.fields.price' | translate }} *</span>
-          <input class="input" type="number" min="0.01" step="0.01" formControlName="price"
-            (input)="coerceNumber('price', $event)" />
-          <small class="hint" *ngIf="form.controls.price.invalid && form.controls.price.touched">
-            {{ 'product.priceInvalid' | translate : {} : 'Ingresá un precio válido (mayor a 0)' }}
-          </small>
-        </label>
-
-        <!-- STOCK -->
-        <label class="label">
-          <span>{{ 'product.fields.stock' | translate }} *</span>
-          <input class="input" type="number" min="0" formControlName="stock" (input)="coerceNumber('stock', $event)" />
-          <small class="hint" *ngIf="form.controls.stock.invalid && form.controls.stock.touched">
-            {{ 'product.stockInvalid' | translate : {} : 'Ingresá un stock válido (0 o mayor)' }}
-          </small>
-        </label>
-
-        <!-- IS ILLEGAL -->
-        <label class="label switch">
-          <input type="checkbox" formControlName="isIllegal" />
-          <span>{{ 'product.fields.illegal' | translate }}</span>
-        </label>
-
-        <!-- Imagen (URL) -->
-        <label class="label col-2">
-          <span>{{ 'product.fields.imageUrl' | translate }}</span>
-          <input class="input" type="url" formControlName="imageUrl" placeholder="https://..."
-            (input)="onImageUrlInput($event)" />
-          <small class="muted">
-            {{ 'product.imageUrlHint' | translate : {} : 'Pegá un link a una imagen (JPG/PNG/WebP). Si preferís subir
-            archivo, usá el campo de abajo.' }}
-          </small>
-        </label>
-
-        <!-- Imagen (archivo) -->
-        <label class="label">
-          <span>{{ 'product.imageFile' | translate }}</span>
-          <input class="input" type="file" accept="image/*" (change)="onFileSelected($event)" />
-          <small class="muted">
-            {{ 'product.imageFileHint' | translate : {} : 'Opcional: subí una imagen desde tu dispositivo' }}
-          </small>
-        </label>
-
-        <!-- Preview -->
-        <div *ngIf="imagePreview() as img" class="image-preview col-2">
-          <img [src]="img" [alt]="'product.preview' | translate" />
-        </div>
-
-        <div class="form-actions">
-          <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
-            {{ editId() == null ? ('common.create' | translate) : ('common.save' | translate) }}
-          </button>
-          <button class="btn ghost" type="button" (click)="new()" [disabled]="loading()">
-            {{ 'common.cancel' | translate }}
-          </button>
-        </div>
-      </form>
-    </div>
+      <div class="form-actions">
+        <button class="btn success" type="submit" [disabled]="form.invalid || loading()">
+          {{ editId() == null ? ('common.create' | translate) : ('common.save' | translate) }}
+        </button>
+        <button class="btn ghost" type="button" (click)="toggleNew()" [disabled]="loading()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
   </div>
-
-</section>
+</div>

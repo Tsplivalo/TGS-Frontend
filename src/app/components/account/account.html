@@ -1,4 +1,4 @@
-<!-- account.html (i18n aplicado) -->
+﻿<!-- account.html (i18n aplicado) -->
 <section class="account stack-lg">
   <header>
     <h2 id="account-title">{{ 'account.title' | translate }}</h2>
@@ -6,16 +6,16 @@
       <span class="completeness" [class.complete]="profileCompleteness() === 100">
         {{ profileCompleteness() }}{{ 'inbox.profileCompletenessSuffix' | translate }}
       </span>
-      <span class="verified" *ngIf="me()?.emailVerified">
-        ✓ {{ 'account.infoSection.emailVerifiedYes' | translate }}
-      </span>
+      <span class="verified" *ngIf="me()?.isVerified">{{ 'account.infoSection.adminVerified' | translate }}</span>
+
+
     </div>
   </header>
 
-  <!-- ⚠️ Banner de verificación de email -->
+  <!-- âš ï¸ Banner de verificaciÃ³n de email -->
   <div class="verification-banner" *ngIf="!loading() && me() && !me()?.emailVerified" role="alert">
     <div class="banner-content">
-      <div class="banner-icon">⚠️</div>
+      <div class="banner-icon">âš ï¸</div>
       <div class="banner-text">
         <strong>{{ 'account.verificationBanner.title' | translate }}</strong>
         <p>{{ 'account.verificationBanner.desc' | translate }}</p>
@@ -34,7 +34,7 @@
 
   <!-- Mensaje para completar perfil -->
   <div class="info-banner" *ngIf="showCompleteProfileMessage() && !hasPersonalInfo()" role="alert">
-    <strong>⚠️ {{ 'account.completeProfileBanner.title' | translate }}</strong>
+    <strong>âš ï¸ {{ 'account.completeProfileBanner.title' | translate }}</strong>
     <p>{{ 'account.completeProfileBanner.desc' | translate }}</p>
   </div>
 
@@ -59,7 +59,7 @@
     {{ e }}
   </div>
 
-  <!-- Mensajes de éxito -->
+  <!-- Mensajes de Ã©xito -->
   <div class="ok" *ngIf="ok() as m" role="status" aria-live="polite">
     {{ m }}
   </div>
@@ -69,7 +69,7 @@
     aria-labelledby="account-title" novalidate>
 
     <div class="grid">
-      <!-- Username (solo lectura si ya está establecido) -->
+      <!-- Username (solo lectura si ya estÃ¡ establecido) -->
       <label for="f-username">
         <span>{{ 'account.fields.username' | translate }}</span>
         <input id="f-username" name="username" [value]="me()?.username || ''" autocomplete="username" disabled
@@ -82,10 +82,10 @@
         <input id="f-email" type="email" [value]="me()?.email || ''" autocomplete="email" disabled />
       </label>
 
-      <!-- DNI (solo editable si no tiene información personal) -->
+      <!-- DNI (solo editable si no tiene informaciÃ³n personal) -->
       <label for="f-dni">
         <span>DNI *</span>
-        <input id="f-dni" name="dni" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
+        <input id="f-dni" name="dni" [attr.type]="me()?.hasPersonalInfo ? 'password' : 'text'" [value]="me()?.hasPersonalInfo ? '********' : ''"
           [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" autocomplete="off" maxlength="10"
           minlength="7" placeholder="12345678" />
       </label>
@@ -93,31 +93,31 @@
       <!-- Nombre completo -->
       <label for="f-name">
         <span>{{ 'account.fields.firstName' | translate }} *</span>
-        <input id="f-name" name="name" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
+        <input id="f-name" name="name" [attr.type]="me()?.hasPersonalInfo ? 'password' : 'text'" [value]="me()?.hasPersonalInfo ? '********' : ''"
           [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" autocomplete="name" maxlength="100"
-          placeholder="Juan Pérez" />
+          placeholder="Juan PÃ©rez" />
       </label>
 
-      <!-- Teléfono -->
+      <!-- TelÃ©fono -->
       <label for="f-phone">
         <span>{{ 'account.fields.phone' | translate }} *</span>
-        <input id="f-phone" name="phone" [value]="me()?.hasPersonalInfo ? '••••••••' : ''" type="tel" inputmode="tel"
+        <input id="f-phone" name="phone" [attr.type]="me()?.hasPersonalInfo ? 'password' : 'tel'" inputmode="tel" [value]="me()?.hasPersonalInfo ? '********' : ''"
           autocomplete="tel" [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo" maxlength="24"
           placeholder="+54 9 11 1234-5678" />
       </label>
 
-      <!-- Dirección -->
+      <!-- DirecciÃ³n -->
       <label class="wide" for="f-address">
         <span>{{ 'account.fields.address' | translate }} *</span>
-        <input id="f-address" name="address" [value]="me()?.hasPersonalInfo ? '••••••••' : ''"
+        <input id="f-address" name="address" [attr.type]="me()?.hasPersonalInfo ? 'password' : 'text'" [value]="me()?.hasPersonalInfo ? '********' : ''"
           autocomplete="street-address" [disabled]="me()?.hasPersonalInfo" [required]="!me()?.hasPersonalInfo"
           maxlength="200" placeholder="Av. Siempre Viva 123" />
       </label>
     </div>
 
-    <!-- Botones de acción -->
+    <!-- Botones de acciÃ³n -->
     <div class="actions">
-      <!-- Mostrar botón solo si NO tiene información personal -->
+      <!-- Mostrar botÃ³n solo si NO tiene informaciÃ³n personal -->
       <button type="submit" *ngIf="!me()?.hasPersonalInfo" [disabled]="saving()"
         [attr.aria-busy]="saving() ? 'true' : null">
         {{ saving() ? ('account.actions.saving' | translate) : ('account.actions.completeProfile' | translate) }}
@@ -130,7 +130,7 @@
     </div>
   </form>
 
-  <!-- Información adicional -->
+  <!-- InformaciÃ³n adicional -->
   <div class="info-section" *ngIf="me()">
     <h3>{{ 'account.infoSection.title' | translate }}</h3>
     <dl>
