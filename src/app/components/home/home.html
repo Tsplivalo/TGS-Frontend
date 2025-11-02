@@ -1,4 +1,9 @@
 <div class="home">
+  <!-- Efecto de partículas cayendo -->
+  <div class="falling-particles" aria-hidden="true">
+    <div class="particle" *ngFor="let p of [].constructor(30); let i = index" [style.--delay]="i * 0.3 + 's'"></div>
+  </div>
+
   <div class="layout" [class.logged-in]="isLoggedIn() && !showAuthPanel">
     <!-- IZQUIERDA: Panel Auth -->
     <section *ngIf="showAuthPanel" class="auth-panel glass" [class.mode-login]="mode()==='login'"
@@ -187,7 +192,7 @@
   </div>
 
   <!-- ✅ INTRODUCCIÓN con CARDS EXPANDIBLES - DISEÑO ORIGINAL RESTAURADO -->
-  <section class="intro-v2" aria-labelledby="intro-title">
+  <section class="intro-v2" id="intro-panel" aria-labelledby="intro-title">
     <div class="intro-shell">
       <div class="intro-header">
         <span class="pill">{{ 'home.pill' | translate }}</span>

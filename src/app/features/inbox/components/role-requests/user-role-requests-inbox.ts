@@ -11,18 +11,18 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-user-role-requests-inbox',
   standalone: true,
-  imports: [CommonModule, RoleRequestModalComponent, RoleRequestCardComponent,TranslateModule],
+  imports: [CommonModule, RoleRequestModalComponent, RoleRequestCardComponent, TranslateModule],
   templateUrl: './user-role-requests-inbox.html',
   styleUrls: ['./role-requests.scss']
 })
-
-
 export class UserRoleRequestsInboxComponent implements OnInit {
   private t = inject(TranslateService);
+  
   constructor(
     private auth: AuthService,
     private roleRequestService: RoleRequestService
   ) {}
+
   @Input() currentRoles: Role[] = [];
   @Input() hasCompleteProfile: boolean = false;
   @Input() isVerified: boolean = false;
@@ -33,12 +33,7 @@ export class UserRoleRequestsInboxComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
   isModalOpen: boolean = false;
-
-  readonly compatibilityRuleKeys: Array<'distributor' | 'partner' | 'authority'> = [
-    'distributor',
-    'partner',
-    'authority',
-  ];
+  showTooltip: boolean = false; // ✅ Control del tooltip
 
   ngOnInit(): void {
     this.loadRequests();
@@ -79,15 +74,4 @@ export class UserRoleRequestsInboxComponent implements OnInit {
     });
     this.closeModal();
   }
-
-  roleTranslationKey(role: Role): string {
-    return `roleRequests.inbox.roleLabels.${role.toLowerCase()}`;
-  }
-
-  userInitial(): string {
-    const source = this.userName || this.userEmail || '';
-    return source.trim().charAt(0).toUpperCase() || 'U';
-  }
-
-  trackRole = (_: number, role: Role) => role;
 }

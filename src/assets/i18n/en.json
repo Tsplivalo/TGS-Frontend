@@ -217,7 +217,8 @@
           "title": "Integrations and API",
           "detail": "Connect your systems, import data and automate processes without friction."
         }
-      }
+      },
+      "cta": "See full overview"
     },
     "steps": {
       "title": "How to start",
@@ -862,6 +863,28 @@
       "emptyTitle": "You have no requests",
       "emptyHint": "Create a new one with the new button."
     },
+    "info": {
+      "title": "How role requests work",
+      "intro": "Review which combinations are allowed before submitting your request.",
+      "rule1": {
+        "title": "If you're a Distributor:",
+        "desc": "You can add the Partner role but not Authority."
+      },
+      "rule2": {
+        "title": "If you're a Partner:",
+        "desc": "You can add the Distributor role but not Authority."
+      },
+      "rule3": {
+        "title": "If you're an Authority:",
+        "desc": "You cannot combine it with Partner or Distributor."
+      },
+      "rule4": {
+        "title": "Replacing incompatible roles:",
+        "desc": "If you need to replace an incompatible role, activate the change option in the form."
+      },
+      "footer": "If you need to replace an incompatible role, activate the change option in the form."
+    },
+
     "pending": {
       "title": "Pending (admin)",
       "emptyTitle": "No pending requests",

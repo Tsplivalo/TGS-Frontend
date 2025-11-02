@@ -5,13 +5,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth/auth';
 import { EmailVerificationService } from '../../features/inbox/services/email.verification.js';
+import { ProductImageService } from '../../services/product-image/product-image';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslateModule, FormsModule],
   templateUrl: './account.html',
   styleUrls: ['./account.scss'],
 })
@@ -19,6 +21,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly emailVerificationService = inject(EmailVerificationService);
+  private readonly productImageService = inject(ProductImageService);
   private readonly destroy$ = new Subject<void>();
 
   // Estado local
@@ -26,11 +29,11 @@ export class AccountComponent implements OnInit, OnDestroy {
   saving = signal(false);
   error = signal<string | null>(null);
   ok = signal<string | null>(null);
-  
+
   // Estado de verificación de email
   resendingEmail = signal(false);
   emailSent = signal(false);
-  
+
   // Flag para mostrar mensaje de completar perfil
   showCompleteProfileMessage = signal(false);
 
@@ -38,11 +41,23 @@ export class AccountComponent implements OnInit, OnDestroy {
   private cooldownInterval?: ReturnType<typeof setInterval>;
   resendCooldown = signal(0);
 
+  // Estado de foto de perfil
+  photoUrl = signal<string | null>(null);
+  photoUploading = signal(false);
+
+  // Estado de edición de información
+  editingPhone = signal(false);
+  editingAddress = signal(false);
+  editPhone = '';
+  editAddress = '';
+  savingEdit = signal(false);
+
   // Señales computadas
   me = computed(() => this.auth.user());
   profileCompleteness = computed(() => this.auth.profileCompleteness());
   hasPersonalInfo = computed(() => this.auth.hasPersonalInfo());
   canPurchase = computed(() => this.auth.canPurchase());
+  person = computed(() => this.me()?.person || null);
 
   ngOnInit(): void {
     // Verificar si viene con parámetro para completar perfil
@@ -52,6 +67,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     }
 
     this.fetchMe();
+    this.loadProfilePhoto();
   }
 
   ngOnDestroy(): void {
@@ -283,5 +299,141 @@ export class AccountComponent implements OnInit, OnDestroy {
    */
   getPurchaseRequirements(): string[] {
     return this.auth.getPurchaseRequirements();
+  }
+
+  /**
+   * Carga la foto de perfil desde localStorage
+   */
+  private loadProfilePhoto(): void {
+    const userId = this.me()?.id;
+    if (!userId) return;
+
+    const photoKey = `profile-photo-${userId}`;
+    const savedPhoto = this.productImageService.get(photoKey);
+    if (savedPhoto) {
+      this.photoUrl.set(savedPhoto);
+    }
+  }
+
+  /**
+   * Sube una nueva foto de perfil
+   */
+  uploadPhoto(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      this.error.set('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      this.error.set('La imagen no puede superar los 5MB');
+      return;
+    }
+
+    const userId = this.me()?.id;
+    if (!userId) return;
+
+    this.photoUploading.set(true);
+    this.error.set(null);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      const photoKey = `profile-photo-${userId}`;
+
+      // Guardar en localStorage
+      this.productImageService.set(photoKey, base64);
+      this.photoUrl.set(base64);
+      this.photoUploading.set(false);
+      this.ok.set('Foto de perfil actualizada correctamente');
+      setTimeout(() => this.ok.set(null), 3000);
+    };
+
+    reader.onerror = () => {
+      this.photoUploading.set(false);
+      this.error.set('Error al cargar la imagen');
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Cancela la edición de un campo
+   */
+  cancelEdit(field: 'phone' | 'address'): void {
+    if (field === 'phone') {
+      this.editingPhone.set(false);
+      this.editPhone = '';
+    } else {
+      this.editingAddress.set(false);
+      this.editAddress = '';
+    }
+  }
+
+  /**
+   * Guarda el teléfono editado
+   */
+  savePhone(): void {
+    const phone = this.editPhone.trim();
+    if (!phone) {
+      this.error.set('El teléfono no puede estar vacío');
+      return;
+    }
+
+    this.savingEdit.set(true);
+    this.error.set(null);
+
+    this.auth.updatePersonalInfo({ phone })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.savingEdit.set(false);
+          this.editingPhone.set(false);
+          this.editPhone = '';
+          this.ok.set('Teléfono actualizado correctamente');
+          setTimeout(() => this.ok.set(null), 3000);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.savingEdit.set(false);
+          this.handleError(err, 'Error al actualizar el teléfono');
+        }
+      });
+  }
+
+  /**
+   * Guarda la dirección editada
+   */
+  saveAddress(): void {
+    const address = this.editAddress.trim();
+    if (!address) {
+      this.error.set('La dirección no puede estar vacía');
+      return;
+    }
+
+    this.savingEdit.set(true);
+    this.error.set(null);
+
+    this.auth.updatePersonalInfo({ address })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.savingEdit.set(false);
+          this.editingAddress.set(false);
+          this.editAddress = '';
+          this.ok.set('Dirección actualizada correctamente');
+          setTimeout(() => this.ok.set(null), 3000);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.savingEdit.set(false);
+          this.handleError(err, 'Error al actualizar la dirección');
+        }
+      });
   }
 }

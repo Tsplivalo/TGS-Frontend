@@ -27,12 +27,26 @@ import { ChartConfiguration } from 'chart.js';
 type SaleForm = {
   id: FormControl<number | null>;
   clientDni: FormControl<string | null>;
-  distributorDni: FormControl<string | null>;
   productId: FormControl<number | null>;
   quantity: FormControl<number>;
 };
 
-type Line = { productId: number | null; quantity: number; filter?: string };
+type ProductOffer = {
+  productId: number;
+  description: string;
+  price: number;
+  stock: number;
+  distributorDni: string;
+  distributorName: string;
+  zoneName?: string;
+};
+
+type Line = {
+  productId: number | null;
+  distributorDni: string | null;
+  quantity: number;
+  filter?: string
+};
 
 interface DistributorDTO {
   dni: string;
@@ -105,12 +119,13 @@ export class SaleComponent implements OnInit {
   fClientDniApplied = signal('');
 
   // --- Filtros de selects ---
-  productFilter = '';
-  clientFilter = '';
-  distributorFilter = '';
+  clientSearch = signal('');
+  productSearch = signal('');
+  selectedClientDni = signal<string | null>(null);
+  selectedDistributorDni = signal<string | null>(null);
 
   // --- LÃ­neas de la venta en ediciÃ³n ---
-  lines = signal<Line[]>([{ productId: null, quantity: 1, filter: '' }]);
+  lines = signal<Line[]>([{ productId: null, distributorDni: null, quantity: 1, filter: '' }]);
 
   totalSales = computed(() => this.sales().length);
   totalRevenue = computed(() => 
@@ -120,10 +135,7 @@ export class SaleComponent implements OnInit {
   // --- Form reactivo (cabecera) ---
   form: FormGroup<SaleForm> = this.fb.group<SaleForm>({
     id: this.fb.control<number | null>(null),
-    clientDni: this.fb.control<string | null>(null, { 
-      validators: [Validators.required, Validators.minLength(6)] 
-    }),
-    distributorDni: this.fb.control<string | null>(null, { 
+    clientDni: this.fb.control<string | null>(null, {
       validators: [Validators.required, Validators.minLength(6)]
     }),
     productId: this.fb.control<number | null>(null, { validators: [Validators.min(1)] }),
@@ -151,7 +163,6 @@ export class SaleComponent implements OnInit {
 
   // Expuesto al template
   get clientControl() { return this.form.controls.clientDni; }
-  get distributorControl() { return this.form.controls.distributorDni; }
 
   // âœ… NUEVO: Formatea fecha ISO a DD/MM/YYYY HH:mm
   formatDateTimeDDMMYYYY(isoDate: string | undefined): string {
@@ -482,23 +493,32 @@ export class SaleComponent implements OnInit {
   });
 });
 
-  filteredProductsBy(filter: string): ProductDTO[] {
+  // Genera ofertas de productos (product x distributor combinations)
+  productOffers = computed(() => {
+    const offers: ProductOffer[] = [];
     const allProds = this.products();
-    const q = (filter || '').toLowerCase().trim();
-    
-    if (!q || q === '') {
-      return allProds;
-    }
-    
-    return allProds.filter(p => {
-      const matchId = String(p.id).includes(q);
-      const matchDesc = (p.description || '').toLowerCase().includes(q);
-      return matchId || matchDesc;
+
+    allProds.forEach(p => {
+      if (p.distributors && p.distributors.length > 0) {
+        p.distributors.forEach(d => {
+          offers.push({
+            productId: p.id,
+            description: p.description,
+            price: p.price,
+            stock: p.stock,
+            distributorDni: d.dni,
+            distributorName: d.name,
+            zoneName: d.zone?.name
+          });
+        });
+      }
     });
-  }
+
+    return offers;
+  });
 
   filteredClients = computed(() => {
-    const q = (this.clientFilter || '').toLowerCase().trim();
+    const q = this.clientSearch().toLowerCase().trim();
     if (!q) return this.clients();
     return this.clients().filter(c =>
       (c.dni || '').toLowerCase().includes(q) ||
@@ -506,12 +526,23 @@ export class SaleComponent implements OnInit {
     );
   });
 
-  filteredDistributors = computed(() => {
-    const q = (this.distributorFilter || '').toLowerCase().trim();
-    if (!q) return this.distributors();
-    return this.distributors().filter(d =>
-      (d.dni || '').toLowerCase().includes(q) ||
-      (d.name || '').toLowerCase().includes(q)
+  filteredProductOffers = computed(() => {
+    const q = this.productSearch().toLowerCase().trim();
+    const selectedDist = this.selectedDistributorDni();
+    let offers = this.productOffers();
+
+    // Filter by distributor if one is selected (from first product)
+    if (selectedDist) {
+      offers = offers.filter(o => o.distributorDni === selectedDist);
+    }
+
+    // Filter by search query
+    if (!q) return offers;
+    return offers.filter(o =>
+      String(o.productId).includes(q) ||
+      o.description.toLowerCase().includes(q) ||
+      o.distributorName.toLowerCase().includes(q) ||
+      (o.zoneName || '').toLowerCase().includes(q)
     );
   });
 
@@ -627,17 +658,17 @@ export class SaleComponent implements OnInit {
 
   private buildCreatePayload(): CreateSaleDTO {
     const clientDni = String(this.clientControl.value || '').trim();
-    const distributorDni = String(this.distributorControl.value || '').trim();
-    
+    const distributorDni = this.selectedDistributorDni() || '';
+
     const details: SaleDetailDTO[] = this.lines().map(l => ({
       productId: Number(l.productId),
       quantity: Number(l.quantity),
     }));
 
-    return { 
-      clientDni, 
+    return {
+      clientDni,
       distributorDni,
-      details 
+      details
     };
   }
 
@@ -673,35 +704,70 @@ export class SaleComponent implements OnInit {
   }
 
   new() {
-    this.form.reset({ 
-      id: null, 
-      clientDni: null, 
-      distributorDni: null, 
-      productId: null, 
-      quantity: 1 
+    this.form.reset({
+      id: null,
+      clientDni: null,
+      productId: null,
+      quantity: 1
     });
-    this.lines.set([{ productId: null, quantity: 1, filter: '' }]);
+    this.lines.set([{ productId: null, distributorDni: null, quantity: 1, filter: '' }]);
     this.submitted.set(false);
     this.error.set(null);
+    this.clientSearch.set('');
+    this.productSearch.set('');
+    this.selectedClientDni.set(null);
+    this.selectedDistributorDni.set(null);
     this.isNewOpen = false;
   }
 
   addLine() {
     const arr = [...this.lines()];
-    arr.push({ productId: null, quantity: 1, filter: '' });
+    arr.push({ productId: null, distributorDni: null, quantity: 1, filter: '' });
     this.lines.set(arr);
   }
 
   removeLine(idx: number) {
     const arr = [...this.lines()];
     arr.splice(idx, 1);
-    if (arr.length === 0) arr.push({ productId: null, quantity: 1, filter: '' });
+    if (arr.length === 0) {
+      arr.push({ productId: null, distributorDni: null, quantity: 1, filter: '' });
+    }
+
+    // Reset distributor selection if no lines have products
+    const hasProducts = arr.some(l => l.productId !== null);
+    if (!hasProducts) {
+      this.selectedDistributorDni.set(null);
+    }
+
     this.lines.set(arr);
   }
 
+  // Helper methods for template
+  selectClient(client: ClientDTO): void {
+    this.selectedClientDni.set(client.dni);
+    this.form.patchValue({ clientDni: client.dni });
+  }
+
+  selectProductOffer(offer: ProductOffer, lineIndex: number): void {
+    const arr = [...this.lines()];
+    const line = arr[lineIndex];
+
+    // If this is the first product selection, set the distributor
+    if (!this.selectedDistributorDni()) {
+      this.selectedDistributorDni.set(offer.distributorDni);
+    }
+
+    line.productId = offer.productId;
+    line.distributorDni = offer.distributorDni;
+    this.lines.set(arr);
+  }
+
+  trackByClientDni = (_: number, c: ClientDTO) => c.dni;
+  trackByOfferId = (_: number, o: ProductOffer) => `${o.productId}-${o.distributorDni}`;
+
   save() {
     this.submitted.set(true);
-    
+
     const clientDni = this.clientControl.value;
     if (!this.clientExists(clientDni)) {
       this.error.set(this.t.instant('sales.err.clientMissing'));
@@ -709,27 +775,25 @@ export class SaleComponent implements OnInit {
       return;
     }
 
-    const distributorDni = this.distributorControl.value;
-    if (!this.distributorExists(distributorDni)) {
-      this.error.set(this.t.instant('sales.err.distributorMissing'));
-      this.distributorControl.markAsTouched();
+    if (!this.selectedDistributorDni()) {
+      this.error.set('Debe seleccionar al menos un producto');
       return;
     }
 
     const errLines = this.validateLines(this.lines());
-    if (errLines) { 
-      this.error.set(errLines); 
-      return; 
+    if (errLines) {
+      this.error.set(errLines);
+      return;
     }
 
     this.loading.set(true);
     this.error.set(null);
 
     const payload = this.buildCreatePayload();
-    
+
     this.saleSrv.createSale(payload).subscribe({
-      next: () => { 
-        this.new(); 
+      next: () => {
+        this.new();
         this.loadSales();
         if (this.showStats() && this.stats()) {
           setTimeout(() => this.loadStats(), 500);

@@ -65,6 +65,7 @@ export class RoleRequestModalComponent implements OnChanges, OnInit {
   zones: ZoneDTO[] = [];
   products: ProductDTO[] = [];
   loadingCatalogs = false;
+  autoDetectedIncompatibility: boolean = false;
 
   readonly REQUESTABLE_ROLES: RoleOption[] = [
     {
@@ -143,9 +144,9 @@ export class RoleRequestModalComponent implements OnChanges, OnInit {
 
   get availableRoles(): RoleOption[] {
     return this.REQUESTABLE_ROLES.filter((role) => {
-      if (this.currentRoles.includes(role.value)) return false;
-      if (this.isRoleChange) return true;
-      return this.isRoleCompatible(role.value);
+      // Mostrar solo los roles que el usuario NO tiene actualmente
+      // La auto-detección de incompatibilidades se encargará de activar el modo cambio de rol
+      return !this.currentRoles.includes(role.value);
     });
   }
 
@@ -211,7 +212,81 @@ export class RoleRequestModalComponent implements OnChanges, OnInit {
     this.isRoleChange = checked;
     this.requestedRole = '';
     this.roleToRemove = '';
+    this.autoDetectedIncompatibility = false;
     this.error = null;
+  }
+
+  onRequestedRoleChange(): void {
+    if (!this.requestedRole) {
+      this.roleToRemove = '';
+      this.autoDetectedIncompatibility = false;
+      this.error = null;
+      return;
+    }
+
+    // ✅ AUTO-DETECCIÓN: Si el rol solicitado es incompatible con roles actuales
+    const incompatibleRoles = this.getIncompatibleCurrentRoles(this.requestedRole as Role);
+
+    if (incompatibleRoles.length > 0) {
+      // Activar modo cambio de rol automáticamente
+      this.isRoleChange = true;
+      this.autoDetectedIncompatibility = true;
+
+      // ✅ CASO ESPECIAL: AUTHORITY remueve TODOS los roles incompatibles automáticamente
+      if (this.requestedRole === Role.AUTHORITY) {
+        // Seleccionar el primer rol para el campo roleToRemove (requerido por el backend)
+        // pero el mensaje indicará que se removerán TODOS
+        this.roleToRemove = incompatibleRoles[0];
+        this.error = null;
+      } else {
+        // Para otros roles, seleccionar automáticamente si solo hay uno
+        if (incompatibleRoles.length === 1) {
+          this.roleToRemove = incompatibleRoles[0];
+          this.error = null;
+        } else {
+          // Si hay múltiples roles incompatibles, pedir selección
+          this.roleToRemove = '';
+          this.error = `El rol ${this.requestedRole} es incompatible con: ${incompatibleRoles.join(', ')}. Debes seleccionar uno para remover.`;
+        }
+      }
+    } else {
+      // No hay incompatibilidad, reset
+      if (this.autoDetectedIncompatibility) {
+        this.isRoleChange = false;
+        this.roleToRemove = '';
+        this.autoDetectedIncompatibility = false;
+      }
+      this.error = null;
+    }
+  }
+
+  getIncompatibleCurrentRoles(requestedRole: Role): Role[] {
+    const incompatibleWith = this.INCOMPATIBLE_ROLES[requestedRole] || [];
+    return this.currentRoles.filter(role => incompatibleWith.includes(role));
+  }
+
+  shouldDisableRoleToRemove(): boolean {
+    if (!this.autoDetectedIncompatibility || !this.requestedRole) return false;
+    return this.getIncompatibleCurrentRoles(this.requestedRole as Role).length === 1;
+  }
+
+  getIncompatibleRolesNames(): string {
+    if (!this.requestedRole) return '';
+    const incompatibleRoles = this.getIncompatibleCurrentRoles(this.requestedRole as Role);
+    return incompatibleRoles
+      .map(role => this.getRoleInfo(role)?.label || role)
+      .join(', ');
+  }
+
+  isAuthorityWithMultipleIncompatible(): boolean {
+    if (!this.requestedRole || this.requestedRole !== Role.AUTHORITY) return false;
+    return this.getIncompatibleCurrentRoles(this.requestedRole as Role).length > 1;
+  }
+
+  isNotAuthorityOrSingleIncompatible(): boolean {
+    if (!this.requestedRole) return false;
+    if (this.requestedRole !== Role.AUTHORITY) return true;
+    return this.getIncompatibleCurrentRoles(this.requestedRole as Role).length === 1;
   }
 
   getRoleInfo(role: Role | ''): RoleOption | undefined {
@@ -428,6 +503,7 @@ export class RoleRequestModalComponent implements OnChanges, OnInit {
     this.roleToRemove = '';
     this.justification = '';
     this.isRoleChange = false;
+    this.autoDetectedIncompatibility = false;
     this.error = null;
     this.currentStep = 1;
     this.roleSpecificData = {};

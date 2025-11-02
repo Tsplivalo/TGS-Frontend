@@ -198,7 +198,7 @@
   <div class="new-sale-overlay" [class.is-open]="isNewOpen" [attr.aria-hidden]="!isNewOpen">
     <button type="button" class="new-sale-overlay__backdrop" (click)="toggleNew()" aria-label="Cerrar"></button>
 
-    <div class="new-sale-overlay__panel glass-dark card" (click)="$event.stopPropagation()">
+    <div class="new-sale-overlay__panel glass-dark card" (click)="$event.stopPropagation()" style="overscroll-behavior: contain;">
       <div class="header compact">
         <h2 class="title">{{ 'sales.newTitle' | translate }}</h2>
         <button type="button" class="btn-close" (click)="toggleNew()" aria-label="Cerrar">&times;</button>
@@ -209,97 +209,115 @@
         <div class="error">{{ error() }}</div>
         }
 
-        <!-- Client -->
-        <label class="label">
-          <span>{{ 'sales.form.client' | translate }} *</span>
-          <input class="input" [placeholder]="'sales.form.clientFilterPh' | translate" maxlength="8"
-            [(ngModel)]="clientFilter" [ngModelOptions]="{standalone: true}" name="fltClient" />
-          <select class="input" formControlName="clientDni">
-            <option [ngValue]="null" disabled>{{ 'sales.form.chooseClient' | translate }}</option>
-            @for (c of filteredClients(); track c.dni) {
-            <option [ngValue]="c.dni">{{ c.dni }} - {{ c.name }}</option>
-            }
-          </select>
-          <small class="muted">{{ 'sales.form.clientHint' | translate }}</small>
-          <small class="hint" *ngIf="clientControl.invalid && clientControl.touched">
-            {{ 'sales.form.clientRequired' | translate : {} : 'Cliente requerido' }}
-          </small>
-        </label>
+        <!-- Client Selector con diseño de tarjetas -->
+        <div style="grid-column: 1 / -1;">
+          <label class="label">
+            <span style="color: var(--accent); font-weight: 600;">👤 {{ 'sales.form.client' | translate }} *</span>
+            <input
+              class="input"
+              type="text"
+              [value]="clientSearch()"
+              (input)="clientSearch.set($any($event.target).value)"
+              [placeholder]="'sales.form.clientFilterPh' | translate"
+            />
+          </label>
 
-        <!-- Distributor -->
-        <label class="label">
-          <span>{{ 'sales.form.distributor' | translate }} *</span>
-          <input class="input" [placeholder]="'sales.form.distributorFilterPh' | translate" maxlength="8"
-            [(ngModel)]="distributorFilter" [ngModelOptions]="{standalone: true}" name="fltDistributor" />
-
-          <select class="input" formControlName="distributorDni">
-            <option [ngValue]="null" disabled>{{ 'sales.form.chooseDistributor' | translate }}</option>
-            @for (d of filteredDistributors(); track d.dni) {
-            <option [ngValue]="d.dni">{{ d.dni }} - {{ d.name }}</option>
-            }
-          </select>
-          <small class="muted">{{ 'sales.form.distributorHint' | translate }}</small>
-          <small class="hint" *ngIf="distributorControl.invalid && distributorControl.touched">
-            {{ 'sales.form.distributorRequired' | translate }}
-          </small>
-        </label>
+          <div *ngIf="filteredClients().length > 0"
+            style="padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-top: var(--sp-2);">
+            <h4 style="margin: 0 0 var(--sp-2) 0; font-size: 0.875rem; color: rgba(195, 164, 98, 0.9);">
+              Clientes disponibles ({{ filteredClients().length }})
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: var(--sp-2); max-height: 250px; overflow-y: auto;">
+              <div *ngFor="let c of filteredClients(); trackBy: trackByClientDni"
+                (click)="selectClient(c)"
+                [style.background]="selectedClientDni() === c.dni ? 'rgba(195, 164, 98, 0.3)' : 'rgba(0, 0, 0, 0.2)'"
+                style="padding: var(--sp-2); border-radius: 6px; cursor: pointer; border: 1px solid rgba(195, 164, 98, 0.3); transition: all 0.2s;"
+                onmouseenter="this.style.background='rgba(195, 164, 98, 0.2)'"
+                onmouseleave="this.style.background='rgba(0, 0, 0, 0.2)'">
+                <div style="font-weight: 600; color: rgba(195, 164, 98, 1);">{{ c.name }}</div>
+                <div style="font-size: 0.813rem; color: rgba(255, 255, 255, 0.8); font-family: monospace;">
+                  DNI: {{ c.dni }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="filteredClients().length === 0"
+            style="padding: var(--sp-3); text-align: center; color: var(--muted); background: rgba(195, 164, 98, 0.05); border-radius: 8px; border: 1px dashed rgba(195, 164, 98, 0.3); margin-top: var(--sp-2);">
+            <p style="margin: 0;">No hay clientes disponibles</p>
+          </div>
+        </div>
 
         <div class="subheader">{{ 'sales.form.products' | translate }}</div>
 
         @for (l of lines(); track $index; let i = $index) {
-        <div class="linea" style="grid-column: 1 / -1;">
-          <div class="linea__row">
-            <div class="linea__cell">
-              <label class="label">
-                <span>{{ 'sales.form.searchProduct' | translate }}</span>
-                <input class="input" [placeholder]="'sales.form.searchProductPh' | translate" [(ngModel)]="l.filter"
-                  [ngModelOptions]="{standalone: true}" [name]="'fltProd' + i" />
-              </label>
-            </div>
+        <div class="linea" style="grid-column: 1 / -1; border: 1px solid rgba(195, 164, 98, 0.2); border-radius: 8px; padding: var(--sp-3); background: rgba(0, 0, 0, 0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-2);">
+            <h4 style="margin: 0; color: rgba(195, 164, 98, 0.9);">Producto {{ i + 1 }}</h4>
+            <button class="btn danger btn--icon" type="button" (click)="removeLine(i)"
+              [attr.title]="'sales.form.removeLineTitle' | translate">
+              🗑️
+            </button>
+          </div>
 
-            <div class="linea__cell">
-              <label class="label">
-                <span>{{ 'sales.form.product' | translate }}</span>
-                <select class="input" [(ngModel)]="l.productId" [ngModelOptions]="{standalone: true}"
-                  [name]="'prod' + i">
-                  <option [ngValue]="null" disabled>{{ 'sales.form.chooseProduct' | translate }}</option>
-                  @for (p of filteredProductsBy(l.filter || ''); track p.id) {
-                  <option [ngValue]="p.id">
-                    {{ p.id }} - {{ p.description }} ({{ p.stock }} {{ 'sales.form.units' | translate }}) - {{ p.price |
-                    currency:'ARS' }}
-                  </option>
-                  }
-                  @empty {
-                  <option disabled>{{ 'sales.form.noProductsAvailable' | translate }}</option>
-                  }
-                </select>
-                <small class="muted" *ngIf="products().length === 0">
-                  {{ 'sales.form.noProductsLoaded' | translate:{count: products().length} }}
-                </small>
-                <small class="muted" *ngIf="products().length > 0">
-                  {{ 'sales.form.availableProductsCount' | translate:{count: filteredProductsBy(l.filter || '').length}
-                  }}
-                </small>
-              </label>
-            </div>
+          <!-- Búsqueda de productos -->
+          <label class="label">
+            <span style="color: var(--accent); font-weight: 600;">📦 {{ 'sales.form.product' | translate }}</span>
+            <input
+              class="input"
+              type="text"
+              [value]="productSearch()"
+              (input)="productSearch.set($any($event.target).value)"
+              [placeholder]="'sales.form.searchProductPh' | translate"
+            />
+          </label>
 
-            <div class="linea__cell sm">
-              <label class="label">
-                <span>{{ 'sales.form.quantity' | translate }}</span>
-                <input class="input" type="number" min="1" step="1" [attr.max]="getStock(l.productId) || null"
-                  [title]="'sales.form.stockTitle' | translate:{stock: getStock(l.productId) || 0}"
-                  [(ngModel)]="l.quantity" (blur)="clampQuantity(i)" [ngModelOptions]="{standalone: true}"
-                  [name]="'cant' + i" />
-              </label>
-            </div>
-
-            <div class="linea__cell actions">
-              <button class="btn danger btn--icon" type="button" (click)="removeLine(i)"
-                [attr.title]="'sales.form.removeLineTitle' | translate">
-                🗑️
-              </button>
+          <!-- Lista de ofertas de productos -->
+          <div *ngIf="filteredProductOffers().length > 0"
+            style="padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2); margin-top: var(--sp-2);">
+            <h4 style="margin: 0 0 var(--sp-2) 0; font-size: 0.875rem; color: rgba(195, 164, 98, 0.9);">
+              Productos disponibles ({{ filteredProductOffers().length }})
+              <span *ngIf="selectedDistributorDni()" style="color: rgba(255, 255, 255, 0.7); font-weight: normal;">
+                - Filtrado por distribuidor seleccionado
+              </span>
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: var(--sp-2); max-height: 300px; overflow-y: auto;">
+              <div *ngFor="let offer of filteredProductOffers(); trackBy: trackByOfferId"
+                (click)="selectProductOffer(offer, i)"
+                [style.background]="l.productId === offer.productId && l.distributorDni === offer.distributorDni ? 'rgba(195, 164, 98, 0.3)' : 'rgba(0, 0, 0, 0.2)'"
+                style="padding: var(--sp-2); border-radius: 6px; cursor: pointer; border: 1px solid rgba(195, 164, 98, 0.3); transition: all 0.2s;"
+                onmouseenter="this.style.background='rgba(195, 164, 98, 0.2)'"
+                onmouseleave="this.style.background='rgba(0, 0, 0, 0.2)'">
+                <div style="font-weight: 600; color: rgba(195, 164, 98, 1);">{{ offer.description }}</div>
+                <div style="font-size: 0.813rem; color: rgba(255, 255, 255, 0.8); margin-top: 4px;">
+                  <span style="font-family: monospace;">ID: {{ offer.productId }}</span> •
+                  <span style="color: #81c784;">{{ offer.price | currency:'ARS' }}</span> •
+                  <span>Stock: {{ offer.stock }}</span>
+                </div>
+                <div style="font-size: 0.75rem; margin-top: 6px;">
+                  <span style="background: rgba(33, 150, 243, 0.25); padding: 2px 6px; border-radius: 4px; color: #64b5f6; font-weight: 500;">
+                    🚚 {{ offer.distributorName }}
+                  </span>
+                  <span *ngIf="offer.zoneName"
+                    style="background: rgba(156, 39, 176, 0.25); padding: 2px 6px; border-radius: 4px; color: #ba68c8; font-weight: 500; margin-left: 4px;">
+                    📍 {{ offer.zoneName }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
+          <div *ngIf="filteredProductOffers().length === 0"
+            style="padding: var(--sp-3); text-align: center; color: var(--muted); background: rgba(195, 164, 98, 0.05); border-radius: 8px; border: 1px dashed rgba(195, 164, 98, 0.3); margin-top: var(--sp-2);">
+            <p style="margin: 0;">No hay productos disponibles</p>
+          </div>
+
+          <!-- Cantidad -->
+          <label class="label" style="margin-top: var(--sp-3); max-width: 200px;">
+            <span>{{ 'sales.form.quantity' | translate }}</span>
+            <input class="input" type="number" min="1" step="1" [attr.max]="getStock(l.productId) || null"
+              [title]="'sales.form.stockTitle' | translate:{stock: getStock(l.productId) || 0}"
+              [(ngModel)]="l.quantity" (blur)="clampQuantity(i)" [ngModelOptions]="{standalone: true}"
+              [name]="'cant' + i" />
+          </label>
         </div>
         }
 

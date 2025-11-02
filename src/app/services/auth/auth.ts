@@ -374,6 +374,26 @@ export class AuthService {
     );
   }
 
+  /**
+   * Actualiza información personal del usuario (teléfono, dirección)
+   */
+  updatePersonalInfo(data: { phone?: string; address?: string }): Observable<User> {
+    console.log('[AuthService] ✏️ Updating personal info:', data);
+
+    return this.http.patch<AuthResponse>(
+      `${API_URL}/api/users/me/personal-info`,
+      data,
+      { withCredentials: true }
+    ).pipe(
+      map(response => response.data),
+      tap(user => {
+        console.log('[AuthService] ✅ Personal info updated successfully');
+        this.setUser(user);
+      }),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
 
   // ============================================================================
   // MÉTODOS PÚBLICOS - REFRESH MANUAL

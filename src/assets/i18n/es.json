@@ -235,7 +235,8 @@
           "title": "Integraciones y API",
           "detail": "Conectá tus sistemas, importá datos y automatizá procesos sin fricción."
         }
-      }
+      },
+      "cta": "Ver resumen completo"
     },
     "steps": {
       "title": "Cómo empezar",
@@ -860,6 +861,27 @@
       "emptyTitle": "No tenés solicitudes",
       "emptyHint": "Creá una nueva con el botón “+ Nueva”."
     },
+    "info": {
+      "title": "Cómo funcionan las solicitudes de rol",
+      "intro": "Revisá qué combinaciones están permitidas antes de enviar tu solicitud.",
+      "rule1": {
+        "title": "Si sos Distribuidor:",
+        "desc": "Podés sumar el rol Socio pero no Autoridad."
+      },
+      "rule2": {
+        "title": "Si sos Socio:",
+        "desc": "Podés sumar el rol Distribuidor pero no Autoridad."
+      },
+      "rule3": {
+        "title": "Si sos Autoridad:",
+        "desc": "No podés combinarlo con Socio ni Distribuidor."
+      },
+      "rule4": {
+        "title": "Reemplazo de roles incompatibles:",
+        "desc": "Si necesitás reemplazar un rol incompatible, activá la opción de cambio en el formulario."
+      },
+      "footer": "Si necesitás reemplazar un rol incompatible, activá la opción de cambio en el formulario."
+    },
     "pending": {
       "title": "Pendientes (admin)",
       "emptyTitle": "No hay solicitudes pendientes",
@@ -1355,7 +1377,6 @@
       }
     }
   },
-  
   "about": {
     "title": "Sobre nosotros",
     "lead": "Somos un equipo apasionado por crear soluciones eficientes y escalables.",
@@ -1406,7 +1427,8 @@
       "hours": "Horarios de Atención",
       "location": "Ubicación",
       "usefulLinksTitle": "Enlaces Útiles",
-      "usefulLinksLead": "Acceso rápido a documentación y recursos"},
+      "usefulLinksLead": "Acceso rápido a documentación y recursos"
+    },
     "channels": {
       "email": {
         "label": "Email",
@@ -1477,7 +1499,7 @@
       }
     }
   },
-    "footer": {
+  "footer": {
     "tagline": "La plataforma que lleva tu negocio al siguiente nivel",
     "rights": "Todos los derechos reservados",
     "sections": {
@@ -1504,9 +1526,7 @@
       "prefix": "Proyecto académico de",
       "name": "UTN Rosario"
     }
-  }
-
-  ,
+  },
   "notifications": {
     "roleRequestApproved": "Solicitud de rol aprobada correctamente.",
     "roleRequestRejected": "Solicitud de rol rechazada correctamente.",
@@ -1531,7 +1551,9 @@
         },
         "usage": {
           "title": "2. Uso del Sistema",
-          "content": ["El sistema GarrSYS está destinado exclusivamente para uso interno de la organización y sus miembros autorizados. Usted se compromete a:"],
+          "content": [
+            "El sistema GarrSYS está destinado exclusivamente para uso interno de la organización y sus miembros autorizados. Usted se compromete a:"
+          ],
           "list": [
             "Utilizar el sistema de manera responsable y conforme a la ley",
             "Mantener la confidencialidad de sus credenciales de acceso",
@@ -1542,7 +1564,9 @@
         },
         "roles": {
           "title": "3. Roles y Permisos",
-          "content": ["GarrSYS implementa un sistema de roles con diferentes niveles de acceso:"],
+          "content": [
+            "GarrSYS implementa un sistema de roles con diferentes niveles de acceso:"
+          ],
           "list": [
             "ADMIN: Acceso completo al sistema, gestión de usuarios y configuración",
             "DISTRIBUTOR: Gestión de productos, inventario y operaciones comerciales",
@@ -1586,7 +1610,9 @@
       "sections": {
         "information": {
           "title": "1. Información que Recopilamos",
-          "content": ["GarrSYS recopila y almacena información necesaria para el funcionamiento del sistema de gestión empresarial. Esta información incluye:"],
+          "content": [
+            "GarrSYS recopila y almacena información necesaria para el funcionamiento del sistema de gestión empresarial. Esta información incluye:"
+          ],
           "list": [
             "Datos de perfil: nombre, email, nombre de usuario",
             "Información de roles y permisos dentro del sistema",
@@ -1597,7 +1623,9 @@
         },
         "usage": {
           "title": "2. Cómo Utilizamos su Información",
-          "content": ["La información recopilada se utiliza exclusivamente para los siguientes propósitos:"],
+          "content": [
+            "La información recopilada se utiliza exclusivamente para los siguientes propósitos:"
+          ],
           "list": [
             "Gestión de cuentas de usuario y autenticación",
             "Administración de inventario y operaciones comerciales",
@@ -1609,7 +1637,9 @@
         },
         "protection": {
           "title": "3. Protección de Datos",
-          "content": ["Implementamos medidas de seguridad técnicas y organizativas para proteger su información:"],
+          "content": [
+            "Implementamos medidas de seguridad técnicas y organizativas para proteger su información:"
+          ],
           "list": [
             "Encriptación de contraseñas mediante Argon2",
             "Autenticación basada en JWT (JSON Web Tokens)",
@@ -1620,7 +1650,9 @@
         },
         "sharing": {
           "title": "4. Compartir Información",
-          "content": ["No vendemos, alquilamos ni compartimos su información personal con terceros, excepto en los siguientes casos:"],
+          "content": [
+            "No vendemos, alquilamos ni compartimos su información personal con terceros, excepto en los siguientes casos:"
+          ],
           "list": [
             "Cuando sea necesario para cumplir con obligaciones legales",
             "Con socios comerciales autorizados dentro del sistema",
@@ -1637,7 +1669,9 @@
         },
         "rights": {
           "title": "6. Sus Derechos",
-          "content": ["Como usuario de GarrSYS, usted tiene los siguientes derechos sobre sus datos personales:"],
+          "content": [
+            "Como usuario de GarrSYS, usted tiene los siguientes derechos sobre sus datos personales:"
+          ],
           "list": [
             "Acceder a la información que tenemos sobre usted",
             "Solicitar la corrección de datos inexactos",
@@ -1648,7 +1682,9 @@
         },
         "cookies": {
           "title": "7. Cookies y Tecnologías Similares",
-          "content": ["GarrSYS utiliza localStorage y sessionStorage para mantener su sesión activa y mejorar la experiencia de usuario. Para más detalles, consulte nuestra Política de Cookies."]
+          "content": [
+            "GarrSYS utiliza localStorage y sessionStorage para mantener su sesión activa y mejorar la experiencia de usuario. Para más detalles, consulte nuestra Política de Cookies."
+          ]
         },
         "changes": {
           "title": "8. Cambios a esta Política",
@@ -1671,7 +1707,9 @@
         },
         "technologies": {
           "title": "2. Tecnologías que Utilizamos",
-          "content": ["GarrSYS emplea las siguientes tecnologías de almacenamiento:"],
+          "content": [
+            "GarrSYS emplea las siguientes tecnologías de almacenamiento:"
+          ],
           "list": [
             "localStorage: Para almacenar tokens de autenticación y preferencias persistentes",
             "sessionStorage: Para datos temporales durante su sesión",
@@ -1680,7 +1718,9 @@
         },
         "purpose": {
           "title": "3. Propósito del Almacenamiento Local",
-          "content": ["Utilizamos estas tecnologías para los siguientes propósitos esenciales:"],
+          "content": [
+            "Utilizamos estas tecnologías para los siguientes propósitos esenciales:"
+          ],
           "list": [
             "Mantener su sesión activa mientras navega por el sistema",
             "Recordar sus preferencias de idioma (español/inglés)",
@@ -1699,7 +1739,9 @@
         },
         "management": {
           "title": "5. Gestión de Datos Almacenados",
-          "content": ["Usted tiene control total sobre los datos almacenados en su navegador:"],
+          "content": [
+            "Usted tiene control total sobre los datos almacenados en su navegador:"
+          ],
           "list": [
             "Puede cerrar sesión en cualquier momento para eliminar tokens de autenticación",
             "Puede limpiar el localStorage manualmente desde las herramientas de desarrollo del navegador",
@@ -1709,7 +1751,9 @@
         },
         "security": {
           "title": "6. Seguridad",
-          "content": ["Los tokens almacenados están protegidos mediante las siguientes medidas:"],
+          "content": [
+            "Los tokens almacenados están protegidos mediante las siguientes medidas:"
+          ],
           "list": [
             "Los tokens JWT están firmados criptográficamente",
             "Los refresh tokens tienen una vida útil limitada",
@@ -1726,7 +1770,9 @@
         },
         "disable": {
           "title": "8. Cómo Deshabilitar el Almacenamiento",
-          "content": ["Si desea deshabilitar el almacenamiento local, puede hacerlo desde la configuración de su navegador. Sin embargo, tenga en cuenta que esto afectará significativamente la funcionalidad del sistema:"],
+          "content": [
+            "Si desea deshabilitar el almacenamiento local, puede hacerlo desde la configuración de su navegador. Sin embargo, tenga en cuenta que esto afectará significativamente la funcionalidad del sistema:"
+          ],
           "list": [
             "No podrá iniciar sesión ni mantener su sesión activa",
             "Sus preferencias de idioma no se guardarán",
@@ -1743,6 +1789,4 @@
       }
     }
   }
-
 }
-  

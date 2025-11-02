@@ -594,5 +594,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  scrollToIntro(): void {
+    if (typeof window === 'undefined') return;
+    const el = document.getElementById('intro-panel');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   goStore() { this.router.navigateByUrl('/tienda'); }
 }

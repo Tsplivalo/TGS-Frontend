@@ -9,7 +9,10 @@
       "Bash(cat:*)",
       "Bash(git checkout:*)",
       "Bash(node -e:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(admin.scss.new)",
+      "Bash(admin.ts.new)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

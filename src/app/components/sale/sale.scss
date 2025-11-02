@@ -2478,7 +2478,7 @@ fieldset.group legend {
   transition: opacity .3s ease;
   z-index: 100;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: var(--sp-6);
   overflow-y: auto;
@@ -2505,7 +2505,6 @@ fieldset.group legend {
   max-height: calc(100vh - var(--sp-6) * 2);
   overflow-y: auto;
   overflow-x: hidden;
-  margin-top: var(--sp-6);
   transform: translateY(-20px) scale(.96);
   opacity: 0;
   transition: transform .3s cubic-bezier(.18, .84, .4, 1), opacity .3s ease;

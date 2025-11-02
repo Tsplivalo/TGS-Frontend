@@ -88,12 +88,12 @@
   min-height: 0;
 }
 
-.admin-shell {
+.client-shell {
   position: relative;
   overflow: visible;
 }
 
-.new-admin-overlay {
+.new-client-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -101,18 +101,18 @@
   transition: opacity .3s ease;
   z-index: 110;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: var(--sp-6);
   overflow-y: auto;
 }
 
-.new-admin-overlay.is-open {
+.new-client-overlay.is-open {
   opacity: 1;
   pointer-events: auto;
 }
 
-.new-admin-overlay__backdrop {
+.new-client-overlay__backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
@@ -122,12 +122,13 @@
   z-index: -1;
 }
 
-.new-admin-overlay__panel {
+.new-client-overlay__panel {
   position: relative;
   width: min(760px, 100%);
   max-height: calc(100vh - var(--sp-6) * 2);
   overflow-y: auto;
   overflow-x: hidden;
+  margin-top: var(--sp-6);
   transform: translateY(-20px) scale(.96);
   opacity: 0;
   transition: transform .3s cubic-bezier(.18, .84, .4, 1), opacity .3s ease;
@@ -138,34 +139,34 @@
   scrollbar-color: rgba(195, 164, 98, .3) transparent;
 }
 
-.new-admin-overlay__panel::-webkit-scrollbar {
+.new-client-overlay__panel::-webkit-scrollbar {
   width: 8px;
 }
 
-.new-admin-overlay__panel::-webkit-scrollbar-track {
+.new-client-overlay__panel::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.new-admin-overlay__panel::-webkit-scrollbar-thumb {
+.new-client-overlay__panel::-webkit-scrollbar-thumb {
   background: rgba(195, 164, 98, .3);
   border-radius: 4px;
 }
 
-.new-admin-overlay__panel::-webkit-scrollbar-thumb:hover {
+.new-client-overlay__panel::-webkit-scrollbar-thumb:hover {
   background: rgba(195, 164, 98, .5);
 }
 
-.new-admin-overlay.is-open .new-admin-overlay__panel {
+.new-client-overlay.is-open .new-client-overlay__panel {
   transform: translateY(0) scale(1);
   opacity: 1;
 }
 
-.new-admin-overlay__panel.card::before,
-.new-admin-overlay__panel.card::after {
+.new-client-overlay__panel.card::before,
+.new-client-overlay__panel.card::after {
   display: none;
 }
 
-.new-admin-overlay__panel .header {
+.new-client-overlay__panel .header {
   margin-bottom: var(--sp-4);
 }
 
@@ -1057,11 +1058,11 @@ fieldset.group legend {
 }
 
 @media (max-width: 768px) {
-  .new-admin-overlay {
+  .new-client-overlay {
     padding: var(--sp-3);
   }
 
-  .new-admin-overlay__panel {
+  .new-client-overlay__panel {
     margin-top: var(--sp-3);
   }
 }

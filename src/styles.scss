@@ -59,6 +59,7 @@ body {
   --sp-7: 48px;
 
   --container-max: 1200px;
+  --footer-gap: 280px;
 
   --app-bg:
     radial-gradient(1200px 600px at 20% 80%,
@@ -300,6 +301,7 @@ app {
   flex: 1 0 auto;
   /* ✅ Esto hace que el contenido empuje el footer hacia abajo */
   padding: 1rem;
+  padding-bottom: var(--footer-gap);
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
