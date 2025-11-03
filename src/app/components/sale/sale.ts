@@ -127,6 +127,17 @@ export class SaleComponent implements OnInit {
   // --- LÃ­neas de la venta en ediciÃ³n ---
   lines = signal<Line[]>([{ productId: null, distributorDni: null, quantity: 1, filter: '' }]);
 
+  // --- Desplegables (clientes y productos) ---
+  clientsOpen = signal(false); // por defecto plegado
+  private productOpenSet = signal<Set<number>>(new Set());
+  isProductOpen = (index: number) => this.productOpenSet().has(index);
+  toggleProductOpen(index: number) {
+    const set = new Set(this.productOpenSet());
+    if (set.has(index)) set.delete(index); else set.add(index);
+    this.productOpenSet.set(set);
+  }
+  toggleClientsOpen() { this.clientsOpen.set(!this.clientsOpen()); }
+
   totalSales = computed(() => this.sales().length);
   totalRevenue = computed(() => 
     this.sales().reduce((sum, v) => sum + this.calculateTotal(v), 0)

@@ -3,7 +3,7 @@
   <div class="glass-dark card stack-md">
     <div class="header">
       <h2>{{ 'zones.title' | translate }}</h2>
-      <div class="right">
+      <div class="right" *ngIf="isAdmin()">
         <button class="btn" (click)="new(); toggleForm()" [attr.aria-expanded]="isFormOpen">
           {{ isFormOpen ? ('zones.close' | translate) : ('zones.new' | translate) }}
         </button>
@@ -65,7 +65,7 @@
           <col style="width:80px" />
           <col />
           <col />
-          <col style="width:150px" />
+          <col *ngIf="isAdmin()" style="width:150px" />
         </colgroup>
 
         <thead>
@@ -73,7 +73,7 @@
             <th>{{ 'zones.table.id' | translate }}</th>
             <th>{{ 'zones.table.name' | translate }}</th>
             <th>{{ 'zones.table.description' | translate }}</th>
-            <th class="right">{{ 'zones.table.actions' | translate }}</th>
+            <th *ngIf="isAdmin()" class="right">{{ 'zones.table.actions' | translate }}</th>
           </tr>
         </thead>
 
@@ -82,7 +82,7 @@
             <td>#{{ z.id }}</td>
             <td><span class="truncate">{{ z.name }}</span></td>
             <td><span class="truncate">{{ z.description || '-' }}</span></td>
-            <td class="right">
+            <td *ngIf="isAdmin()" class="right">
               <button class="btn btn--icon" (click)="edit(z); isFormOpen = true"
                 [attr.aria-label]="'common.edit' | translate" [attr.title]="'common.edit' | translate">
                 ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>

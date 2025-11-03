@@ -12,7 +12,7 @@
       <span class="verification-badge" [class.verified]="isVerified()">
         {{ isVerified() ? ('inbox.verified' | translate) : ('inbox.notVerified' | translate) }}
       </span>
-      <span class="role-badge" *ngFor="let role of currentUser.roles">
+      <span class="role-badge" *ngFor="let role of visibleHeaderRoles()">
         {{ role }}
       </span>
     </div>
@@ -99,12 +99,7 @@
 
           <!-- ✅ Contenido si está verificado -->
           <div *ngIf="isVerified()">
-            <div class="section-header">
-              <h2>{{ 'inbox.userView.myRoleRequestTitle' | translate }}</h2>
-              <p class="section-description">
-                {{ 'inbox.userView.myRoleRequestDesc' | translate }}
-              </p>
-            </div>
+          <!-- Se elimina el encabezado duplicado; el componente interno ya muestra su propio título/subtítulo -->
 
             <!-- ✅ Alerta si el perfil no está completo -->
             <div class="alert alert-warning" *ngIf="!hasCompleteProfile()">

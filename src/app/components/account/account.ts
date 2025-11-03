@@ -394,6 +394,8 @@ export class AccountComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          // Refrescar el perfil para asegurar que los cambios se reflejen
+          this.fetchMe();
           this.savingEdit.set(false);
           this.editingPhone.set(false);
           this.editPhone = '';
@@ -424,6 +426,8 @@ export class AccountComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          // Refrescar el perfil para asegurar que los cambios se reflejen
+          this.fetchMe();
           this.savingEdit.set(false);
           this.editingAddress.set(false);
           this.editAddress = '';

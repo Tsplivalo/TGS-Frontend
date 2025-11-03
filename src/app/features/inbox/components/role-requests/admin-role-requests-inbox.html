@@ -12,8 +12,23 @@
     </div>
   </div>
 
-  <div *ngIf="successKey" class="inline-notification success" role="status">
-    {{ successKey | translate }}
+  <!-- Notification Toast - Mejorado -->
+  <div *ngIf="successKey" class="notification-toast"
+       [class.success]="successKey === 'notifications.roleRequestApproved'"
+       [class.info]="successKey === 'notifications.roleRequestRejected'"
+       role="status"
+       aria-live="polite">
+    <div class="toast-icon">
+      <span *ngIf="successKey === 'notifications.roleRequestApproved'">✓</span>
+      <span *ngIf="successKey === 'notifications.roleRequestRejected'">ℹ</span>
+    </div>
+    <div class="toast-content">
+      <strong class="toast-title">
+        {{ successKey === 'notifications.roleRequestApproved' ? 'Solicitud Aprobada' : 'Solicitud Rechazada' }}
+      </strong>
+      <p class="toast-message">{{ successKey | translate }}</p>
+    </div>
+    <button class="toast-close" (click)="successKey = null" aria-label="Cerrar notificación">×</button>
   </div>
 
   <div *ngIf="loading" class="loading">{{ 'roleRequests.adminInbox.loading' | translate }}</div>

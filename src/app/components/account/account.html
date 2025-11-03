@@ -44,9 +44,9 @@
       <div class="photo-section">
         <div class="photo-frame">
           <img
-            [src]="photoUrl() || 'assets/default-avatar.png'"
+            [src]="photoUrl() || 'assets/default-avatar.svg'"
             [alt]="'Foto de perfil de ' + (person()?.name || me()?.username)"
-            (error)="photoUrl.set('assets/default-avatar.png')"
+            (error)="photoUrl.set('assets/default-avatar.svg')"
           />
           <!-- Badge de verificado -->
           <div class="verification-stamp" *ngIf="me()?.isVerified">

@@ -135,18 +135,18 @@
 
         <!-- Selector de modo -->
         <fieldset class="group col-2">
-          <legend>{{ 'distributor.createMode' | translate : {} : '¿Cómo querés crear el distribuidor?' }}</legend>
+          <legend>{{ 'distributor.createMode' | translate }}</legend>
 
           <label class="radio">
             <input type="radio" name="mode" value="fromUser" [checked]="mode() === 'fromUser'"
               (change)="onModeChange($event)" />
-            <span>{{ 'distributor.mode.fromUser' | translate : {} : 'Desde usuario existente' }}</span>
+            <span>{{ 'distributor.mode.fromUser' | translate }}</span>
           </label>
 
           <label class="radio">
             <input type="radio" name="mode" value="manual" [checked]="mode() === 'manual'"
               (change)="onModeChange($event)" />
-            <span>{{ 'distributor.mode.manual' | translate : {} : 'Manual' }}</span>
+            <span>{{ 'distributor.mode.manual' | translate }}</span>
           </label>
         </fieldset>
 

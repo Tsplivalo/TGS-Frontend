@@ -168,6 +168,8 @@
   gap: 2rem;
   transition: all .8s cubic-bezier(.25, .6, .3, 1);
   animation: layoutFadeIn 0.8s cubic-bezier(.25, .6, .3, 1);
+  isolation: isolate;
+  contain: paint;
 }
 
 @keyframes layoutFadeIn {
@@ -190,6 +192,12 @@
   background: var(--glass-bg);
   border: 1px solid var(--border);
   border-radius: 1.1rem;
+  isolation: isolate;
+  background-clip: padding-box;
+  contain: paint;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform, filter;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, .22), inset 0 1px rgba(255, 255, 255, .06);
@@ -434,7 +442,7 @@
   justify-content: center;
   animation: brandFade .8s cubic-bezier(.25, .6, .3, 1) both;
   position: relative;
-  z-index: 0;
+  z-index: 10;
   transition: all .8s cubic-bezier(.25, .6, .3, 1);
 
   // Efecto de brillo sutil detrás
@@ -587,6 +595,7 @@
   width: clamp(100px, 10vw, 140px);
   height: auto;
   object-fit: contain;
+  margin-left: -15px;
   display: block;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, .4))
           drop-shadow(0 0 20px rgba(195, 164, 98, 0.3));
@@ -711,16 +720,29 @@
 .intro-shell {
   position: relative;
   border-radius: 20px;
-  border: 1.5px solid var(--intro-border);
+  border: 1px solid var(--intro-border);
   background: var(--intro-bg);
+  /* Estabiliza la composicion del contenedor con blur/sombras */
+  isolation: isolate;
+  background-clip: padding-box;
+  will-change: transform, filter;
+  transform: translateZ(0);
+  contain: paint;
+  backface-visibility: hidden;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+  /* El anillo 1px externo se mueve a outline para evitar cortes verticales */
   box-shadow:
     0 20px 60px rgba(0, 0, 0, .6),
-    0 0 0 1px rgba(59, 130, 246, .2),
+    inset 0 0 0 1px rgba(59, 130, 246, .2),
     inset 0 2px rgba(255, 255, 255, .08);
+  /* Suaviza el borde lateral del blur: desvanece 12-14px en ambos lados */
+  -webkit-mask-image: linear-gradient(50deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  mask-image: linear-gradient(50deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
   padding: clamp(2rem, 3vw, 3rem);
+  /* clip reduce artefactos de anti-alias en bordes con blur */
   overflow: hidden;
+  overflow: clip;
   animation: shellFadeIn 0.8s cubic-bezier(.25, .6, .3, 1) 0.2s both;
 
   // Efecto de brillo superior azul
@@ -736,6 +758,7 @@
   }
 
 }
+
 
 @keyframes shellFadeIn {
   from {

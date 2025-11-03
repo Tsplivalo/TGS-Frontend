@@ -160,35 +160,34 @@
 
       <!-- Selector de modo (solo al crear) -->
       <fieldset class="group col-2" *ngIf="editDni() === null">
-        <legend>{{ 'authority.createMode' | translate : {} : '¿Cómo querés crear la autoridad?' }}</legend>
+        <legend>{{ 'authorities.createMode' | translate : {} : '¿Cómo querés crear la autoridad?' }}</legend>
 
         <label class="radio">
           <input type="radio" name="mode" value="fromUser" [checked]="mode() === 'fromUser'"
             (change)="onModeChange($event)" />
-          <span>{{ 'authority.mode.fromUser' | translate : {} : 'Desde usuario existente' }}</span>
+          <span>{{ 'authorities.mode.fromUser' | translate : {} : 'Desde usuario existente' }}</span>
         </label>
 
         <label class="radio">
           <input type="radio" name="mode" value="manual" [checked]="mode() === 'manual'"
             (change)="onModeChange($event)" />
-          <span>{{ 'authority.mode.manual' | translate : {} : 'Manual' }}</span>
+          <span>{{ 'authorities.mode.manual' | translate : {} : 'Manual' }}</span>
         </label>
       </fieldset>
 
       <!-- Buscador + listado de usuarios (solo modo fromUser) -->
       <ng-container *ngIf="mode() === 'fromUser' && editDni() === null">
         <label class="label col-2">
-          <span class="label-text">{{ 'authority.user.search' | translate : {} : 'Buscar usuario' }}</span>
+          <span class="label-text">{{ 'authorities.user.search' | translate : {} : 'Buscar usuario' }}</span>
           <input class="input" type="text" [value]="userSearch()" (input)="userSearch.set($any($event.target).value)"
-            [placeholder]="'authority.user.searchPh' | translate : {} : 'DNI, nombre o email...'" />
+            [placeholder]="'authorities.user.searchPh' | translate : {} : 'DNI, nombre o email...'" />
         </label>
 
         <div class="col-2">
           <!-- Listado de usuarios verificados -->
           <div *ngIf="filteredUsers().length > 0"
             style="padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2);">
-            <h4 style="margin: 0 0 var(--sp-2) 0; font-size: 0.875rem; color: rgba(195, 164, 98, 0.9);">Usuarios
-              verificados disponibles ({{ filteredUsers().length }})</h4>
+            <h4 style="margin: 0 0 var(--sp-2) 0; font-size: 0.875rem; color: rgba(195, 164, 98, 0.9);">{{ 'authorities.user.verifiedAvailableTitle' | translate:{count: filteredUsers().length} : ('Usuarios verificados disponibles (' + filteredUsers().length + ')') }}</h4>
             <div
               style="display: flex; flex-direction: column; gap: var(--sp-2); max-height: 300px; overflow-y: auto;">
               <div *ngFor="let u of filteredUsers()" (click)="selectUserByDni(getUserPersonDni(u))"
@@ -217,9 +216,8 @@
           </div>
           <div *ngIf="filteredUsers().length === 0"
             style="padding: var(--sp-3); text-align: center; color: var(--clr-text-muted); background: rgba(195, 164, 98, 0.05); border-radius: 8px; border: 1px dashed rgba(195, 164, 98, 0.3);">
-            <p style="margin: 0;">No hay usuarios verificados disponibles</p>
-            <small style="display: block; margin-top: var(--sp-1);">Los usuarios deben tener su cuenta verificada por
-              un administrador y perfil completo al 100%</small>
+            <p style="margin: 0;">{{ 'authorities.user.none' | translate : {} : 'No hay usuarios verificados disponibles' }}</p>
+            <small style="display: block; margin-top: var(--sp-1);">{{ 'authorities.user.requirements' | translate : {} : 'Los usuarios deben tener su cuenta verificada por un administrador y perfil completo al 100%' }}</small>
           </div>
         </div>
       </ng-container>

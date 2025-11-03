@@ -4,6 +4,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angu
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ZoneService } from '../../services/zone/zone';
 import { ApiResponse, ZoneDTO } from '../../models/zone/zona.model';
+import { AuthService } from '../../services/auth/auth';
+import { Role } from '../../models/user/user.model';
 
 /**
  * ZoneComponent
@@ -24,6 +26,7 @@ export class ZoneComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(ZoneService);
   private t = inject(TranslateService);
+  private auth = inject(AuthService);
 
   // --- Estado ---
   loading = signal(false);
@@ -62,6 +65,13 @@ export class ZoneComponent implements OnInit {
 
 
   totalZones = computed(() => this.zones().length);
+
+  // Verificar si el usuario actual es ADMIN
+  isAdmin = computed(() => {
+    const user = this.auth.user();
+    return user?.roles?.includes(Role.ADMIN) ?? false;
+  });
+
   // Form reactivo
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
