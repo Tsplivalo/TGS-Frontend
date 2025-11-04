@@ -5,6 +5,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthorityService } from '../../services/authority/authority';
 import { ApiResponse, AuthorityDTO, CreateAuthorityDTO, UpdateAuthorityDTO, PatchAuthorityDTO } from '../../models/authority/authority.model';
 import { AuthService, User } from '../../services/user/user';
+import { ZoneService } from '../../services/zone/zone';
+import { ZoneDTO } from '../../models/zone/zona.model';
 
 type Mode = 'fromUser' | 'manual';
 
@@ -43,11 +45,13 @@ export class AuthorityComponent implements OnInit {
   // --- Inyección ---
   private fb = inject(FormBuilder);
   private srv = inject(AuthorityService);
+  private zoneSrv = inject(ZoneService);
   private t = inject(TranslateService);
   private authSrv = inject(AuthService);
 
   // --- Estado base ---
   authorities = signal<AuthorityDTO[]>([]);
+  zones = signal<ZoneDTO[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null); // ✅ Mensaje de éxito
@@ -59,6 +63,9 @@ export class AuthorityComponent implements OnInit {
 
   // --- Modo de creación ---
   mode = signal<Mode>('fromUser');
+
+  // --- Mostrar/ocultar contraseña ---
+  showPassword = signal(false);
 
   // --- Usuarios verificados (selector) ---
   users = signal<User[]>([]);
@@ -105,8 +112,16 @@ export class AuthorityComponent implements OnInit {
   // --- Ciclo de vida ---
   ngOnInit(): void {
     this.load();
+    this.loadZones();
     this.loadVerifiedUsers();
     this.applyCredsAvailabilityByMode(this.mode());
+
+    // Normaliza zoneId si viene como número desde el <select>
+    this.form.controls.zoneId.valueChanges.subscribe(v => {
+      if (typeof v === 'number') {
+        this.form.controls.zoneId.setValue(String(v), { emitEvent: false });
+      }
+    });
   }
 
   // --- UI: abrir/cerrar formulario ---
@@ -205,6 +220,18 @@ export class AuthorityComponent implements OnInit {
     });
   }
 
+  loadZones() {
+    this.zoneSrv.getAllZones().subscribe({
+      next: (res: any) => {
+        const zones = res?.data ?? res ?? [];
+        this.zones.set(Array.isArray(zones) ? zones : []);
+      },
+      error: (err) => {
+        console.error('Error loading zones:', err);
+      }
+    });
+  }
+
   private loadVerifiedUsers(): void {
     // Filtrar usuarios elegibles para ser AUTHORITY
     this.authSrv.getAllVerifiedUsers('AUTHORITY').subscribe({
@@ -251,6 +278,11 @@ export class AuthorityComponent implements OnInit {
     const checked = !!(ev.target as HTMLInputElement).checked;
     this.form.controls.createCreds.setValue(checked);
     this.toggleCredsValidators(checked);
+  }
+
+  // Toggle para mostrar/ocultar contraseña
+  togglePasswordVisibility(): void {
+    this.showPassword.update(v => !v);
   }
 
   // Helper para obtener datos de persona desde usuario
@@ -398,6 +430,7 @@ export class AuthorityComponent implements OnInit {
       rank: v.rank,
       zoneId: String(v.zoneId).trim(),
       ...(wantCreds ? {
+        // ✅ Usar el username del formulario - ahora el login acepta email o username
         username: (v.username || '').trim(),
         password: (v.password || '').trim(),
       } : {})

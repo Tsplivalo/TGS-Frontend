@@ -1105,3 +1105,24 @@ fieldset.group legend {
   opacity: 0.8;
   color: var(--muted);
 }
+
+/* ===== USER CARDS - GOLD THEME ===== */
+.user-card {
+  padding: var(--sp-2);
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(195, 164, 98, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.user-card:hover {
+  background: rgba(195, 164, 98, 0.15);
+  border-color: rgba(195, 164, 98, 0.45);
+}
+
+.user-card.selected {
+  background: rgba(195, 164, 98, 0.3);
+  border-color: rgba(195, 164, 98, 0.6);
+  box-shadow: 0 2px 8px rgba(195, 164, 98, 0.2);
+}

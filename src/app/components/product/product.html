@@ -5,7 +5,7 @@
     <!-- Toolbar -->
     <header class="header">
       <h2 class="title">{{ 'product.title' | translate }}</h2>
-      <div class="right">
+      <div class="right" *ngIf="canModifyProducts()">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
           {{ isNewOpen ? ('product.toggle.close' | translate) : ('product.toggle.new' | translate) }}
         </button>
@@ -91,7 +91,7 @@
               <th style="width:120px;">{{ 'product.fields.illegal' | translate }}</th>
               <!-- ✅ NUEVA COLUMNA: Distribuidor (solo si es admin) -->
               <th *ngIf="isAdmin()" style="width:180px;">Distribuidor(es)</th>
-              <th style="width:140px;" class="right">{{ 'product.table.actions' | translate }}</th>
+              <th *ngIf="canModifyProducts()" style="width:140px;" class="right">{{ 'product.table.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -119,7 +119,7 @@
                   {{ getDistributorNames(p) }}
                 </span>
               </td>
-              <td class="right">
+              <td *ngIf="canModifyProducts()" class="right">
                 <button class="btn ghost btn--icon" type="button" (click)="edit(p)"
                   [attr.title]="'common.edit' | translate">
                   ✏️

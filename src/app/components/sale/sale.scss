@@ -2600,3 +2600,47 @@ fieldset.group legend {
     top: calc(56px + var(--sp-4));
   }
 }
+
+/* ===== CLIENT AND PRODUCT CARDS (SALE FORM) ===== */
+
+/* Client cards - Green theme */
+.client-card {
+  padding: var(--sp-2);
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.client-card:hover {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.45);
+}
+
+.client-card.selected {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: rgba(76, 175, 80, 0.6);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Product cards - Blue theme */
+.product-card {
+  padding: var(--sp-2);
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.product-card:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.45);
+}
+
+.product-card.selected {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}

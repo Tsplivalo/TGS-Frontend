@@ -235,8 +235,17 @@
 
               <label class="label">
                 <span>{{ 'partner.fields.password' | translate }}</span>
-                <input class="input" type="password" formControlName="password"
-                  (blur)="form.controls.password.markAsTouched()" />
+                <div style="position: relative;">
+                  <input class="input" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                    (blur)="form.controls.password.markAsTouched()"
+                    style="padding-right: 40px;" />
+                  <button type="button"
+                    (click)="togglePasswordVisibility()"
+                    style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--color-text-muted, #888); font-size: 1.2rem;"
+                    [title]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                    {{ showPassword() ? '👁️' : '👁️‍🗨️' }}
+                  </button>
+                </div>
                 <small class="hint" *ngIf="form.controls.password.invalid && form.controls.password.touched">
                   {{ 'partner.errors.password' | translate : {} : 'Contraseña requerida (mín. 6).' }}
                 </small>

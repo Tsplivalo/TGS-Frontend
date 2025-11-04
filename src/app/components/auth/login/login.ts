@@ -27,12 +27,13 @@ export class LoginComponent implements OnDestroy {
   password = signal('');
   loading = signal(false);
   error = signal<string | null>(null);
-  
+
   // Estado de verificación de email
   needsEmailVerification = signal(false);
   resendingEmail = signal(false);
   emailSent = signal(false);
-  
+  actualEmail = signal<string | null>(null); // Email real del usuario (cuando se loguea con username)
+
   // Mensaje de éxito (ej: después de registro)
   successMessage = signal<string | null>(null);
 
@@ -73,10 +74,9 @@ export class LoginComponent implements OnDestroy {
       return;
     }
 
-    // Validar formato de email
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(this.email())) {
-      this.error.set('Por favor ingresa un email válido');
+    // No validar formato específico - acepta email o username
+    if (this.email().trim().length < 3) {
+      this.error.set('El email o usuario debe tener al menos 3 caracteres');
       return;
     }
 
@@ -113,6 +113,11 @@ export class LoginComponent implements OnDestroy {
     if (this.emailVerificationService.isEmailVerificationError(error)) {
       this.needsEmailVerification.set(true);
       this.error.set('Debes verificar tu email antes de iniciar sesión.');
+
+      // Extraer el email real de la respuesta (útil cuando se loguea con username)
+      if (error.error?.email) {
+        this.actualEmail.set(error.error.email);
+      }
       return;
     }
 
@@ -136,7 +141,11 @@ export class LoginComponent implements OnDestroy {
    * Reenvía el email de verificación para usuario no verificado
    */
   resendVerificationEmail(): void {
-    if (!this.email()) {
+    // Usar el email real si está disponible (cuando se loguea con username)
+    // De lo contrario, usar el campo email (que puede ser email o username)
+    const emailToUse = this.actualEmail() || this.email();
+
+    if (!emailToUse) {
       this.error.set('Por favor ingresa tu email');
       return;
     }
@@ -146,7 +155,7 @@ export class LoginComponent implements OnDestroy {
     this.emailSent.set(false);
 
     // Usar endpoint público para usuarios no autenticados
-    this.emailVerificationService.resendForUnverified(this.email())
+    this.emailVerificationService.resendForUnverified(emailToUse)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -161,7 +170,7 @@ export class LoginComponent implements OnDestroy {
         },
         error: (err: HttpErrorResponse) => {
           this.resendingEmail.set(false);
-          
+
           // Usar helpers del servicio para detectar errores específicos
           if (this.emailVerificationService.isCooldownError(err)) {
             this.error.set('Por favor espera 2 minutos antes de reenviar el email.');
@@ -184,6 +193,7 @@ export class LoginComponent implements OnDestroy {
     this.error.set(null);
     this.needsEmailVerification.set(false);
     this.emailSent.set(false);
+    this.actualEmail.set(null);
   }
 
   /**

@@ -70,6 +70,9 @@ export class DistributorComponent implements OnInit {
   // --- Modo de creación ---
   mode = signal<Mode>('fromUser');
 
+  // --- Mostrar/ocultar contraseña ---
+  showPassword = signal(false);
+
   // --- Usuarios verificados (selector) ---
   users = signal<User[]>([]);
   userSearch = signal<string>('');
@@ -227,6 +230,11 @@ export class DistributorComponent implements OnInit {
     const checked = !!(ev.target as HTMLInputElement).checked;
     this.form.controls.createCreds.setValue(checked);
     this.toggleCredsValidators(checked);
+  }
+
+  // Toggle para mostrar/ocultar contraseña
+  togglePasswordVisibility(): void {
+    this.showPassword.update(v => !v);
   }
 
   // Helper para obtener datos de persona desde usuario
@@ -391,6 +399,7 @@ export class DistributorComponent implements OnInit {
       zoneId: String(v.zoneId) as any, // Backend lo transforma con z.string().transform(Number)
       productsIds: ids,
       ...(wantCreds ? {
+        // ✅ Usar el username del formulario - ahora el login acepta email o username
         username: (v.username || '').trim(),
         password: (v.password || '').trim(),
       } : {})

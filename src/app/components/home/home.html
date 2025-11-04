@@ -59,9 +59,9 @@
             <h2>{{ 'auth.login.title' | translate }}</h2>
 
             <label>
-              <span>{{ 'auth.fields.email' | translate }}</span>
-              <input type="email" formControlName="email" [attr.placeholder]="emailAnimOn() ? animatedPlaceholder : ''"
-                [attr.data-anim]="emailAnimOn() ? 'on' : 'off'" autocomplete="email" required
+              <span>{{ 'auth.fields.emailOrUsername' | translate : {} : 'Email o Usuario' }}</span>
+              <input type="text" formControlName="email" [attr.placeholder]="emailAnimOn() ? animatedPlaceholder : ''"
+                [attr.data-anim]="emailAnimOn() ? 'on' : 'off'" autocomplete="username" required
                 [class.star-wars-placeholder]="emailAnimOn()" (focus)="mode() === 'login' ? onEmailFocus() : null"
                 (blur)="mode() === 'login' ? onEmailBlur() : null" />
             </label>
@@ -70,7 +70,12 @@
               <span>{{ 'auth.fields.password' | translate }}</span>
               <div class="input-with-toggle">
                 <input [type]="showLoginPwd ? 'text' : 'password'" formControlName="password"
-                  placeholder="{{ 'auth.placeholders.password' | translate }}" autocomplete="current-password"
+                  [attr.placeholder]="passwordAnimOn() ? animatedPasswordPlaceholder : ''"
+                  [attr.data-anim]="passwordAnimOn() ? 'on' : 'off'"
+                  [class.star-wars-placeholder]="passwordAnimOn()"
+                  (focus)="mode() === 'login' ? onPasswordFocus() : null"
+                  (blur)="mode() === 'login' ? onPasswordBlur() : null"
+                  autocomplete="current-password"
                   required />
                 <button type="button" class="pwd-toggle" (click)="showLoginPwd = !showLoginPwd"
                   [attr.aria-label]="showLoginPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
@@ -137,7 +142,7 @@
               <span>{{ 'auth.fields.username' | translate }}</span>
               <input type="text" formControlName="username"
                 [attr.placeholder]="nameAnimOn() ? animatedNamePlaceholder : ''"
-                [attr.data-anim]="nameAnimOn() ? 'on' : 'off'" autocomplete="username" required
+                [attr.data-anim]="nameAnimOn() ? 'on' : 'off'" autocomplete="off" required
                 [class.star-wars-placeholder]="nameAnimOn()" (focus)="mode() === 'register' ? onNameFocus() : null"
                 (blur)="mode() === 'register' ? onNameBlur() : null" />
             </label>
@@ -154,7 +159,12 @@
               <span>{{ 'auth.fields.password' | translate }}</span>
               <div class="input-with-toggle">
                 <input [type]="showRegisterPwd ? 'text' : 'password'" formControlName="password"
-                  placeholder="{{ 'auth.placeholders.password' | translate }}" autocomplete="new-password" required />
+                  [attr.placeholder]="passwordAnimOn() ? animatedPasswordPlaceholder : ''"
+                  [attr.data-anim]="passwordAnimOn() ? 'on' : 'off'"
+                  [class.star-wars-placeholder]="passwordAnimOn()"
+                  (focus)="mode() === 'register' ? onPasswordFocus() : null"
+                  (blur)="mode() === 'register' ? onPasswordBlur() : null"
+                  autocomplete="new-password" required />
                 <button type="button" class="pwd-toggle" (click)="showRegisterPwd = !showRegisterPwd"
                   [attr.aria-label]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                   [attr.title]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'">

@@ -24,7 +24,7 @@ export interface AuthorityDTO {
 
 /**
  * DTO para crear una nueva autoridad
- * 
+ *
  * Cuerpo de petición ajustado al esquema Zod del backend.
  * El backend espera strings para rank y zoneId y los transforma a números.
  */
@@ -38,6 +38,8 @@ export interface CreateAuthorityDTO {
   rank: '0' | '1' | '2' | '3';
   // El backend espera un string y lo transforma a número
   zoneId: string;
+  username?: string;              // Username para crear cuenta (opcional, solo en modo manual)
+  password?: string;              // Contraseña para crear cuenta (opcional, solo en modo manual)
 }
 
 /**

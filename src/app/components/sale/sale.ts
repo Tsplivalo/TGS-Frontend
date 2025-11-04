@@ -122,7 +122,7 @@ export class SaleComponent implements OnInit {
   clientSearch = signal('');
   productSearch = signal('');
   selectedClientDni = signal<string | null>(null);
-  selectedDistributorDni = signal<string | null>(null);
+  // ✅ CAMBIO: Ya no necesitamos selectedDistributorDni - cada línea tiene su propio distribuidor
 
   // --- LÃ­neas de la venta en ediciÃ³n ---
   lines = signal<Line[]>([{ productId: null, distributorDni: null, quantity: 1, filter: '' }]);
@@ -539,13 +539,9 @@ export class SaleComponent implements OnInit {
 
   filteredProductOffers = computed(() => {
     const q = this.productSearch().toLowerCase().trim();
-    const selectedDist = this.selectedDistributorDni();
     let offers = this.productOffers();
 
-    // Filter by distributor if one is selected (from first product)
-    if (selectedDist) {
-      offers = offers.filter(o => o.distributorDni === selectedDist);
-    }
+    // ✅ CAMBIO: Ya no filtramos por distribuidor - permitimos mezclar distribuidores
 
     // Filter by search query
     if (!q) return offers;
@@ -667,20 +663,37 @@ export class SaleComponent implements OnInit {
     return this.distributors().some(d => (d.dni || '') === dni);
   }
 
-  private buildCreatePayload(): CreateSaleDTO {
+  // ✅ CAMBIO: Ahora agrupa las líneas por distribuidor y retorna múltiples payloads
+  private buildCreatePayloads(): CreateSaleDTO[] {
     const clientDni = String(this.clientControl.value || '').trim();
-    const distributorDni = this.selectedDistributorDni() || '';
+    const validLines = this.lines().filter(l => l.productId !== null && l.distributorDni !== null);
 
-    const details: SaleDetailDTO[] = this.lines().map(l => ({
-      productId: Number(l.productId),
-      quantity: Number(l.quantity),
-    }));
+    // Agrupar líneas por distribuidor
+    const linesByDistributor = new Map<string, Line[]>();
+    validLines.forEach(line => {
+      const distDni = line.distributorDni!;
+      if (!linesByDistributor.has(distDni)) {
+        linesByDistributor.set(distDni, []);
+      }
+      linesByDistributor.get(distDni)!.push(line);
+    });
 
-    return {
-      clientDni,
-      distributorDni,
-      details
-    };
+    // Crear un payload por cada distribuidor
+    const payloads: CreateSaleDTO[] = [];
+    linesByDistributor.forEach((lines, distributorDni) => {
+      const details: SaleDetailDTO[] = lines.map(l => ({
+        productId: Number(l.productId),
+        quantity: Number(l.quantity),
+      }));
+
+      payloads.push({
+        clientDni,
+        distributorDni,
+        details
+      });
+    });
+
+    return payloads;
   }
 
   private validateLines(lines: Line[]): string | null {
@@ -727,7 +740,7 @@ export class SaleComponent implements OnInit {
     this.clientSearch.set('');
     this.productSearch.set('');
     this.selectedClientDni.set(null);
-    this.selectedDistributorDni.set(null);
+    // ✅ CAMBIO: Ya no usamos selectedDistributorDni global
     this.isNewOpen = false;
   }
 
@@ -744,12 +757,7 @@ export class SaleComponent implements OnInit {
       arr.push({ productId: null, distributorDni: null, quantity: 1, filter: '' });
     }
 
-    // Reset distributor selection if no lines have products
-    const hasProducts = arr.some(l => l.productId !== null);
-    if (!hasProducts) {
-      this.selectedDistributorDni.set(null);
-    }
-
+    // ✅ CAMBIO: Ya no reseteamos el distribuidor global (no existe más)
     this.lines.set(arr);
   }
 
@@ -763,11 +771,7 @@ export class SaleComponent implements OnInit {
     const arr = [...this.lines()];
     const line = arr[lineIndex];
 
-    // If this is the first product selection, set the distributor
-    if (!this.selectedDistributorDni()) {
-      this.selectedDistributorDni.set(offer.distributorDni);
-    }
-
+    // ✅ CAMBIO: Cada línea tiene su propio distribuidor, sin restricciones globales
     line.productId = offer.productId;
     line.distributorDni = offer.distributorDni;
     this.lines.set(arr);
@@ -786,24 +790,32 @@ export class SaleComponent implements OnInit {
       return;
     }
 
-    if (!this.selectedDistributorDni()) {
-      this.error.set('Debe seleccionar al menos un producto');
-      return;
-    }
-
     const errLines = this.validateLines(this.lines());
     if (errLines) {
       this.error.set(errLines);
       return;
     }
 
+    // ✅ CAMBIO: Obtener múltiples payloads (uno por distribuidor)
+    const payloads = this.buildCreatePayloads();
+
+    if (payloads.length === 0) {
+      this.error.set('Debe seleccionar al menos un producto');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
-    const payload = this.buildCreatePayload();
+    // ✅ CAMBIO: Crear múltiples ventas en paralelo usando forkJoin
+    const createRequests = payloads.map(payload => this.saleSrv.createSale(payload));
 
-    this.saleSrv.createSale(payload).subscribe({
-      next: () => {
+    forkJoin(createRequests).subscribe({
+      next: (results) => {
+        console.log(`✅ ${results.length} venta(s) creada(s) exitosamente`);
+        if (results.length > 1) {
+          console.log(`ℹ️ Se crearon ${results.length} ventas porque hay productos de ${results.length} distribuidores diferentes`);
+        }
         this.new();
         this.loadSales();
         if (this.showStats() && this.stats()) {

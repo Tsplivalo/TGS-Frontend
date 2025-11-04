@@ -45,7 +45,7 @@ export interface DistributorDTO {
 
 /**
  * DTO para crear un nuevo distribuidor
- * 
+ *
  * Contiene los datos requeridos para crear un distribuidor
  * y asociarlo a una zona y productos específicos.
  */
@@ -57,6 +57,8 @@ export interface CreateDistributorDTO {
   address?: string;   // Dirección (opcional)
   zoneId: number;     // ID de la zona (requerido, backend lo transforma de string a number)
   productsIds?: number[]; // IDs de productos asociados (opcional)
+  username?: string;  // Username para crear cuenta (opcional, solo en modo manual)
+  password?: string;  // Contraseña para crear cuenta (opcional, solo en modo manual)
 }
 
 /**

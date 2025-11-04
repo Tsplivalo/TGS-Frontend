@@ -172,12 +172,14 @@
     "fields": {
       "username": "Username",
       "email": "Email",
+      "emailOrUsername": "Email or Username",
       "password": "Password"
     },
     "placeholders": {
       "username": "Your name",
       "email": "you@email.com",
-      "password": "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+      "emailOrUsername": "you@email.com or your_username",
+      "password": "••••••••"
     },
     "errors": {
       "missingFields": "Please complete all fields.",
@@ -419,7 +421,7 @@
       "clientRequired": "Client required",
       "noProductsAvailable": "No products available",
       "noProductsLoaded": "âš ï¸ No products loaded. Total: {{count}}",
-      "availableProductsCount": "âœ… {{count}} products available",
+      "availableProductsCount": "✅ {{count}} products available",
       "removeLineTitle": "Remove line"
     },
     "err": {
@@ -499,18 +501,35 @@
     "title": "Authorities",
     "new": "New",
     "empty": "No authorities",
+    "noResults": "No authorities found with the applied filter",
     "errorLoad": "Could not load authorities.",
     "errorCreate": "Could not create.",
     "errorSavePatch": "Could not save (PATCH).",
     "errorSavePut": "Could not save (PUT).",
     "errorDelete": "Could not delete.",
+    "createMode": "How do you want to create the authority?",
+    "mode": {
+      "fromUser": "From existing user",
+      "manual": "Manual"
+    },
+    "user": {
+      "search": "Search user",
+      "searchPh": "DNI, name or email...",
+      "verifiedAvailableTitle": "Verified users available ({{count}})",
+      "dniLabel": "DNI",
+      "verified": "Verified",
+      "profileComplete": "100% Profile",
+      "none": "No verified users available",
+      "requirements": "Users must have their account verified by an administrator and 100% complete profile"
+    },
     "filters": {
       "search": "Search",
       "searchPh": "name / rank",
       "dni": "ID Number",
       "dniPh": "e.g: 12345678",
-      "zoneId": "Zone ID",
-      "zoneIdPh": "Zone ID"
+      "zoneId": "Zone",
+      "zoneIdPh": "Zone ID",
+      "allZones": "All zones"
     },
     "table": {
       "dni": "DNI",
@@ -538,11 +557,13 @@
       "rank1": "Rank 1",
       "rank2": "Rank 2",
       "rank3": "Rank 3",
-      "zoneId": "Zone ID",
+      "zoneId": "Zone",
       "zoneIdPh": "1",
+      "chooseZone": "Select zone",
       "err": {
         "create": "Complete DNI, Name, Email, Rank and Zone.",
-        "edit": "Complete Name, Rank and Zone (email is not required when editing)."
+        "edit": "Complete Name, Rank and Zone (email is not required when editing).",
+        "zone": "Zone required"
       }
     },
     "err": {
@@ -559,6 +580,20 @@
       "rank2Label": "Rank 2",
       "rank3Label": "Rank 3",
       "filteredLabel": "Filtered"
+    }
+  },
+  "authority": {
+    "fields": {
+      "username": "Username",
+      "password": "Password"
+    },
+    "creds": {
+      "toggle": "Create account for the authority",
+      "hint": "If you don't check this option, the authority is created without username/password."
+    },
+    "errors": {
+      "username": "Username required (min. 3).",
+      "password": "Password required (min. 6)."
     }
   },
   "bribes": {
@@ -783,6 +818,33 @@
     "noResults": {
       "title": "No results",
       "desc": "Try adjusting the filter"
+    },
+    "successCreate": "Distributor created successfully",
+    "successUpdate": "Distributor updated successfully",
+    "successDelete": "Distributor deleted successfully",
+    "confirmDelete": "Are you sure you want to delete this distributor?"
+  },
+  "distributor": {
+    "createMode": "How do you want to create the distributor?",
+    "mode": {
+      "fromUser": "From existing user",
+      "manual": "Manual"
+    },
+    "user": {
+      "search": "Search user",
+      "searchPh": "DNI, name or email..."
+    },
+    "fields": {
+      "username": "Username",
+      "password": "Password"
+    },
+    "creds": {
+      "toggle": "Create account for the distributor",
+      "hint": "If you don't check this option, the distributor is created without username/password."
+    },
+    "errors": {
+      "username": "Username required (min. 3).",
+      "password": "Password required (min. 6)."
     }
   },
   "mgmt": {
@@ -884,7 +946,6 @@
       },
       "footer": "If you need to replace an incompatible role, activate the change option in the form."
     },
-
     "pending": {
       "title": "Pending (admin)",
       "emptyTitle": "No pending requests",
@@ -1095,13 +1156,13 @@
     "title": "Inbox",
     "loading": "Loading inbox...",
     "profileCompletenessSuffix": "% complete",
-    "verified": "âœ… Verified",
-    "notVerified": "â³ Not Verified",
+    "verified": "✅ Verified",
+    "notVerified": "⏳ Not Verified",
     "tabs": {
-      "userVerificationPlural": "âœ… User verification",
-      "roleRequestsPlural": "ðŸ“‹ Role requests",
-      "userVerification": "âœ… User verification",
-      "roleRequest": "ðŸ“‹ Role request"
+      "userVerificationPlural": "✅ User verification",
+      "roleRequestsPlural": "📋 Role requests",
+      "userVerification": "✅ User verification",
+      "roleRequest": "📋 Role request"
     },
     "blocked": {
       "title": "Blocked section",
@@ -1132,10 +1193,10 @@
         "desc": "Your account has been verified successfully by an administrator.",
         "benefitsTitle": "Benefits of verification:",
         "benefits": [
-          "âœ“ Full access to advanced features",
-          "âœ“ Ability to make purchases",
-          "âœ“ Ability to request special roles",
-          "âœ“ Priority technical support"
+          "✓ Full access to advanced features",
+          "✓ Ability to make purchases",
+          "✓ Ability to request special roles",
+          "✓ Priority technical support"
         ]
       },
       "request": {

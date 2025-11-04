@@ -129,15 +129,44 @@
     <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
       <div class="error" *ngIf="error()">{{ error() }}</div>
 
-      <label class="label">
+      <div class="label col-2">
         <span>{{ 'decisions.form.topic' | translate }} *</span>
-        <select class="input" formControlName="topicId">
-          <option [ngValue]="null" disabled>{{ 'decisions.form.chooseTopic' | translate }}</option>
-          <option *ngFor="let t of topics()" [ngValue]="t.id">
-            {{ t.id }} - {{ t.description }}
-          </option>
-        </select>
-      </label>
+
+        <!-- Buscador de temáticas -->
+        <input
+          class="input topic-search"
+          type="text"
+          placeholder="🔍 Buscar temática..."
+          [(ngModel)]="topicSearch"
+          [ngModelOptions]="{standalone: true}"
+        />
+
+        <!-- Mini título -->
+        <div class="topics-list-title">
+          <span>📋 Seleccioná una temática de la lista</span>
+          <small>{{ filteredTopics().length }} {{ filteredTopics().length === 1 ? 'temática disponible' : 'temáticas disponibles' }}</small>
+        </div>
+
+        <!-- Listado de temáticas con scroll -->
+        <div class="topics-list">
+          <div
+            *ngFor="let t of filteredTopics()"
+            class="topic-card"
+            [class.selected]="form.controls.topicId.value === t.id"
+            (click)="selectTopic(t.id)"
+          >
+            <div class="topic-card-header">
+              <span class="topic-id">#{{ t.id }}</span>
+              <span class="topic-check" *ngIf="form.controls.topicId.value === t.id">✓</span>
+            </div>
+            <div class="topic-description">{{ t.description }}</div>
+          </div>
+
+          <div *ngIf="!filteredTopics().length" class="no-topics">
+            <span>{{ topicSearch ? 'No se encontraron temáticas' : 'No hay temáticas disponibles' }}</span>
+          </div>
+        </div>
+      </div>
 
       <label class="label">
         <span>{{ 'decisions.form.description' | translate }}</span>

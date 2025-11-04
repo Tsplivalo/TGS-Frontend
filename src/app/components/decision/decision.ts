@@ -54,6 +54,20 @@ export class DecisionComponent implements OnInit {
   topicFilterApplied = signal('');
   today = this.todayLocalInput(); // AAAA-MM-DD para inputs tipo date
 
+  // ✅ Búsqueda de temáticas en el formulario
+  topicSearch = '';
+
+  // ✅ Temáticas filtradas según búsqueda
+  filteredTopics = computed(() => {
+    const q = this.topicSearch.toLowerCase().trim();
+    if (!q) return this.topics();
+
+    return this.topics().filter(t =>
+      t.description.toLowerCase().includes(q) ||
+      String(t.id).includes(q)
+    );
+  });
+
   // --- Form reactivo ---
   form: FormGroup<DecisionForm> = this.fb.group<DecisionForm>({
     id: this.fb.control<number | null>(null),
@@ -199,6 +213,12 @@ export class DecisionComponent implements OnInit {
     });
     this.submitted.set(false);
     this.error.set(null);
+  }
+
+  // ✅ Seleccionar una temática desde la tarjeta
+  selectTopic(id: number): void {
+    this.form.controls.topicId.setValue(id);
+    this.form.controls.topicId.markAsTouched();
   }
 
   delete(id: number) {

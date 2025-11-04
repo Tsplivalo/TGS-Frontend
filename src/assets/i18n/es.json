@@ -190,11 +190,13 @@
     "fields": {
       "username": "Usuario",
       "email": "Email",
+      "emailOrUsername": "Email o Usuario",
       "password": "Contraseña"
     },
     "placeholders": {
       "username": "Tu nombre",
       "email": "tu@email.com",
+      "emailOrUsername": "tu@email.com o tu_usuario",
       "password": "••••••••"
     },
     "errors": {
@@ -514,18 +516,35 @@
     "title": "Autoridades",
     "new": "Nueva",
     "empty": "Sin autoridades",
+    "noResults": "No se encontraron autoridades con el filtro aplicado",
     "errorLoad": "No se pudieron cargar las autoridades.",
     "errorCreate": "No se pudo crear.",
     "errorSavePatch": "No se pudo guardar (PATCH).",
     "errorSavePut": "No se pudo guardar (PUT).",
     "errorDelete": "No se pudo eliminar.",
+    "createMode": "¿Cómo querés crear la autoridad?",
+    "mode": {
+      "fromUser": "Desde usuario existente",
+      "manual": "Manual"
+    },
+    "user": {
+      "search": "Buscar usuario",
+      "searchPh": "DNI, nombre o email...",
+      "verifiedAvailableTitle": "Usuarios verificados disponibles ({{count}})",
+      "dniLabel": "DNI",
+      "verified": "Verificado",
+      "profileComplete": "Perfil 100%",
+      "none": "No hay usuarios verificados disponibles",
+      "requirements": "Los usuarios deben tener su cuenta verificada por un administrador y perfil completo al 100%"
+    },
     "filters": {
       "search": "Buscar",
       "searchPh": "nombre / rango",
       "dni": "DNI",
       "dniPh": "Ej: 12345678",
-      "zoneId": "ID de zona",
-      "zoneIdPh": "ID de zona"
+      "zoneId": "Zona",
+      "zoneIdPh": "ID de zona",
+      "allZones": "Todas las zonas"
     },
     "table": {
       "dni": "DNI",
@@ -553,11 +572,13 @@
       "rank1": "Rango 1",
       "rank2": "Rango 2",
       "rank3": "Rango 3",
-      "zoneId": "ID de zona",
+      "zoneId": "Zona",
       "zoneIdPh": "1",
+      "chooseZone": "Seleccionar zona",
       "err": {
         "create": "Completá DNI, Nombre, Email, Rango y Zona.",
-        "edit": "Completá Nombre, Rango y Zona (el email no es obligatorio al editar)."
+        "edit": "Completá Nombre, Rango y Zona (el email no es obligatorio al editar).",
+        "zone": "Zona requerida"
       }
     },
     "err": {
@@ -574,6 +595,20 @@
       "rank2Label": "Rango 2",
       "rank3Label": "Rango 3",
       "filteredLabel": "Filtradas"
+    }
+  },
+  "authority": {
+    "fields": {
+      "username": "Usuario",
+      "password": "Contraseña"
+    },
+    "creds": {
+      "toggle": "Crear cuenta para la autoridad",
+      "hint": "Si no marcás esta opción, se crea la autoridad sin usuario/contraseña."
+    },
+    "errors": {
+      "username": "Usuario requerido (mín. 3).",
+      "password": "Contraseña requerida (mín. 6)."
     }
   },
   "bribes": {
@@ -798,6 +833,33 @@
     "noResults": {
       "title": "Sin resultados",
       "desc": "Probá ajustar el filtro"
+    },
+    "successCreate": "Distribuidor creado correctamente",
+    "successUpdate": "Distribuidor actualizado correctamente",
+    "successDelete": "Distribuidor eliminado correctamente",
+    "confirmDelete": "¿Estás seguro de eliminar este distribuidor?"
+  },
+  "distributor": {
+    "createMode": "¿Cómo querés crear el distribuidor?",
+    "mode": {
+      "fromUser": "Desde usuario existente",
+      "manual": "Manual"
+    },
+    "user": {
+      "search": "Buscar usuario",
+      "searchPh": "DNI, nombre o email..."
+    },
+    "fields": {
+      "username": "Usuario",
+      "password": "Contraseña"
+    },
+    "creds": {
+      "toggle": "Crear cuenta para el distribuidor",
+      "hint": "Si no marcás esta opción, se crea el distribuidor sin usuario/contraseña."
+    },
+    "errors": {
+      "username": "Usuario requerido (mín. 3).",
+      "password": "Contraseña requerida (mín. 6)."
     }
   },
   "status": {

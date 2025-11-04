@@ -60,13 +60,14 @@ export class ProductComponent implements OnInit {
     console.log('[ProductComponent] 🔍 Filtering products:', {
       total: allProducts.length,
       isAdmin: this.isAdmin(),
+      isPartner: this.isPartner(),
       isDistributor: this.isDistributor(),
       userDni: this.currentUserDni()
     });
 
-    // Si es admin, ver todos los productos
-    if (this.isAdmin()) {
-      console.log('[ProductComponent] 👑 Admin - showing all products');
+    // Si es admin o partner, ver todos los productos
+    if (this.isAdmin() || this.isPartner()) {
+      console.log('[ProductComponent] 👑 Admin/Partner - showing all products');
       return allProducts;
     }
 
