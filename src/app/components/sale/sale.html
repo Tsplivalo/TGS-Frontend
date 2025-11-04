@@ -93,7 +93,7 @@
     <div class="glass-dark card stack-md">
       <div class="header">
         <h2>{{ 'sales.title' | translate }}</h2>
-        <div class="right">
+        <div class="right" *ngIf="canCreate()">
           <button class="btn" type="button" (click)="new(); toggleNew()" [attr.aria-expanded]="isNewOpen">
             {{ isNewOpen ? ('sales.toggle.close' | translate) : ('sales.toggle.new' | translate) }}
           </button>
@@ -157,12 +157,12 @@
               <td>{{ formatDateTimeDDMMYYYY(v.saleDate || v.date) }}</td>
               <td>
                 @if (getClient(v); as cli) {
-                {{ cli.dni }} - {{ cli.name || ('sales.client' | translate) }}
+                {{ cli.dni }} 
                 } @else { — }
               </td>
               <td>
                 @if (v.distributor) {
-                {{ v.distributor.dni }} - {{ v.distributor.name }}
+                {{ v.distributor.dni }} 
                 } @else { — }
               </td>
               <td>
@@ -176,7 +176,7 @@
                 } @else { — }
               </td>
               <td>{{ sumQuantities(v) }}</td>
-              <td class="right">{{ calculateTotal(v) | currency:'ARS' }}</td>
+              <td class="right">{{ calculateTotal(v) | currency:'' }}</td>
             </tr>
             }
             @if (filteredSales().length === 0) {

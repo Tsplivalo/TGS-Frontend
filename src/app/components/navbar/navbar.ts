@@ -103,11 +103,10 @@ export class NavbarComponent implements AfterViewInit {
     { label: 'mgmt.admin', path: '/admin' },
   ];
 
-  // ✅ Items limitados para AUTHORITY (Ventas, Mis Sobornos y Acuerdos Clandestinos)
+  // ✅ Items limitados para AUTHORITY (Ventas y Mis Sobornos solamente)
   readonly authorityGestionItems: MenuItem[] = [
     { label: 'mgmt.sale', path: '/venta' },
     { label: 'mgmt.myBribes', path: '/sobornos' },
-    { label: 'mgmt.clandestineAgreement', path: '/acuerdos-clandestinos' },
   ];
 
   readonly publicItems: MenuItem[] = [

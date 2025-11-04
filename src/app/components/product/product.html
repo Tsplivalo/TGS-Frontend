@@ -5,7 +5,7 @@
     <!-- Toolbar -->
     <header class="header">
       <h2 class="title">{{ 'product.title' | translate }}</h2>
-      <div class="right" *ngIf="canModifyProducts()">
+      <div class="right" *ngIf="canCreate()">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
           {{ isNewOpen ? ('product.toggle.close' | translate) : ('product.toggle.new' | translate) }}
         </button>
@@ -89,9 +89,9 @@
               <th style="width:140px;">{{ 'product.fields.price' | translate }}</th>
               <th style="width:120px;">{{ 'product.fields.stock' | translate }}</th>
               <th style="width:120px;">{{ 'product.fields.illegal' | translate }}</th>
-              <!-- ✅ NUEVA COLUMNA: Distribuidor (solo si es admin) -->
-              <th *ngIf="isAdmin()" style="width:180px;">Distribuidor(es)</th>
-              <th *ngIf="canModifyProducts()" style="width:140px;" class="right">{{ 'product.table.actions' | translate }}</th>
+              <!-- ✅ NUEVA COLUMNA: Distribuidor (visible para admin y socio) -->
+              <th *ngIf="isAdmin() || isPartner()" style="width:180px;">Distribuidor(es)</th>
+              <th *ngIf="canEdit() || canDelete()" style="width:140px;" class="right">{{ 'product.table.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -104,7 +104,7 @@
                   style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
                 <span *ngIf="!p.imageUrl" class="muted">—</span>
               </td>
-              <td>{{ p.price | currency:'ARS':'symbol':'1.0-2' }}</td>
+              <td>{{ p.price | currency:'':'symbol':'1.0-2' }}</td>
               <td>
                 <span class="badge" [class.badge-warn]="p.stock === 0">{{ p.stock }}</span>
               </td>
@@ -113,19 +113,19 @@
                   {{ p.isIllegal ? ('product.badges.yes' | translate) : ('product.badges.no' | translate) }}
                 </span>
               </td>
-              <!-- ✅ NUEVA CELDA: Mostrar distribuidores (solo admins) -->
-              <td *ngIf="isAdmin()">
+              <!-- ✅ NUEVA CELDA: Mostrar distribuidores (admins y socios) -->
+              <td *ngIf="isAdmin() || isPartner()">
                 <span class="truncate" style="max-width: 160px;" [title]="getDistributorNames(p)">
                   {{ getDistributorNames(p) }}
                 </span>
               </td>
-              <td *ngIf="canModifyProducts()" class="right">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(p)"
+              <td *ngIf="canEdit() || canDelete()" class="right">
+                <button class="btn ghost btn--icon" type="button" (click)="edit(p)" *ngIf="canEdit()"
                   [attr.title]="'common.edit' | translate">
                   ✏️
                 </button>
 
-                <button class="btn danger btn--icon" type="button" (click)="delete(p.id)" [disabled]="loading()"
+                <button class="btn danger btn--icon" type="button" (click)="delete(p.id)" [disabled]="loading()" *ngIf="canDelete()"
                   [attr.title]="'common.delete' | translate">
                   🗑️
                 </button>

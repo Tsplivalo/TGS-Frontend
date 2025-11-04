@@ -20,7 +20,7 @@
     <div class="stack-md">
       <div class="glass-dark card stack-md monthly-shell">
 
-        <!-- ESTADÍSTICAS RÁPIDAS -->
+        <!-- ESTADÍSTICAS RÁPIDAS 
         <div *ngIf="!loading() && items().length > 0"
           style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.08); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2);">
           <div style="text-align: center;">
@@ -53,7 +53,7 @@
               'monthlyReview.stats.rejected' | translate }}</div>
             <div style="font-size: 1.5rem; font-weight: 700; color: #a94545;">{{ reviewsByStatus()['REJECTED'] }}</div>
           </div>
-        </div>
+        </div>-->
 
         <!-- GRÁFICOS -->
         <section *ngIf="showCharts()">
@@ -67,15 +67,7 @@
             </app-chart>
           </div>
 
-          <!-- Gráfico 2: Tendencia de Revisiones -->
-          <div
-            style="padding: var(--sp-4); background: rgba(0,0,0,0.2); border-radius: var(--radius); margin-bottom: var(--sp-4);">
-            <h4 style="margin: 0 0 var(--sp-3); font-size: 0.95rem; color: var(--text);">
-              📈 {{ 'monthlyReview.charts.trend' | translate : {} : 'Tendencia de Revisiones por Mes' }}
-            </h4>
-            <app-chart *ngIf="reviewsTrendChartData()" type="line" [data]="reviewsTrendChartData()!" height="240px">
-            </app-chart>
-          </div>
+          
 
           <!-- Gráfico 3: Ventas por Producto -->
           <div style="padding: var(--sp-4); background: rgba(0,0,0,0.2); border-radius: var(--radius);"
@@ -89,61 +81,7 @@
         </section>
 
         <!-- ESTADÍSTICAS DEL PERÍODO -->
-        <section *ngIf="statistics() as stats">
-          <h3 style="margin: 0 0 var(--sp-3); font-size: 1.1rem; font-weight: 600; color: var(--text);">
-            {{ 'monthlyReview.stats.title' | translate : {} : 'Estadísticas del Período' }}
-          </h3>
-
-          <div
-            style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-3); padding: var(--sp-3); background: rgba(195, 164, 98, 0.05); border-radius: 8px; margin-bottom: var(--sp-4);"
-            *ngIf="stats.summary">
-            <div>
-              <div class="muted" style="font-size: 11px; text-transform: uppercase;">{{ 'monthlyReview.stats.period' |
-                translate : {} : 'Período' }}</div>
-              <div style="font-weight: 600; color: var(--text);">{{ stats.period }}</div>
-            </div>
-            <div>
-              <div class="muted" style="font-size: 11px; text-transform: uppercase;">{{ 'monthlyReview.stats.totalSales'
-                | translate : {} : 'Total Ventas' }}</div>
-              <div style="font-weight: 600; color: var(--text);">{{ stats.summary.totalSales }}</div>
-            </div>
-            <div>
-              <div class="muted" style="font-size: 11px; text-transform: uppercase;">{{
-                'monthlyReview.stats.totalAmount' | translate : {} : 'Monto Total' }}</div>
-              <div style="font-weight: 600; color: var(--text);">{{ formatCurrency(stats.summary.totalAmount) }}</div>
-            </div>
-            <div>
-              <div class="muted" style="font-size: 11px; text-transform: uppercase;">{{
-                'monthlyReview.stats.averageAmount' | translate : {} : 'Promedio' }}</div>
-              <div style="font-weight: 600; color: var(--text);">{{ formatCurrency(stats.summary.averageAmount) }}</div>
-            </div>
-          </div>
-
-          <!-- Tabla de productos -->
-          <div *ngIf="stats.groupedData && stats.groupedData.length > 0">
-            <h4 style="margin: 0 0 var(--sp-3); font-size: 1rem; font-weight: 600; color: var(--text);">
-              {{ 'monthlyReview.stats.byProduct' | translate : {} : 'Por Producto' }}
-            </h4>
-            <div class="table-wrap">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>{{ 'monthlyReview.stats.productName' | translate : {} : 'Producto' }}</th>
-                    <th class="right">{{ 'monthlyReview.stats.quantity' | translate : {} : 'Cantidad' }}</th>
-                    <th class="right">{{ 'monthlyReview.stats.amount' | translate : {} : 'Monto' }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let item of stats.groupedData">
-                    <td>{{ item.productName || item.productId }}</td>
-                    <td class="right">{{ item.totalQuantitySold }}</td>
-                    <td class="right">{{ formatCurrency(item.totalAmount) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+        
       </div>
     </div>
 

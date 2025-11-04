@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormControl,
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthorityService } from '../../services/authority/authority';
 import { ApiResponse, AuthorityDTO, CreateAuthorityDTO, UpdateAuthorityDTO, PatchAuthorityDTO } from '../../models/authority/authority.model';
-import { AuthService, User } from '../../services/user/user';
+import { AuthService, User, Role } from '../../services/user/user';
 import { ZoneService } from '../../services/zone/zone';
 import { ZoneDTO } from '../../models/zone/zona.model';
 
@@ -48,6 +48,15 @@ export class AuthorityComponent implements OnInit {
   private zoneSrv = inject(ZoneService);
   private t = inject(TranslateService);
   private authSrv = inject(AuthService);
+
+  // --- Roles y permisos ---
+  isAdmin = computed(() => this.authSrv.hasRole(Role.ADMIN));
+  isPartner = computed(() => this.authSrv.hasRole(Role.PARTNER));
+
+  // Permisos: Admin y Socio pueden hacer todo
+  canCreate = computed(() => this.isAdmin() || this.isPartner());
+  canEdit = computed(() => this.isAdmin() || this.isPartner());
+  canDelete = computed(() => this.isAdmin() || this.isPartner());
 
   // --- Estado base ---
   authorities = signal<AuthorityDTO[]>([]);
@@ -233,14 +242,24 @@ export class AuthorityComponent implements OnInit {
   }
 
   private loadVerifiedUsers(): void {
+    // Verificar rol actual del usuario
+    const currentUser = this.authSrv.user();
+    const userRoles = currentUser?.roles || [];
+    console.log('[AuthorityComponent] Current user roles:', userRoles);
+    console.log('[AuthorityComponent] isAdmin:', this.isAdmin());
+    console.log('[AuthorityComponent] isPartner:', this.isPartner());
+
     // Filtrar usuarios elegibles para ser AUTHORITY
     this.authSrv.getAllVerifiedUsers('AUTHORITY').subscribe({
       next: (verifiedUsers) => {
-        this.users.set(verifiedUsers);
+        console.log('[AuthorityComponent] Raw response from getAllVerifiedUsers:', verifiedUsers);
         console.log(`[AuthorityComponent] Loaded ${verifiedUsers.length} verified users eligible for AUTHORITY role`);
+        this.users.set(verifiedUsers);
       },
       error: (err) => {
         console.error('[AuthorityComponent] Error loading verified users:', err);
+        console.error('[AuthorityComponent] Error status:', err?.status);
+        console.error('[AuthorityComponent] Error message:', err?.error?.message || err?.message);
         this.users.set([]);  // Array vacío en caso de error
       }
     });

@@ -617,9 +617,11 @@ export class AuthService {
    * });
    */
   getAllVerifiedUsers(targetRole?: 'AUTHORITY' | 'PARTNER' | 'DISTRIBUTOR'): Observable<User[]> {
-    const url = targetRole 
+    const url = targetRole
       ? `/api/users/verified?targetRole=${targetRole}`
       : '/api/users/verified';
+
+    console.log(`[AuthService] Requesting verified users from: ${url}`);
 
     return this.http.get<ApiResponse<User[]>>(
       url,
@@ -627,11 +629,15 @@ export class AuthService {
     ).pipe(
       switchMap(res => {
         const verified = res.data || [];
+        console.log(`[AuthService] Response received:`, res);
         console.log(`[AuthService] Loaded ${verified.length} verified users${targetRole ? ` eligible for ${targetRole}` : ''}`);
         return of(verified);
       }),
       catchError(err => {
-        console.error('[AuthService] Error fetching verified users:', err);
+        console.error('[AuthService] ❌ Error fetching verified users:', err);
+        console.error('[AuthService] ❌ Status:', err?.status);
+        console.error('[AuthService] ❌ Error body:', err?.error);
+        console.error('[AuthService] ❌ This is likely a backend permission issue - Partner role may not have access to this endpoint');
         return of([]);  // Retornar array vacío en caso de error
       })
     );

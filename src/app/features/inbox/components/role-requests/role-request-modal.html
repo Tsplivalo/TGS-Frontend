@@ -40,23 +40,7 @@
         </div>
       </div>
 
-      <!-- Auto-detected incompatibility warning -->
-      <div *ngIf="autoDetectedIncompatibility && roleToRemove" class="alert alert-warning">
-        <span class="alert-icon">🔄</span>
-        <div class="alert-content">
-          <strong>Cambio de Rol Requerido</strong>
-          <p *ngIf="isAuthorityWithMultipleIncompatible()">
-            El rol <strong>AUTORIDAD</strong> es incompatible con tus roles actuales.
-            Al ser aprobada tu solicitud, se removerán <strong>TODOS</strong> tus roles de negocio:
-            <strong>{{ getIncompatibleRolesNames() }}</strong>.
-          </p>
-          <p *ngIf="isNotAuthorityOrSingleIncompatible()">
-            El rol <strong>{{ getRoleInfo(requestedRole)?.label }}</strong> es incompatible con tu rol actual de
-            <strong>{{ getRoleInfo(roleToRemove)?.label }}</strong>.
-            Se realizará un cambio automático.
-          </p>
-        </div>
-      </div>
+    
 
       <!-- Roles Grid - Diseño de tarjetas mejorado -->
       <div class="form-section">
@@ -196,7 +180,7 @@
         </div>
       </div>
 
-      <!-- Info box - Incompatibilidades -->
+      <!-- Info box - Incompatibilidades 
       <div *ngIf="incompatibleRolesText && requestedRole" class="info-box warning">
         <span class="info-icon">⚠️</span>
         <div class="info-content">
@@ -206,7 +190,7 @@
             <strong>{{ incompatibleRolesText }}</strong>
           </p>
         </div>
-      </div>
+      </div>-->
 
       <!-- Acciones Paso 1 -->
       <div class="modal-actions">
@@ -252,18 +236,7 @@
         </div>
       </div>
 
-      <!-- Info header -->
-      <div class="info-box info">
-        <span class="info-icon">ℹ️</span>
-        <div class="info-content">
-          <strong>Información Adicional Requerida</strong>
-          <p>
-            Para completar tu solicitud de
-            <strong>{{ getRoleInfo(requestedRole)?.label || 'el rol seleccionado' }}</strong>,
-            necesitamos los siguientes datos específicos.
-          </p>
-        </div>
-      </div>
+      
 
       <!-- ========== Datos para DISTRIBUTOR ========== -->
       <ng-container *ngIf="requestedRole === 'DISTRIBUTOR'">
@@ -310,34 +283,7 @@
           <p class="help-text">Dirección donde se realizarán entregas</p>
         </div>
 
-        <div class="form-section">
-          <label class="section-label">
-            <span class="icon">📦</span>
-            Productos que distribuirás
-            <span class="optional">(opcional)</span>
-          </label>
-
-          <div class="products-grid" *ngIf="products.length > 0">
-            <label *ngFor="let product of products" class="product-checkbox">
-              <input
-                type="checkbox"
-                [checked]="isProductSelected(product.id)"
-                (change)="toggleProduct(product.id, $event)"
-                [disabled]="isSubmitting"
-                class="checkbox-input"
-              />
-              <span class="checkbox-custom"></span>
-              <span class="product-name">{{ product.description }}</span>
-            </label>
-          </div>
-
-          <p class="help-text" *ngIf="products.length === 0">
-            No hay productos disponibles para seleccionar
-          </p>
-          <p class="help-text" *ngIf="products.length > 0">
-            Selecciona los productos que planeas distribuir (puedes cambiarlos después)
-          </p>
-        </div>
+        
       </ng-container>
 
       <!-- ========== Datos para AUTHORITY ========== -->

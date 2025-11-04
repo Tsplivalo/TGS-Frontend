@@ -3,7 +3,7 @@
   <div class="glass-dark card stack-md">
     <header class="header">
       <h2 class="title">{{ 'partner.title' | translate }}</h2>
-      <div class="right">
+      <div class="right" *ngIf="canCreate()">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
           {{ isNewOpen() ? ('common.close' | translate) : ('partner.new' | translate) }}
         </button>
@@ -64,7 +64,7 @@
               <th>{{ 'partner.fields.email' | translate }}</th>
               <th>{{ 'partner.fields.phone' | translate }}</th>
               <th>{{ 'partner.fields.address' | translate }}</th>
-              <th style="width:200px;" class="right">{{ 'common.actions' | translate }}</th>
+              <th *ngIf="canEdit() || canDelete()" style="width:200px;" class="right">{{ 'common.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -74,12 +74,12 @@
               <td>{{ it.email || '—' }}</td>
               <td>{{ it.phone || '—' }}</td>
               <td>{{ it.address || '—' }}</td>
-              <td class="right">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+              <td *ngIf="canEdit() || canDelete()" class="right">
+                <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(it)"
                   [title]="'common.edit' | translate">
                   ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
                 </button>
-                <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                <button *ngIf="canDelete()" class="btn danger btn--icon" type="button" (click)="delete(it)"
                   [title]="'common.delete' | translate">
                   🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
                 </button>

@@ -37,8 +37,13 @@ export class ProductComponent implements OnInit {
   isDistributor = computed(() => this.authService.hasRole(Role.DISTRIBUTOR));
   isPartner = computed(() => this.authService.hasRole(Role.PARTNER));
 
-  // Solo ADMIN puede modificar productos (crear/editar/eliminar)
-  canModifyProducts = computed(() => this.isAdmin());
+  // Permisos específicos por rol
+  canCreate = computed(() => this.isAdmin() || this.isDistributor());      // Admin y Distribuidor pueden crear
+  canEdit = computed(() => this.isDistributor());                          // Solo Distribuidor puede editar
+  canDelete = computed(() => this.isAdmin() || this.isDistributor());      // Admin y Distribuidor pueden eliminar
+
+  // Para retrocompatibilidad - muestra columna de acciones si tiene algún permiso
+  canModifyProducts = computed(() => this.canCreate() || this.canEdit() || this.canDelete());
 
   currentUserDni = computed(() => {
     const user = this.currentUser();

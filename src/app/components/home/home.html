@@ -14,8 +14,20 @@
         <div class="auth-half left" [class.active]="mode()==='login'" (click)="setMode('login')" role="button"
           tabindex="0">
 
+          <!-- 🔄 Banner de espera de verificación (cuando está esperando que el usuario verifique desde otra pestaña) -->
+          <div class="verification-standalone" *ngIf="waitingForVerification() && mode()==='login' && !loadingLogin"
+            (click)="$event.stopPropagation()">
+            <div class="waiting-verification-large" role="status">
+              <div class="spinner-large"></div>
+              <div class="waiting-content-large">
+                <strong>Esperando verificación de email...</strong>
+                <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+              </div>
+            </div>
+          </div>
+
           <!-- ✅ Banner de verificación STANDALONE (reemplaza el formulario cuando está activo) -->
-          <div class="verification-standalone" *ngIf="needsEmailVerification() && mode()==='login'"
+          <div class="verification-standalone" *ngIf="needsEmailVerification() && mode()==='login' && !waitingForVerification()"
             (click)="$event.stopPropagation()">
             <div class="verification-banner-large" role="alert">
               <div class="banner-icon-large">⚠️</div>
@@ -103,8 +115,20 @@
         <div class="auth-half right" [class.active]="mode()==='register'" (click)="setMode('register')" role="button"
           tabindex="0">
 
+          <!-- 🔄 Banner de espera de verificación en REGISTRO (cuando está esperando que el usuario verifique desde otra pestaña) -->
+          <div class="verification-standalone" *ngIf="waitingForVerification() && mode()==='register' && !loadingRegister"
+            (click)="$event.stopPropagation()">
+            <div class="waiting-verification-large" role="status">
+              <div class="spinner-large"></div>
+              <div class="waiting-content-large">
+                <strong>Esperando verificación de email...</strong>
+                <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+              </div>
+            </div>
+          </div>
+
           <!-- ✅ Banner de verificación STANDALONE en REGISTRO -->
-          <div class="verification-standalone" *ngIf="needsEmailVerification() && mode()==='register'"
+          <div class="verification-standalone" *ngIf="needsEmailVerification() && mode()==='register' && !waitingForVerification()"
             (click)="$event.stopPropagation()">
             <div class="verification-banner-large" role="alert">
               <div class="banner-icon-large">✅</div>

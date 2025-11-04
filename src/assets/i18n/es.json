@@ -1,4 +1,4 @@
-{
+﻿{
   "brand": {
     "name": "GarrSYS"
   },
@@ -127,7 +127,7 @@
     },
     "fields": {
       "description": "Descripción",
-      "price": "Precio",
+      "price": "Precio (ARS)",
       "stock": "Stock",
       "illegal": "¿Ilegal?",
       "imageUrl": "Imagen (URL)",
@@ -409,7 +409,7 @@
       "client": "Cliente",
       "products": "Productos",
       "quantity": "Cantidad",
-      "total": "Total",
+      "total": "Total (ARS)",
       "distributor": "Distribuidor"
     },
     "form": {

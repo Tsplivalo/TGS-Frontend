@@ -3,7 +3,7 @@
   <div class="glass-dark card stack-md">
     <header class="header">
       <h2 class="title">{{ 'distributors.title' | translate }}</h2>
-      <div class="right">
+      <div class="right" *ngIf="canCreate()">
         <button class="btn" type="button" (click)="isFormOpen ? cancel() : new()" [attr.aria-expanded]="isFormOpen">
           {{ isFormOpen ? ('common.close' | translate) : ('distributors.new' | translate) }}
         </button>
@@ -64,7 +64,7 @@
             <col style="width: 220px;" /> <!-- Email -->
             <col style="width: 150px;" /> <!-- Zone -->
             <col style="width: 100px;" /> <!-- Products -->
-            <col style="width: 100px;" /> <!-- Actions -->
+            <col style="width: 100px;" *ngIf="canEdit() || canDelete()" /> <!-- Actions -->
           </colgroup>
 
           <thead>
@@ -75,7 +75,7 @@
               <th>{{ 'distributors.table.email' | translate }}</th>
               <th>{{ 'distributors.table.zone' | translate }}</th>
               <th class="center">{{ 'distributors.table.products' | translate }}</th>
-              <th style="text-align: right; padding-right: 14px;">{{ 'distributors.table.actions' | translate }}</th>
+              <th *ngIf="canEdit() || canDelete()" style="text-align: right; padding-right: 14px;">{{ 'distributors.table.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -88,14 +88,14 @@
                   ''))
                   }}</span></td>
               <td class="center"><strong>{{ d.products?.length || 0 }}</strong></td>
-              <td style="text-align: right; padding-right: 6px;">
+              <td *ngIf="canEdit() || canDelete()" style="text-align: right; padding-right: 6px;">
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                  <button class="btn ghost btn--icon" type="button" (click)="edit(d)"
+                  <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(d)"
                     [attr.title]="'common.edit' | translate">
                     ✏️
                   </button>
 
-                  <button class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
+                  <button *ngIf="canDelete()" class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
                     [attr.title]="'common.delete' | translate">
                     🗑️
                   </button>

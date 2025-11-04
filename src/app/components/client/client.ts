@@ -41,6 +41,11 @@ export class ClientComponent implements OnInit {
   currentUser = this.authService.user;
   isAdmin = computed(() => this.authService.hasRole(Role.ADMIN));
   isDistributor = computed(() => this.authService.hasRole(Role.DISTRIBUTOR));
+
+  // Permisos específicos por rol
+  canCreate = computed(() => this.isAdmin());   // Solo Admin puede crear clientes
+  canEdit = computed(() => this.isAdmin());     // Solo Admin puede editar clientes
+  canDelete = computed(() => this.isAdmin());   // Solo Admin puede eliminar clientes
   currentUserDni = computed(() => {
     const user = this.currentUser();
     const dni = (user as any)?.person?.dni;

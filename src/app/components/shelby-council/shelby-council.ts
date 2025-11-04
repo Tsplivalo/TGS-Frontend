@@ -8,6 +8,7 @@ import { forkJoin } from 'rxjs';
 import { ShelbyCouncilService } from '../../services/shelby-council/shelby-council';
 import { PartnerService } from '../../services/partner/partner';
 import { DecisionService } from '../../services/decision/decision';
+import { AuthService, Role } from '../../services/user/user';
 
 // Models
 import {
@@ -31,6 +32,17 @@ export class ShelbyCouncilComponent implements OnInit {
   private partnerSrv = inject(PartnerService);
   private decisionSrv = inject(DecisionService);
   private tr  = inject(TranslateService);
+  private authSrv = inject(AuthService);
+
+  // --- Roles y permisos ---
+  isAdmin = computed(() => this.authSrv.hasRole(Role.ADMIN));
+  isPartner = computed(() => this.authSrv.hasRole(Role.PARTNER));
+
+  // Permisos específicos por rol - Partner puede hacer todo, Admin solo ver
+  canCreate = computed(() => this.isPartner());   // Solo Partner puede crear
+  canEdit = computed(() => this.isPartner());     // Solo Partner puede editar
+  canDelete = computed(() => this.isPartner());   // Solo Partner puede eliminar
+  // Admin solo puede ver (no tiene permisos especiales)
 
   // Estado
   items   = signal<ShelbyCouncilDTO[]>([]);

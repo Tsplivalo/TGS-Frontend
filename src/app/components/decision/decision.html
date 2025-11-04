@@ -2,7 +2,7 @@
   <div class="glass-dark card stack-md">
     <div class="header">
       <h2>{{ 'decisions.title' | translate }}</h2>
-      <div class="right">
+      <div class="right" *ngIf="canCreate()">
         <button class="btn" (click)="new(); toggleForm()" [attr.aria-expanded]="isFormOpen">
           {{ isFormOpen ? ('decisions.toggle.close' | translate) : ('decisions.toggle.new' | translate) }}
         </button>
@@ -61,7 +61,7 @@
           <col />
           <col style="width:140px" />
           <col style="width:140px" />
-          <col style="width:100px" />
+          <col style="width:100px" *ngIf="canEdit() || canDelete()" />
         </colgroup>
 
         <thead>
@@ -71,7 +71,7 @@
             <th>{{ 'decisions.table.description' | translate }}</th>
             <th>{{ 'decisions.table.start' | translate }}</th>
             <th>{{ 'decisions.table.end' | translate }}</th>
-            <th class="right">{{ 'decisions.table.actions' | translate }}</th>
+            <th *ngIf="canEdit() || canDelete()" class="right">{{ 'decisions.table.actions' | translate }}</th>
           </tr>
         </thead>
 
@@ -80,7 +80,7 @@
             <td>#{{ d.id }}</td>
             <td>
               <ng-container *ngIf="d.topic?.id != null; else noThematic">
-                <span class="truncate">{{ d.topic?.id }} - {{ d.topic?.description || ('decisions.topic' | translate)
+                <span class="truncate"> {{ d.topic?.description || ('decisions.topic' | translate)
                   }}</span>
               </ng-container>
               <ng-template #noThematic>—</ng-template>
@@ -88,10 +88,10 @@
             <td><span class="truncate">{{ d.description }}</span></td>
             <td>{{ formatDateDDMMYYYY(d.startDate) }}</td>
             <td>{{ formatDateDDMMYYYY(d.endDate) }}</td>
-            <td class="right">
-              <button class="btn ghost btn--icon" (click)="edit(d); isFormOpen = true"
+            <td *ngIf="canEdit() || canDelete()" class="right">
+              <button *ngIf="canEdit()" class="btn ghost btn--icon" (click)="edit(d); isFormOpen = true"
                 [attr.title]="'common.edit' | translate">✏️</button>
-              <button class="btn danger btn--icon" (click)="delete(d.id)"
+              <button *ngIf="canDelete()" class="btn danger btn--icon" (click)="delete(d.id)"
                 [attr.title]="'common.delete' | translate">🗑️</button>
             </td>
           </tr>

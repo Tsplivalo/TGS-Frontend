@@ -1,5 +1,5 @@
 // src/app/pages/login/login.component.ts
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -7,6 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../../services/auth/auth.js';
 import { EmailVerificationService } from '../../../features/inbox/services/email.verification.js';
+import { EmailVerificationSyncService } from '../../../services/email-verification-sync.service.js';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +21,7 @@ export class LoginComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly emailVerificationService = inject(EmailVerificationService);
+  private readonly syncService = inject(EmailVerificationSyncService);
   private readonly destroy$ = new Subject<void>();
 
   // Estado del formulario
@@ -34,8 +36,15 @@ export class LoginComponent implements OnDestroy {
   emailSent = signal(false);
   actualEmail = signal<string | null>(null); // Email real del usuario (cuando se loguea con username)
 
+  // Estado de espera de verificación
+  waitingForVerification = signal(false);
+
   // Mensaje de éxito (ej: después de registro)
   successMessage = signal<string | null>(null);
+
+  // Cleanup functions para los listeners
+  private stopPolling?: () => void;
+  private removeStorageListener?: () => void;
 
   constructor() {
     // Verificar si hay mensajes de éxito en query params
@@ -52,11 +61,43 @@ export class LoginComponent implements OnDestroy {
           setTimeout(() => this.successMessage.set(null), 5000);
         }
       });
+
+    // Effect para detectar cuando el email fue verificado desde otra pestaña
+    effect(() => {
+      const verificationEvent = this.syncService.emailVerified();
+      console.log('[Login] Effect ejecutado. Verification event:', verificationEvent, 'Waiting:', this.waitingForVerification());
+
+      if (verificationEvent) {
+        console.log('[Login] ✅ Email verificado detectado!', verificationEvent);
+        if (this.waitingForVerification()) {
+          console.log('[Login] Procediendo con auto-login para:', verificationEvent.email);
+          this.handleEmailVerifiedFromAnotherTab(verificationEvent.email);
+        } else {
+          console.log('[Login] No estamos esperando verificación, ignorando evento');
+        }
+      }
+    });
+
+    // Escuchar cambios en localStorage como fallback
+    this.removeStorageListener = this.syncService.listenToStorageEvents();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+
+    // Limpiar polling si está activo
+    if (this.stopPolling) {
+      this.stopPolling();
+    }
+
+    // Remover listener de storage
+    if (this.removeStorageListener) {
+      this.removeStorageListener();
+    }
+
+    // Limpiar el servicio de sincronización
+    this.syncService.reset();
   }
 
   /**
@@ -115,9 +156,25 @@ export class LoginComponent implements OnDestroy {
       this.error.set('Debes verificar tu email antes de iniciar sesión.');
 
       // Extraer el email real de la respuesta (útil cuando se loguea con username)
+      let emailToVerify = this.email();
       if (error.error?.email) {
         this.actualEmail.set(error.error.email);
+        emailToVerify = error.error.email;
       }
+
+      // Guardar credenciales para auto-login después de verificación
+      localStorage.setItem('pendingAuth', JSON.stringify({
+        email: emailToVerify,
+        password: this.password()
+      }));
+
+      // Activar estado de espera de verificación
+      this.waitingForVerification.set(true);
+
+      // Iniciar polling para verificar el estado del email
+      console.log('[Login] Iniciando polling para verificar email:', emailToVerify);
+      this.stopPolling = this.syncService.startPollingVerification(emailToVerify, 3000);
+
       return;
     }
 
@@ -164,6 +221,17 @@ export class LoginComponent implements OnDestroy {
             this.emailSent.set(true);
             this.error.set(null);
             console.log('[Login] Email de verificación enviado');
+
+            // Activar estado de espera si no está activo
+            if (!this.waitingForVerification()) {
+              this.waitingForVerification.set(true);
+
+              // Iniciar polling si no está activo
+              if (!this.stopPolling) {
+                console.log('[Login] Iniciando polling para verificar email:', emailToUse);
+                this.stopPolling = this.syncService.startPollingVerification(emailToUse, 3000);
+              }
+            }
           } else {
             this.error.set(response.message || 'No se pudo enviar el email.');
           }
@@ -184,6 +252,73 @@ export class LoginComponent implements OnDestroy {
           }
         }
       });
+  }
+
+  /**
+   * Maneja cuando el email fue verificado desde otra pestaña
+   */
+  private handleEmailVerifiedFromAnotherTab(email: string): void {
+    console.log('[Login] Intentando auto-login después de verificación:', email);
+
+    // Obtener credenciales de pendingAuth
+    const raw = localStorage.getItem('pendingAuth');
+    if (!raw) {
+      console.warn('[Login] No hay credenciales pendientes para auto-login');
+      this.waitingForVerification.set(false);
+      this.successMessage.set('Email verificado correctamente. Por favor inicia sesión.');
+      return;
+    }
+
+    try {
+      const { email: savedEmail, password } = JSON.parse(raw);
+
+      // Verificar que el email coincida
+      if (savedEmail.toLowerCase() !== email.toLowerCase()) {
+        console.warn('[Login] El email verificado no coincide con las credenciales guardadas');
+        this.waitingForVerification.set(false);
+        return;
+      }
+
+      // Hacer auto-login
+      this.loading.set(true);
+      this.auth.login({ email: savedEmail, password })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (user) => {
+            this.loading.set(false);
+            this.waitingForVerification.set(false);
+            console.log('[Login] Auto-login exitoso:', user);
+
+            // Limpiar credenciales pendientes
+            localStorage.removeItem('pendingAuth');
+
+            // Detener polling si está activo
+            if (this.stopPolling) {
+              this.stopPolling();
+              this.stopPolling = undefined;
+            }
+
+            // Mostrar animación de éxito
+            this.successMessage.set('¡Email verificado! Iniciando sesión...');
+
+            // Redirigir
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+            setTimeout(() => {
+              this.router.navigateByUrl(returnUrl);
+            }, 1000);
+          },
+          error: (err) => {
+            this.loading.set(false);
+            this.waitingForVerification.set(false);
+            console.error('[Login] Error en auto-login:', err);
+            this.error.set('Email verificado, pero ocurrió un error al iniciar sesión. Por favor intenta nuevamente.');
+            localStorage.removeItem('pendingAuth');
+          }
+        });
+    } catch (e) {
+      console.error('[Login] Error parseando pendingAuth:', e);
+      this.waitingForVerification.set(false);
+    }
   }
 
   /**

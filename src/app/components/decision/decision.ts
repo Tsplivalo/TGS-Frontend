@@ -7,6 +7,7 @@ import { DecisionService } from '../../services/decision/decision';
 import { DecisionDTO, CreateDecisionDTO, PatchDecisionDTO } from '../../models/decision/decision.model';
 import { TopicService } from '../../services/topic/topic';
 import { TopicDTO } from '../../models/topic/topic.model';
+import { AuthService, Role } from '../../services/user/user';
 
 /**
  * DecisionComponent
@@ -37,6 +38,16 @@ export class DecisionComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(DecisionService);
   private topicSrv = inject(TopicService);
+  private authSrv = inject(AuthService);
+
+  // --- Roles y permisos ---
+  isAdmin = computed(() => this.authSrv.hasRole(Role.ADMIN));
+  isPartner = computed(() => this.authSrv.hasRole(Role.PARTNER));
+
+  // Permisos específicos por rol - Admin y Partner pueden hacer todo
+  canCreate = computed(() => this.isAdmin() || this.isPartner());
+  canEdit = computed(() => this.isAdmin() || this.isPartner());
+  canDelete = computed(() => this.isAdmin() || this.isPartner());
 
   // --- Estado (signals) ---
   decisions = signal<DecisionDTO[]>([]);

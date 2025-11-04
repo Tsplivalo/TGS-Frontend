@@ -6,7 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DistributorService } from '../../services/distributor/distributor';
 import { ZoneService } from '../../services/zone/zone';
 import { ProductService } from '../../services/product/product';
-import { AuthService, User } from '../../services/user/user';
+import { AuthService, User, Role } from '../../services/user/user';
 
 import { ZoneDTO } from '../../models/zone/zona.model';
 import { ProductDTO } from '../../models/product/product.model';
@@ -54,6 +54,16 @@ export class DistributorComponent implements OnInit {
   private prodSrv = inject(ProductService);
   private t = inject(TranslateService);
   private authSrv = inject(AuthService);
+
+  // --- Roles y permisos ---
+  isAdmin = computed(() => this.authSrv.hasRole(Role.ADMIN));
+  isPartner = computed(() => this.authSrv.hasRole(Role.PARTNER));
+
+  // Permisos específicos por rol
+  canCreate = computed(() => this.isAdmin());   // Solo Admin puede crear
+  canEdit = computed(() => this.isAdmin());     // Solo Admin puede editar
+  canDelete = computed(() => this.isAdmin());   // Solo Admin puede eliminar
+  // Partner solo puede ver (no tiene permisos especiales)
 
   // --- Estado base ---
   loading = signal(false);

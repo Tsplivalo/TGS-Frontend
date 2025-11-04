@@ -67,7 +67,7 @@ interface DistributorDTO {
   styleUrls: ['./sale.scss'],
 })
 export class SaleComponent implements OnInit {
-  // --- InyecciÃ³n ---
+  // --- Inyección ---
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private saleSrv = inject(SaleService);
@@ -90,10 +90,14 @@ export class SaleComponent implements OnInit {
   currentUser = this.authService.user;
   isAdmin = computed(() => this.authService.hasRole(Role.ADMIN));
   isDistributor = computed(() => this.authService.hasRole(Role.DISTRIBUTOR));
+  isAuthority = computed(() => this.authService.hasRole(Role.AUTHORITY));
+
+  // Permisos específicos por rol
+  canCreate = computed(() => this.isAdmin() || this.isDistributor());  // Admin y Distribuidor pueden crear ventas
   currentUserDni = computed(() => {
     const user = this.currentUser();
     const dni = (user as any)?.person?.dni;
-    console.log('[SaleComponent] ðŸ” Current user DNI:', {
+    console.log('[SaleComponent] 🔍 Current user DNI:', {
       hasUser: !!user,
       hasPerson: !!(user as any)?.person,
       dni: dni,
@@ -122,9 +126,9 @@ export class SaleComponent implements OnInit {
   clientSearch = signal('');
   productSearch = signal('');
   selectedClientDni = signal<string | null>(null);
-  // ✅ CAMBIO: Ya no necesitamos selectedDistributorDni - cada línea tiene su propio distribuidor
+  // ? CAMBIO: Ya no necesitamos selectedDistributorDni - cada l�nea tiene su propio distribuidor
 
-  // --- LÃ­neas de la venta en ediciÃ³n ---
+  // --- Líneas de la venta en edición ---
   lines = signal<Line[]>([{ productId: null, distributorDni: null, quantity: 1, filter: '' }]);
 
   // --- Desplegables (clientes y productos) ---
@@ -159,7 +163,7 @@ export class SaleComponent implements OnInit {
   
   toggleStats() {
     const newValue = !this.showStats();
-    console.log('ðŸ”„ Toggle stats:', { 
+    console.log('🔄 Toggle stats:', { 
       before: this.showStats(), 
       after: newValue,
       hasStats: !!this.stats()
@@ -167,7 +171,7 @@ export class SaleComponent implements OnInit {
     this.showStats.set(newValue);
     
     if (newValue && !this.stats()) {
-      console.log('ðŸ“Š Loading stats for first time...');
+      console.log('📊 Loading stats for first time...');
       this.loadStats();
     }
   }
@@ -175,9 +179,9 @@ export class SaleComponent implements OnInit {
   // Expuesto al template
   get clientControl() { return this.form.controls.clientDni; }
 
-  // âœ… NUEVO: Formatea fecha ISO a DD/MM/YYYY HH:mm
+  // ✅ NUEVO: Formatea fecha ISO a DD/MM/YYYY HH:mm
   formatDateTimeDDMMYYYY(isoDate: string | undefined): string {
-    if (!isoDate) return 'â€”';
+    if (!isoDate) return '—';
     
     try {
       const date = new Date(isoDate);
@@ -191,13 +195,13 @@ export class SaleComponent implements OnInit {
       return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (e) {
       console.error('Error formatting date:', e);
-      return 'â€”';
+      return '—';
     }
   }
   
   // --- Ciclo de vida ---
   ngOnInit(): void {
-    console.log('ðŸš€ Component initialized. showStats:', this.showStats());
+    console.log('🚀 Component initialized. showStats:', this.showStats());
     this.loading.set(true);
     this.error.set(null);
 
@@ -241,9 +245,9 @@ export class SaleComponent implements OnInit {
           distributorList = res.dists.distributors;
         }
         
-        console.log('ðŸ“¦ Products loaded:', productList.length, productList);
-        console.log('ðŸ‘¥ Clients loaded:', clientList.length, clientList);
-        console.log('ðŸšš Distributors loaded:', distributorList.length, distributorList);
+        console.log('📦 Products loaded:', productList.length, productList);
+        console.log('👥 Clients loaded:', clientList.length, clientList);
+        console.log('🚚 Distributors loaded:', distributorList.length, distributorList);
         
         this.products.set(productList);
         this.clients.set(clientList);
@@ -252,20 +256,20 @@ export class SaleComponent implements OnInit {
         this.loadSales();
       },
       error: (err) => { 
-        console.error('âŒ Error loading catalog:', err);
+        console.error('❌ Error loading catalog:', err);
         this.loadSales(); 
       }
     });
   }
 
   loadStats() {
-    console.log('ðŸ“Š loadStats() called');
+    console.log('📊 loadStats() called');
     this.loadingStats.set(true);
     
     const salesData = this.sales();
     
     if (!salesData || salesData.length === 0) {
-      console.warn('âš ï¸ No sales data available');
+      console.warn('⚠️ No sales data available');
       this.loadingStats.set(false);
       return;
     }
@@ -335,7 +339,7 @@ export class SaleComponent implements OnInit {
       }]
     };
 
-    console.log('âœ… Stats calculated:', stats);
+    console.log('✅ Stats calculated:', stats);
     
     this.stats.set(stats);
     this.salesChartData.set(salesChartData);
@@ -347,7 +351,7 @@ export class SaleComponent implements OnInit {
   private groupSalesByMonth(sales: SaleDTO[]): { month: string; amount: number }[] {
     const monthMap = new Map<string, number>();
     
-    console.log('ðŸ“… Grouping sales by month...');
+    console.log('📅 Grouping sales by month...');
     
     sales.forEach(sale => {
       const date = new Date(sale.saleDate || sale.date || Date.now());
@@ -363,7 +367,7 @@ export class SaleComponent implements OnInit {
       monthMap.set(monthKey, currentAmount + saleTotal);
     });
 
-    console.log('ðŸ“… Month map final:', Array.from(monthMap.entries()));
+    console.log('📅 Month map final:', Array.from(monthMap.entries()));
 
     const result = Array.from(monthMap.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
@@ -377,14 +381,14 @@ export class SaleComponent implements OnInit {
         };
       });
     
-    console.log('ðŸ“… Final result:', result);
+    console.log('📅 Final result:', result);
     return result;
   }
 
   private getTopProducts(sales: SaleDTO[]): { productId: number; productName: string; quantity: number }[] {
     const productMap = new Map<number, { name: string; quantity: number }>();
 
-    console.log('ðŸ“¦ Calculating top products from', sales.length, 'sales');
+    console.log('📦 Calculating top products from', sales.length, 'sales');
 
     sales.forEach(sale => {
       if (sale.details && sale.details.length > 0) {
@@ -416,14 +420,14 @@ export class SaleComponent implements OnInit {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
 
-    console.log('ðŸ† Top products result:', result);
+    console.log('🏆 Top products result:', result);
     return result;
   }
 
   private getSalesByDistributor(sales: SaleDTO[]): { distributorName: string; totalSales: number }[] {
     const distributorMap = new Map<string, number>();
 
-    console.log('ðŸšš Calculating sales by distributor from', sales.length, 'sales');
+    console.log('🚚 Calculating sales by distributor from', sales.length, 'sales');
 
     sales.forEach(sale => {
       const distributorName = sale.distributor?.name || 'Sin distribuidor';
@@ -438,7 +442,7 @@ export class SaleComponent implements OnInit {
       .map(([distributorName, totalSales]) => ({ distributorName, totalSales }))
       .sort((a, b) => b.totalSales - a.totalSales);
 
-    console.log('ðŸšš Distributors result:', result);
+    console.log('🚚 Distributors result:', result);
     return result;
   }
 
@@ -478,14 +482,14 @@ export class SaleComponent implements OnInit {
       const matchId = String(v.id) === q;
       if (matchId) return true;
       
-      // Si no es un nÃºmero puro, buscar en otros campos
+      // Si no es un número puro, buscar en otros campos
       const isNumericOnly = /^\d+$/.test(q);
       
       if (isNumericOnly) {
-        // Si es solo nÃºmeros, buscar SOLO en ID
+        // Si es solo números, buscar SOLO en ID
         return false;
       } else {
-        // Si tiene letras, buscar en descripciÃ³n de productos, cliente y distribuidor
+        // Si tiene letras, buscar en descripción de productos, cliente y distribuidor
         const saleDescription = (v.details && v.details.length) 
           ? v.details.map(d => this.detailDescription(d)).join(' ').toLowerCase()
           : '';
@@ -525,6 +529,15 @@ export class SaleComponent implements OnInit {
       }
     });
 
+    // ✅ Si es distribuidor (no admin), filtrar solo sus productos
+    if (this.isDistributor() && !this.isAdmin()) {
+      const userDni = this.currentUserDni();
+      if (userDni) {
+        return offers.filter(offer => offer.distributorDni === userDni);
+      }
+      return [];
+    }
+
     return offers;
   });
 
@@ -541,7 +554,7 @@ export class SaleComponent implements OnInit {
     const q = this.productSearch().toLowerCase().trim();
     let offers = this.productOffers();
 
-    // ✅ CAMBIO: Ya no filtramos por distribuidor - permitimos mezclar distribuidores
+    // ? CAMBIO: Ya no filtramos por distribuidor - permitimos mezclar distribuidores
 
     // Filter by search query
     if (!q) return offers;
@@ -568,43 +581,61 @@ export class SaleComponent implements OnInit {
   loadSales() {
     this.saleSrv.getAllSales().subscribe({
       next: (list: SaleDTO[]) => {
-        console.log('ðŸ“‹ Sales loaded from backend:', list.length, 'sales');
+        console.log('📋 Sales loaded from backend:', list.length, 'sales');
 
         if (list.length > 0) {
-          console.log('ðŸ” First sale structure:', list[0]);
-          console.log('ðŸ” Distributor in first sale:', list[0].distributor);
-          console.log('ðŸ” Client in first sale:', list[0].client);
+          console.log('🔍 First sale structure:', list[0]);
+          console.log('🔍 Distributor in first sale:', list[0].distributor);
+          console.log('🔍 Client in first sale:', list[0].client);
         }
 
         // Filtrar por distribuidor si no es admin
         let filteredSales = list;
         if (this.isDistributor() && !this.isAdmin()) {
           const userDni = this.currentUserDni();
-          console.log('ðŸ” Filtering sales for distributor DNI:', userDni);
+          console.log('🔍 Filtering sales for distributor DNI:', userDni);
 
           if (userDni) {
             filteredSales = list.filter(sale => {
               const distributorDni = sale.distributor?.dni;
               const matches = distributorDni === userDni;
               if (!matches) {
-                console.log('âŒ Filtered out sale:', sale.id, 'distributor:', distributorDni);
+                console.log('❌ Filtered out sale:', sale.id, 'distributor:', distributorDni);
               }
               return matches;
             });
-            console.log('âœ… Filtered sales for distributor:', filteredSales.length, 'of', list.length);
+            console.log('✅ Filtered sales for distributor:', filteredSales.length, 'of', list.length);
           } else {
-            console.warn('âš ï¸ Distributor DNI not found, showing no sales');
+            console.warn('⚠️ Distributor DNI not found, showing no sales');
             filteredSales = [];
           }
+        } else if (this.isAuthority() && !this.isAdmin()) {
+          // Autoridad solo ve ventas con productos ilegales
+          console.log('⚖️ Authority user - filtering sales with illegal products');
+
+          const allProducts = this.products();
+          filteredSales = list.filter(sale => {
+            if (!sale.details || sale.details.length === 0) return false;
+
+            // Verificar si algún producto de la venta es ilegal
+            const hasIllegalProduct = sale.details.some(detail => {
+              const product = allProducts.find(p => p.id === detail.productId);
+              return product?.isIllegal === true;
+            });
+
+            return hasIllegalProduct;
+          });
+
+          console.log('✅ Filtered sales for authority:', filteredSales.length, 'of', list.length, '(only illegal products)');
         } else if (this.isAdmin()) {
-          console.log('ðŸ‘‘ Admin user - showing all sales');
+          console.log('👑 Admin user - showing all sales');
         }
 
         this.sales.set(filteredSales);
         this.loading.set(false);
 
         if (filteredSales.length > 0) {
-          console.log('ðŸ“Š Auto-loading stats because sales exist');
+          console.log('📊 Auto-loading stats because sales exist');
           this.showStats.set(true);
           this.loadStats();
         }
@@ -634,7 +665,7 @@ export class SaleComponent implements OnInit {
       if (p?.description) return p.description;
       return `#${pid}`;
     }
-    return 'â€”';
+    return '—';
   }
 
   detailPrice(d: SaleDetailDTO): number {
@@ -663,12 +694,12 @@ export class SaleComponent implements OnInit {
     return this.distributors().some(d => (d.dni || '') === dni);
   }
 
-  // ✅ CAMBIO: Ahora agrupa las líneas por distribuidor y retorna múltiples payloads
+  // ? CAMBIO: Ahora agrupa las l�neas por distribuidor y retorna m�ltiples payloads
   private buildCreatePayloads(): CreateSaleDTO[] {
     const clientDni = String(this.clientControl.value || '').trim();
     const validLines = this.lines().filter(l => l.productId !== null && l.distributorDni !== null);
 
-    // Agrupar líneas por distribuidor
+    // Agrupar l�neas por distribuidor
     const linesByDistributor = new Map<string, Line[]>();
     validLines.forEach(line => {
       const distDni = line.distributorDni!;
@@ -740,7 +771,7 @@ export class SaleComponent implements OnInit {
     this.clientSearch.set('');
     this.productSearch.set('');
     this.selectedClientDni.set(null);
-    // ✅ CAMBIO: Ya no usamos selectedDistributorDni global
+    // ? CAMBIO: Ya no usamos selectedDistributorDni global
     this.isNewOpen = false;
   }
 
@@ -757,7 +788,7 @@ export class SaleComponent implements OnInit {
       arr.push({ productId: null, distributorDni: null, quantity: 1, filter: '' });
     }
 
-    // ✅ CAMBIO: Ya no reseteamos el distribuidor global (no existe más)
+    // ? CAMBIO: Ya no reseteamos el distribuidor global (no existe m�s)
     this.lines.set(arr);
   }
 
@@ -771,7 +802,7 @@ export class SaleComponent implements OnInit {
     const arr = [...this.lines()];
     const line = arr[lineIndex];
 
-    // ✅ CAMBIO: Cada línea tiene su propio distribuidor, sin restricciones globales
+    // ? CAMBIO: Cada l�nea tiene su propio distribuidor, sin restricciones globales
     line.productId = offer.productId;
     line.distributorDni = offer.distributorDni;
     this.lines.set(arr);
@@ -796,7 +827,7 @@ export class SaleComponent implements OnInit {
       return;
     }
 
-    // ✅ CAMBIO: Obtener múltiples payloads (uno por distribuidor)
+    // ? CAMBIO: Obtener m�ltiples payloads (uno por distribuidor)
     const payloads = this.buildCreatePayloads();
 
     if (payloads.length === 0) {
@@ -807,14 +838,14 @@ export class SaleComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    // ✅ CAMBIO: Crear múltiples ventas en paralelo usando forkJoin
+    // ? CAMBIO: Crear m�ltiples ventas en paralelo usando forkJoin
     const createRequests = payloads.map(payload => this.saleSrv.createSale(payload));
 
     forkJoin(createRequests).subscribe({
       next: (results) => {
-        console.log(`✅ ${results.length} venta(s) creada(s) exitosamente`);
+        console.log(`? ${results.length} venta(s) creada(s) exitosamente`);
         if (results.length > 1) {
-          console.log(`ℹ️ Se crearon ${results.length} ventas porque hay productos de ${results.length} distribuidores diferentes`);
+          console.log(`?? Se crearon ${results.length} ventas porque hay productos de ${results.length} distribuidores diferentes`);
         }
         this.new();
         this.loadSales();
@@ -869,7 +900,7 @@ export class SaleComponent implements OnInit {
         callbacks: {
           label: (context) => {
             const value = context.parsed.y ?? 0;
-            return `ðŸ’° Ventas: ${new Intl.NumberFormat('es-AR', {
+            return `💰 Ventas: ${new Intl.NumberFormat('es-AR', {
               style: 'currency',
               currency: 'ARS',
               minimumFractionDigits: 0
@@ -906,8 +937,8 @@ export class SaleComponent implements OnInit {
 }
 
 /**
- * ðŸ© Opciones para grÃ¡fico de TOP PRODUCTOS
- * GrÃ¡fico de dona con colores diferentes
+ * 🍩 Opciones para gráfico de TOP PRODUCTOS
+ * Gráfico de dona con colores diferentes
  */
 getTopProductsChartOptions(): ChartConfiguration['options'] {
   const doughnutOptions: ChartConfiguration<'doughnut'>['options'] = {
@@ -970,7 +1001,7 @@ getTopProductsChartOptions(): ChartConfiguration['options'] {
             const datasetValues = context.dataset.data as Array<number | null | undefined>;
             const total = datasetValues.reduce((acc: number, entry) => acc + (entry ?? 0), 0);
             const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
-            return `ðŸ“¦ ${label}: ${value} uds (${percentage}%)`;
+            return `📦 ${label}: ${value} uds (${percentage}%)`;
           }
         }
       }
@@ -982,8 +1013,8 @@ getTopProductsChartOptions(): ChartConfiguration['options'] {
 }
 
 /**
- * ðŸ“Š Opciones para grÃ¡fico de DISTRIBUIDORES
- * GrÃ¡fico de barras horizontales con colores diferentes
+ * 📊 Opciones para gráfico de DISTRIBUIDORES
+ * Gráfico de barras horizontales con colores diferentes
  */
 getDistributorsChartOptions(): ChartConfiguration['options'] {
   return {
@@ -1017,7 +1048,7 @@ getDistributorsChartOptions(): ChartConfiguration['options'] {
         callbacks: {
           label: (context) => {
             const value = context.parsed.x ?? 0;
-            return `ðŸšš Ventas: ${new Intl.NumberFormat('es-AR', {
+            return `🚚 Ventas: ${new Intl.NumberFormat('es-AR', {
               style: 'currency',
               currency: 'ARS',
               minimumFractionDigits: 0

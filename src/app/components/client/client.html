@@ -4,7 +4,7 @@
   <div class="glass-dark card stack-md client-shell">
     <div class="header">
       <h2>{{ 'clients.title' | translate }}</h2>
-      <div class="right">
+      <div class="right" *ngIf="canCreate()">
         <button class="btn" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen">
           {{ isNewOpen ? ('clients.toggle.close' | translate) : ('clients.toggle.new' | translate) }}
         </button>
@@ -96,7 +96,7 @@
             <th>{{ 'clients.table.address' | translate }}</th>
             <th>{{ 'clients.table.phone' | translate }}</th>
             <th class="center">{{ 'clients.table.purchases' | translate }}</th>
-            <th class="right">{{ 'clients.table.actions' | translate }}</th>
+            <th class="right" *ngIf="isAdmin()">{{ 'clients.table.actions' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -111,7 +111,7 @@
                 {{ getPurchaseCount(c) }}
               </span>
             </td>
-            <td class="right">
+            <td class="right" *ngIf="isAdmin()">
               <button class="btn ghost btn--icon" (click)="edit(c)" [attr.title]="'common.edit' | translate"
                 [attr.aria-label]="'common.edit' | translate">
                 ✏️

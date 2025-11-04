@@ -5,7 +5,7 @@
     <!-- HEADER + TOOLBAR -->
     <header class="header">
       <h2 class="title">{{ 'shelbyCouncil.title' | translate : {} : 'Consejo Shelby' }}</h2>
-      <div class="right">
+      <div class="right" *ngIf="canCreate()">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
           {{ isNewOpen()
           ? ('shelbyCouncil.buttons.close' | translate : {} : 'Cerrar')
@@ -88,7 +88,7 @@
               <th>{{ 'shelbyCouncil.fields.decision' | translate : {} : '📊 Decisión' }}</th>
               <th style="width:130px;">{{ 'shelbyCouncil.fields.joinDate' | translate : {} : '📅 Ingreso' }}</th>
               <th>{{ 'shelbyCouncil.fields.role' | translate : {} : '🎯 Rol' }}</th>
-              <th class="right" style="width:160px;">
+              <th *ngIf="canEdit() || canDelete()" class="right" style="width:160px;">
                 {{ 'common.actions' | translate : {} : 'Acciones' }}
               </th>
             </tr>
@@ -113,12 +113,12 @@
                 <span class="badge badge-role" *ngIf="it.role">{{ it.role }}</span>
                 <span class="muted" *ngIf="!it.role">—</span>
               </td>
-              <td class="right">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+              <td *ngIf="canEdit() || canDelete()" class="right">
+                <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(it)"
                   [attr.title]="'common.edit' | translate : {} : 'Editar'">
                   ✏️
                 </button>
-                <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                <button *ngIf="canDelete()" class="btn danger btn--icon" type="button" (click)="delete(it)"
                   [attr.title]="'common.delete' | translate : {} : 'Eliminar'">
                   🗑️
                 </button>

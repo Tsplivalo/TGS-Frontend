@@ -34,7 +34,7 @@
   <div class="credential-card" *ngIf="!loading() && me() && me()?.hasPersonalInfo">
     <!-- Header del carnet -->
     <div class="card-header">
-      <div class="org-logo">THE GARRISON</div>
+      <div class="org-logo">THE GARRISON SYSTEM</div>
       <div class="card-type">MEMBER CREDENTIAL</div>
     </div>
 
@@ -163,7 +163,6 @@
         <div class="bar"></div>
         <div class="bar"></div>
       </div>
-      <div class="card-id">ID: {{ me()?.id?.substring(0, 8)?.toUpperCase() || 'N/A' }}</div>
     </div>
   </div>
 

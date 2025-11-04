@@ -5,7 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 
 import { PartnerService } from '../../services/partner/partner';
-import { AuthService, User } from '../../services/user/user';
+import { AuthService, User, Role } from '../../services/user/user';
 
 import {
   PartnerDTO,
@@ -29,6 +29,16 @@ export class PartnerComponent implements OnInit {
   private fb = inject(FormBuilder);
   private srv = inject(PartnerService);
   private authSrv = inject(AuthService);
+
+  // --- Roles y permisos ---
+  isAdmin = computed(() => this.authSrv.hasRole(Role.ADMIN));
+  isPartner = computed(() => this.authSrv.hasRole(Role.PARTNER));
+
+  // Permisos específicos por rol
+  canCreate = computed(() => this.isAdmin());   // Solo Admin puede crear
+  canEdit = computed(() => this.isAdmin());     // Solo Admin puede editar
+  canDelete = computed(() => this.isAdmin());   // Solo Admin puede eliminar
+  // Partner solo puede ver (no tiene permisos especiales)
 
   // Estado base
   items = signal<PartnerDTO[]>([]);
