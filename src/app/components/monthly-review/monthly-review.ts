@@ -75,9 +75,7 @@ export class MonthlyReviewComponent implements OnInit {
   form = this.fb.group({
     id: this.fb.control<number | null>(null),
     partnerDni: this.fb.control<string>('', [Validators.required, Validators.minLength(6)]),
-    year:  this.fb.control<number>(new Date().getFullYear(), [Validators.required, Validators.min(2000)]),
-    month: this.fb.control<number>(new Date().getMonth() + 1, [Validators.required, Validators.min(1), Validators.max(12)]),
-    reviewDate: this.fb.control<string | null>(this.todayISO()),
+    reviewDate: this.fb.control<string>(this.todayISO(), [Validators.required]), // ✅ Ahora obligatorio
     status: this.fb.control<ReviewStatus>('PENDING'),
     observations: this.fb.control<string | null>(null),
     recommendations: this.fb.control<string | null>(null),
@@ -127,8 +125,6 @@ export class MonthlyReviewComponent implements OnInit {
     this.form.reset({
       id: null,
       partnerDni: '',
-      year: new Date().getFullYear(),
-      month: new Date().getMonth() + 1,
       reviewDate: this.todayISO(),
       status: 'PENDING',
       observations: null,
@@ -139,12 +135,10 @@ export class MonthlyReviewComponent implements OnInit {
   edit(it: MonthlyReviewDTO): void {
     this.isEdit.set(true);
     const reviewDate = it.reviewDate ? it.reviewDate.substring(0, 10) : this.todayISO();
-    
+
     this.form.patchValue({
       id: it.id,
       partnerDni: it.reviewedBy?.dni ?? '',
-      year: it.year,
-      month: it.month,
       reviewDate: reviewDate,
       status: it.status,
       observations: it.observations ?? null,
@@ -155,9 +149,9 @@ export class MonthlyReviewComponent implements OnInit {
   }
 
   save(): void {
-    if (this.form.invalid) { 
-      this.form.markAllAsTouched(); 
-      return; 
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
 
     this.loading.set(true);
@@ -166,9 +160,14 @@ export class MonthlyReviewComponent implements OnInit {
     const { id, ...rest } = this.form.getRawValue();
 
     if (!this.isEdit()) {
+      // ✅ Extraer año y mes de la fecha de revisión
+      const reviewDate = new Date(rest.reviewDate!);
+      const year = reviewDate.getFullYear();
+      const month = reviewDate.getMonth() + 1; // getMonth() retorna 0-11
+
       const payload: CreateMonthlyReviewDTO = {
-        year: rest.year!,
-        month: rest.month!,
+        year: year,
+        month: month,
         partnerDni: rest.partnerDni!,
         ...(rest.reviewDate && rest.reviewDate.trim() !== '' && {
           reviewDate: this.toISODateTime(rest.reviewDate)

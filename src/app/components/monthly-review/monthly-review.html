@@ -222,67 +222,63 @@
 
     <form [formGroup]="form" class="form-grid" (ngSubmit)="save()">
       <!-- DNI del Socio Revisor -->
-      <label class="label">
-        <span>{{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'Socio Revisor' }} *</span>
+      <label class="label col-2">
+        <span>👤 {{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'Socio Revisor' }} *</span>
         <select class="input" formControlName="partnerDni">
-          <option value="" disabled>� Seleccion� un socio �</option>
+          <option value="" disabled>— Seleccioná un socio —</option>
           <option *ngFor="let p of partners()" [value]="p.dni">
-            {{ p.dni }} � {{ p.name }}
+            {{ p.dni }} — {{ p.name }}
           </option>
         </select>
         <small class="muted" *ngIf="!partners().length && !loading()">
-          No hay socios disponibles. Cre� uno primero.
+          ⚠️ No hay socios disponibles. Creá uno primero.
         </small>
         <small class="error" *ngIf="form.controls.partnerDni.invalid && form.controls.partnerDni.touched">
-          {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'Socio requerido' }}
+          ❌ {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'Socio requerido' }}
         </small>
       </label>
 
-      <!-- A�o -->
-      <label class="label">
-        <span>{{ 'monthlyReview.form.fields.year' | translate : {} : 'A�o' }} *</span>
-        <input class="input" type="number" formControlName="year"
-          [attr.aria-label]="'monthlyReview.form.fields.year' | translate : {} : 'A�o'" />
-      </label>
+      <!-- Fecha de Revisión y Estado (alineados) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); grid-column: 1 / -1;">
+        <!-- Fecha de Revisión (extrae automáticamente año y mes) -->
+        <label class="label">
+          <span>📅 {{ 'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisión' }} *</span>
+          <input class="input" type="date" formControlName="reviewDate"
+            [attr.aria-label]="'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisión'" />
+          <small class="muted">
+            💡 El año y mes se extraerán automáticamente de esta fecha
+          </small>
+          <small class="error" *ngIf="form.controls.reviewDate.invalid && form.controls.reviewDate.touched">
+            ❌ Fecha requerida
+          </small>
+        </label>
 
-      <!-- Mes -->
-      <label class="label">
-        <span>{{ 'monthlyReview.form.fields.month' | translate : {} : 'Mes (1-12)' }} *</span>
-        <input class="input" type="number" formControlName="month" min="1" max="12"
-          [attr.aria-label]="'monthlyReview.form.fields.month' | translate : {} : 'Mes'" />
-      </label>
-
-      <!-- Fecha de Revisi�n -->
-      <label class="label">
-        <span>{{ 'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisi�n' }}</span>
-        <input class="input" type="date" formControlName="reviewDate"
-          [attr.aria-label]="'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisi�n'" />
-      </label>
-
-      <!-- Estado -->
-      <label class="label">
-        <span>{{ 'monthlyReview.form.fields.status' | translate : {} : 'Estado' }}</span>
-        <select class="input" formControlName="status">
-          <option value="PENDING">{{ 'status.PENDING' | translate : {} : 'Pendiente' }}</option>
-          <option value="IN_REVIEW">{{ 'status.IN_REVIEW' | translate : {} : 'En Revisi�n' }}</option>
-          <option value="COMPLETED">{{ 'status.COMPLETED' | translate : {} : 'Completado' }}</option>
-          <option value="APPROVED">{{ 'status.APPROVED' | translate : {} : 'Aprobado' }}</option>
-          <option value="REJECTED">{{ 'status.REJECTED' | translate : {} : 'Rechazado' }}</option>
-        </select>
-      </label>
+        <!-- Estado -->
+        <label class="label">
+          <span>🏷️ {{ 'monthlyReview.form.fields.status' | translate : {} : 'Estado' }}</span>
+          <select class="input" formControlName="status">
+            <option value="PENDING">⏳ {{ 'status.PENDING' | translate : {} : 'Pendiente' }}</option>
+            <option value="IN_REVIEW">🔍 {{ 'status.IN_REVIEW' | translate : {} : 'En Revisión' }}</option>
+            <option value="COMPLETED">✅ {{ 'status.COMPLETED' | translate : {} : 'Completado' }}</option>
+            <option value="APPROVED">👍 {{ 'status.APPROVED' | translate : {} : 'Aprobado' }}</option>
+            <option value="REJECTED">❌ {{ 'status.REJECTED' | translate : {} : 'Rechazado' }}</option>
+          </select>
+          <small class="muted" style="visibility: hidden;">Espacio reservado</small>
+        </label>
+      </div>
 
       <!-- Observaciones -->
       <label class="label col-2">
-        <span>{{ 'monthlyReview.form.fields.observations' | translate : {} : 'Observaciones' }}</span>
+        <span>📝 {{ 'monthlyReview.form.fields.observations' | translate : {} : 'Observaciones' }}</span>
         <textarea class="input" rows="3" formControlName="observations"
-          [placeholder]="'monthlyReview.form.placeholders.observations' | translate : {} : 'Observaciones sobre las ventas del per�odo...'"></textarea>
+          [placeholder]="'monthlyReview.form.placeholders.observations' | translate : {} : '💭 Observaciones sobre las ventas del período...'"></textarea>
       </label>
 
       <!-- Recomendaciones -->
       <label class="label col-2">
-        <span>{{ 'monthlyReview.form.fields.recommendations' | translate : {} : 'Recomendaciones' }}</span>
+        <span>💡 {{ 'monthlyReview.form.fields.recommendations' | translate : {} : 'Recomendaciones' }}</span>
         <textarea class="input" rows="3" formControlName="recommendations"
-          [placeholder]="'monthlyReview.form.placeholders.recommendations' | translate : {} : 'Recomendaciones o acciones a tomar...'"></textarea>
+          [placeholder]="'monthlyReview.form.placeholders.recommendations' | translate : {} : '💡 Recomendaciones o acciones a tomar...'"></textarea>
       </label>
 
       <!-- Botones de acci�n -->

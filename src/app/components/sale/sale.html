@@ -41,26 +41,21 @@
           </div>
         </div>
 
-        <!-- Gráficos CON OPCIONES -->
+        <!-- Gráficos con ECharts -->
         <div class="charts-grid">
           <!-- Ventas por Mes -->
           <div class="chart-card">
             <h3 class="chart-title">📈 {{ 'sales.stats.salesByMonth' | translate : {} : 'Ventas por Mes' }}</h3>
-            @if (salesChartData()) {
-            <!-- 🔥 AGREGADO [options] -->
-            <app-chart [type]="'bar'" [data]="salesChartData()!" [options]="getSalesChartOptions()" [height]="'300px'">
-            </app-chart>
+            @if (salesChartOptions()) {
+            <div echarts [options]="salesChartOptions()!" [theme]="'dark'" class="chart-container" style="height: 320px;"></div>
             }
           </div>
 
           <!-- Top Productos -->
           <div class="chart-card">
             <h3 class="chart-title">🏆 {{ 'sales.stats.topProducts' | translate : {} : 'Productos Más Vendidos' }}</h3>
-            @if (topProductsChartData()) {
-            <!-- 🔥 AGREGADO [options] -->
-            <app-chart [type]="'doughnut'" [data]="topProductsChartData()!" [options]="getTopProductsChartOptions()"
-              [height]="'320px'">
-            </app-chart>
+            @if (topProductsChartOptions()) {
+            <div echarts [options]="topProductsChartOptions()!" [theme]="'dark'" class="chart-container" style="height: 320px;"></div>
             }
           </div>
 
@@ -68,11 +63,8 @@
           <div class="chart-card span-full">
             <h3 class="chart-title">🚚 {{ 'sales.stats.salesByDistributor' | translate : {} : 'Ventas por Distribuidor'
               }}</h3>
-            @if (distributorsChartData()) {
-            <!-- 🔥 AGREGADO [options] -->
-            <app-chart [type]="'bar'" [data]="distributorsChartData()!" [options]="getDistributorsChartOptions()"
-              [height]="'300px'">
-            </app-chart>
+            @if (distributorsChartOptions()) {
+            <div echarts [options]="distributorsChartOptions()!" [theme]="'dark'" class="chart-container" style="height: 320px;"></div>
             }
           </div>
         </div>
@@ -141,47 +133,70 @@
         <table class="table">
           <thead>
             <tr>
+              <th style="width: 40px;"></th>
               <th>{{ 'sales.table.id' | translate }}</th>
               <th>{{ 'sales.table.date' | translate }}</th>
               <th>{{ 'sales.table.client' | translate }}</th>
               <th>{{ 'sales.table.distributor' | translate }}</th>
-              <th>{{ 'sales.table.products' | translate }}</th>
-              <th>{{ 'sales.table.quantity' | translate }}</th>
               <th class="right">{{ 'sales.table.total' | translate }}</th>
             </tr>
           </thead>
           <tbody>
             @for (v of filteredSales(); track v.id) {
-            <tr>
-              <td>#{{ v.id }}</td>
-              <td>{{ formatDateTimeDDMMYYYY(v.saleDate || v.date) }}</td>
-              <td>
-                @if (getClient(v); as cli) {
-                {{ cli.dni }} 
-                } @else { — }
-              </td>
-              <td>
-                @if (v.distributor) {
-                {{ v.distributor.dni }} 
-                } @else { — }
-              </td>
-              <td>
-                @if (hasDetails(v)) {
-                {{ ('sales.itemsCount' | translate:{count: getDetails(v).length}) }}
-                <div class="muted">
-                  @for (d of getDetails(v); track d.productId; let last = $last) {
-                  {{ detailDescription(d) }}@if (!last) {, }
-                  }
+            <!-- Fila principal (clickeable) -->
+            <tr class="clickable-row" [class.expanded]="isSaleExpanded(v.id)">
+              <td (click)="toggleSaleExpanded(v.id)" style="text-align: center; vertical-align: middle;">
+                <div class="expand-arrow" [class.expanded]="isSaleExpanded(v.id)">
+                  {{ isSaleExpanded(v.id) ? '▼' : '▶' }}
                 </div>
+              </td>
+              <td (click)="toggleSaleExpanded(v.id)">#{{ v.id }}</td>
+              <td (click)="toggleSaleExpanded(v.id)">{{ formatDateTimeDDMMYYYY(v.saleDate || v.date) }}</td>
+              <td (click)="toggleSaleExpanded(v.id)">
+                @if (getClient(v); as cli) {
+                {{ cli.dni }}
                 } @else { — }
               </td>
-              <td>{{ sumQuantities(v) }}</td>
-              <td class="right">{{ calculateTotal(v) | currency:'' }}</td>
+              <td (click)="toggleSaleExpanded(v.id)">
+                @if (v.distributor) {
+                {{ v.distributor.dni }}
+                } @else { — }
+              </td>
+              <td (click)="toggleSaleExpanded(v.id)" class="right" style="font-weight: 600; color: var(--accent);">{{ calculateTotal(v) | currency:'$' }}</td>
             </tr>
+
+            <!-- Fila expandida con detalles de productos -->
+            @if (isSaleExpanded(v.id) && hasDetails(v)) {
+            <tr class="details-row">
+              <td colspan="6" style="padding: 0;">
+                <div style="padding: var(--sp-4); background: rgba(195, 164, 98, 0.05); border-left: 3px solid var(--accent);">
+                  <h4 style="margin: 0 0 var(--sp-3); color: var(--accent); font-size: 0.95rem;">
+                    📦 Productos de la venta
+                  </h4>
+                  <div style="display: grid; gap: var(--sp-2);">
+                    @for (d of getDetails(v); track d.productId) {
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-3); background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.25);">
+                      <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--text); font-size: 1rem;">{{ detailDescription(d) }}</div>
+                        <div class="muted" style="font-size: 0.875rem; margin-top: 4px;">
+                          💰 {{ detailPrice(d) | currency:'$' }} c/u
+                        </div>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: var(--sp-2); background: rgba(195, 164, 98, 0.15); padding: var(--sp-2) var(--sp-3); border-radius: 6px;">
+                        <div class="muted" style="font-size: 0.813rem;">Cantidad:</div>
+                        <div style="font-weight: 700; color: var(--accent); font-size: 1.25rem;">{{ d.quantity }}</div>
+                      </div>
+                    </div>
+                    }
+                  </div>
+                </div>
+              </td>
+            </tr>
+            }
             }
             @if (filteredSales().length === 0) {
             <tr>
-              <td colspan="7" class="center muted">
+              <td colspan="6" class="center muted">
                 {{ (fTextApplied() || fClientDniApplied())
                 ? ('sales.noResults' | translate)
                 : ('sales.empty' | translate) }}

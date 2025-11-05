@@ -193,15 +193,17 @@
 
         <button
           type="submit"
-          [class]="action === 'approve' ? 'btn btn-success' : 'btn btn-danger'"
-          [disabled]="isSubmitting">
-          <span *ngIf="!isSubmitting" class="btn-icon">{{ action === 'approve' ? '✓' : '✗' }}</span>
+          [class]="action === 'approve' ? 'btn btn-success' : (action === 'reject' ? 'btn btn-danger' : 'btn btn-secondary')"
+          [disabled]="isSubmitting || !action">
+          <span *ngIf="!isSubmitting && action" class="btn-icon">{{ action === 'approve' ? '✓' : '✗' }}</span>
           <span *ngIf="isSubmitting" class="spinner-small"></span>
           {{ isSubmitting
             ? ('roleRequests.reviewModal.actions.processing' | translate)
             : (action === 'approve'
               ? ('roleRequests.reviewModal.actions.approve' | translate)
-              : ('roleRequests.reviewModal.actions.reject' | translate)) }}
+              : (action === 'reject'
+                ? ('roleRequests.reviewModal.actions.reject' | translate)
+                : 'Selecciona una opción')) }}
         </button>
       </div>
     </form>

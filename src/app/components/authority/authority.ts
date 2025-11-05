@@ -97,12 +97,18 @@ export class AuthorityComponent implements OnInit {
   });
 
   // --- Filtros de listado ---
-  fDniInput = signal<string>('');      
-  fDniApplied = signal<string>(''); 
+  fDniInput = signal<string>('');
+  fDniApplied = signal<string>('');
   fZoneIdInput = signal<string>('');
   fZoneIdApplied = signal<string>('');
   fTextInput = signal('');
   fTextApplied = signal('');
+
+  // --- Ordenamiento por rango ---
+  rankOrder = signal<'asc' | 'desc'>('asc'); // 'asc' = ascendente, 'desc' = descendente
+  toggleRankOrder() {
+    this.rankOrder.set(this.rankOrder() === 'asc' ? 'desc' : 'asc');
+  }
 
   // --- Form reactivo ---
   form: FormGroup<AuthorityForm> = this.fb.group<AuthorityForm>({
@@ -160,20 +166,21 @@ export class AuthorityComponent implements OnInit {
     const q = this.fTextApplied().trim().toLowerCase();
     const dni = this.fDniApplied().trim();
     const z = this.fZoneIdApplied().trim();
-    
-    return arr.filter(a => {
+    const order = this.rankOrder();
+
+    const filtered = arr.filter(a => {
       // Filtro por DNI específico
       const matchDni = !dni || (a.dni ?? '').includes(dni);
-      
+
       // Filtro por zona
       const zoneIdFromDto = a?.zone?.id != null ? String(a.zone.id) : '';
       const matchZ = !z || zoneIdFromDto === z;
-      
+
       // Filtro por texto en nombre y rango
       let matchQ = true;
       if (q) {
         const isNumericOnly = /^\d+$/.test(q);
-        
+
         if (isNumericOnly) {
           // Si es solo números, buscar SOLO por rango
           const numValue = parseInt(q);
@@ -183,8 +190,15 @@ export class AuthorityComponent implements OnInit {
           matchQ = (a.name ?? '').toLowerCase().includes(q);
         }
       }
-      
+
       return matchDni && matchZ && matchQ;
+    });
+
+    // Ordenar por rango
+    return filtered.sort((a, b) => {
+      const rankA = a.rank ?? 0;
+      const rankB = b.rank ?? 0;
+      return order === 'asc' ? rankA - rankB : rankB - rankA;
     });
   });
 

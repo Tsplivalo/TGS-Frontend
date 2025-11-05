@@ -1138,6 +1138,26 @@ select {
     }
   }
 
+  &.btn-evaluate {
+    background: linear-gradient(135deg, rgba(195, 164, 98, 0.15), rgba(195, 164, 98, 0.08));
+    border: 1px solid rgba(195, 164, 98, 0.4);
+    color: var(--accent);
+    font-weight: 600;
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(195, 164, 98, 0.15);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(195, 164, 98, 0.25), rgba(195, 164, 98, 0.12));
+      border-color: rgba(195, 164, 98, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(195, 164, 98, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
+
   &.btn-sm {
     padding: 6px 12px;
     font-size: 0.85rem;
@@ -2109,16 +2129,98 @@ select {
 
 /* Modal Actions mejoradas */
 .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid rgba(195, 164, 98, 0.15);
+
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: $spacing-sm;
-    min-width: 120px;
+    min-width: 140px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 0.938rem;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     .btn-icon {
       font-size: 1.125rem;
       line-height: 1;
+    }
+  }
+
+  /* Botón Cancelar - Rojo/Danger */
+  .btn-cancel {
+    background: linear-gradient(135deg, rgba(169, 69, 69, 0.15), rgba(139, 46, 46, 0.1));
+    border: 1px solid rgba(169, 69, 69, 0.4);
+    color: #ff6b6b;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(169, 69, 69, 0.25), rgba(139, 46, 46, 0.15));
+      border-color: rgba(169, 69, 69, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(169, 69, 69, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  /* Botón Submit/Continuar - Verde/Success */
+  .btn-submit {
+    background: linear-gradient(135deg, rgba(74, 141, 114, 0.2), rgba(63, 125, 99, 0.15));
+    border: 1px solid rgba(74, 141, 114, 0.5);
+    color: #4ade80;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(74, 141, 114, 0.3), rgba(63, 125, 99, 0.2));
+      border-color: rgba(74, 141, 114, 0.7);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(74, 141, 114, 0.4);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  /* Botón Secundario (Volver) - Gris */
+  .btn-secondary {
+    background: linear-gradient(135deg, rgba(195, 164, 98, 0.1), rgba(195, 164, 98, 0.05));
+    border: 1px solid rgba(195, 164, 98, 0.3);
+    color: var(--text);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(195, 164, 98, 0.15), rgba(195, 164, 98, 0.08));
+      border-color: rgba(195, 164, 98, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(195, 164, 98, 0.2);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 }

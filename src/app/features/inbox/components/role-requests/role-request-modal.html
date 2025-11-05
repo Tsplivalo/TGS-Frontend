@@ -196,7 +196,7 @@
       <div class="modal-actions">
         <button
           type="button"
-          class="btn btn-ghost"
+          class="btn btn-cancel"
           (click)="onClose()"
           [disabled]="isSubmitting"
         >
@@ -206,7 +206,7 @@
 
         <button
           type="submit"
-          class="btn btn-primary"
+          class="btn btn-submit"
           [disabled]="isSubmitting || !requestedRole || (isRoleChange && !roleToRemove) ||
                       (justification.length > 0 && justification.length < 20)"
         >
@@ -339,7 +339,7 @@
       <div class="modal-actions">
         <button
           type="button"
-          class="btn btn-ghost"
+          class="btn btn-secondary"
           (click)="backToStep1()"
           [disabled]="isSubmitting"
         >
@@ -349,7 +349,7 @@
 
         <button
           type="submit"
-          class="btn btn-success"
+          class="btn btn-submit"
           [disabled]="isSubmitting || !additionalDataValid"
         >
           <span class="btn-icon" *ngIf="!isSubmitting">✓</span>

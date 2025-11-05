@@ -35,7 +35,26 @@
       "close": "Close",
       "clear": "Clear",
       "goToCheckout": "Checkout",
-      "total": "Total"
+      "total": "Total",
+      "orderSplit": "Order split into {{count}} locations",
+      "orderSplitDesc": "We will create {{count}} purchase orders, one for each location.",
+      "productCount_one": "product",
+      "productCount_other": "products",
+      "subtotal": "Subtotal",
+      "multiplePurchaseNote": "{{count}} separate purchases will be created. You will receive a confirmation for each one.",
+      "unavailable": "Products unavailable",
+      "unavailableDesc": "The products in your cart are not available. Please remove some items.",
+      "pricePerUnit": "each",
+      "decrease": "Decrease",
+      "increase": "Increase",
+      "remove": "Remove",
+      "checkout": "Checkout",
+      "processing": "Processing...",
+      "cannotPurchase": "You cannot purchase yet",
+      "needVerification": "You must verify your account with an administrator.",
+      "requestVerification": "Request verification",
+      "completeProfile100": "Complete your profile to 100% to purchase.",
+      "completeProfile": "Complete profile"
     }
   },
   "account": {
@@ -1423,6 +1442,7 @@
         "reviewedBy": "Reviewed by:"
       },
       "actions": {
+        "evaluate": "Evaluate Request",
         "approve": "Approve",
         "reject": "Reject"
       }

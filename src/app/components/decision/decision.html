@@ -137,18 +137,22 @@
           class="input topic-search"
           type="text"
           placeholder="🔍 Buscar temática..."
-          [(ngModel)]="topicSearch"
+          [ngModel]="topicSearch()"
+          (ngModelChange)="topicSearch.set($event)"
           [ngModelOptions]="{standalone: true}"
         />
 
-        <!-- Mini título -->
-        <div class="topics-list-title">
-          <span>📋 Seleccioná una temática de la lista</span>
-          <small>{{ filteredTopics().length }} {{ filteredTopics().length === 1 ? 'temática disponible' : 'temáticas disponibles' }}</small>
+        <!-- Header del menú desplegable -->
+        <div class="topics-toggle" (click)="toggleTopics()" [class.open]="topicsOpen()">
+          <div class="topics-toggle-content">
+            <span class="topics-toggle-icon">{{ topicsOpen() ? '▼' : '▶' }}</span>
+            <span class="topics-toggle-title">📋 Temáticas disponibles</span>
+            <span class="topics-toggle-count">({{ filteredTopics().length }})</span>
+          </div>
         </div>
 
-        <!-- Listado de temáticas con scroll -->
-        <div class="topics-list">
+        <!-- Listado de temáticas con scroll (colapsable) -->
+        <div class="topics-list" *ngIf="topicsOpen()">
           <div
             *ngFor="let t of filteredTopics()"
             class="topic-card"
@@ -163,25 +167,27 @@
           </div>
 
           <div *ngIf="!filteredTopics().length" class="no-topics">
-            <span>{{ topicSearch ? 'No se encontraron temáticas' : 'No hay temáticas disponibles' }}</span>
+            <span>{{ topicSearch() ? 'No se encontraron temáticas' : 'No hay temáticas disponibles' }}</span>
           </div>
         </div>
       </div>
 
-      <label class="label">
+      <label class="label col-2">
         <span>{{ 'decisions.form.description' | translate }}</span>
         <input class="input" formControlName="description" [placeholder]="'decisions.form.descriptionPh' | translate" />
       </label>
 
-      <label class="label">
-        <span>{{ 'decisions.form.start' | translate }}</span>
-        <input class="input" type="date" formControlName="startDate" [min]="today" />
-      </label>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); grid-column: 1 / -1;">
+        <label class="label">
+          <span>{{ 'decisions.form.start' | translate }}</span>
+          <input class="input" type="date" formControlName="startDate" [min]="today" />
+        </label>
 
-      <label class="label">
-        <span>{{ 'decisions.form.end' | translate }}</span>
-        <input class="input" type="date" formControlName="endDate" [min]="form.controls.startDate.value || today" />
-      </label>
+        <label class="label">
+          <span>{{ 'decisions.form.end' | translate }}</span>
+          <input class="input" type="date" formControlName="endDate" [min]="form.controls.startDate.value || today" />
+        </label>
+      </div>
 
       <div class="right form-actions">
         <button class="btn success" type="submit" [disabled]="loading()">

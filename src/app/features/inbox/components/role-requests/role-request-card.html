@@ -65,13 +65,9 @@
     </div>
 
     <div *ngIf="isAdmin && request.status === RequestStatus.PENDING" class="action-buttons">
-      <button class="btn btn-success" (click)="onReview('approve', $event)">
-        <span class="icon">✓</span>
-        {{ 'roleRequests.card.actions.approve' | translate }}
-      </button>
-      <button class="btn btn-danger" (click)="onReview('reject', $event)">
-        <span class="icon">✗</span>
-        {{ 'roleRequests.card.actions.reject' | translate }}
+      <button class="btn btn-evaluate" (click)="onReview('approve', $event)">
+        <span class="icon">⚖️</span>
+        {{ 'roleRequests.card.actions.evaluate' | translate : {} : 'Evaluar Solicitud' }}
       </button>
     </div>
   </div>

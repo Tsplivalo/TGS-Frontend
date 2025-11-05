@@ -2644,3 +2644,129 @@ fieldset.group legend {
   border-color: rgba(59, 130, 246, 0.6);
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
+
+/* ===== FILAS EXPANDIBLES ===== */
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(195, 164, 98, 0.08);
+}
+
+.table tbody tr.expanded {
+  background: rgba(195, 164, 98, 0.12);
+}
+
+/* Hacer que toda la fila sea clickeable */
+.table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
+.table tbody tr.clickable-row td {
+  cursor: pointer;
+}
+
+.table tbody tr.details-row {
+  background: transparent;
+  cursor: default;
+}
+
+.table tbody tr.details-row:hover {
+  background: transparent;
+}
+
+.table tbody tr.details-row td {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== FLECHA EXPANDIR/COLAPSAR ===== */
+.expand-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  color: var(--accent);
+  background: rgba(195, 164, 98, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(195, 164, 98, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.expand-arrow:hover {
+  background: rgba(195, 164, 98, 0.2);
+  border-color: rgba(195, 164, 98, 0.5);
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(195, 164, 98, 0.3);
+}
+
+.expand-arrow.expanded {
+  background: rgba(195, 164, 98, 0.25);
+  border-color: rgba(195, 164, 98, 0.6);
+  transform: rotate(0deg);
+}
+
+.expand-arrow.expanded:hover {
+  transform: scale(1.1) rotate(0deg);
+}
+
+/* ===== MEJORAS PARA LOS GRÁFICOS ECHARTS ===== */
+
+/* Mejorar la hitbox e interactividad de los contenedores de gráficos */
+.chart-container {
+  width: 100%;
+  cursor: default;
+  pointer-events: all !important;
+  position: relative;
+  min-height: 320px;
+}
+
+/* Asegurar que el canvas de ECharts sea totalmente interactivo */
+.chart-container canvas {
+  pointer-events: all !important;
+  cursor: default;
+}
+
+/* Asegurar que el div de overlay de ECharts también sea interactivo */
+.chart-container > div {
+  pointer-events: all !important;
+}
+
+/* Asegurar que los labels de ECharts no bloqueen los eventos del mouse */
+.chart-container text {
+  pointer-events: none !important;
+}
+
+.chart-container svg {
+  pointer-events: all !important;
+}
+
+/* Mejorar la apariencia del chart-card en hover */
+.chart-card {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Espacio adicional en el chart-card para evitar cortes */
+.chart-card {
+  padding-bottom: var(--sp-4);
+}
+
+/* Asegurar que los tooltips de ECharts no se corten */
+.chart-card > div {
+  overflow: visible !important;
+}

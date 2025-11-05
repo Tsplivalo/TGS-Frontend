@@ -1126,3 +1126,63 @@ fieldset.group legend {
   border-color: rgba(195, 164, 98, 0.6);
   box-shadow: 0 2px 8px rgba(195, 164, 98, 0.2);
 }
+
+/* ===== BOTÓN DE ORDENAMIENTO POR RANGO ===== */
+.rank-order-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  background: linear-gradient(135deg, rgba(195, 164, 98, 0.1), rgba(195, 164, 98, 0.05));
+  border: 1px solid rgba(195, 164, 98, 0.25);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rank-order-btn:hover {
+  background: linear-gradient(135deg, rgba(195, 164, 98, 0.15), rgba(195, 164, 98, 0.08));
+  border-color: rgba(195, 164, 98, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(195, 164, 98, 0.2);
+}
+
+.rank-order-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(195, 164, 98, 0.15);
+}
+
+.rank-order-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rank-order-icon.desc {
+  transform: rotate(180deg);
+}
+
+.rank-order-text {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.rank-order-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: rgba(195, 164, 98, 0.2);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}

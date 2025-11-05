@@ -53,7 +53,26 @@
       "close": "Cerrar",
       "clear": "Vaciar",
       "goToCheckout": "Realizar compra",
-      "total": "Total"
+      "total": "Total",
+      "orderSplit": "Pedido dividido en {{count}} ubicaciones",
+      "orderSplitDesc": "Crearemos {{count}} órdenes de compra, una por cada ubicación.",
+      "productCount_one": "producto",
+      "productCount_other": "productos",
+      "subtotal": "Subtotal",
+      "multiplePurchaseNote": "Se crearán {{count}} compras separadas. Recibirás una confirmación por cada una.",
+      "unavailable": "Productos no disponibles",
+      "unavailableDesc": "Los productos de tu carrito no están disponibles. Por favor, elimina algunos items.",
+      "pricePerUnit": "c/u",
+      "decrease": "Disminuir",
+      "increase": "Aumentar",
+      "remove": "Quitar",
+      "checkout": "Realizar Compra",
+      "processing": "Procesando...",
+      "cannotPurchase": "No puedes comprar aún",
+      "needVerification": "Debes verificar tu cuenta con un administrador.",
+      "requestVerification": "Solicitar verificación",
+      "completeProfile100": "Completa tu perfil al 100% para comprar.",
+      "completeProfile": "Completar perfil"
     }
   },
   "account": {
@@ -1406,6 +1425,7 @@
         "reviewedBy": "Revisado por:"
       },
       "actions": {
+        "evaluate": "Evaluar Solicitud",
         "approve": "Aprobar",
         "reject": "Rechazar"
       }

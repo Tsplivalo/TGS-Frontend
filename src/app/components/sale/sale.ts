@@ -21,8 +21,8 @@ import { ClientDTO, ApiResponse as ApiCliResp } from '../../models/client/client
 import { forkJoin } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
-import { ChartComponent } from '../chart/chart';
-import { ChartConfiguration } from 'chart.js';
+import { NgxEchartsModule } from 'ngx-echarts';
+import type { EChartsOption } from 'echarts';
 
 type SaleForm = {
   id: FormControl<number | null>;
@@ -57,11 +57,11 @@ interface DistributorDTO {
   selector: 'app-sale',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    ReactiveFormsModule, 
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
     TranslateModule,
-    ChartComponent
+    NgxEchartsModule
   ],
   templateUrl: './sale.html',
   styleUrls: ['./sale.scss'],
@@ -85,6 +85,15 @@ export class SaleComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   submitted = signal(false);
+
+  // --- Filas expandidas ---
+  private expandedSalesSet = signal<Set<number>>(new Set());
+  isSaleExpanded = (saleId: number) => this.expandedSalesSet().has(saleId);
+  toggleSaleExpanded(saleId: number) {
+    const set = new Set(this.expandedSalesSet());
+    if (set.has(saleId)) set.delete(saleId); else set.add(saleId);
+    this.expandedSalesSet.set(set);
+  }
 
   // --- Usuario y roles ---
   currentUser = this.authService.user;
@@ -111,10 +120,10 @@ export class SaleComponent implements OnInit {
   stats = signal<SalesStats | null>(null);
   loadingStats = signal(false);
   showStats = signal(false);
-  
-  salesChartData = signal<ChartConfiguration['data'] | null>(null);
-  topProductsChartData = signal<ChartConfiguration['data'] | null>(null);
-  distributorsChartData = signal<ChartConfiguration['data'] | null>(null);
+
+  salesChartOptions = signal<EChartsOption | null>(null);
+  topProductsChartOptions = signal<EChartsOption | null>(null);
+  distributorsChartOptions = signal<EChartsOption | null>(null);
 
   // --- Filtros de listado ---
   fTextInput = signal('');
@@ -291,60 +300,390 @@ export class SaleComponent implements OnInit {
       salesByDistributor
     };
 
-    const salesChartData: ChartConfiguration['data'] = {
-      labels: salesByMonth.map(s => s.month),
-      datasets: [{
-        label: 'Ventas ($)',
-        data: salesByMonth.map(s => s.amount),
-        backgroundColor: 'rgba(195, 164, 98, 0.8)',
-        borderColor: 'rgba(195, 164, 98, 1)',
+    // 📊 ECharts: Gráfico de ventas por mes (Barras con gradiente premium)
+    const salesChart: EChartsOption = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        triggerOn: 'mousemove',
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        borderColor: 'rgba(195, 164, 98, 0.6)',
         borderWidth: 2,
-        borderRadius: 8
+        textStyle: { color: '#fff', fontSize: 14 },
+        axisPointer: {
+          type: 'shadow',
+          shadowStyle: {
+            color: 'rgba(195, 164, 98, 0.1)'
+          }
+        },
+        formatter: (params: any) => {
+          const data = params[0];
+          return `<div style="padding: 8px;">
+            <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px;">${data.name}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: #c3a462; font-size: 20px; font-weight: bold;">$${data.value.toLocaleString()}</span>
+            </div>
+          </div>`;
+        }
+      },
+      grid: {
+        left: '5%',
+        right: '5%',
+        bottom: '8%',
+        top: '15%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: salesByMonth.map(s => s.month),
+        axisLine: {
+          lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
+        },
+        axisLabel: {
+          color: 'rgba(255, 255, 255, 0.8)',
+          fontSize: 12,
+          fontWeight: 500
+        },
+        axisTick: {
+          show: false
+        }
+      },
+      yAxis: {
+        type: 'value',
+        axisLine: { show: false },
+        splitLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.08)',
+            type: 'dashed'
+          }
+        },
+        axisLabel: {
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontSize: 12,
+          formatter: (value: number) => {
+            if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+            if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+            return `$${value}`;
+          }
+        }
+      },
+      series: [{
+        name: 'Ventas',
+        type: 'bar',
+        barWidth: '80%',
+        barGap: '0%',
+        itemStyle: {
+          borderRadius: [8, 8, 0, 0],
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(195, 164, 98, 1)' },
+              { offset: 0.5, color: 'rgba(195, 164, 98, 0.8)' },
+              { offset: 1, color: 'rgba(195, 164, 98, 0.5)' }
+            ]
+          },
+          shadowColor: 'rgba(195, 164, 98, 0.4)',
+          shadowBlur: 10,
+          shadowOffsetY: 5
+        },
+        emphasis: {
+          focus: 'series',
+          itemStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(255, 215, 0, 1)' },
+                { offset: 0.5, color: 'rgba(195, 164, 98, 1)' },
+                { offset: 1, color: 'rgba(195, 164, 98, 0.7)' }
+              ]
+            },
+            shadowColor: 'rgba(255, 215, 0, 0.6)',
+            shadowBlur: 20
+          }
+        },
+        label: {
+          show: true,
+          position: 'top',
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontSize: 11,
+          fontWeight: 'bold',
+          formatter: (params: any) => {
+            const value = params.value;
+            if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+            if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+            return `$${value}`;
+          }
+        },
+        data: salesByMonth.map(s => s.amount)
       }]
     };
 
-    const productsChartData: ChartConfiguration['data'] = {
-      labels: topProducts.map(p => p.productName),
-      datasets: [{
-        label: 'Cantidad Vendida',
-        data: topProducts.map(p => p.quantity),
-        backgroundColor: [
-          'rgba(195, 164, 98, 0.8)',
-          'rgba(16, 185, 129, 0.8)',
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(245, 158, 11, 0.8)',
-          'rgba(156, 163, 175, 0.6)'
-        ],
-        borderColor: [
-          'rgba(195, 164, 98, 1)',
-          'rgba(16, 185, 129, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(245, 158, 11, 1)',
-          'rgba(156, 163, 175, 1)'
-        ],
+    // 🏆 ECharts: Top productos (Podio de ranking)
+    const podiumColors = [
+      { gradient: ['rgba(255, 215, 0, 1)', 'rgba(255, 193, 7, 0.7)'], medal: '🥇', glow: 'rgba(255, 215, 0, 0.6)' },
+      { gradient: ['rgba(192, 192, 192, 1)', 'rgba(169, 169, 169, 0.7)'], medal: '🥈', glow: 'rgba(192, 192, 192, 0.6)' },
+      { gradient: ['rgba(205, 127, 50, 1)', 'rgba(184, 115, 51, 0.7)'], medal: '🥉', glow: 'rgba(205, 127, 50, 0.6)' },
+      { gradient: ['rgba(59, 130, 246, 0.9)', 'rgba(59, 130, 246, 0.6)'], medal: '④', glow: 'rgba(59, 130, 246, 0.5)' },
+      { gradient: ['rgba(156, 163, 175, 0.8)', 'rgba(156, 163, 175, 0.5)'], medal: '⑤', glow: 'rgba(156, 163, 175, 0.4)' }
+    ];
+
+    const productsChart: EChartsOption = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        triggerOn: 'mousemove',
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        borderColor: 'rgba(195, 164, 98, 0.6)',
         borderWidth: 2,
-        hoverOffset: 8
+        textStyle: { color: '#fff', fontSize: 14 },
+        axisPointer: {
+          type: 'shadow',
+          shadowStyle: {
+            color: 'rgba(195, 164, 98, 0.1)'
+          }
+        },
+        formatter: (params: any) => {
+          const data = params[0];
+          const rank = data.dataIndex + 1;
+          const medal = podiumColors[data.dataIndex]?.medal || `${rank}°`;
+          return `<div style="padding: 10px;">
+            <div style="font-size: 28px; text-align: center; margin-bottom: 8px;">${medal}</div>
+            <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px; text-align: center;">${data.name}</div>
+            <div style="text-align: center;">
+              <span style="color: #c3a462; font-size: 20px; font-weight: bold;">${data.value}</span>
+              <span style="color: rgba(255,255,255,0.7); font-size: 14px; margin-left: 4px;">unidades</span>
+            </div>
+          </div>`;
+        }
+      },
+      grid: {
+        left: '8%',
+        right: '8%',
+        bottom: '8%',
+        top: '25%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: topProducts.map(p => p.productName),
+        axisLine: {
+          lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
+        },
+        axisLabel: {
+          color: 'rgba(255, 255, 255, 0.8)',
+          fontSize: 11,
+          fontWeight: 600,
+          interval: 0,
+          rotate: 0,
+          formatter: (value: string) => {
+            return value.length > 12 ? value.substring(0, 12) + '...' : value;
+          }
+        },
+        axisTick: {
+          show: false
+        }
+      },
+      yAxis: {
+        type: 'value',
+        axisLine: { show: false },
+        splitLine: {
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.08)',
+            type: 'dashed'
+          }
+        },
+        axisLabel: {
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontSize: 11
+        }
+      },
+      series: [{
+        name: 'Cantidad',
+        type: 'bar',
+        barWidth: '75%',
+        barGap: '10%',
+        data: topProducts.map((p, idx) => ({
+          value: p.quantity,
+          itemStyle: {
+            borderRadius: [12, 12, 0, 0],
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: podiumColors[idx]?.gradient[0] || 'rgba(156, 163, 175, 0.8)' },
+                { offset: 1, color: podiumColors[idx]?.gradient[1] || 'rgba(156, 163, 175, 0.5)' }
+              ]
+            },
+            shadowColor: podiumColors[idx]?.glow || 'rgba(156, 163, 175, 0.4)',
+            shadowBlur: idx < 3 ? 15 : 8,
+            shadowOffsetY: 8
+          }
+        })),
+        label: {
+          show: true,
+          position: 'top',
+          fontSize: 22,
+          fontWeight: 'bold',
+          color: '#fff',
+          formatter: (params: any) => {
+            return podiumColors[params.dataIndex]?.medal || `${params.dataIndex + 1}°`;
+          },
+          offset: [0, -15],
+          backgroundColor: 'transparent',
+          padding: 0
+        },
+        emphasis: {
+          focus: 'series',
+          itemStyle: {
+            shadowBlur: 30,
+            shadowOffsetY: 15
+          },
+          label: {
+            fontSize: 28
+          }
+        }
       }]
     };
 
-    const distributorsChartData: ChartConfiguration['data'] = {
-      labels: salesByDistributor.map(d => d.distributorName),
-      datasets: [{
-        label: 'Ventas Totales ($)',
-        data: salesByDistributor.map(d => d.totalSales),
-        backgroundColor: 'rgba(195, 164, 98, 0.8)',
-        borderColor: 'rgba(195, 164, 98, 1)',
+    // 🚚 ECharts: Ventas por distribuidor (Barras horizontales)
+    const distributorsChart: EChartsOption = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        triggerOn: 'mousemove',
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        borderColor: 'rgba(195, 164, 98, 0.6)',
         borderWidth: 2,
-        borderRadius: 8
+        textStyle: { color: '#fff', fontSize: 14 },
+        axisPointer: {
+          type: 'shadow',
+          shadowStyle: {
+            color: 'rgba(195, 164, 98, 0.1)'
+          }
+        },
+        formatter: (params: any) => {
+          const data = params[0];
+          return `<div style="padding: 8px;">
+            <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px;">${data.name}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: #c3a462; font-size: 20px; font-weight: bold;">$${data.value.toLocaleString()}</span>
+            </div>
+          </div>`;
+        }
+      },
+      grid: {
+        left: '25%',
+        right: '8%',
+        bottom: '8%',
+        top: '12%',
+        containLabel: false
+      },
+      xAxis: {
+        type: 'value',
+        axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+        splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } },
+        axisLabel: {
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontSize: 11,
+          formatter: (value: number) => {
+            if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+            if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+            return `$${value}`;
+          }
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: salesByDistributor.map(d => d.distributorName),
+        axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+        axisLabel: {
+          color: 'rgba(255, 255, 255, 0.85)',
+          fontSize: 12,
+          fontWeight: 500,
+          overflow: 'truncate',
+          width: 150,
+          formatter: (value: string) => {
+            return value.length > 20 ? value.substring(0, 20) + '...' : value;
+          }
+        },
+        axisTick: {
+          show: false
+        }
+      },
+      series: [{
+        name: 'Ventas',
+        type: 'bar',
+        barWidth: '50%',
+        barGap: '30%',
+        itemStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 1,
+            y2: 0,
+            colorStops: [
+              { offset: 0, color: 'rgba(195, 164, 98, 0.8)' },
+              { offset: 1, color: 'rgba(195, 164, 98, 1)' }
+            ]
+          },
+          borderRadius: [0, 8, 8, 0],
+          shadowColor: 'rgba(195, 164, 98, 0.3)',
+          shadowBlur: 8,
+          shadowOffsetX: 3
+        },
+        emphasis: {
+          focus: 'series',
+          itemStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 1,
+              y2: 0,
+              colorStops: [
+                { offset: 0, color: 'rgba(255, 215, 0, 1)' },
+                { offset: 1, color: 'rgba(195, 164, 98, 1)' }
+              ]
+            },
+            shadowBlur: 15,
+            shadowColor: 'rgba(255, 215, 0, 0.5)'
+          }
+        },
+        label: {
+          show: true,
+          position: 'right',
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontSize: 12,
+          fontWeight: 600,
+          formatter: (params: any) => {
+            const value = params.value;
+            if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+            if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+            return `$${value.toLocaleString()}`;
+          }
+        },
+        data: salesByDistributor.map(d => d.totalSales)
       }]
     };
 
     console.log('✅ Stats calculated:', stats);
-    
+
     this.stats.set(stats);
-    this.salesChartData.set(salesChartData);
-    this.topProductsChartData.set(productsChartData);
-    this.distributorsChartData.set(distributorsChartData);
+    this.salesChartOptions.set(salesChart);
+    this.topProductsChartOptions.set(productsChart);
+    this.distributorsChartOptions.set(distributorsChart);
     this.loadingStats.set(false);
   }
 
@@ -388,24 +727,25 @@ export class SaleComponent implements OnInit {
   private getTopProducts(sales: SaleDTO[]): { productId: number; productName: string; quantity: number }[] {
     const productMap = new Map<number, { name: string; quantity: number }>();
 
-    console.log('📦 Calculating top products from', sales.length, 'sales');
-
     sales.forEach(sale => {
       if (sale.details && sale.details.length > 0) {
         sale.details.forEach(detail => {
-          const productId = detail.productId;
+          // Use the same logic as detailDescription to get the productId
+          const productId = detail.productId ?? (detail as any)?.product?.id ?? null;
           const quantity = Number(detail.quantity) || 0;
           const productName = this.detailDescription(detail);
 
-          console.log(`  - Product ${productId} (${productName}): +${quantity} units`);
+          // Skip if productId is null or undefined
+          if (productId == null) {
+            console.warn('⚠️ Product detail without ID found, skipping:', detail);
+            return;
+          }
 
           if (productMap.has(productId)) {
             const existing = productMap.get(productId)!;
             existing.quantity += quantity;
-            console.log(`    Updated total for ${productName}: ${existing.quantity} units`);
           } else {
             productMap.set(productId, { name: productName, quantity });
-            console.log(`    New product ${productName}: ${quantity} units`);
           }
         });
       }
@@ -420,7 +760,7 @@ export class SaleComponent implements OnInit {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
 
-    console.log('🏆 Top products result:', result);
+    console.log('🏆 Top 5 products:', result);
     return result;
   }
 
@@ -610,8 +950,8 @@ export class SaleComponent implements OnInit {
             filteredSales = [];
           }
         } else if (this.isAuthority() && !this.isAdmin()) {
-          // Autoridad solo ve ventas con productos ilegales
-          console.log('⚖️ Authority user - filtering sales with illegal products');
+          // Autoridad solo ve ventas con productos LEGALES (NO ilegales)
+          console.log('⚖️ Authority user - filtering sales WITHOUT illegal products');
 
           const allProducts = this.products();
           filteredSales = list.filter(sale => {
@@ -623,10 +963,11 @@ export class SaleComponent implements OnInit {
               return product?.isIllegal === true;
             });
 
-            return hasIllegalProduct;
+            // Solo mostrar ventas SIN productos ilegales
+            return !hasIllegalProduct;
           });
 
-          console.log('✅ Filtered sales for authority:', filteredSales.length, 'of', list.length, '(only illegal products)');
+          console.log('✅ Filtered sales for authority:', filteredSales.length, 'of', list.length, '(only legal products)');
         } else if (this.isAdmin()) {
           console.log('👑 Admin user - showing all sales');
         }
@@ -862,230 +1203,5 @@ export class SaleComponent implements OnInit {
     });
   }
 
-  getSalesChartOptions(): ChartConfiguration['options'] {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-      duration: 1000,
-      easing: 'easeInOutQuart'
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        labels: {
-          color: '#f3f4f6',
-          font: { size: 13, weight: 'bold' as any },
-          padding: 16,
-          usePointStyle: true
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.95)',
-        titleColor: '#ffffff',
-        bodyColor: '#e5e7eb',
-        borderColor: 'rgba(255, 215, 0, 0.7)',
-        borderWidth: 3,
-        padding: 18,
-        cornerRadius: 12,
-        displayColors: true,
-        titleFont: {
-          size: 15,
-          weight: 'bold' as any
-        },
-        bodyFont: {
-          size: 13
-        },
-        callbacks: {
-          label: (context) => {
-            const value = context.parsed.y ?? 0;
-            return `💰 Ventas: ${new Intl.NumberFormat('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              minimumFractionDigits: 0
-            }).format(value)}`;
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          color: '#d1d5db',
-          font: { size: 11, weight: 600 }
-        }
-      },
-      y: {
-        grid: { color: 'rgba(255, 255, 255, 0.08)' },
-        ticks: {
-          color: '#d1d5db',
-          font: { size: 11, weight: 600 },
-          callback: function(value) {
-            return new Intl.NumberFormat('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              minimumFractionDigits: 0,
-              notation: 'compact'
-            }).format(value as number);
-          }
-        }
-      }
-    }
-  };
-}
-
-/**
- * 🍩 Opciones para gráfico de TOP PRODUCTOS
- * Gráfico de dona con colores diferentes
- */
-getTopProductsChartOptions(): ChartConfiguration['options'] {
-  const doughnutOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-      duration: 1200,
-      easing: 'easeInOutQuart'
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'right',
-        labels: {
-          color: '#f3f4f6',
-          font: { size: 12, weight: 'bold' as any },
-          padding: 14,
-          usePointStyle: true,
-          boxWidth: 15,
-          boxHeight: 15,
-          generateLabels: (chart) => {
-            const data = chart.data;
-            if (data.labels && data.datasets.length) {
-              return (data.labels as string[]).map((label, i) => {
-                const value = (data.datasets[0].data[i] as number) || 0;
-                return {
-                  text: `${label}: ${value}`,
-                  fillStyle: (data.datasets[0].backgroundColor as string[])[i],
-                  strokeStyle: (data.datasets[0].borderColor as string[])[i],
-                  lineWidth: 2,
-                  hidden: false,
-                  index: i
-                };
-              });
-            }
-            return [];
-          }
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.95)',
-        titleColor: '#ffffff',
-        bodyColor: '#e5e7eb',
-        borderColor: 'rgba(255, 215, 0, 0.7)',
-        borderWidth: 3,
-        padding: 18,
-        cornerRadius: 12,
-        displayColors: true,
-        titleFont: {
-          size: 15,
-          weight: 'bold' as any
-        },
-        bodyFont: {
-          size: 13
-        },
-        callbacks: {
-          label: (context) => {
-            const label = context.label || '';
-            const value = context.parsed ?? 0;
-            const datasetValues = context.dataset.data as Array<number | null | undefined>;
-            const total = datasetValues.reduce((acc: number, entry) => acc + (entry ?? 0), 0);
-            const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
-            return `📦 ${label}: ${value} uds (${percentage}%)`;
-          }
-        }
-      }
-    },
-    cutout: '60%', // Grosor de la dona
-  };
-
-  return doughnutOptions as ChartConfiguration['options'];
-}
-
-/**
- * 📊 Opciones para gráfico de DISTRIBUIDORES
- * Gráfico de barras horizontales con colores diferentes
- */
-getDistributorsChartOptions(): ChartConfiguration['options'] {
-  return {
-    indexAxis: 'y' as const, // Barras horizontales
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-      duration: 1000,
-      easing: 'easeInOutQuart'
-    },
-    plugins: {
-      legend: {
-        display: false // Ocultamos leyenda porque cada barra tiene su color
-      },
-      tooltip: {
-        backgroundColor: 'rgba(17, 24, 39, 0.95)',
-        titleColor: '#ffffff',
-        bodyColor: '#e5e7eb',
-        borderColor: 'rgba(255, 215, 0, 0.7)',
-        borderWidth: 3,
-        padding: 18,
-        cornerRadius: 12,
-        displayColors: true,
-        titleFont: {
-          size: 15,
-          weight: 'bold' as any
-        },
-        bodyFont: {
-          size: 13
-        },
-        callbacks: {
-          label: (context) => {
-            const value = context.parsed.x ?? 0;
-            return `🚚 Ventas: ${new Intl.NumberFormat('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              minimumFractionDigits: 0
-            }).format(value)}`;
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: {
-          color: 'rgba(255, 255, 255, 0.08)'
-        },
-        ticks: {
-          color: '#d1d5db',
-          font: { size: 11, weight: 600 },
-          callback: function(value) {
-            return new Intl.NumberFormat('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              minimumFractionDigits: 0,
-              notation: 'compact'
-            }).format(value as number);
-          }
-        }
-      },
-      y: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          color: '#d1d5db',
-          font: { size: 12, weight: 600 }
-        }
-      }
-    }
-  };
-}
 }
 

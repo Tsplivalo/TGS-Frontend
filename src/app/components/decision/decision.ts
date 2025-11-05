@@ -66,17 +66,25 @@ export class DecisionComponent implements OnInit {
   today = this.todayLocalInput(); // AAAA-MM-DD para inputs tipo date
 
   // ✅ Búsqueda de temáticas en el formulario
-  topicSearch = '';
+  topicSearch = signal('');
+  topicsOpen = signal(false); // Controla si el menú de temáticas está desplegado
 
   // ✅ Temáticas filtradas según búsqueda
   filteredTopics = computed(() => {
-    const q = this.topicSearch.toLowerCase().trim();
-    if (!q) return this.topics();
+    const q = this.topicSearch().toLowerCase().trim();
+    const filtered = q
+      ? this.topics().filter(t =>
+          t.description.toLowerCase().includes(q) ||
+          String(t.id).includes(q)
+        )
+      : this.topics();
 
-    return this.topics().filter(t =>
-      t.description.toLowerCase().includes(q) ||
-      String(t.id).includes(q)
-    );
+    // Si detecta que escribiste algo, abrir automáticamente el menú
+    if (q && !this.topicsOpen()) {
+      this.topicsOpen.set(true);
+    }
+
+    return filtered;
   });
 
   // --- Form reactivo ---
@@ -91,6 +99,7 @@ export class DecisionComponent implements OnInit {
   // --- UI: abrir/cerrar formulario ---
   isFormOpen = false;
   toggleForm(){ this.isFormOpen = !this.isFormOpen; }
+  toggleTopics(){ this.topicsOpen.set(!this.topicsOpen()); }
 
   // --- Ciclo de vida ---
   ngOnInit(): void {
