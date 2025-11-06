@@ -76,6 +76,12 @@ export class UserRoleRequestsInboxComponent implements OnInit {
       this.requests = Array.from(bySnapshot.values()).sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
+
+      // 🔄 SIEMPRE refrescar el perfil cuando se carga el inbox
+      // Esto asegura que los roles estén actualizados después de aprobaciones
+      // (aplica para DISTRIBUTOR, PARTNER, AUTHORITY y cualquier rol)
+      console.log('🔄 [UserRoleRequestsInbox] Refreshing profile to ensure roles are up to date...');
+      this.auth.forceRefresh();
     } catch (err: any) {
       this.error = err.error?.message || 'Error al cargar tus solicitudes';
     } finally {

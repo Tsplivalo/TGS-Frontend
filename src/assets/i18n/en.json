@@ -94,15 +94,15 @@
       "title": "Account information",
       "status": "Account status:",
       "active": "âœ“ Active",
-      "inactive": "âœ— Inactive",
+      "inactive": "Inactive",
       "emailVerified": "Email verified:",
       "adminVerified": "Admin verified",
-      "emailVerifiedYes": "âœ“ Yes",
-      "emailVerifiedNo": "âœ— No",
+      "emailVerifiedYes": "Yes",
+      "emailVerifiedNo": "No",
       "roles": "Roles:",
       "memberSince": "Member since:"
     },
-    "readonlyNote": "â„¹ï¸ Personal data cannot be modified once completed."
+    "readonlyNote": "ℹ️ Personal data cannot be modified once completed."
   },
   "product": {
     "title": "Products",
@@ -111,6 +111,8 @@
     "create": "Create",
     "save": "Save",
     "cancel": "Cancel",
+    "available": "Available products",
+    "none": "No products available",
     "list": "List",
     "loading": "Loading products...",
     "filters": {
@@ -252,7 +254,11 @@
     "close": "Close",
     "create": "Create",
     "save": "Save",
+    "record": "record",
+    "records": "records",
+    "rank": "Rank",
     "cancel": "Cancel",
+    "quantity": "Quantity",
     "edit": "Edit",
     "delete": "Delete",
     "error": "Error",
@@ -271,6 +277,7 @@
     "editTitle": "Edit client",
     "loading": "Loading clients...",
     "noResults": "No results",
+    "available": "Available clients",
     "confirmDelete": "Delete this client?",
     "errorLoad": "Could not load clients.",
     "errorSave": "Could not save.",
@@ -392,6 +399,7 @@
     "loading": "Loading statistics...",
     "totalRevenue": "Total revenue",
     "totalSales": "Total sales",
+    "productsTitle": "Products in the sale",
     "averageTicket": "Average ticket",
     "salesByMonth": "Sales by month",
     "topProducts": "Top products",
@@ -439,7 +447,7 @@
       "distributorRequired": "Distributor is required",
       "clientRequired": "Client required",
       "noProductsAvailable": "No products available",
-      "noProductsLoaded": "âš ï¸ No products loaded. Total: {{count}}",
+      "noProductsLoaded": "⚠️No products loaded. Total: {{count}}",
       "availableProductsCount": "✅ {{count}} products available",
       "removeLineTitle": "Remove line"
     },
@@ -481,7 +489,7 @@
     "noHeadquarters": "No headquarters set.",
     "filters": {
       "search": "Search zone",
-      "searchPh": "Search by name or descriptionâ€¦"
+      "searchPh": "Search by name or description"
     },
     "table": {
       "id": "ID",
@@ -598,6 +606,11 @@
       "rank1Label": "Rank 1",
       "rank2Label": "Rank 2",
       "rank3Label": "Rank 3",
+      "distributionTitle": "Authorities by rank",
+      "distributionLegend": "Rank distribution",
+      "distributionEmpty": "No authorities to chart",
+      "distributionToggle": "View rank distribution",
+      "hoverHint": "Hover a slice to see details",
       "filteredLabel": "Filtered"
     }
   },
@@ -703,24 +716,24 @@
     "filters": {
       "search": "Search",
       "searchPh": "text or id",
-      "topic": "Thematic (ID)",
+      "topic": "Topic (ID)",
       "topicPh": "filter by topic id"
     },
     "table": {
       "id": "ID",
-      "topic": "Thematic",
+      "topic": "Topic",
       "description": "Description",
       "start": "Start",
       "end": "End",
       "actions": "Actions"
     },
-    "topic": "Thematic",
+    "topic": "Topic",
     "form": {
       "newTitle": "New decision",
       "editTitle": "Edit decision: {{id}}",
-      "topic": "Thematic",
+      "topic": "Topic",
       "topicFilterPh": "filter (id or description)",
-      "chooseTopic": "Choose a thematic",
+      "chooseTopic": "Choose a topic",
       "description": "Description",
       "descriptionPh": "Description of the strategic decision",
       "start": "Start date",
@@ -739,6 +752,7 @@
   },
   "topics": {
     "title": "Topics",
+    "availableTitle": "Available topics",
     "new": "New",
     "empty": "No topics",
     "filters": {
@@ -898,7 +912,8 @@
     "CLIENT": "CLIENT",
     "DISTRIBUTOR": "DISTRIBUTOR",
     "PARTNER": "PARTNER",
-    "ADMIN": "ADMIN"
+    "ADMIN": "ADMIN",
+    "AUTHORITY": "AUTHORITY"
   },
   "admin": {
     "title": "Administrators",
@@ -911,7 +926,14 @@
     "emptyHint": "Adjust the filter or create a new administrator.",
     "form": {
       "titleCreate": "Create administrator",
-      "titleEdit": "Edit {{dni}}"
+      "titleEdit": "Edit {{dni}}",
+      "selectUser": "Select verified user",
+      "searchUser": "Search by ID, name or email...",
+      "availableUsers": "Verified users available ({{count}})",
+      "verified": "Verified",
+      "profileComplete": "100% Profile",
+      "noUsersAvailable": "No verified users available",
+      "noUsersHint": "Users must have their account verified by an administrator and complete profile"
     },
     "fields": {
       "dni": "ID",
@@ -1385,19 +1407,41 @@
     },
     "reviewModal": {
       "title": "Review Role Request",
+      "subtitle": "Evaluate and make a decision on this request",
       "close": "Close",
+      "closeAria": "Close",
+      "requestInfo": "Request Information",
+      "requestInfoLabels": {
+        "user": "User",
+        "request": "Request",
+        "requestDate": "Request Date",
+        "justification": "Justification",
+        "additionalData": "Additional Role Data",
+        "assignedZone": "Assigned Zone",
+        "zone": "Zone",
+        "address": "Address",
+        "products": "Products",
+        "product": "Product",
+        "rank": "Rank"
+      },
       "summary": {
         "user": "User:",
         "request": "Request:",
         "date": "Date:",
         "justification": "Justification:"
       },
+      "error": "Error",
       "decision": "Decision:",
       "approve": "Approve",
+      "approveDesc": "Approve and grant the role",
       "reject": "Reject",
+      "rejectDesc": "Deny the request",
+      "recommended": "(recommended)",
       "commentsLabel": "Comments",
       "commentsPh": "Add comments about your decision...",
       "commentsCounter": "{{n}}/500 characters",
+      "characters": "characters",
+      "selectOption": "Select an option",
       "actions": {
         "cancel": "Cancel",
         "processing": "Processing...",
@@ -1548,11 +1592,11 @@
     "hours": {
       "support": {
         "label": "Support",
-        "value": "Mon to Fri Â· 09:00â€“18:00"
+        "value": "Mon to Fri · 09:00-18:00"
       },
       "commercial": {
         "label": "Sales",
-        "value": "Mon to Fri Â· 10:00â€“17:00"
+        "value": "Mon to Fri · 10:00-17:00"
       }
     },
     "location": {
@@ -1890,5 +1934,33 @@
       }
     },
     "lastUpdatedDate": "November 2025"
+  },
+  "footer": {
+    "tagline": "Distribution management and control system",
+    "rights": "All rights reserved.",
+    "university": {
+      "prefix": "Developed at",
+      "name": "National Technological University - Rosario Regional Faculty"
+    },
+    "sections": {
+      "company": "Company",
+      "legal": "Legal",
+      "resources": "Resources"
+    },
+    "links": {
+      "about": "About us",
+      "contact": "Contact us",
+      "faqs": "FAQs",
+      "terms": "Terms of service",
+      "privacy": "Privacy policy",
+      "cookies": "Cookie policy",
+      "docs": "Documentation",
+      "api": "API",
+      "support": "Support"
+    },
+    "social": {
+      "github": "Follow us on GitHub",
+      "email": "Send us an email"
+    }
   }
 }

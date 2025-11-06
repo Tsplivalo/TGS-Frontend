@@ -89,6 +89,24 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
   async handleReviewComplete(approvedUserId?: string): Promise<void> {
     this.closeReviewModal();
     await this.loadRequests();
+
+    // 🔄 Si se aprobó la solicitud Y el usuario aprobado es el usuario actual logueado,
+    // refrescar el perfil para actualizar los roles sin necesidad de desloguearse
+    if (approvedUserId) {
+      const currentUser = this.auth.user();
+      if (currentUser && currentUser.id === approvedUserId) {
+        console.log('🔄 [AdminRoleRequestsInbox] Role request approved for current user, refreshing profile...');
+        try {
+          // Esperar un momento para que el backend termine de actualizar los roles
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await this.auth.me().toPromise();
+          console.log('✅ [AdminRoleRequestsInbox] Profile refreshed successfully, roles updated');
+        } catch (err) {
+          console.error('❌ [AdminRoleRequestsInbox] Failed to refresh profile:', err);
+        }
+      }
+    }
+
     this.successKey = approvedUserId
       ? 'notifications.roleRequestApproved'
       : 'notifications.roleRequestRejected';

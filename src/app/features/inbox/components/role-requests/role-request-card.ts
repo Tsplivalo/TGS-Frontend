@@ -43,18 +43,18 @@ export class RoleRequestCardComponent {
 
   getStatusText(status: RequestStatus): string {
     const texts: Record<RequestStatus, string> = {
-      [RequestStatus.PENDING]: 'Pendiente',
-      [RequestStatus.APPROVED]: 'Aprobada',
-      [RequestStatus.REJECTED]: 'Rechazada',
+      [RequestStatus.PENDING]: this.t.instant('status.PENDING'),
+      [RequestStatus.APPROVED]: this.t.instant('status.APPROVED'),
+      [RequestStatus.REJECTED]: this.t.instant('status.REJECTED'),
     };
     return texts[status];
   }
 
   getRoleLabel(role: string): string {
     const labels: Record<string, string> = {
-      PARTNER: 'Socio',
-      DISTRIBUTOR: 'Distribuidor',
-      AUTHORITY: 'Autoridad',
+      PARTNER: this.t.instant('roles.PARTNER'),
+      DISTRIBUTOR: this.t.instant('roles.DISTRIBUTOR'),
+      AUTHORITY: this.t.instant('roles.AUTHORITY'),
     };
     return labels[role] || role;
   }

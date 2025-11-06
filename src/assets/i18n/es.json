@@ -127,6 +127,8 @@
     "new": "Nuevo producto",
     "close": "Cerrar",
     "create": "Crear",
+    "available": "Productos disponibles",
+    "none": "No hay productos disponibles",
     "save": "Guardar",
     "cancel": "Cancelar",
     "list": "Listado",
@@ -270,6 +272,10 @@
     "close": "Cerrar",
     "create": "Crear",
     "save": "Guardar",
+    "rank": "Rango",
+    "record": "registro",
+    "records": "registros",
+    "quantity": "Cantidad",
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Eliminar",
@@ -289,7 +295,9 @@
     },
     "title": "Clientes",
     "new": "Nuevo",
+    "available": "Clientes disponibles",
     "newTitle": "Nuevo cliente",
+    "none": "No hay clientes disponibles",
     "editTitle": "Editar cliente",
     "loading": "Cargando clientes...",
     "noResults": "Sin resultados",
@@ -404,6 +412,7 @@
     "new": "Nueva",
     "newTitle": "Nueva venta",
     "noResults": "Sin ventas",
+    "productsTitle": "Productos de la venta",
     "loading": "Cargando estadísticas...",
     "totalRevenue": "Ingresos Totales",
     "totalSales": "Total de Ventas",
@@ -613,6 +622,11 @@
       "rank1Label": "Rango 1",
       "rank2Label": "Rango 2",
       "rank3Label": "Rango 3",
+      "distributionTitle": "Autoridades por rango",
+      "distributionLegend": "Distribución por rango",
+      "distributionEmpty": "Sin datos para graficar",
+      "distributionToggle": "Ver distribución por rango",
+      "hoverHint": "Pasá el mouse sobre un rango para ver detalles",
       "filteredLabel": "Filtradas"
     }
   },
@@ -755,6 +769,7 @@
   "topics": {
     "title": "Temáticas",
     "new": "Nueva",
+    "availableTitle": "Temáticas disponibles",
     "empty": "Sin temáticas",
     "filters": {
       "search": "Buscar",
@@ -896,7 +911,8 @@
     "CLIENT": "CLIENTE",
     "DISTRIBUTOR": "DISTRIBUIDOR",
     "PARTNER": "SOCIO",
-    "ADMIN": "ADMIN"
+    "ADMIN": "ADMIN",
+    "AUTHORITY": "AUTORIDAD"
   },
   "admin": {
     "title": "Administradores",
@@ -909,7 +925,14 @@
     "emptyHint": "Ajustá el filtro o creá un nuevo administrador.",
     "form": {
       "titleCreate": "Crear administrador",
-      "titleEdit": "Editar {{dni}}"
+      "titleEdit": "Editar {{dni}}",
+      "selectUser": "Seleccionar usuario verificado",
+      "searchUser": "Buscar por DNI, nombre o email...",
+      "availableUsers": "Usuarios verificados disponibles ({{count}})",
+      "verified": "Verificado",
+      "profileComplete": "Perfil 100%",
+      "noUsersAvailable": "No hay usuarios verificados disponibles",
+      "noUsersHint": "Los usuarios deben tener su cuenta verificada por un administrador y perfil completo al 100%"
     },
     "fields": {
       "dni": "DNI",
@@ -1368,19 +1391,41 @@
     },
     "reviewModal": {
       "title": "Revisar Solicitud de Rol",
+      "subtitle": "Evalúa y toma una decisión sobre esta solicitud",
       "close": "Cerrar",
+      "closeAria": "Cerrar",
+      "requestInfo": "Información de la Solicitud",
+      "requestInfoLabels": {
+        "user": "Usuario",
+        "request": "Solicitud",
+        "requestDate": "Fecha de Solicitud",
+        "justification": "Justificación",
+        "additionalData": "Datos Adicionales del Rol",
+        "assignedZone": "Zona Asignada",
+        "zone": "Zona",
+        "address": "Dirección",
+        "products": "Productos",
+        "product": "Producto",
+        "rank": "Rango"
+      },
       "summary": {
         "user": "Usuario:",
         "request": "Solicitud:",
         "date": "Fecha:",
         "justification": "Justificación:"
       },
+      "error": "Error",
       "decision": "Decisión:",
       "approve": "Aprobar",
+      "approveDesc": "Aprobar y otorgar el rol",
       "reject": "Rechazar",
+      "rejectDesc": "Denegar la solicitud",
+      "recommended": "(recomendado)",
       "commentsLabel": "Comentarios",
       "commentsPh": "Añadí comentarios sobre tu decisión...",
       "commentsCounter": "{{n}}/500 caracteres",
+      "characters": "caracteres",
+      "selectOption": "Selecciona una opción",
       "actions": {
         "cancel": "Cancelar",
         "processing": "Procesando...",
@@ -1520,7 +1565,7 @@
       "phone": {
         "label": "Teléfono",
         "value": "+54 341 555-1234",
-        "hint": "Lun a Vie · 09–18 h"
+        "hint": "Lun a Vie · 09-18 h"
       },
       "whatsapp": {
         "label": "WhatsApp",
@@ -1531,11 +1576,11 @@
     "hours": {
       "support": {
         "label": "Soporte",
-        "value": "Lun a Vie · 09:00–18:00"
+        "value": "Lun a Vie · 09:00-18:00"
       },
       "commercial": {
         "label": "Comercial",
-        "value": "Lun a Vie · 10:00–17:00"
+        "value": "Lun a Vie · 10:00-17:00"
       }
     },
     "location": {
@@ -1582,8 +1627,12 @@
     }
   },
   "footer": {
-    "tagline": "La plataforma que lleva tu negocio al siguiente nivel",
-    "rights": "Todos los derechos reservados",
+    "tagline": "Sistema de gestión y control de distribución",
+    "rights": "Todos los derechos reservados.",
+    "university": {
+      "prefix": "Desarrollado en",
+      "name": "Universidad Tecnológica Nacional - Facultad Regional Rosario"
+    },
     "sections": {
       "company": "Empresa",
       "legal": "Legal",
@@ -1591,9 +1640,9 @@
     },
     "links": {
       "about": "Sobre nosotros",
-      "contact": "Contacto",
+      "contact": "Contáctanos",
       "faqs": "Preguntas frecuentes",
-      "terms": "Términos y condiciones",
+      "terms": "Términos de servicio",
       "privacy": "Política de privacidad",
       "cookies": "Política de cookies",
       "docs": "Documentación",
@@ -1601,12 +1650,8 @@
       "support": "Soporte"
     },
     "social": {
-      "github": "Visitar GitHub",
-      "email": "Enviar email"
-    },
-    "university": {
-      "prefix": "Proyecto académico de",
-      "name": "UTN Rosario"
+      "github": "Síguenos en GitHub",
+      "email": "Envíanos un email"
     }
   },
   "notifications": {

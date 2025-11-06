@@ -7,10 +7,10 @@
       <div class="header-content">
         <div>
           <h2>{{ 'roleRequests.reviewModal.title' | translate }}</h2>
-          <p class="subtitle">Evalúa y toma una decisión sobre esta solicitud</p>
+          <p class="subtitle">{{ 'roleRequests.reviewModal.subtitle' | translate }}</p>
         </div>
       </div>
-      <button class="close-btn" type="button" (click)="onClose()" aria-label="Cerrar">×</button>
+      <button class="close-btn" type="button" (click)="onClose()" [attr.aria-label]="'roleRequests.reviewModal.closeAria' | translate">×</button>
     </div>
 
     <form (ngSubmit)="onSubmit()" class="modal-body">
@@ -19,13 +19,13 @@
       <div class="summary-card">
         <div class="summary-header">
           <span class="summary-icon">👤</span>
-          <h3>Información de la Solicitud</h3>
+          <h3>{{ 'roleRequests.reviewModal.requestInfo' | translate }}</h3>
         </div>
 
         <div class="summary-grid">
           <!-- Usuario -->
           <div class="summary-item">
-            <span class="item-label">Usuario</span>
+            <span class="item-label">{{ 'roleRequests.reviewModal.requestInfoLabels.user' | translate }}</span>
             <div class="item-value">
               <strong class="username">{{ request.user.username }}</strong>
               <span class="email">{{ request.user.email }}</span>
@@ -34,7 +34,7 @@
 
           <!-- Rol Solicitado -->
           <div class="summary-item">
-            <span class="item-label">Solicitud</span>
+            <span class="item-label">{{ 'roleRequests.reviewModal.requestInfoLabels.request' | translate }}</span>
             <div class="item-value">
               <div *ngIf="request.isRoleChange" class="role-change-display">
                 <span class="role-badge from-role">{{ getRoleLabel(request.roleToRemove!) }}</span>
@@ -49,13 +49,13 @@
 
           <!-- Fecha -->
           <div class="summary-item">
-            <span class="item-label">Fecha de Solicitud</span>
+            <span class="item-label">{{ 'roleRequests.reviewModal.requestInfoLabels.requestDate' | translate }}</span>
             <span class="item-value date-value">{{ formatDate(request.createdAt) }}</span>
           </div>
 
           <!-- Justificación -->
           <div *ngIf="request.justification" class="summary-item full-width">
-            <span class="item-label">Justificación</span>
+            <span class="item-label">{{ 'roleRequests.reviewModal.requestInfoLabels.justification' | translate }}</span>
             <div class="justification-box">
               <p>{{ request.justification }}</p>
             </div>
@@ -63,7 +63,7 @@
 
           <!-- Datos Adicionales -->
           <div *ngIf="request.additionalData" class="summary-item full-width">
-            <span class="item-label">Datos Adicionales del Rol</span>
+            <span class="item-label">{{ 'roleRequests.reviewModal.requestInfoLabels.additionalData' | translate }}</span>
             <div class="additional-data-card">
 
               <!-- Datos para DISTRIBUTOR -->
@@ -71,14 +71,14 @@
                 <div class="data-item">
                   <span class="data-icon">📍</span>
                   <div class="data-content">
-                    <span class="data-label">Zona Asignada</span>
-                    <span class="data-value">Zona {{ request.additionalData.zoneId }}</span>
+                    <span class="data-label">{{ 'roleRequests.reviewModal.requestInfoLabels.assignedZone' | translate }}</span>
+                    <span class="data-value">{{ 'roleRequests.reviewModal.requestInfoLabels.zone' | translate }} {{ request.additionalData.zoneId }}</span>
                   </div>
                 </div>
                 <div class="data-item">
                   <span class="data-icon">🏠</span>
                   <div class="data-content">
-                    <span class="data-label">Dirección</span>
+                    <span class="data-label">{{ 'roleRequests.reviewModal.requestInfoLabels.address' | translate }}</span>
                     <span class="data-value">{{ request.additionalData.address }}</span>
                   </div>
                 </div>
@@ -86,10 +86,10 @@
                   class="data-item">
                   <span class="data-icon">📦</span>
                   <div class="data-content">
-                    <span class="data-label">Productos</span>
+                    <span class="data-label">{{ 'roleRequests.reviewModal.requestInfoLabels.products' | translate }}</span>
                     <div class="products-tags">
                       <span class="product-tag" *ngFor="let id of request.additionalData.productsIds">
-                        Producto #{{ id }}
+                        {{ 'roleRequests.reviewModal.requestInfoLabels.product' | translate }} #{{ id }}
                       </span>
                     </div>
                   </div>
@@ -101,15 +101,15 @@
                 <div class="data-item">
                   <span class="data-icon">⭐</span>
                   <div class="data-content">
-                    <span class="data-label">Rango</span>
+                    <span class="data-label">{{ 'roleRequests.reviewModal.requestInfoLabels.rank' | translate }}</span>
                     <span class="data-value">{{ getRankLabel(request.additionalData.rank!) }}</span>
                   </div>
                 </div>
                 <div class="data-item">
                   <span class="data-icon">📍</span>
                   <div class="data-content">
-                    <span class="data-label">Zona Asignada</span>
-                    <span class="data-value">Zona {{ request.additionalData.zoneId }}</span>
+                    <span class="data-label">{{ 'roleRequests.reviewModal.requestInfoLabels.assignedZone' | translate }}</span>
+                    <span class="data-value">{{ 'roleRequests.reviewModal.requestInfoLabels.zone' | translate }} {{ request.additionalData.zoneId }}</span>
                   </div>
                 </div>
               </ng-container>
@@ -123,7 +123,7 @@
       <div *ngIf="error" class="alert alert-error">
         <span class="alert-icon">⚠️</span>
         <div class="alert-content">
-          <strong>Error</strong>
+          <strong>{{ 'roleRequests.reviewModal.error' | translate }}</strong>
           <p>{{ error }}</p>
         </div>
       </div>
@@ -141,7 +141,7 @@
             <div class="card-content">
               <span class="decision-icon">✓</span>
               <span class="decision-label">{{ 'roleRequests.reviewModal.approve' | translate }}</span>
-              <span class="decision-desc">Aprobar y otorgar el rol</span>
+              <span class="decision-desc">{{ 'roleRequests.reviewModal.approveDesc' | translate }}</span>
             </div>
             <div class="check-indicator"></div>
           </label>
@@ -151,7 +151,7 @@
             <div class="card-content">
               <span class="decision-icon">✗</span>
               <span class="decision-label">{{ 'roleRequests.reviewModal.reject' | translate }}</span>
-              <span class="decision-desc">Denegar la solicitud</span>
+              <span class="decision-desc">{{ 'roleRequests.reviewModal.rejectDesc' | translate }}</span>
             </div>
             <div class="check-indicator"></div>
           </label>
@@ -164,7 +164,7 @@
           <span class="section-icon">💬</span>
           <label for="comments" class="section-title">
             {{ 'roleRequests.reviewModal.commentsLabel' | translate }}
-            <span *ngIf="action === 'reject'" class="recommended-tag">(recomendado)</span>
+            <span *ngIf="action === 'reject'" class="recommended-tag">{{ 'roleRequests.reviewModal.recommended' | translate }}</span>
           </label>
         </div>
 
@@ -179,7 +179,7 @@
             rows="4"
             maxlength="500"></textarea>
           <div class="textarea-footer">
-            <span class="character-count">{{ comments.length }}/500 caracteres</span>
+            <span class="character-count">{{ comments.length }}/500 {{ 'roleRequests.reviewModal.characters' | translate }}</span>
           </div>
         </div>
       </div>
@@ -203,7 +203,7 @@
               ? ('roleRequests.reviewModal.actions.approve' | translate)
               : (action === 'reject'
                 ? ('roleRequests.reviewModal.actions.reject' | translate)
-                : 'Selecciona una opción')) }}
+                : ('roleRequests.reviewModal.selectOption' | translate))) }}
         </button>
       </div>
     </form>

@@ -3,7 +3,7 @@
   <!-- GRID PRINCIPAL: STATS (FIJO) + LISTA -->
   <div class="sales-main-grid">
 
-    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS (SIEMPRE VISIBLE) -->
+    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS -->
     <aside class="stats-panel">
       <div class="glass-dark card">
 
@@ -59,8 +59,8 @@
             }
           </div>
 
-          <!-- Ventas por Distribuidor -->
-          <div class="chart-card span-full">
+          <!-- Ventas por Distribuidor (solo para Admin y Authority) -->
+          <div class="chart-card span-full" *ngIf="isAdmin() || isAuthority()">
             <h3 class="chart-title">🚚 {{ 'sales.stats.salesByDistributor' | translate : {} : 'Ventas por Distribuidor'
               }}</h3>
             @if (distributorsChartOptions()) {
