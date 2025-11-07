@@ -16,7 +16,9 @@
       "Bash($null)",
       "Bash(Select-String -Pattern \"jasmine|karma|cypress\")",
       "Bash(node --version)",
-      "Bash(npm --version:*)"
+      "Bash(npm --version:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm run test:ci:*)"
     ],
     "deny": [],
     "ask": []

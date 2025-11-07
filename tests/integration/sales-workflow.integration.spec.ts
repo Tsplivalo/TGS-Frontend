@@ -23,37 +23,39 @@ describe('Integration: Sales Workflow', () => {
   const mockProduct1: ProductDTO = {
     id: 1,
     description: 'Whiskey Premium',
-    legal: 'Irish Whiskey',
+    detail: 'Irish Whiskey',
     price: 45.99,
     stock: 100,
-    imageUrl: 'whiskey.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    isIllegal: false,
+    imageUrl: 'whiskey.jpg'
   };
 
   const mockProduct2: ProductDTO = {
     id: 2,
     description: 'Gin London Dry',
-    legal: 'Dry Gin',
+    detail: 'Dry Gin',
     price: 32.50,
     stock: 75,
-    imageUrl: 'gin.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    isIllegal: false,
+    imageUrl: 'gin.jpg'
   };
 
   const mockSale: SaleDTO = {
     id: 1,
-    userId: 1,
-    clientDni: '12345678A',
-    distributorDni: '87654321B',
+    saleDate: new Date().toISOString(),
+    client: {
+      dni: '12345678A',
+      name: 'Test Client'
+    },
+    distributor: {
+      dni: '87654321B',
+      name: 'Test Distributor'
+    },
     total: 124.48,
     details: [
-      { id: 1, productId: 1, quantity: 2, price: 45.99, subtotal: 91.98 },
-      { id: 2, productId: 2, quantity: 1, price: 32.50, subtotal: 32.50 }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+      { productId: 1, quantity: 2, subtotal: 91.98 },
+      { productId: 2, quantity: 1, subtotal: 32.50 }
+    ]
   };
 
   beforeEach(() => {
@@ -379,7 +381,7 @@ describe('Integration: Sales Workflow', () => {
     req.flush(
       { success: false, message: 'Sale details cannot be empty' },
       { status: 400, statusText: 'Bad Request' }
-    });
+    );
   });
 
   /**
@@ -420,3 +422,4 @@ describe('Integration: Sales Workflow', () => {
     expect(parsedCart[0].id).toBe(mockProduct1.id);
   });
 });
+

@@ -191,7 +191,11 @@ describe('Login Flow', () => {
       cy.dataCy('login-button').click();
 
       // Verify loading indicator is shown
-      cy.dataCy('login-button').should('contain.text', 'Loading').or('be.disabled');
+      cy.dataCy('login-button').should('satisfy', ($btn) => {
+        const text = $btn.text();
+        const disabled = $btn.prop('disabled');
+        return text.includes('Loading') || disabled;
+      });
       cy.dataCy('loading-spinner').should('be.visible');
 
       cy.wait('@loginRequest');
@@ -204,21 +208,21 @@ describe('Login Flow', () => {
   describe('Accessibility', () => {
     it('should be navigable via keyboard', () => {
       // Tab to email field
-      cy.get('body').tab();
+      cy.get('body').realPress('Tab');
       cy.focused().should('have.attr', 'data-cy', 'email-input');
 
       // Type email
       cy.focused().type('test@example.com');
 
       // Tab to password field
-      cy.focused().tab();
+      cy.focused().realPress('Tab');
       cy.focused().should('have.attr', 'data-cy', 'password-input');
 
       // Type password
       cy.focused().type('password123');
 
       // Tab to login button
-      cy.focused().tab();
+      cy.focused().realPress('Tab');
       cy.focused().should('have.attr', 'data-cy', 'login-button');
 
       // Press Enter to submit
@@ -234,9 +238,11 @@ describe('Login Flow', () => {
         .should('have.attr', 'aria-label')
         .and('match', /password/i);
 
-      cy.dataCy('login-button')
-        .should('have.attr', 'aria-label')
-        .or('contain.text', 'Login');
+      cy.dataCy('login-button').should(($btn) => {
+        const hasAriaLabel = $btn.attr('aria-label');
+        const hasLoginText = $btn.text().includes('Login');
+        expect(hasAriaLabel || hasLoginText).to.be.true;
+      });
     });
 
     it('should have no accessibility violations', () => {

@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
 /// <reference types="cypress-axe" />
+/// <reference types="cypress-real-events" />
 
 // ***********************************************
 // This file contains custom Cypress commands
@@ -49,12 +50,6 @@ declare global {
        * @example cy.waitForAngular()
        */
       waitForAngular(): Chainable<void>;
-
-      /**
-       * Custom command to check accessibility violations
-       * @example cy.checkA11y()
-       */
-      checkA11y(context?: any, options?: any): Chainable<void>;
 
       /**
        * Custom command to navigate to a route
@@ -132,7 +127,7 @@ Cypress.Commands.add('isAuthenticated', () => {
  * Get local storage item
  */
 Cypress.Commands.add('getLocalStorage', (key: string) => {
-  return cy.window().then((window) => {
+  cy.window().then((window) => {
     return window.localStorage.getItem(key);
   });
 });
@@ -154,18 +149,8 @@ Cypress.Commands.add('waitForAngular', () => {
   cy.wait(500); // Small delay to ensure Angular is fully loaded
 });
 
-/**
- * Check accessibility using axe-core
- */
-Cypress.Commands.add('checkA11y', (context?: any, options?: any) => {
-  cy.injectAxe();
-  cy.checkA11y(context, options, (violations) => {
-    if (violations.length) {
-      cy.task('log', '\n🚨 Accessibility Violations:\n');
-      cy.task('table', violations);
-    }
-  });
-});
+// Note: checkA11y is provided by cypress-axe package
+// No need to redefine it here
 
 /**
  * Navigate to a route

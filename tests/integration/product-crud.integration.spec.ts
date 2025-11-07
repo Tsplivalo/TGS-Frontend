@@ -18,12 +18,11 @@ describe('Integration: Product CRUD', () => {
   const mockProduct: ProductDTO = {
     id: 1,
     description: 'Test Product',
-    legal: 'Test Legal Description',
+    detail: 'Test Legal Description',
     price: 99.99,
     stock: 100,
-    imageUrl: 'https://example.com/image.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    isIllegal: false,
+    imageUrl: 'https://example.com/image.jpg'
   };
 
   const mockProducts: ProductDTO[] = [
@@ -31,12 +30,11 @@ describe('Integration: Product CRUD', () => {
     {
       id: 2,
       description: 'Product 2',
-      legal: 'Legal 2',
+      detail: 'Legal 2',
       price: 49.99,
       stock: 50,
-      imageUrl: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      isIllegal: false,
+      imageUrl: undefined
     }
   ];
 
@@ -97,17 +95,16 @@ describe('Integration: Product CRUD', () => {
   it('should create product and update list with new item', (done) => {
     const newProductData: CreateProductDTO = {
       description: 'New Product',
-      legal: 'New Legal',
+      detail: 'New Legal',
       price: 79.99,
-      stock: 25
+      stock: 25,
+      isIllegal: false
     };
 
     const createdProduct: ProductDTO = {
       id: 3,
       ...newProductData,
-      imageUrl: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      imageUrl: undefined
     };
 
     let stepsCompleted = 0;
@@ -332,15 +329,16 @@ describe('Integration: Product CRUD', () => {
   it('should create product with only required fields', (done) => {
     const minimalProduct: CreateProductDTO = {
       description: 'Minimal Product',
-      legal: 'Legal',
+      detail: 'Legal',
       price: 19.99,
-      stock: 10
+      stock: 10,
+      isIllegal: false
     };
 
     productService.createProduct(minimalProduct).subscribe({
       next: (response) => {
         expect(response.success).toBe(true);
-        expect(response.data?.imageUrl).toBeNull();
+        expect(response.data?.imageUrl).toBeUndefined();
         done();
       }
     });
@@ -351,9 +349,7 @@ describe('Integration: Product CRUD', () => {
       data: {
         id: 4,
         ...minimalProduct,
-        imageUrl: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        imageUrl: undefined
       }
     });
   });

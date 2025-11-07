@@ -75,11 +75,11 @@ describe('Integration: Auth Flow', () => {
     spyOn(router, 'navigate');
 
     // Execute login
-    authService.login(mockCredentials.email, mockCredentials.password).subscribe({
+    authService.login(mockCredentials).subscribe({
       next: (response) => {
         // Verify response
         expect(response.success).toBe(true);
-        expect(response.data?.user?.email).toBe(mockCredentials.email);
+        expect(response.data.email).toBe(mockCredentials.email);
 
         // Verify token is stored
         expect(authService.isAuthenticated()).toBe(true);
@@ -103,7 +103,27 @@ describe('Integration: Auth Flow', () => {
     const req = httpMock.expectOne('/api/auth/login');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(mockCredentials);
-    req.flush(mockResponse);
+
+    // Fix response structure to match AuthResponse
+    const correctedResponse = {
+      success: true,
+      message: 'Login successful',
+      data: {
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        roles: ['USER'],
+        isActive: true,
+        isVerified: true,
+        emailVerified: true,
+        profileCompleteness: 100,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hasPersonalInfo: false
+      },
+      meta: { token: 'mock-jwt-token-12345' }
+    };
+    req.flush(correctedResponse);
   });
 
   /**
@@ -114,13 +134,24 @@ describe('Integration: Auth Flow', () => {
     // First login
     const mockLoginResponse = {
       success: true,
+      message: 'Login successful',
       data: {
-        user: { id: 1, email: 'test@example.com', name: 'Test User', roles: ['USER'] },
-        token: 'mock-token'
-      }
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        roles: ['USER'],
+        isActive: true,
+        isVerified: true,
+        emailVerified: true,
+        profileCompleteness: 100,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hasPersonalInfo: false
+      },
+      meta: { token: 'mock-token' }
     };
 
-    authService.login('test@example.com', 'password').subscribe(() => {
+    authService.login({ email: 'test@example.com', password: 'password' }).subscribe(() => {
       // Verify logged in
       expect(authService.isAuthenticated()).toBe(true);
 
@@ -153,7 +184,7 @@ describe('Integration: Auth Flow', () => {
     const credentials = { email: 'test@example.com', password: 'wrong' };
 
     // First attempt - should fail
-    authService.login(credentials.email, credentials.password).subscribe({
+    authService.login(credentials).subscribe({
       error: (error) => {
         expect(error.status).toBe(401);
         expect(authService.isAuthenticated()).toBe(false);
@@ -161,7 +192,7 @@ describe('Integration: Auth Flow', () => {
         // Retry with correct password
         const correctCredentials = { ...credentials, password: 'correct' };
 
-        authService.login(correctCredentials.email, correctCredentials.password).subscribe({
+        authService.login(correctCredentials).subscribe({
           next: (response) => {
             expect(response.success).toBe(true);
             expect(authService.isAuthenticated()).toBe(true);
@@ -173,10 +204,21 @@ describe('Integration: Auth Flow', () => {
         const successReq = httpMock.expectOne('/api/auth/login');
         successReq.flush({
           success: true,
+          message: 'Login successful',
           data: {
-            user: { id: 1, email: 'test@example.com', name: 'Test', roles: ['USER'] },
-            token: 'token'
-          }
+            id: '1',
+            username: 'testuser',
+            email: 'test@example.com',
+            roles: ['USER'],
+            isActive: true,
+            isVerified: true,
+            emailVerified: true,
+            profileCompleteness: 100,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            hasPersonalInfo: false
+          },
+          meta: { token: 'token' }
         });
       }
     });
@@ -217,21 +259,32 @@ describe('Integration: Auth Flow', () => {
   it('should refresh token automatically before expiration', (done) => {
     const mockLoginResponse = {
       success: true,
+      message: 'Login successful',
       data: {
-        user: { id: 1, email: 'test@example.com', name: 'Test', roles: ['USER'] },
-        token: 'initial-token'
-      }
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        roles: ['USER'],
+        isActive: true,
+        isVerified: true,
+        emailVerified: true,
+        profileCompleteness: 100,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hasPersonalInfo: false
+      },
+      meta: { token: 'initial-token' }
     };
 
     // Login first
-    authService.login('test@example.com', 'password').subscribe(() => {
+    authService.login({ email: 'test@example.com', password: 'password' }).subscribe(() => {
       expect(authService.isAuthenticated()).toBe(true);
 
       // Simulate token about to expire by calling refresh
       authService.refreshToken().subscribe({
         next: (response) => {
           expect(response.success).toBe(true);
-          expect(response.data?.token).toBe('refreshed-token');
+          expect(response.meta?.token).toBe('refreshed-token');
 
           // Verify new token is stored
           const storedToken = localStorage.getItem('authToken');
@@ -246,10 +299,21 @@ describe('Integration: Auth Flow', () => {
       expect(refreshReq.request.method).toBe('POST');
       refreshReq.flush({
         success: true,
+        message: 'Token refreshed',
         data: {
-          user: { id: 1, email: 'test@example.com', name: 'Test', roles: ['USER'] },
-          token: 'refreshed-token'
-        }
+          id: '1',
+          username: 'testuser',
+          email: 'test@example.com',
+          roles: ['USER'],
+          isActive: true,
+          isVerified: true,
+          emailVerified: true,
+          profileCompleteness: 100,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          hasPersonalInfo: false
+        },
+        meta: { token: 'refreshed-token' }
       });
     });
 
@@ -268,12 +332,12 @@ describe('Integration: Auth Flow', () => {
     let completed = 0;
 
     // Start two logins
-    authService.login(credentials1.email, credentials1.password).subscribe(() => {
+    authService.login(credentials1).subscribe(() => {
       completed++;
       if (completed === 2) done();
     });
 
-    authService.login(credentials2.email, credentials2.password).subscribe(() => {
+    authService.login(credentials2).subscribe(() => {
       completed++;
       if (completed === 2) done();
     });
@@ -284,12 +348,40 @@ describe('Integration: Auth Flow', () => {
 
     requests[0].flush({
       success: true,
-      data: { user: { id: 1, email: credentials1.email, name: 'User1', roles: ['USER'] }, token: 'token1' }
+      message: 'Login successful',
+      data: {
+        id: '1',
+        username: 'user1',
+        email: credentials1.email,
+        roles: ['USER'],
+        isActive: true,
+        isVerified: true,
+        emailVerified: true,
+        profileCompleteness: 100,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hasPersonalInfo: false
+      },
+      meta: { token: 'token1' }
     });
 
     requests[1].flush({
       success: true,
-      data: { user: { id: 2, email: credentials2.email, name: 'User2', roles: ['USER'] }, token: 'token2' }
+      message: 'Login successful',
+      data: {
+        id: '2',
+        username: 'user2',
+        email: credentials2.email,
+        roles: ['USER'],
+        isActive: true,
+        isVerified: true,
+        emailVerified: true,
+        profileCompleteness: 100,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hasPersonalInfo: false
+      },
+      meta: { token: 'token2' }
     });
   });
 
@@ -297,7 +389,7 @@ describe('Integration: Auth Flow', () => {
    * Edge Case: Network error during login
    */
   it('should handle network errors gracefully', (done) => {
-    authService.login('test@example.com', 'password').subscribe({
+    authService.login({ email: 'test@example.com', password: 'password' }).subscribe({
       error: (error) => {
         expect(error).toBeDefined();
         expect(authService.isAuthenticated()).toBe(false);
