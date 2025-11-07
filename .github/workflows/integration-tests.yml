@@ -1,0 +1,166 @@
+name: Integration Tests (Frontend + Backend)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  integration-e2e:
+    name: Full Stack Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: tgs_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout Frontend
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+
+      - name: Checkout Backend
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/TGS-Backend-main
+          path: backend
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Setup Backend Database
+        working-directory: backend
+        run: |
+          pnpm run db:migrate
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/tgs_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Seed Test Data
+        working-directory: backend
+        run: pnpm run db:seed
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/tgs_test
+
+      - name: Start Backend Server
+        working-directory: backend
+        run: |
+          pnpm build
+          pnpm start &
+          npx wait-on http://localhost:3000/health --timeout 60000
+        env:
+          NODE_ENV: test
+          PORT: 3000
+          DATABASE_URL: postgresql://test:test@localhost:5432/tgs_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key
+          CORS_ORIGIN: http://localhost:4200
+
+      - name: Start Frontend Server
+        working-directory: frontend
+        run: |
+          npm start &
+          npx wait-on http://localhost:4200 --timeout 120000
+        env:
+          API_URL: http://localhost:3000
+
+      - name: Run Cypress E2E Tests (Full Stack)
+        working-directory: frontend
+        run: npm run e2e:headless
+        env:
+          CYPRESS_BASE_URL: http://localhost:4200
+          CYPRESS_API_URL: http://localhost:3000
+
+      - name: Upload Cypress Screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-cypress-screenshots
+          path: frontend/cypress/screenshots
+          retention-days: 7
+
+      - name: Upload Cypress Videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-cypress-videos
+          path: frontend/cypress/videos
+          retention-days: 7
+
+      - name: Backend Logs (on failure)
+        if: failure()
+        run: |
+          echo "=== Backend Logs ==="
+          cat backend/logs/*.log || echo "No backend logs found"
+
+      - name: Notify on Success
+        if: success()
+        run: |
+          echo "✅ Integration tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend + Backend integration is working correctly." >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on Failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "❌ Integration tests failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Integration Tests Failed*\n\nFrontend + Backend E2E tests failed.\n\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+                  }
+                }
+              ]
+            }
