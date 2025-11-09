@@ -11,11 +11,13 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '../../services/auth/auth'; 
+import { AuthService } from '../../services/auth/auth';
 import { Role } from '../../models/user/user.model';
 import { I18nService } from '../../services/i18n/i18n.js';
 import { TranslateModule } from '@ngx-translate/core';
+import { AuthTransitionService } from '../../services/ui/auth-transition';
 
 interface MenuItem { label: string; path: string; }
 
@@ -25,11 +27,39 @@ interface MenuItem { label: string; path: string; }
   imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss'],
+  animations: [
+    trigger('slideIn', [
+      transition(':enter', [
+        style({
+          opacity: 0,
+          transform: 'translateX(-150px) scale(0.75)',
+          maxWidth: '0px',
+          overflow: 'hidden',
+        }),
+        animate('1200ms 100ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', style({
+          opacity: 1,
+          transform: 'translateX(0) scale(1)',
+          maxWidth: '250px',
+        }))
+      ]),
+      transition(':leave', [
+        style({
+          overflow: 'hidden',
+        }),
+        animate('600ms cubic-bezier(0.6, 0.04, 0.98, 0.335)', style({
+          opacity: 0,
+          transform: 'translateX(-150px) scale(0.75)',
+          maxWidth: '0px',
+        }))
+      ])
+    ])
+  ]
 })
 export class NavbarComponent implements AfterViewInit {
   private auth = inject(AuthService);
   private routerSvc = inject(Router);
   private i18n = inject(I18nService);
+  private transition = inject(AuthTransitionService);
 
   // ✅ Señales reactivas del AuthService
   readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
@@ -56,7 +86,7 @@ export class NavbarComponent implements AfterViewInit {
     const roles = this.currentRoles();
     const user = this.user();
     const hasClient = roles.includes(Role.CLIENT);
-    const hasUser = roles.includes(Role.USER); // ✅ Agregado USER
+    const hasUser = roles.includes(Role.USER);
     const hasAdmin = roles.includes(Role.ADMIN);
     
     console.log('[Navbar] 🛒 Store Access Check DETAILED:', {
@@ -66,15 +96,14 @@ export class NavbarComponent implements AfterViewInit {
       rolesType: Array.isArray(roles) ? 'array' : typeof roles,
       rolesLength: roles?.length,
       hasClient,
-      hasUser, // ✅ Agregado
+      hasUser,
       hasAdmin,
       Role_CLIENT_value: Role.CLIENT,
-      Role_USER_value: Role.USER, // ✅ Agregado
+      Role_USER_value: Role.USER,
       Role_ADMIN_value: Role.ADMIN,
-      result: isAuth && (hasClient || hasUser || hasAdmin) // ✅ Incluye USER
+      result: isAuth && (hasClient || hasUser || hasAdmin)
     });
     
-    // ✅ USER también puede acceder a la tienda
     return isAuth && (hasClient || hasUser || hasAdmin);
   });
 
@@ -84,6 +113,7 @@ export class NavbarComponent implements AfterViewInit {
   setLang(l: 'en' | 'es') { this.i18n.use(l); }
   flagClass(): string { return this.lang() === 'es' ? 'flag flag-es' : 'flag flag-en'; }
 
+  // ✅ Items de gestión completos (para ADMIN, PARTNER, DISTRIBUTOR)
   readonly gestionItems: MenuItem[] = [
     { label: 'mgmt.product', path: '/producto' },
     { label: 'mgmt.client', path: '/cliente' },
@@ -99,6 +129,12 @@ export class NavbarComponent implements AfterViewInit {
     { label: 'mgmt.monthlyReview', path: '/revisiones-mensuales' },
     { label: 'mgmt.clandestineAgreement', path: '/acuerdos-clandestinos' },
     { label: 'mgmt.admin', path: '/admin' },
+  ];
+
+  // ✅ Items limitados para AUTHORITY (Ventas y Mis Sobornos solamente)
+  readonly authorityGestionItems: MenuItem[] = [
+    { label: 'mgmt.sale', path: '/venta' },
+    { label: 'mgmt.myBribes', path: '/sobornos' },
   ];
 
   readonly publicItems: MenuItem[] = [
@@ -126,7 +162,8 @@ export class NavbarComponent implements AfterViewInit {
     if (this.isAuthenticated()) {
       this.auth.refreshIfStale(0); // 0 = siempre que cambies de ruta
     }
-// ✅ Effect para reaccionar a cambios en roles y usuario
+
+    // ✅ Effect para reaccionar a cambios en roles y usuario
     effect(() => {
       const roles = this.userRoles();
       const user = this.user();
@@ -175,6 +212,26 @@ export class NavbarComponent implements AfterViewInit {
 
   isAuthority(): boolean {
     return this.auth.hasRole(Role.AUTHORITY);
+  }
+
+  // ✅ Verifica si el usuario es SOLO autoridad (sin otros roles de gestión)
+  isOnlyAuthority(): boolean {
+    const roles = this.roles();
+    const hasAuthority = roles.includes(Role.AUTHORITY);
+    const hasOtherManagementRole = roles.some(r => 
+      r === Role.ADMIN || 
+      r === Role.PARTNER || 
+      r === Role.DISTRIBUTOR
+    );
+    return hasAuthority && !hasOtherManagementRole;
+  }
+
+  // ✅ Obtiene los items de gestión según el rol
+  getGestionItems(): MenuItem[] {
+    if (this.isOnlyAuthority()) {
+      return this.authorityGestionItems;
+    }
+    return this.gestionItems;
   }
 
   isOnlyClient(): boolean {
@@ -250,21 +307,21 @@ export class NavbarComponent implements AfterViewInit {
     return url.startsWith('/inbox');
   }
 
-  logout() {
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      this.auth.logout().subscribe({
-        next: () => {
-          console.log('[Navbar] ✅ Logout successful');
-        },
-        error: (err) => {
-          console.error('[Navbar] ❌ Logout error:', err);
-          this.routerSvc.navigate(['/login']);
-        }
-      });
-    }
+  isInStore(): boolean {
+    const url = this.routerSvc.url || '';
+    return url === '/tienda' || url.startsWith('/tienda?') || url.startsWith('/tienda/') ||
+           url === '/mis-compras' || url.startsWith('/mis-compras?') || url.startsWith('/mis-compras/');
   }
 
+  
+
   private updateIndicator() {
+    // ✅ Deshabilitar el indicador cuando estás en el store (tienda/mis-compras)
+    if (this.isInStore()) {
+      this.indicator.visible = false;
+      return;
+    }
+
     const menuEl = this.menuRef?.nativeElement;
     const activeEl = menuEl?.querySelector(
       '.menu__item a.active, .menu__item--dropdown > .has-underline.active'
@@ -283,5 +340,28 @@ export class NavbarComponent implements AfterViewInit {
     const h = btnRect.height;
 
     this.indicator = { x, y, w, h, visible: true };
+  }
+
+  /**
+   * Logout con animación full-screen (velo global)
+   */
+  logout(): void {
+    // Disparar velo en modo "logout"
+    this.transition.start('logout');
+    // Mensaje se controla desde app.html; mantenemos fase "loading" hasta finalizar
+
+    // Pequeño delay para permitir que el velo aparezca antes de la petición
+    setTimeout(() => {
+      this.auth.logout().subscribe({
+        next: () => {
+          // Dar feedback visual breve antes de cerrar el velo
+          setTimeout(() => this.transition.finish(), 800);
+        },
+        error: () => {
+          // Aunque falle la llamada, cerramos sesión local y removemos el velo
+          setTimeout(() => this.transition.finish(), 800);
+        }
+      });
+    }, 120);
   }
 }

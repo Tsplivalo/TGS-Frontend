@@ -6,21 +6,81 @@
       <p class="subtitle">{{ 'roleRequests.inbox.subtitle' | translate }}</p>
     </div>
 
-    <!-- Botón nuevo -->
-    <button *ngIf="hasCompleteProfile && isVerified" class="btn btn-primary" (click)="openModal()">
-      <span class="icon">+</span>
-      {{ 'roleRequests.inbox.newBtn' | translate }}
-    </button>
+    <!-- Botones de acción con info tooltip -->
+    <div class="header-actions">
+      <!-- Botón de información -->
+      <div class="info-button-wrapper">
+        <button class="btn btn-info" (mouseenter)="showTooltip = true" (mouseleave)="showTooltip = false" type="button">
+          <span class="icon">ℹ️</span>
+        </button>
 
-    <!-- Badge verificación requerida -->
-    <div *ngIf="!isVerified" class="verification-required-warning">
-      <span class="icon">⚠️</span>
-      <span>{{ 'roleRequests.inbox.verifyRequiredBadge' | translate }}</span>
-    </div>
+        <!-- Tooltip flotante -->
+        <div class="info-tooltip" [class.visible]="showTooltip">
+          <div class="tooltip-header">
+            <span class="tooltip-icon">ℹ️</span>
+            <h3>{{ 'roleRequest.info.title' | translate }}</h3>
+          </div>
+          <div class="tooltip-content">
+            <p class="tooltip-intro">{{ 'roleRequest.info.intro' | translate }}</p>
 
-    <div *ngIf="!hasCompleteProfile && isVerified" class="incomplete-profile-warning">
-      <span class="icon">⚠️</span>
-      <span>{{ 'roleRequests.inbox.completeProfileRequired' | translate }}</span>
+            <div class="role-rules">
+              <div class="rule-item">
+                <span class="rule-icon">🔹</span>
+                <div class="rule-text">
+                  <strong>{{ 'roleRequest.info.rule1.title' | translate }}</strong>
+                  <p>{{ 'roleRequest.info.rule1.desc' | translate }}</p>
+                </div>
+              </div>
+
+              <div class="rule-item">
+                <span class="rule-icon">🔹</span>
+                <div class="rule-text">
+                  <strong>{{ 'roleRequest.info.rule2.title' | translate }}</strong>
+                  <p>{{ 'roleRequest.info.rule2.desc' | translate }}</p>
+                </div>
+              </div>
+
+              <div class="rule-item">
+                <span class="rule-icon">🔹</span>
+                <div class="rule-text">
+                  <strong>{{ 'roleRequest.info.rule3.title' | translate }}</strong>
+                  <p>{{ 'roleRequest.info.rule3.desc' | translate }}</p>
+                </div>
+              </div>
+
+              <div class="rule-item">
+                <span class="rule-icon">🔹</span>
+                <div class="rule-text">
+                  <strong>{{ 'roleRequest.info.rule4.title' | translate }}</strong>
+                  <p>{{ 'roleRequest.info.rule4.desc' | translate }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="tooltip-footer">
+              <span class="info-icon">💡</span>
+              <p>{{ 'roleRequest.info.footer' | translate }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón nuevo -->
+      <button *ngIf="hasCompleteProfile && isVerified" class="btn btn-primary" (click)="openModal()">
+        <span class="icon">+</span>
+        {{ 'roleRequests.inbox.newBtn' | translate }}
+      </button>
+
+      <!-- Badge verificación requerida -->
+      <div *ngIf="!isVerified" class="verification-required-warning">
+        <span class="icon">⚠️</span>
+        <span>{{ 'roleRequests.inbox.verifyRequiredBadge' | translate }}</span>
+      </div>
+
+      <div *ngIf="!hasCompleteProfile && isVerified" class="incomplete-profile-warning">
+        <span class="icon">⚠️</span>
+        <span>{{ 'roleRequests.inbox.completeProfileRequired' | translate }}</span>
+      </div>
     </div>
   </div>
 

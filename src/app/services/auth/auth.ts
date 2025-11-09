@@ -219,7 +219,7 @@ export class AuthService {
    * Inicia sesión con credenciales
    */
   login(credentials: LoginRequest): Observable<User> {
-    console.log('[AuthService] 🔐 Login attempt for:', credentials.email);
+    console.log('[AuthService] \uD83D\uDD10 Login attempt for:', credentials.email);
 
     return this.http.post<AuthResponse>(
       `${API_URL}/api/auth/login`,
@@ -234,6 +234,7 @@ export class AuthService {
         console.log('[AuthService] ✅ Login successful, setting user:', user);
         this.setUser(user);
         this.scheduleTokenRefresh();
+        this.forceRefresh();
       }),
       catchError(this.handleError.bind(this))
     );
@@ -372,6 +373,27 @@ export class AuthService {
       catchError(this.handleError.bind(this))
     );
   }
+
+  /**
+   * Actualiza información personal del usuario (teléfono, dirección)
+   */
+  updatePersonalInfo(data: { phone?: string; address?: string }): Observable<User> {
+    console.log('[AuthService] ✏️ Updating personal info:', data);
+
+    return this.http.patch<AuthResponse>(
+      `${API_URL}/api/users/me/personal-info`,
+      data,
+      { withCredentials: true }
+    ).pipe(
+      map(response => response.data),
+      tap(user => {
+        console.log('[AuthService] ✅ Personal info updated successfully');
+        this.setUser(user);
+      }),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
 
   // ============================================================================
   // MÉTODOS PÚBLICOS - REFRESH MANUAL
@@ -614,3 +636,4 @@ export class AuthService {
     return throwError(() => normalized);
   }
 }
+

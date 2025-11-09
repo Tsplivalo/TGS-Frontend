@@ -15,7 +15,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class UserVerificationReviewModalComponent {
   @Input() verification!: UserVerification;
   @Output() close = new EventEmitter<void>();
-  @Output() reviewComplete = new EventEmitter<void>();
+  @Output() reviewComplete = new EventEmitter<'approve' | 'reject'>();
 
   action: 'approve' | 'reject' = 'approve';
   reason: string = '';
@@ -61,7 +61,7 @@ export class UserVerificationReviewModalComponent {
         );
       }
 
-      this.reviewComplete.emit();
+      this.reviewComplete.emit(this.action);
     } catch (err: any) {
       this.error = err.error?.message || err.error?.errors?.[0]?.message || 'Error al procesar la verificación';
     } finally {

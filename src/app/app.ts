@@ -5,13 +5,14 @@
  * Se encarga de la inicialización de servicios críticos como autenticación
  * e internacionalización, y proporciona la estructura base de la aplicación.
  */
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, computed } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth/auth';
 import { I18nService } from './services/i18n/i18n';
 import { NavbarComponent } from './components/navbar/navbar';
-
+import { AuthTransitionService } from './services/ui/auth-transition';
+import { FooterComponent } from './shared/footer/footer';
 /**
  * Componente raíz de la aplicación
  * 
@@ -23,13 +24,14 @@ import { NavbarComponent } from './components/navbar/navbar';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent],
+  imports: [CommonModule, RouterOutlet, NavbarComponent,FooterComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
 export class AppComponent implements OnInit {
-  private readonly auth = inject(AuthService);
+  readonly auth = inject(AuthService);
   private readonly i18n = inject(I18nService);
+  readonly transition = inject(AuthTransitionService);
 
   /**
    * Inicialización del componente

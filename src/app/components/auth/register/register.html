@@ -1,5 +1,24 @@
 <section class="auth-card">
   <h2>Crear cuenta</h2>
+
+  <!-- 🔄 Banner de espera de verificación -->
+  <div class="waiting-verification" *ngIf="waitingForVerification() && !loading()" role="status">
+    <div class="spinner-small"></div>
+    <div class="waiting-content">
+      <strong>Esperando verificación de email...</strong>
+      <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+    </div>
+  </div>
+
+  <!-- ✅ Banner de éxito de registro -->
+  <div class="success-message" *ngIf="registrationSuccess() && needsEmailVerification()" role="alert">
+    <div class="success-icon">✓</div>
+    <div class="success-content">
+      <strong>¡Cuenta creada exitosamente!</strong>
+      <p>Por favor, verifica tu email para continuar.</p>
+    </div>
+  </div>
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="form">
     <label class="label">
       <span>Email</span>
@@ -15,9 +34,11 @@
     </label>
 
     <div class="actions">
-      <button class="btn btn-primary" type="submit" [disabled]="loading">Registrarme</button>
+      <button class="btn btn-primary" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Registrando...' : 'Registrarme' }}
+      </button>
     </div>
 
-    <div class="error" *ngIf="error">{{ error }}</div>
+    <div class="error" *ngIf="error() && !needsEmailVerification()">{{ error() }}</div>
   </form>
 </section>

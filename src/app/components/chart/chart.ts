@@ -35,6 +35,7 @@ Chart.register(...registerables);
     .chart-container {
       position: relative;
       width: 100%;
+      padding: 12px;
     }
 
     canvas {
@@ -54,7 +55,7 @@ export class ChartComponent implements OnInit, AfterViewInit, OnChanges, OnDestr
   private chart?: Chart;
 
   ngOnInit(): void {
-    // Opciones por defecto con el tema oscuro de tu app
+    // Opciones por defecto con el tema oscuro mejorado
     this.options = {
       ...this.getDefaultOptions(),
       ...this.options
@@ -124,35 +125,56 @@ export class ChartComponent implements OnInit, AfterViewInit, OnChanges, OnDestr
           display: true,
           position: 'top',
           labels: {
-            color: '#e5e7eb',
+            color: '#f3f4f6',
             font: {
               family: "'Google Sans Code', 'Montserrat', sans-serif",
-              size: 12,
-              weight: 'bold' // ✅ Cambiado de '600' a 'bold'
+              size: 13,
+              weight: 'bold' as any
             },
-            padding: 16,
+            padding: 20,
             usePointStyle: true,
-            pointStyle: 'circle'
+            pointStyle: 'circle',
+            boxWidth: 12,
+            boxHeight: 12
           }
         },
         tooltip: {
           enabled: true,
-          backgroundColor: 'rgba(20, 22, 28, 0.95)',
-          titleColor: '#ffffff',
+          backgroundColor: 'rgba(17, 24, 39, 0.95)',
+          titleColor: '#f9fafb',
           bodyColor: '#e5e7eb',
-          borderColor: 'rgba(195, 164, 98, 0.3)',
-          borderWidth: 1,
-          padding: 12,
-          cornerRadius: 8,
+          borderColor: 'rgba(195, 164, 98, 0.5)',
+          borderWidth: 2,
+          padding: 16,
+          cornerRadius: 10,
+          displayColors: true,
+          boxWidth: 12,
+          boxHeight: 12,
+          boxPadding: 8,
           titleFont: {
             family: "'Google Sans Code', sans-serif",
-            size: 14,
-            weight: 'bold' // ✅ Cambiado de '700' a 'bold'
+            size: 15,
+            weight: 'bold' as any
           },
           bodyFont: {
             family: "'Google Sans Code', sans-serif",
-            size: 12,
-            weight: 'bold' // ✅ Cambiado de '600' a 'bold'
+            size: 13,
+            weight: 'normal' as any
+          },
+          callbacks: {
+            label: (context) => {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat('es-AR', {
+                  style: 'currency',
+                  currency: 'ARS'
+                }).format(context.parsed.y);
+              }
+              return label;
+            }
           }
         }
       },
@@ -162,15 +184,17 @@ export class ChartComponent implements OnInit, AfterViewInit, OnChanges, OnDestr
             display: false
           },
           grid: {
-            color: 'rgba(255, 255, 255, 0.06)'
+            color: 'rgba(255, 255, 255, 0.05)',
+            lineWidth: 1
           },
           ticks: {
-            color: '#9ca3af',
+            color: '#d1d5db',
             font: {
               family: "'Google Sans Code', sans-serif",
               size: 11,
-              weight: 'bold'
-            }
+              weight: 600
+            },
+            padding: 8
           }
         },
         y: {
@@ -178,14 +202,23 @@ export class ChartComponent implements OnInit, AfterViewInit, OnChanges, OnDestr
             display: false
           },
           grid: {
-            color: 'rgba(255, 255, 255, 0.06)'
+            color: 'rgba(255, 255, 255, 0.08)',
+            lineWidth: 1
           },
           ticks: {
-            color: '#9ca3af',
+            color: '#d1d5db',
             font: {
               family: "'Google Sans Code', sans-serif",
               size: 11,
-              weight: 'bold'
+              weight: 600
+            },
+            padding: 8,
+            callback: function(value) {
+              return new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS',
+                minimumFractionDigits: 0
+              }).format(value as number);
             }
           },
           beginAtZero: true

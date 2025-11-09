@@ -18,11 +18,15 @@ export class ZoneService {
 
   // ===== CRUD =====
   getAllZones(): Observable<ApiResponse<ZoneDTO[]>> {
-    return this.http.get<ApiResponse<ZoneDTO[]>>(this.apiUrl);
+    return this.http.get<ApiResponse<ZoneDTO[]>>(this.apiUrl, {
+      withCredentials: true
+    });
   }
 
   getZoneById(id: number): Observable<ApiResponse<ZoneDTO>> {
-    return this.http.get<ApiResponse<ZoneDTO>>(`${this.apiUrl}/${id}`);
+    return this.http.get<ApiResponse<ZoneDTO>>(`${this.apiUrl}/${id}`, {
+      withCredentials: true
+    });
   }
 
   // ⬅️ ahora enviamos { name, isHeadquarters } como pide el backend nuevo
@@ -33,7 +37,9 @@ export class ZoneService {
     };
     // Si tu modelo tiene description pero el backend aún no, se ignora:
     if ((z as any).description !== undefined) payload.description = (z as any).description;
-    return this.http.post<ApiResponse<ZoneDTO>>(this.apiUrl, payload);
+    return this.http.post<ApiResponse<ZoneDTO>>(this.apiUrl, payload, {
+      withCredentials: true
+    });
   }
 
   // El backend usa PATCH parcial
@@ -42,7 +48,9 @@ export class ZoneService {
     if (z.name !== undefined) payload.name = z.name;
     if (z.isHeadquarters !== undefined) payload.isHeadquarters = z.isHeadquarters;
     if ((z as any).description !== undefined) payload.description = (z as any).description;
-    return this.http.patch<ApiResponse<ZoneDTO>>(`${this.apiUrl}/${id}`, payload);
+    return this.http.patch<ApiResponse<ZoneDTO>>(`${this.apiUrl}/${id}`, payload, {
+      withCredentials: true
+    });
   }
 
   patchZone(id: number, z: PatchZonaDTO): Observable<ApiResponse<ZoneDTO>> {
@@ -50,11 +58,15 @@ export class ZoneService {
     if (z.name !== undefined) payload.name = z.name;
     if (z.isHeadquarters !== undefined) payload.isHeadquarters = z.isHeadquarters;
     if ((z as any).description !== undefined) payload.description = (z as any).description;
-    return this.http.patch<ApiResponse<ZoneDTO>>(`${this.apiUrl}/${id}`, payload);
+    return this.http.patch<ApiResponse<ZoneDTO>>(`${this.apiUrl}/${id}`, payload, {
+      withCredentials: true
+    });
   }
 
   deleteZone(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, {
+      withCredentials: true
+    });
   }
 
   // ===== Validaciones de nombre (UX) =====

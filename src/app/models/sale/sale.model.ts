@@ -61,6 +61,11 @@ export interface SaleDTO {
   distributor?: {                // Datos del distribuidor
     dni: string;
     name?: string;
+    zone?: {
+      id: number;
+      name: string;
+      isHeadquarters?: boolean;
+    };
   };
   authority?: {                  // Datos de la autoridad involucrada
     dni: string;

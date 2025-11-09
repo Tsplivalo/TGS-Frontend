@@ -26,6 +26,15 @@
       </div>
     </div>
 
+    <!-- 🔄 Banner de espera de verificación (cuando está esperando que el usuario verifique desde el link) -->
+    <div class="waiting-verification" *ngIf="waitingForVerification() && !loading()" role="status">
+      <div class="spinner-small"></div>
+      <div class="waiting-content">
+        <strong>Esperando verificación...</strong>
+        <p>Haz clic en el enlace que enviamos a tu email. Esta página se actualizará automáticamente cuando verifiques tu cuenta.</p>
+      </div>
+    </div>
+
     <!-- Mensaje de error general -->
     <div class="error-message" *ngIf="error() && !needsEmailVerification()" role="alert">
       {{ error() }}
@@ -34,9 +43,9 @@
     <!-- Formulario de login -->
     <form (submit)="onSubmit(); $event.preventDefault()" class="login-form">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input id="email" type="email" [value]="email()" (input)="email.set($any($event.target).value)"
-          placeholder="tu@email.com" required autocomplete="email" />
+        <label for="email">Email o Usuario</label>
+        <input id="email" type="text" [value]="email()" (input)="email.set($any($event.target).value)"
+          placeholder="tu@email.com o tu_usuario" required autocomplete="username" />
       </div>
 
       <div class="form-group">

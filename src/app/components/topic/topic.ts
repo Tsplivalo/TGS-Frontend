@@ -83,16 +83,19 @@ export class TopicComponent implements OnInit {
 
   // ✅ Toggle formulario
   toggleForm() {
-    this.isFormOpen = !this.isFormOpen;
-    if (!this.isFormOpen) {
-      this.new(); // Resetear al cerrar
+    if (this.isFormOpen) {
+      this.cancel();
+      return;
     }
+    this.new();
+    this.isFormOpen = true;
   }
 
-  // ✅ Cancelar y cerrar
+  // ?o. Cancelar y cerrar
   cancel() {
     this.isFormOpen = false;
     this.new();
+    this.error.set(null);
   }
 
   // --- Crear / Editar ---
@@ -144,8 +147,7 @@ export class TopicComponent implements OnInit {
       const payload = this.buildCreate();
       this.srv.create(payload).subscribe({
         next: () => { 
-          this.new(); 
-          this.isFormOpen = false; // ✅ Cerrar después de crear
+          this.cancel(); 
           this.load(); 
         },
         error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorCreate')); this.loading.set(false); }
@@ -156,10 +158,9 @@ export class TopicComponent implements OnInit {
     const payload = this.buildUpdate();
     this.srv.update(id, payload).subscribe({
       next: () => { 
-        this.new(); 
-        this.isFormOpen = false; // ✅ Cerrar después de actualizar
-        this.load(); 
-      },
+          this.cancel(); 
+          this.load(); 
+        },
       error: (err) => { this.error.set(err?.error?.message || this.t.instant('topics.errorSave')); this.loading.set(false); }
     });
   }

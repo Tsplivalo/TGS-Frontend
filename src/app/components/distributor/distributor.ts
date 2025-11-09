@@ -6,6 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DistributorService } from '../../services/distributor/distributor';
 import { ZoneService } from '../../services/zone/zone';
 import { ProductService } from '../../services/product/product';
+import { AuthService, User, Role } from '../../services/user/user';
 
 import { ZoneDTO } from '../../models/zone/zona.model';
 import { ProductDTO } from '../../models/product/product.model';
@@ -19,7 +20,11 @@ import { DistributorDTO, CreateDistributorDTO, PatchDistributorDTO } from '../..
  * - Form reactivo con validación y normalización de tipos (zoneId string→number)
  * - Estrategia de guardado: POST para crear y PATCH con campos dirty para editar
  * - Mensajes listos para i18n y manejo de carga/errores con signals
+ * - ✅ Notificaciones de éxito y cierre automático del formulario
+ * - ✅ Modo de creación: manual o desde usuario existente
  */
+
+type Mode = 'fromUser' | 'manual';
 
 type DistForm = {
   dni: FormControl<string>;
@@ -29,6 +34,9 @@ type DistForm = {
   address: FormControl<string>;
   zoneId: FormControl<number | null>;
   productsIds: FormControl<number[]>;
+  createCreds: FormControl<boolean>;
+  username: FormControl<string>;
+  password: FormControl<string>;
 };
 
 @Component({
@@ -45,10 +53,22 @@ export class DistributorComponent implements OnInit {
   private zoneSrv = inject(ZoneService);
   private prodSrv = inject(ProductService);
   private t = inject(TranslateService);
+  private authSrv = inject(AuthService);
+
+  // --- Roles y permisos ---
+  isAdmin = computed(() => this.authSrv.hasRole(Role.ADMIN));
+  isPartner = computed(() => this.authSrv.hasRole(Role.PARTNER));
+
+  // Permisos específicos por rol
+  canCreate = computed(() => this.isAdmin());   // Solo Admin puede crear
+  canEdit = computed(() => this.isAdmin());     // Solo Admin puede editar
+  canDelete = computed(() => this.isAdmin());   // Solo Admin puede eliminar
+  // Partner solo puede ver (no tiene permisos especiales)
 
   // --- Estado base ---
   loading = signal(false);
   error = signal<string | null>(null);
+  success = signal<string | null>(null); // ✅ Mensaje de éxito
   submitted = signal(false);
 
   list = signal<DistributorDTO[]>([]);
@@ -57,31 +77,62 @@ export class DistributorComponent implements OnInit {
   fTextInput = signal('');
   fTextApplied = signal('');
 
+  // --- Modo de creación ---
+  mode = signal<Mode>('fromUser');
+
+  // --- Mostrar/ocultar contraseña ---
+  showPassword = signal(false);
+
+  // --- Usuarios verificados (selector) ---
+  users = signal<User[]>([]);
+  userSearch = signal<string>('');
+  selectedUserDni = signal<string | null>(null);
+
+  filteredUsers = computed(() => {
+    const q = this.userSearch().toLowerCase().trim();
+    const arr = this.users();
+    if (!q) return arr;
+    return arr.filter(u => {
+      const person = (u as any).person;
+      if (!person) return false;
+      return (
+        (person.dni ?? '').toLowerCase().includes(q) ||
+        (person.name ?? '').toLowerCase().includes(q) ||
+        (u.email ?? '').toLowerCase().includes(q)
+      );
+    });
+  });
+
   // --- UI ---
   isFormOpen = false;
   isEdit = signal(false); // true si estamos editando
 
   // --- Form reactivo ---
   form: FormGroup<DistForm> = this.fb.group<DistForm>({
-    dni: this.fb.nonNullable.control('', { 
-      validators: [Validators.required, Validators.minLength(6)] 
+    dni: this.fb.nonNullable.control('', {
+      validators: [Validators.required, Validators.minLength(6)]
     }),
-    name: this.fb.nonNullable.control('', { 
-      validators: [Validators.required, Validators.minLength(2)] 
+    name: this.fb.nonNullable.control('', {
+      validators: [Validators.required, Validators.minLength(2)]
     }),
-    phone: this.fb.nonNullable.control('', { 
-      validators: [Validators.required, Validators.minLength(6)] 
+    phone: this.fb.nonNullable.control('', {
+      validators: [Validators.required, Validators.minLength(6)]
     }),
-    email: this.fb.nonNullable.control('', { 
-      validators: [Validators.required, Validators.email] 
+    email: this.fb.nonNullable.control('', {
+      validators: [Validators.required, Validators.email]
     }),
     address: this.fb.nonNullable.control('', {
       validators: [Validators.required, Validators.minLength(1)] // ← Backend requiere address
     }),
-    zoneId: this.fb.control<number | null>(null, { 
-      validators: [Validators.required] 
+    zoneId: this.fb.control<number | null>(null, {
+      validators: [Validators.required]
     }),
     productsIds: this.fb.nonNullable.control<number[]>([]),
+
+    // Credenciales (solo modo MANUAL)
+    createCreds: this.fb.control<boolean>(false, { nonNullable: true }),
+    username: this.fb.control<string>('', { nonNullable: true }),
+    password: this.fb.control<string>('', { nonNullable: true }),
   });
 
   // --- Ciclo de vida ---
@@ -89,6 +140,8 @@ export class DistributorComponent implements OnInit {
     this.load();
     this.loadZones();
     this.loadProducts();
+    this.loadVerifiedUsers();
+    this.applyCredsAvailabilityByMode(this.mode());
 
     // ✅ Normaliza zoneId si viene como string desde el <select>
     this.form.controls.zoneId.valueChanges.subscribe(v => {
@@ -141,9 +194,120 @@ export class DistributorComponent implements OnInit {
     });
   }
 
+  private loadVerifiedUsers(): void {
+    // Filtrar usuarios elegibles para ser DISTRIBUTOR
+    this.authSrv.getAllVerifiedUsers('DISTRIBUTOR').subscribe({
+      next: (verifiedUsers) => {
+        this.users.set(verifiedUsers);
+        console.log(`[DistributorComponent] Loaded ${verifiedUsers.length} verified users eligible for DISTRIBUTOR role`);
+      },
+      error: (err) => {
+        console.error('[DistributorComponent] Error loading verified users:', err);
+        this.users.set([]);  // Array vacío en caso de error
+      }
+    });
+  }
+
+  // Habilita / deshabilita validadores de credenciales
+  private toggleCredsValidators(enable: boolean) {
+    if (enable) {
+      this.form.controls.username.setValidators([Validators.required, Validators.minLength(3)]);
+      this.form.controls.password.setValidators([Validators.required, Validators.minLength(6)]);
+    } else {
+      this.form.controls.username.clearValidators();
+      this.form.controls.password.clearValidators();
+      this.form.patchValue({ username: '', password: '' });
+    }
+    this.form.controls.username.updateValueAndValidity({ emitEvent: false });
+    this.form.controls.password.updateValueAndValidity({ emitEvent: false });
+  }
+
+  // Aplica disponibilidad según modo
+  private applyCredsAvailabilityByMode(mode: Mode) {
+    if (mode === 'fromUser') {
+      // Forzar oculto y limpio
+      this.form.patchValue({ createCreds: false, username: '', password: '' });
+      this.toggleCredsValidators(false);
+    } else {
+      // Modo manual: respetar toggle actual
+      const create = !!this.form.controls.createCreds.value;
+      this.toggleCredsValidators(create);
+    }
+  }
+
+  // Handler de toggle en template
+  onCredsToggle(ev: Event) {
+    const checked = !!(ev.target as HTMLInputElement).checked;
+    this.form.controls.createCreds.setValue(checked);
+    this.toggleCredsValidators(checked);
+  }
+
+  // Toggle para mostrar/ocultar contraseña
+  togglePasswordVisibility(): void {
+    this.showPassword.update(v => !v);
+  }
+
+  // Helper para obtener datos de persona desde usuario
+  getUserPerson(user: User): any {
+    return (user as any).person;
+  }
+
+  getUserPersonDni(user: User): string {
+    return (user as any).person?.dni ?? '';
+  }
+
+  onModeChange(ev: Event) {
+    const val = (ev.target as HTMLInputElement).value as Mode;
+    this.mode.set(val);
+    this.applyCredsAvailabilityByMode(val);
+    if (val === 'manual') {
+      this.selectedUserDni.set(null);
+    }
+  }
+
+  onSelectUser(ev: Event) {
+    const dni = (ev.target as HTMLSelectElement).value || '';
+    if (!dni) {
+      this.selectedUserDni.set(null);
+      return;
+    }
+    this.selectedUserDni.set(dni);
+    const u = this.users().find(x => (x as any).person?.dni === dni);
+    if (u && (u as any).person) {
+      const person = (u as any).person;
+      this.form.patchValue({
+        dni: person.dni ?? '',
+        name: person.name ?? '',
+        email: u.email ?? '',
+        address: person.address ?? '',
+        phone: person.phone ?? ''
+      });
+    }
+  }
+
+  // Método para seleccionar usuario directamente desde la lista
+  selectUserByDni(dni: string) {
+    if (!dni) {
+      this.selectedUserDni.set(null);
+      return;
+    }
+    this.selectedUserDni.set(dni);
+    const u = this.users().find(x => (x as any).person?.dni === dni);
+    if (u && (u as any).person) {
+      const person = (u as any).person;
+      this.form.patchValue({
+        dni: person.dni ?? '',
+        name: person.name ?? '',
+        email: u.email ?? '',
+        address: person.address ?? '',
+        phone: person.phone ?? ''
+      });
+    }
+  }
+
   applyFilters() {
-  this.fTextApplied.set(this.fTextInput());
-}
+    this.fTextApplied.set(this.fTextInput());
+  }
 
   clearFilters() {
     this.fTextInput.set('');
@@ -172,19 +336,25 @@ export class DistributorComponent implements OnInit {
     this.isEdit.set(false);
     this.submitted.set(false);
     this.error.set(null);
-    this.form.reset({ 
-      dni: '', 
-      name: '', 
-      phone: '', 
-      email: '', 
-      address: '', 
-      zoneId: null, 
-      productsIds: [] 
+    this.mode.set('fromUser');
+    this.selectedUserDni.set(null);
+    this.userSearch.set('');
+    this.form.reset({
+      dni: '',
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      zoneId: null,
+      productsIds: [],
+      createCreds: false,
+      username: '',
+      password: ''
     });
+    this.applyCredsAvailabilityByMode('fromUser');
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.isFormOpen = true;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   edit(d: DistributorDTO) {
@@ -211,7 +381,6 @@ export class DistributorComponent implements OnInit {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.isFormOpen = true;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancel() {
@@ -223,10 +392,13 @@ export class DistributorComponent implements OnInit {
   // --- Builders ---
   private buildCreate(): CreateDistributorDTO {
     const v = this.form.getRawValue();
-    const ids = Array.isArray(v.productsIds) 
-      ? v.productsIds.map(Number).filter(n => !Number.isNaN(n)) 
+    const ids = Array.isArray(v.productsIds)
+      ? v.productsIds.map(Number).filter(n => !Number.isNaN(n))
       : [];
-    
+
+    const isManual = this.mode() === 'manual';
+    const wantCreds = isManual && !!v.createCreds;
+
     // ✅ El backend espera zoneId como STRING que luego transforma a número
     const payload: CreateDistributorDTO = {
       dni: String(v.dni).trim(),
@@ -236,9 +408,13 @@ export class DistributorComponent implements OnInit {
       address: String(v.address).trim() || '-', // ← Backend requiere address (min 1 char)
       zoneId: String(v.zoneId) as any, // Backend lo transforma con z.string().transform(Number)
       productsIds: ids,
+      ...(wantCreds ? {
+        // ✅ Usar el username del formulario - ahora el login acepta email o username
+        username: (v.username || '').trim(),
+        password: (v.password || '').trim(),
+      } : {})
     };
-    
-    console.log('📤 Payload CREATE:', payload); // Debug
+
     return payload;
   }
 
@@ -265,7 +441,6 @@ export class DistributorComponent implements OnInit {
       patch.productsIds = (v.productsIds || []).map(Number).filter(n => !Number.isNaN(n));
     }
     
-    console.log('📤 Payload UPDATE:', patch); // Debug
     return patch;
   }
 
@@ -312,20 +487,25 @@ export class DistributorComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
+    this.success.set(null); // ✅ Limpiar mensaje previo
 
     if (!this.isEdit()) {
       // CREATE
       const payload = this.buildCreate();
-      console.log('🚀 Creating distributor:', payload);
       
       this.srv.create(payload).subscribe({
-        next: (res) => { 
-          console.log('✅ Created successfully:', res);
-          this.cancel(); 
-          this.load(); 
+        next: (res) => {
+          // ✅ Mostrar mensaje de éxito
+          this.success.set(this.t.instant('distributors.successCreate') || `Distribuidor "${payload.name}" creado correctamente`);
+
+          this.cancel();
+          this.load();
+          this.loadVerifiedUsers(); // ✅ Recargar usuarios verificados
+
+          // ✅ Auto-ocultar después de 5 segundos
+          setTimeout(() => this.success.set(null), 5000);
         },
         error: (err) => { 
-          console.error('❌ Error creating:', err);
           const errorMsg = err?.error?.message || err?.error?.errors?.[0]?.message || this.t.instant('distributors.errorCreate');
           this.error.set(errorMsg); 
           this.loading.set(false); 
@@ -347,8 +527,14 @@ export class DistributorComponent implements OnInit {
 
     this.srv.update(dni, patch).subscribe({
       next: () => { 
+        // ✅ Mostrar mensaje de éxito
+        this.success.set(this.t.instant('distributors.successUpdate') || 'Distribuidor actualizado correctamente');
+        
         this.cancel(); 
-        this.load(); 
+        this.load();
+        
+        // ✅ Auto-ocultar después de 5 segundos
+        setTimeout(() => this.success.set(null), 5000);
       },
       error: (err) => { 
         this.error.set(err?.error?.message || this.t.instant('distributors.errorSave')); 
@@ -365,9 +551,19 @@ export class DistributorComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
+    this.success.set(null); // ✅ Limpiar mensaje previo
     
     this.srv.delete(String(dni)).subscribe({
-      next: () => this.load(),
+      next: () => {
+        // ✅ Mostrar mensaje de éxito
+        this.success.set(this.t.instant('distributors.successDelete') || 'Distribuidor eliminado correctamente');
+
+        this.load();
+        this.loadVerifiedUsers(); // ✅ Recargar usuarios verificados
+
+        // ✅ Auto-ocultar después de 5 segundos
+        setTimeout(() => this.success.set(null), 5000);
+      },
       error: (err) => { 
         this.error.set(err?.error?.message || this.t.instant('distributors.errorDelete')); 
         this.loading.set(false); 

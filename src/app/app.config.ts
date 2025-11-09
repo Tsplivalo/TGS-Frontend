@@ -19,6 +19,30 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 // Loader personalizado para cargar traducciones desde el servidor
 import { HttpTranslateLoader } from '../app/i18n/translate-loader';
 
+// ECharts configuration
+import { provideEchartsCore } from 'ngx-echarts';
+import * as echarts from 'echarts/core';
+import { LineChart, BarChart, PieChart } from 'echarts/charts';
+import {
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent
+} from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+
+// Registrar componentes de ECharts
+echarts.use([
+  LineChart,
+  BarChart,
+  PieChart,
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  CanvasRenderer
+]);
+
 /**
  * Factory function para crear el loader de traducciones personalizado
  * 
@@ -53,6 +77,9 @@ export const appConfig: ApplicationConfig = {
         authInterceptor, // <- usa el interceptor funcional exportado desde ./interceptors/auth.interceptor
       ])
     ),
+
+    // Configuración de ECharts
+    provideEchartsCore({ echarts }),
 
     // Configuración del módulo de traducciones con loader personalizado
     importProvidersFrom(

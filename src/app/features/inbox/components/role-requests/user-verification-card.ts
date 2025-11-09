@@ -44,14 +44,15 @@ export class UserVerificationCardComponent {
   }
 
   getStatusText(status: UserVerificationStatus): string {
-    const texts: Record<UserVerificationStatus, string> = {
-      [UserVerificationStatus.PENDING]: 'Pendiente',
-      [UserVerificationStatus.VERIFIED]: 'Verificado',
-      [UserVerificationStatus.EXPIRED]: 'Expirado',
-      [UserVerificationStatus.CANCELLED]: 'Rechazado',
-    };
-    return texts[status];
+  const texts: Record<UserVerificationStatus, string> = {
+    [UserVerificationStatus.PENDING]: this.t.instant('status.PENDING'),
+    [UserVerificationStatus.VERIFIED]: this.t.instant('status.APPROVED'),
+    [UserVerificationStatus.EXPIRED]: this.t.instant('status.EXPIRED'),
+    [UserVerificationStatus.CANCELLED]: this.t.instant('status.CANCELLED'),
+  };
+  return texts[status];
   }
+
 
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('es-AR', {

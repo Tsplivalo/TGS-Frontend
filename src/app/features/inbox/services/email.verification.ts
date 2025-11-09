@@ -11,7 +11,11 @@ export type VerificationStatusResponse = {
   data?: {
     success?: boolean;
     email?: string;
+    status?: string; // 'verified' | 'pending' | 'expired'
+    verified?: boolean;
     verifiedAt?: string;
+    expiresAt?: string;
+    createdAt?: string;
   };
   code?: string;
   statusCode?: number;

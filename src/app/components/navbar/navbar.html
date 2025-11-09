@@ -25,6 +25,14 @@
         </li>
       </ng-container>
 
+      <!-- ✅ Mis compras (visible solo en la tienda) -->
+      <li class="menu__item menu__item--purchases" role="none" *ngIf="isAuthenticated() && isInStore()" [@slideIn]>
+        <a #mainBtn role="menuitem" routerLink="/mis-compras" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          {{ 'nav.myPurchases' | translate }}
+          <span class="underline"></span>
+        </a>
+      </li>
+
       <!-- Selector de idioma -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
         <button class="dropdown__toggle has-underline lang-toggle" type="button" aria-haspopup="true"
@@ -63,7 +71,7 @@
 
       <!-- Gestión (ADMIN | PARTNER | DISTRIBUTOR) -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0"
-        *ngIf="isAuthenticated() && (isAdmin() || isPartner() || isDistributor())">
+        *ngIf="isAuthenticated() && (isAdmin() || isPartner() || isDistributor() || isAuthority())">
         <button #mainBtn class="dropdown__toggle has-underline" type="button" aria-haspopup="true" aria-expanded="false"
           [class.active]="isGestionActive()">
           {{ 'nav.management' | translate }} <span class="chevron">▾</span>
@@ -256,13 +264,27 @@
                   </a>
                 </li>
               </ng-container>
+
+              <!-- AUTHORITY -->
+              <ng-container *ngIf="isAuthority()">
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/venta" routerLinkActive="active">
+                    {{ 'mgmt.sale' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+                <li class="dropdown__item" role="none">
+                  <a role="menuitem" routerLink="/sobornos" routerLinkActive="active">
+                    {{ 'mgmt.myBribes' | translate }} <span class="underline"></span>
+                  </a>
+                </li>
+              </ng-container>
             </ng-template>
           </ng-template>
         </ul>
       </li>
 
-      <!-- ✅ INBOX SIMPLIFICADO - Botón directo sin dropdown -->
-      <li class="menu__item" role="none" *ngIf="isAuthenticated() && (isAdmin() || isOnlyClient())">
+      <!-- ✅ INBOX - Visible para TODOS los usuarios autenticados -->
+      <li class="menu__item" role="none" *ngIf="isAuthenticated()">
         <a #mainBtn role="menuitem" routerLink="/inbox" routerLinkActive="active" class="inbox-link"
           [attr.aria-label]="'nav.inbox' | translate">
           <span class="material-symbols-outlined inbox-icon" aria-hidden="true">inbox</span>

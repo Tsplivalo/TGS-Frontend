@@ -1,10 +1,11 @@
-{
+﻿{
   "brand": {
     "name": "GarrSYS"
   },
   "nav": {
     "store": "Tienda",
     "myAccount": "Mi cuenta",
+    "myPurchases": "Mis compras",
     "logout": "Salir",
     "management": "Gestión",
     "society": "Sociedad",
@@ -27,6 +28,7 @@
     "zone": "Zonas",
     "authority": "Autoridades",
     "bribe": "Sobornos",
+    "myBribes": "Mis Sobornos",
     "decision": "Decisiones",
     "topic": "Temáticas",
     "distributor": "Distribuidores",
@@ -52,7 +54,55 @@
       "close": "Cerrar",
       "clear": "Vaciar",
       "goToCheckout": "Realizar compra",
+      "total": "Total",
+      "orderSplit": "Pedido dividido en {{count}} ubicaciones",
+      "orderSplitDesc": "Crearemos {{count}} órdenes de compra, una por cada ubicación.",
+      "productCount_one": "producto",
+      "productCount_other": "productos",
+      "subtotal": "Subtotal",
+      "multiplePurchaseNote": "Se crearán {{count}} compras separadas. Recibirás una confirmación por cada una.",
+      "unavailable": "Productos no disponibles",
+      "unavailableDesc": "Los productos de tu carrito no están disponibles. Por favor, elimina algunos items.",
+      "pricePerUnit": "c/u",
+      "decrease": "Disminuir",
+      "increase": "Aumentar",
+      "remove": "Quitar",
+      "checkout": "Realizar Compra",
+      "processing": "Procesando...",
+      "cannotPurchase": "No puedes comprar aún",
+      "needVerification": "Debes verificar tu cuenta con un administrador.",
+      "requestVerification": "Solicitar verificación",
+      "completeProfile100": "Completa tu perfil al 100% para comprar.",
+      "completeProfile": "Completar perfil"
+    }
+  },
+  "myPurchases": {
+    "title": "Mis Compras",
+    "loading": "Cargando compras...",
+    "stats": {
+      "totalPurchases": "Total de compras",
+      "totalSpent": "Total gastado",
+      "avgSpent": "Promedio por compra"
+    },
+    "filters": {
+      "searchPlaceholder": "Buscar por producto, fecha, distribuidor o monto..."
+    },
+    "empty": {
+      "title": "No tenés compras registradas",
+      "desc": "Cuando realices tu primera compra en la tienda, aparecerá aquí."
+    },
+    "table": {
+      "id": "ID",
+      "date": "Fecha",
+      "distributor": "Distribuidor",
+      "products": "Productos",
       "total": "Total"
+    },
+    "showing": "Mostrando",
+    "of": "de",
+    "noResults": {
+      "title": "No se encontraron compras",
+      "desc": "Intentá ajustar tu búsqueda para encontrar lo que buscás."
     }
   },
   "account": {
@@ -94,6 +144,7 @@
       "active": "✓ Activa",
       "inactive": "✗ Inactiva",
       "emailVerified": "Email verificado:",
+      "adminVerified": "Verificada por admin",
       "emailVerifiedYes": "✓ Sí",
       "emailVerifiedNo": "✗ No",
       "roles": "Roles:",
@@ -106,6 +157,8 @@
     "new": "Nuevo producto",
     "close": "Cerrar",
     "create": "Crear",
+    "available": "Productos disponibles",
+    "none": "No hay productos disponibles",
     "save": "Guardar",
     "cancel": "Cancelar",
     "list": "Listado",
@@ -125,7 +178,7 @@
     },
     "fields": {
       "description": "Descripción",
-      "price": "Precio",
+      "price": "Precio (ARS)",
       "stock": "Stock",
       "illegal": "¿Ilegal?",
       "imageUrl": "Imagen (URL)",
@@ -188,11 +241,13 @@
     "fields": {
       "username": "Usuario",
       "email": "Email",
+      "emailOrUsername": "Email o Usuario",
       "password": "Contraseña"
     },
     "placeholders": {
       "username": "Tu nombre",
       "email": "tu@email.com",
+      "emailOrUsername": "tu@email.com o tu_usuario",
       "password": "••••••••"
     },
     "errors": {
@@ -233,7 +288,8 @@
           "title": "Integraciones y API",
           "detail": "Conectá tus sistemas, importá datos y automatizá procesos sin fricción."
         }
-      }
+      },
+      "cta": "Ver resumen completo"
     },
     "steps": {
       "title": "Cómo empezar",
@@ -246,6 +302,10 @@
     "close": "Cerrar",
     "create": "Crear",
     "save": "Guardar",
+    "rank": "Rango",
+    "record": "registro",
+    "records": "registros",
+    "quantity": "Cantidad",
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Eliminar",
@@ -265,7 +325,9 @@
     },
     "title": "Clientes",
     "new": "Nuevo",
+    "available": "Clientes disponibles",
     "newTitle": "Nuevo cliente",
+    "none": "No hay clientes disponibles",
     "editTitle": "Editar cliente",
     "loading": "Cargando clientes...",
     "noResults": "Sin resultados",
@@ -331,14 +393,14 @@
     },
     "createMode": "¿Cómo querés crear el socio?",
     "mode": {
-      "fromClient": "Desde cliente existente",
+      "fromUser": "Desde usuario existente",
       "manual": "Manual"
     },
-    "client": {
-      "search": "Buscar cliente",
+    "user": {
+      "search": "Buscar usuario",
       "searchPh": "DNI, nombre o email...",
-      "select": "Seleccionar cliente",
-      "selectPh": "Elegí un cliente",
+      "select": "Seleccionar usuario",
+      "selectPh": "Elegí un usuario",
       "hint": "Al seleccionar se completa el formulario; luego podés ajustar."
     },
     "fields": {
@@ -380,10 +442,11 @@
     "new": "Nueva",
     "newTitle": "Nueva venta",
     "noResults": "Sin ventas",
+    "productsTitle": "Productos de la venta",
     "loading": "Cargando estadísticas...",
     "totalRevenue": "Ingresos Totales",
     "totalSales": "Total de Ventas",
-    "averageTicket": "Ticket Promedio",
+    "averageTicket": "Importe promedio por venta",
     "salesByMonth": "Ventas por Mes",
     "topProducts": "Productos Más Vendidos",
     "salesByDistributor": "Ventas por Distribuidor",
@@ -404,7 +467,7 @@
       "client": "Cliente",
       "products": "Productos",
       "quantity": "Cantidad",
-      "total": "Total",
+      "total": "Total (ARS)",
       "distributor": "Distribuidor"
     },
     "form": {
@@ -448,6 +511,15 @@
       "new": "Nueva Venta"
     },
     "stats": {
+      "loading": "Cargando estadísticas...",
+      "totalRevenue": "Ingresos Totales",
+      "totalSales": "Total de Ventas",
+      "averageTicket": "Importe promedio por venta",
+      "salesByMonth": "Ventas por Mes",
+      "topProducts": "Productos Más Vendidos",
+      "salesByDistributor": "Ventas por Distribuidor",
+      "noData": "No hay estadísticas disponibles",
+      "noDataDesc": "Las estadísticas aparecerán aquí una vez que haya datos disponibles.",
       "totalLabel": "Total ventas:",
       "revenueLabel": "Ingresos totales:",
       "filteredLabel": "Filtradas:"
@@ -502,18 +574,35 @@
     "title": "Autoridades",
     "new": "Nueva",
     "empty": "Sin autoridades",
+    "noResults": "No se encontraron autoridades con el filtro aplicado",
     "errorLoad": "No se pudieron cargar las autoridades.",
     "errorCreate": "No se pudo crear.",
     "errorSavePatch": "No se pudo guardar (PATCH).",
     "errorSavePut": "No se pudo guardar (PUT).",
     "errorDelete": "No se pudo eliminar.",
+    "createMode": "¿Cómo querés crear la autoridad?",
+    "mode": {
+      "fromUser": "Desde usuario existente",
+      "manual": "Manual"
+    },
+    "user": {
+      "search": "Buscar usuario",
+      "searchPh": "DNI, nombre o email...",
+      "verifiedAvailableTitle": "Usuarios verificados disponibles ({{count}})",
+      "dniLabel": "DNI",
+      "verified": "Verificado",
+      "profileComplete": "Perfil 100%",
+      "none": "No hay usuarios verificados disponibles",
+      "requirements": "Los usuarios deben tener su cuenta verificada por un administrador y perfil completo al 100%"
+    },
     "filters": {
       "search": "Buscar",
       "searchPh": "nombre / rango",
       "dni": "DNI",
       "dniPh": "Ej: 12345678",
-      "zoneId": "ID de zona",
-      "zoneIdPh": "ID de zona"
+      "zoneId": "Zona",
+      "zoneIdPh": "ID de zona",
+      "allZones": "Todas las zonas"
     },
     "table": {
       "dni": "DNI",
@@ -541,11 +630,13 @@
       "rank1": "Rango 1",
       "rank2": "Rango 2",
       "rank3": "Rango 3",
-      "zoneId": "ID de zona",
+      "zoneId": "Zona",
       "zoneIdPh": "1",
+      "chooseZone": "Seleccionar zona",
       "err": {
         "create": "Completá DNI, Nombre, Email, Rango y Zona.",
-        "edit": "Completá Nombre, Rango y Zona (el email no es obligatorio al editar)."
+        "edit": "Completá Nombre, Rango y Zona (el email no es obligatorio al editar).",
+        "zone": "Zona requerida"
       }
     },
     "err": {
@@ -561,7 +652,39 @@
       "rank1Label": "Rango 1",
       "rank2Label": "Rango 2",
       "rank3Label": "Rango 3",
-      "filteredLabel": "Filtradas"
+      "distributionTitle": "Autoridades por rango",
+      "distributionLegend": "Distribución por rango",
+      "distributionEmpty": "Sin datos para graficar",
+      "distributionToggle": "Ver distribución por rango",
+      "hoverHint": "Pasá el mouse sobre un rango para ver detalles",
+      "filteredLabel": "Filtradas",
+      "chartDistributionTitle": "Distribución por Rango",
+      "chartSummaryTitle": "Resumen por Rango",
+      "authoritySingular": "autoridad",
+      "authorityPlural": "autoridades",
+      "totalAuthorities": "Total de autoridades",
+      "mostCommon": "Más común",
+      "percentage": "Porcentaje",
+      "quantity": "Cantidad",
+      "chartRank0": "Rango Básico",
+      "chartRank1": "Rango Intermedio",
+      "chartRank2": "Rango Avanzado",
+      "chartRank3": "Rango Superior",
+      "authoritiesLabel": "Autoridades"
+    }
+  },
+  "authority": {
+    "fields": {
+      "username": "Usuario",
+      "password": "Contraseña"
+    },
+    "creds": {
+      "toggle": "Crear cuenta para la autoridad",
+      "hint": "Si no marcás esta opción, se crea la autoridad sin usuario/contraseña."
+    },
+    "errors": {
+      "username": "Usuario requerido (mín. 3).",
+      "password": "Contraseña requerida (mín. 6)."
     }
   },
   "bribes": {
@@ -689,6 +812,7 @@
   "topics": {
     "title": "Temáticas",
     "new": "Nueva",
+    "availableTitle": "Temáticas disponibles",
     "empty": "Sin temáticas",
     "filters": {
       "search": "Buscar",
@@ -786,6 +910,33 @@
     "noResults": {
       "title": "Sin resultados",
       "desc": "Probá ajustar el filtro"
+    },
+    "successCreate": "Distribuidor creado correctamente",
+    "successUpdate": "Distribuidor actualizado correctamente",
+    "successDelete": "Distribuidor eliminado correctamente",
+    "confirmDelete": "¿Estás seguro de eliminar este distribuidor?"
+  },
+  "distributor": {
+    "createMode": "¿Cómo querés crear el distribuidor?",
+    "mode": {
+      "fromUser": "Desde usuario existente",
+      "manual": "Manual"
+    },
+    "user": {
+      "search": "Buscar usuario",
+      "searchPh": "DNI, nombre o email..."
+    },
+    "fields": {
+      "username": "Usuario",
+      "password": "Contraseña"
+    },
+    "creds": {
+      "toggle": "Crear cuenta para el distribuidor",
+      "hint": "Si no marcás esta opción, se crea el distribuidor sin usuario/contraseña."
+    },
+    "errors": {
+      "username": "Usuario requerido (mín. 3).",
+      "password": "Contraseña requerida (mín. 6)."
     }
   },
   "status": {
@@ -803,7 +954,8 @@
     "CLIENT": "CLIENTE",
     "DISTRIBUTOR": "DISTRIBUIDOR",
     "PARTNER": "SOCIO",
-    "ADMIN": "ADMIN"
+    "ADMIN": "ADMIN",
+    "AUTHORITY": "AUTORIDAD"
   },
   "admin": {
     "title": "Administradores",
@@ -816,7 +968,14 @@
     "emptyHint": "Ajustá el filtro o creá un nuevo administrador.",
     "form": {
       "titleCreate": "Crear administrador",
-      "titleEdit": "Editar {{dni}}"
+      "titleEdit": "Editar {{dni}}",
+      "selectUser": "Seleccionar usuario verificado",
+      "searchUser": "Buscar por DNI, nombre o email...",
+      "availableUsers": "Usuarios verificados disponibles ({{count}})",
+      "verified": "Verificado",
+      "profileComplete": "Perfil 100%",
+      "noUsersAvailable": "No hay usuarios verificados disponibles",
+      "noUsersHint": "Los usuarios deben tener su cuenta verificada por un administrador y perfil completo al 100%"
     },
     "fields": {
       "dni": "DNI",
@@ -848,6 +1007,27 @@
       "title": "Mis solicitudes",
       "emptyTitle": "No tenés solicitudes",
       "emptyHint": "Creá una nueva con el botón “+ Nueva”."
+    },
+    "info": {
+      "title": "Cómo funcionan las solicitudes de rol",
+      "intro": "Revisá qué combinaciones están permitidas antes de enviar tu solicitud.",
+      "rule1": {
+        "title": "Si sos Distribuidor:",
+        "desc": "Podés sumar el rol Socio pero no Autoridad."
+      },
+      "rule2": {
+        "title": "Si sos Socio:",
+        "desc": "Podés sumar el rol Distribuidor pero no Autoridad."
+      },
+      "rule3": {
+        "title": "Si sos Autoridad:",
+        "desc": "No podés combinarlo con Socio ni Distribuidor."
+      },
+      "rule4": {
+        "title": "Reemplazo de roles incompatibles:",
+        "desc": "Si necesitás reemplazar un rol incompatible, activá la opción de cambio en el formulario."
+      },
+      "footer": "Si necesitás reemplazar un rol incompatible, activá la opción de cambio en el formulario."
     },
     "pending": {
       "title": "Pendientes (admin)",
@@ -954,6 +1134,40 @@
       "approved": "Aprobados",
       "rejected": "Rechazados",
       "filtered": "Filtrados"
+    },
+    "charts": {
+      "statusDistribution": "Distribución por Estado",
+      "trend": "Tendencia de Revisiones por Mes",
+      "topProducts": "Top Productos por Ventas",
+      "decisionsImpact": "Impacto de Decisiones en Ventas",
+      "decisionsImpactDesc": "Evolución de ventas y decisiones estratégicas a lo largo del tiempo",
+      "salesPrediction": "Predicción de Ventas Futuras",
+      "salesPredictionDesc": "Proyección de ventas para los próximos 6 meses usando regresión lineal",
+      "prediction": {
+        "title": "Predicción Científica Multi-Método",
+        "subtitle": "Regresión Lineal ({{linear}}%) + Crecimiento Exponencial ({{exponential}}%) | R² = {{r2}}% | Confianza: {{confidence}}%",
+        "series": {
+          "historical": "Datos Históricos",
+          "prediction": "Predicción",
+          "trend": "Línea de Tendencia"
+        },
+        "tooltip": {
+          "prediction": "PREDICCIÓN",
+          "real": "Real",
+          "projected": "Proyectado",
+          "trend": "Tendencia",
+          "confidence": "Intervalo 95%",
+          "max": "Máx",
+          "min": "Mín",
+          "variation": "Variación"
+        },
+        "markers": {
+          "maximum": "Máximo",
+          "minimum": "Mínimo",
+          "predictionStart": "Inicio Predicción"
+        },
+        "sales": "Ventas ($)"
+      }
     },
     "list": "Listado de Revisiones",
     "emptyTitle": "No hay revisiones",
@@ -1210,6 +1424,31 @@
     "inbox": {
       "title": "Mis Solicitudes de Rol",
       "subtitle": "Gestioná tus solicitudes de roles especiales",
+      "roleSummary": {
+        "connectedAs": "Conectado como",
+        "fallbackName": "Usuario sin nombre",
+        "noRoles": "Todavía no tenés roles asignados.",
+        "readyHint": "Podés solicitar nuevos roles o cambiar los actuales desde esta bandeja.",
+        "incompleteHint": "Completá tu perfil para habilitar nuevas solicitudes."
+      },
+      "guidelines": {
+        "title": "Cómo funcionan las solicitudes de rol",
+        "description": "Revisá qué combinaciones están permitidas antes de enviar tu solicitud.",
+        "rules": {
+          "distributor": "Si sos Distribuidor, podés sumar el rol Socio pero no Autoridad.",
+          "partner": "Si sos Socio, podés sumar el rol Distribuidor pero no Autoridad.",
+          "authority": "Si sos Autoridad, no podés combinarlo con Socio ni Distribuidor."
+        },
+        "footer": "Si necesitás reemplazar un rol incompatible, activá la opción de cambio en el formulario."
+      },
+      "roleLabels": {
+        "admin": "Administrador",
+        "partner": "Socio",
+        "distributor": "Distribuidor",
+        "client": "Cliente",
+        "user": "Usuario",
+        "authority": "Autoridad"
+      },
       "newBtn": "Nueva Solicitud",
       "verifyRequiredBadge": "Verificá tu cuenta para solicitar roles",
       "completeProfileRequired": "Completá tu perfil para solicitar roles",
@@ -1224,19 +1463,41 @@
     },
     "reviewModal": {
       "title": "Revisar Solicitud de Rol",
+      "subtitle": "Evalúa y toma una decisión sobre esta solicitud",
       "close": "Cerrar",
+      "closeAria": "Cerrar",
+      "requestInfo": "Información de la Solicitud",
+      "requestInfoLabels": {
+        "user": "Usuario",
+        "request": "Solicitud",
+        "requestDate": "Fecha de Solicitud",
+        "justification": "Justificación",
+        "additionalData": "Datos Adicionales del Rol",
+        "assignedZone": "Zona Asignada",
+        "zone": "Zona",
+        "address": "Dirección",
+        "products": "Productos",
+        "product": "Producto",
+        "rank": "Rango"
+      },
       "summary": {
         "user": "Usuario:",
         "request": "Solicitud:",
         "date": "Fecha:",
         "justification": "Justificación:"
       },
+      "error": "Error",
       "decision": "Decisión:",
       "approve": "Aprobar",
+      "approveDesc": "Aprobar y otorgar el rol",
       "reject": "Rechazar",
+      "rejectDesc": "Denegar la solicitud",
+      "recommended": "(recomendado)",
       "commentsLabel": "Comentarios",
       "commentsPh": "Añadí comentarios sobre tu decisión...",
       "commentsCounter": "{{n}}/500 caracteres",
+      "characters": "caracteres",
+      "selectOption": "Selecciona una opción",
       "actions": {
         "cancel": "Cancelar",
         "processing": "Procesando...",
@@ -1281,6 +1542,7 @@
         "reviewedBy": "Revisado por:"
       },
       "actions": {
+        "evaluate": "Evaluar Solicitud",
         "approve": "Aprobar",
         "reject": "Rechazar"
       }
@@ -1314,7 +1576,6 @@
       }
     }
   },
-  
   "about": {
     "title": "Sobre nosotros",
     "lead": "Somos un equipo apasionado por crear soluciones eficientes y escalables.",
@@ -1353,7 +1614,8 @@
     "team": {
       "roles": {
         "backend": "Backend",
-        "frontend": "Frontend"
+        "frontend": "Frontend",
+        "testing": "Testing"
       }
     }
   },
@@ -1365,7 +1627,8 @@
       "hours": "Horarios de Atención",
       "location": "Ubicación",
       "usefulLinksTitle": "Enlaces Útiles",
-      "usefulLinksLead": "Acceso rápido a documentación y recursos"},
+      "usefulLinksLead": "Acceso rápido a documentación y recursos"
+    },
     "channels": {
       "email": {
         "label": "Email",
@@ -1375,7 +1638,7 @@
       "phone": {
         "label": "Teléfono",
         "value": "+54 341 555-1234",
-        "hint": "Lun a Vie · 09–18 h"
+        "hint": "Lun a Vie · 09-18 h"
       },
       "whatsapp": {
         "label": "WhatsApp",
@@ -1386,11 +1649,11 @@
     "hours": {
       "support": {
         "label": "Soporte",
-        "value": "Lun a Vie · 09:00–18:00"
+        "value": "Lun a Vie · 09:00-18:00"
       },
       "commercial": {
         "label": "Comercial",
-        "value": "Lun a Vie · 10:00–17:00"
+        "value": "Lun a Vie · 10:00-17:00"
       }
     },
     "location": {
@@ -1435,6 +1698,295 @@
         "a": "Ofrecemos API e importadores para conectar tu stack actual."
       }
     }
+  },
+  "footer": {
+    "tagline": "Sistema de gestión y control de distribución",
+    "rights": "Todos los derechos reservados.",
+    "university": {
+      "prefix": "Desarrollado en",
+      "name": "Universidad Tecnológica Nacional - Facultad Regional Rosario"
+    },
+    "sections": {
+      "company": "Empresa",
+      "legal": "Legal",
+      "resources": "Recursos"
+    },
+    "links": {
+      "about": "Sobre nosotros",
+      "contact": "Contáctanos",
+      "faqs": "Preguntas frecuentes",
+      "terms": "Términos de servicio",
+      "privacy": "Política de privacidad",
+      "cookies": "Política de cookies",
+      "docs": "Documentación",
+      "api": "API",
+      "support": "Soporte"
+    },
+    "social": {
+      "github": "Síguenos en GitHub",
+      "email": "Envíanos un email"
+    }
+  },
+  "notifications": {
+    "roleRequestApproved": "Solicitud de rol aprobada correctamente.",
+    "roleRequestRejected": "Solicitud de rol rechazada correctamente.",
+    "userVerificationApproved": "Verificación de usuario aprobada correctamente.",
+    "userVerificationRejected": "Verificación de usuario rechazada correctamente."
+  },
+  "legal": {
+    "backHome": "Volver al inicio",
+    "lastUpdated": "Última actualización",
+    "lastUpdatedDate": "Noviembre 2025",
+    "questions": "¿Tenés dudas sobre estos términos?",
+    "contactUs": "Contactanos",
+    "terms": {
+      "title": "Términos y Condiciones",
+      "sections": {
+        "acceptance": {
+          "title": "1. Aceptación de los Términos",
+          "content": [
+            "Al acceder y utilizar GarrSYS, usted acepta estar sujeto a estos Términos y Condiciones. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestro sistema.",
+            "GarrSYS es una plataforma de gestión empresarial diseñada para facilitar la administración de productos, ventas, socios comerciales y operaciones relacionadas."
+          ]
+        },
+        "usage": {
+          "title": "2. Uso del Sistema",
+          "content": [
+            "El sistema GarrSYS está destinado exclusivamente para uso interno de la organización y sus miembros autorizados. Usted se compromete a:"
+          ],
+          "list": [
+            "Utilizar el sistema de manera responsable y conforme a la ley",
+            "Mantener la confidencialidad de sus credenciales de acceso",
+            "No intentar acceder a áreas del sistema para las que no tiene autorización",
+            "No compartir información sensible fuera de la plataforma",
+            "Reportar cualquier actividad sospechosa o vulnerabilidad de seguridad"
+          ]
+        },
+        "roles": {
+          "title": "3. Roles y Permisos",
+          "content": [
+            "GarrSYS implementa un sistema de roles con diferentes niveles de acceso:"
+          ],
+          "list": [
+            "ADMIN: Acceso completo al sistema, gestión de usuarios y configuración",
+            "DISTRIBUTOR: Gestión de productos, inventario y operaciones comerciales",
+            "PARTNER: Acceso a información relevante y funcionalidades específicas",
+            "CLANDESTINE: Operaciones especiales con permisos limitados",
+            "SHELBY: Supervisión y aprobación de decisiones estratégicas"
+          ]
+        },
+        "responsibilities": {
+          "title": "4. Responsabilidades del Usuario",
+          "content": [
+            "Como usuario de GarrSYS, usted es responsable de todas las actividades realizadas bajo su cuenta. Debe notificar inmediatamente cualquier uso no autorizado de su cuenta.",
+            "La información ingresada al sistema debe ser precisa y actualizada. Los datos incorrectos pueden afectar la operación del negocio."
+          ]
+        },
+        "intellectual": {
+          "title": "5. Propiedad Intelectual",
+          "content": [
+            "Todo el contenido, diseño, código fuente y funcionalidades de GarrSYS son propiedad de la organización y están protegidos por las leyes de propiedad intelectual aplicables.",
+            "No está permitido copiar, modificar, distribuir o vender ninguna parte del sistema sin autorización expresa."
+          ]
+        },
+        "liability": {
+          "title": "6. Limitación de Responsabilidad",
+          "content": [
+            "GarrSYS se proporciona \"tal cual\" sin garantías de ningún tipo. No nos hacemos responsables por pérdidas de datos, interrupciones del servicio o daños derivados del uso del sistema.",
+            "Es responsabilidad del usuario mantener copias de seguridad de información crítica."
+          ]
+        },
+        "modifications": {
+          "title": "7. Modificaciones",
+          "content": [
+            "Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigor inmediatamente después de su publicación en el sistema.",
+            "Es responsabilidad del usuario revisar periódicamente estos términos."
+          ]
+        }
+      }
+    },
+    "privacy": {
+      "title": "Política de Privacidad",
+      "sections": {
+        "information": {
+          "title": "1. Información que Recopilamos",
+          "content": [
+            "GarrSYS recopila y almacena información necesaria para el funcionamiento del sistema de gestión empresarial. Esta información incluye:"
+          ],
+          "list": [
+            "Datos de perfil: nombre, email, nombre de usuario",
+            "Información de roles y permisos dentro del sistema",
+            "Datos de productos, inventario y transacciones comerciales",
+            "Registros de actividad y auditoría del sistema",
+            "Información de socios comerciales y distribuidores"
+          ]
+        },
+        "usage": {
+          "title": "2. Cómo Utilizamos su Información",
+          "content": [
+            "La información recopilada se utiliza exclusivamente para los siguientes propósitos:"
+          ],
+          "list": [
+            "Gestión de cuentas de usuario y autenticación",
+            "Administración de inventario y operaciones comerciales",
+            "Generación de reportes y estadísticas empresariales",
+            "Auditoría y seguimiento de transacciones",
+            "Comunicaciones relacionadas con el negocio",
+            "Mejora y optimización del sistema"
+          ]
+        },
+        "protection": {
+          "title": "3. Protección de Datos",
+          "content": [
+            "Implementamos medidas de seguridad técnicas y organizativas para proteger su información:"
+          ],
+          "list": [
+            "Encriptación de contraseñas mediante Argon2",
+            "Autenticación basada en JWT (JSON Web Tokens)",
+            "Control de acceso basado en roles (RBAC)",
+            "Registros de auditoría de acciones críticas",
+            "Protección contra accesos no autorizados"
+          ]
+        },
+        "sharing": {
+          "title": "4. Compartir Información",
+          "content": [
+            "No vendemos, alquilamos ni compartimos su información personal con terceros, excepto en los siguientes casos:"
+          ],
+          "list": [
+            "Cuando sea necesario para cumplir con obligaciones legales",
+            "Con socios comerciales autorizados dentro del sistema",
+            "Para proteger los derechos y seguridad de la organización",
+            "En caso de fusión, adquisición o venta de activos"
+          ]
+        },
+        "retention": {
+          "title": "5. Retención de Datos",
+          "content": [
+            "Conservamos su información personal durante el tiempo necesario para cumplir con los propósitos descritos en esta política, incluyendo requisitos legales, contables o de auditoría.",
+            "Los datos de transacciones comerciales se mantienen de acuerdo con las regulaciones fiscales y contables aplicables."
+          ]
+        },
+        "rights": {
+          "title": "6. Sus Derechos",
+          "content": [
+            "Como usuario de GarrSYS, usted tiene los siguientes derechos sobre sus datos personales:"
+          ],
+          "list": [
+            "Acceder a la información que tenemos sobre usted",
+            "Solicitar la corrección de datos inexactos",
+            "Solicitar la eliminación de su cuenta y datos asociados",
+            "Exportar sus datos en un formato estructurado",
+            "Retirar el consentimiento para el procesamiento de datos"
+          ]
+        },
+        "cookies": {
+          "title": "7. Cookies y Tecnologías Similares",
+          "content": [
+            "GarrSYS utiliza localStorage y sessionStorage para mantener su sesión activa y mejorar la experiencia de usuario. Para más detalles, consulte nuestra Política de Cookies."
+          ]
+        },
+        "changes": {
+          "title": "8. Cambios a esta Política",
+          "content": [
+            "Podemos actualizar esta Política de Privacidad periódicamente. Le notificaremos sobre cambios significativos a través del sistema.",
+            "La fecha de última actualización se muestra en la parte superior de este documento."
+          ]
+        }
+      }
+    },
+    "cookies": {
+      "title": "Política de Cookies",
+      "sections": {
+        "what": {
+          "title": "1. ¿Qué son las Cookies y Tecnologías de Almacenamiento?",
+          "content": [
+            "Las cookies son pequeños archivos de texto que se almacenan en su navegador cuando visita un sitio web. GarrSYS utiliza tecnologías de almacenamiento web modernas para mejorar su experiencia.",
+            "Utilizamos principalmente localStorage y sessionStorage en lugar de cookies tradicionales para gestionar la sesión y preferencias del usuario."
+          ]
+        },
+        "technologies": {
+          "title": "2. Tecnologías que Utilizamos",
+          "content": [
+            "GarrSYS emplea las siguientes tecnologías de almacenamiento:"
+          ],
+          "list": [
+            "localStorage: Para almacenar tokens de autenticación y preferencias persistentes",
+            "sessionStorage: Para datos temporales durante su sesión",
+            "IndexedDB: Para almacenamiento local de datos de la aplicación (si aplica)"
+          ]
+        },
+        "purpose": {
+          "title": "3. Propósito del Almacenamiento Local",
+          "content": [
+            "Utilizamos estas tecnologías para los siguientes propósitos esenciales:"
+          ],
+          "list": [
+            "Mantener su sesión activa mientras navega por el sistema",
+            "Recordar sus preferencias de idioma (español/inglés)",
+            "Almacenar tokens JWT para autenticación segura",
+            "Guardar configuraciones de interfaz de usuario",
+            "Mejorar el rendimiento mediante caché de datos"
+          ]
+        },
+        "types": {
+          "title": "4. Tipos de Almacenamiento que Usamos",
+          "list": [
+            "Estrictamente Necesario: Tokens de autenticación (accessToken, refreshToken) - Estos son esenciales para el funcionamiento del sistema",
+            "Funcional: Preferencias de idioma y configuración de usuario - Mejoran su experiencia en el sistema",
+            "De Rendimiento: Caché de datos para reducir llamadas al servidor - Optimizan la velocidad del sistema"
+          ]
+        },
+        "management": {
+          "title": "5. Gestión de Datos Almacenados",
+          "content": [
+            "Usted tiene control total sobre los datos almacenados en su navegador:"
+          ],
+          "list": [
+            "Puede cerrar sesión en cualquier momento para eliminar tokens de autenticación",
+            "Puede limpiar el localStorage manualmente desde las herramientas de desarrollo del navegador",
+            "Los tokens de sesión expiran automáticamente después de un período de inactividad",
+            "Al cerrar el navegador, los datos en sessionStorage se eliminan automáticamente"
+          ]
+        },
+        "security": {
+          "title": "6. Seguridad",
+          "content": [
+            "Los tokens almacenados están protegidos mediante las siguientes medidas:"
+          ],
+          "list": [
+            "Los tokens JWT están firmados criptográficamente",
+            "Los refresh tokens tienen una vida útil limitada",
+            "No almacenamos contraseñas en el navegador",
+            "Los datos sensibles están encriptados antes de almacenarse"
+          ]
+        },
+        "thirdParty": {
+          "title": "7. Cookies de Terceros",
+          "content": [
+            "GarrSYS no utiliza cookies de terceros para publicidad o seguimiento. Sin embargo, si integramos servicios externos en el futuro (como análisis o mapas), estos podrían establecer sus propias cookies.",
+            "Le notificaremos cualquier cambio en el uso de cookies de terceros."
+          ]
+        },
+        "disable": {
+          "title": "8. Cómo Deshabilitar el Almacenamiento",
+          "content": [
+            "Si desea deshabilitar el almacenamiento local, puede hacerlo desde la configuración de su navegador. Sin embargo, tenga en cuenta que esto afectará significativamente la funcionalidad del sistema:"
+          ],
+          "list": [
+            "No podrá iniciar sesión ni mantener su sesión activa",
+            "Sus preferencias de idioma no se guardarán",
+            "La experiencia de usuario será degradada"
+          ]
+        },
+        "updates": {
+          "title": "9. Actualizaciones de esta Política",
+          "content": [
+            "Podemos actualizar esta Política de Cookies cuando implementemos nuevas funcionalidades o tecnologías de almacenamiento.",
+            "La fecha de última actualización se muestra en la parte superior de este documento."
+          ]
+        }
+      }
+    }
   }
 }
-  

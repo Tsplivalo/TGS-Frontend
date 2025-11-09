@@ -17,7 +17,7 @@ export class RoleRequestReviewModalComponent {
   @Output() close = new EventEmitter<void>();
   @Output() reviewComplete = new EventEmitter<string | undefined>();
 
-  action: 'approve' | 'reject' = 'approve';
+  action: 'approve' | 'reject' | null = null;
   comments: string = '';
   isSubmitting: boolean = false;
   error: string | null = null;
@@ -56,6 +56,11 @@ export class RoleRequestReviewModalComponent {
 
   async onSubmit(): Promise<void> {
     this.error = null;
+
+    if (!this.action) {
+      this.error = 'Debes seleccionar una acción (Aprobar o Rechazar)';
+      return;
+    }
 
     if (this.comments.length > 500) {
       this.error = 'Los comentarios no pueden exceder 500 caracteres';

@@ -73,6 +73,16 @@ export class InboxPageComponent implements OnInit {
 
   // ✅ Computed para pasar roles actuales al componente hijo
   currentRoles = computed(() => this.user()?.roles || []);
+  
+  // Roles visibles en el header (sólo Authority, Partner, Distributor)
+  private readonly allowedHeaderRoles: Role[] = [
+    Role.AUTHORITY,
+    Role.PARTNER,
+    Role.DISTRIBUTOR,
+  ];
+  visibleHeaderRoles = computed(() =>
+    (this.user()?.roles || []).filter(r => this.allowedHeaderRoles.includes(r))
+  );
 
   readonly Role = Role;
 
