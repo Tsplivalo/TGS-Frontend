@@ -687,6 +687,39 @@
   pointer-events: auto;
 }
 
+/* ====== Botón Mis Compras ====== */
+.menu__item--purchases {
+  display: inline-flex;
+
+  a {
+    white-space: nowrap;
+  }
+}
+
+/* Hacer que los elementos siguientes se desplacen suavemente */
+.menu--left {
+  transition: gap 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.menu--left > * {
+  transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Evitar transiciones en el botón de Mis compras cuando ya está visible */
+.menu__item--purchases {
+  // La animación @slideIn maneja la entrada, no CSS transitions
+  a {
+    transition: transform .15s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease, color .2s ease !important;
+  }
+}
+
+/* Suavizar las transiciones del indicador de vidrio */
+.glass-indicator {
+  transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+              width 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+              opacity 0.5s ease !important;
+}
+
 /* ====== Responsivo ====== */
 @media (max-width: 720px) {
   .nav__content {

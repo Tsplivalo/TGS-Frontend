@@ -9,8 +9,10 @@ import { Component, computed, effect, inject, signal, OnInit, OnDestroy } from '
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { EmailVerificationService } from '../../features/inbox/services/email.verification';
+import { EmailVerificationSyncService } from '../../services/email-verification-sync.service';
+import { AuthTransitionService } from '../../services/ui/auth-transition';
 import { AuthService } from '../../services/auth/auth';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -28,7 +30,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private emailVerificationService = inject(EmailVerificationService);
+  private syncService = inject(EmailVerificationSyncService);
+  private transition = inject(AuthTransitionService);
   private translate = inject(TranslateService);
+  private destroy$ = new Subject<void>();
 
   user = computed(() => this.auth.user());
 
@@ -36,6 +41,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   needsEmailVerification = signal(false);
   resendingEmail = signal(false);
   emailSent = signal(false);
+  actualEmail = signal<string | null>(null); // Email real cuando se loguea con username
+  waitingForVerification = signal(false);
+
+  // Cleanup functions para polling
+  private stopPolling?: () => void;
+  private removeStorageListener?: () => void;
 
   // --- Auth panel / animaciones de entrada/salida ---
   showAuthPanel = true;
@@ -56,7 +67,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // --- Formularios ---
   loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.minLength(3)]], // Acepta email o username
     password: ['', [Validators.required]],
   });
 
@@ -75,15 +86,31 @@ export class HomeComponent implements OnInit, OnDestroy {
   errorLogin: string | null = null;
   errorRegister: string | null = null;
 
+  // Mostrar/ocultar contraseña
+  showLoginPwd = false;
+  showRegisterPwd = false;
+
+  // Transición de login (velo con blur)
+  authTransitioning = false;
+  authPhase: 'loading' | 'success' = 'loading';
+  private authTimers: any[] = [];
+
+  // --- Animación de éxito de login ---
+  authSuccess = false;
+  private authSuccessTimer?: any;
+
   // --- Placeholders animados ---
   animatedPlaceholder = '';       // email (login/register)
   animatedNamePlaceholder = '';   // username (register)
+  animatedPasswordPlaceholder = ''; // password (login)
 
   // --- Tokens para cancelar bucles de animación ---
   private emailToken = 0;
   private nameToken = 0;
+  private passwordToken = 0;
   private bumpEmailToken(): number { return ++this.emailToken; }
   private bumpNameToken(): number { return ++this.nameToken; }
+  private bumpPasswordToken(): number { return ++this.passwordToken; }
 
   // --- Datos para animación (placeholders de ejemplo) ---
   private loginCharacters = [
@@ -107,11 +134,26 @@ export class HomeComponent implements OnInit, OnDestroy {
   private loginCharacterIndex = 0;
   private registerCharacterIndex = 0;
 
+  // Contraseñas temáticas para animación
+  private loginPasswords = [
+    'May_The_Force_2024',
+    'UseTheForce123!',
+    'DarkSide_Rules',
+    'Jedi_Master_77',
+    'RebelAlliance!',
+    'Imperial_Order',
+    'Millennium_Falcon',
+    'Wookiee_Power!'
+  ];
+  private loginPasswordIndex = 0;
+
   // --- Estados animación ---
   private isTyping = false;
   private isTypingName = false;
+  private isTypingPassword = false;
   private isDeletingEmail = false;
   private isDeletingName = false;
+  private isDeletingPassword = false;
   private registerAnimationRunning = false;
 
   // ==========================
@@ -155,8 +197,26 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.entering = true;
       queueMicrotask(() => setTimeout(() => (this.entering = false), 200));
     } else if (!mustShow && this.showAuthPanel) {
+      // Durante la transición post-login (global), retenemos el panel
+      if (this.transition.transitioning()) return;
       this.hiding = true;
       setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 220);
+    }
+  });
+
+  // --- Detectar verificación de email desde otra pestaña ---
+  private verificationEffect = effect(() => {
+    const verificationEvent = this.syncService.emailVerified();
+    console.log('[Home] Effect ejecutado. Verification event:', verificationEvent, 'Waiting:', this.waitingForVerification());
+
+    if (verificationEvent) {
+      console.log('[Home] ✅ Email verificado detectado!', verificationEvent);
+      if (this.waitingForVerification()) {
+        console.log('[Home] Procediendo con auto-login para:', verificationEvent.email);
+        this.handleEmailVerifiedFromAnotherTab(verificationEvent.email);
+      } else {
+        console.log('[Home] No estamos esperando verificación, ignorando evento');
+      }
     }
   });
 
@@ -199,18 +259,61 @@ export class HomeComponent implements OnInit, OnDestroy {
       setTimeout(() => this.startRegisterAnimation(), 100);
     }
   }
+
+  onPasswordFocus() {
+    // Detenemos la animación de password al enfocar
+    this.bumpPasswordToken();
+    this.isTypingPassword = false;
+    this.isDeletingPassword = false;
+    this.animatedPasswordPlaceholder = '';
+  }
+
+  onPasswordBlur() {
+    // Si el campo está vacío, reanudar animación (tanto en login como register)
+    const passwordValue = this.mode() === 'login'
+      ? this.loginForm.get('password')?.value || ''
+      : this.registerForm.get('password')?.value || '';
+
+    if (!passwordValue) {
+      setTimeout(() => this.startLoginPasswordAnimation(), 100);
+    }
+  }
   // ==========================
 
-  ngOnInit() { this.startStarWarsAnimation(); }
+  ngOnInit() {
+    this.startStarWarsAnimation();
+
+    // Escuchar cambios en localStorage como fallback para verificación de email
+    this.removeStorageListener = this.syncService.listenToStorageEvents();
+  }
 
   ngOnDestroy() {
     // Invalidar todo lo pendiente
     this.bumpEmailToken();
     this.bumpNameToken();
+    this.bumpPasswordToken();
     this.registerAnimationRunning = false;
-    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+    this.isTyping = this.isTypingName = this.isTypingPassword = this.isDeletingEmail = this.isDeletingName = this.isDeletingPassword = false;
     this.loginCharacterIndex = 0;
     this.registerCharacterIndex = 0;
+    this.loginPasswordIndex = 0;
+
+    // Limpiar recursos de verificación de email
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    // Limpiar polling si está activo
+    if (this.stopPolling) {
+      this.stopPolling();
+    }
+
+    // Remover listener de storage
+    if (this.removeStorageListener) {
+      this.removeStorageListener();
+    }
+
+    // Limpiar el servicio de sincronización
+    this.syncService.reset();
   }
 
   emailAnimOn(): boolean {
@@ -218,6 +321,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
   nameAnimOn(): boolean {
     return this.isTypingName || this.isDeletingName || !!this.animatedNamePlaceholder;
+  }
+  passwordAnimOn(): boolean {
+    return this.isTypingPassword || this.isDeletingPassword || !!this.animatedPasswordPlaceholder;
   }
 
   // ===== Inicio / reinicio animación =====
@@ -246,6 +352,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.animatedNamePlaceholder = '';
     this.animatedPlaceholder = '';
 
+    // También iniciar animación de password
+    this.startLoginPasswordAnimation();
+
     while (this.mode() === 'login') {
       // Token único para TODO el ciclo (type + pause + delete) del email
       const token = this.bumpEmailToken();
@@ -271,6 +380,37 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.animatedPlaceholder = '';
   }
 
+  private async startLoginPasswordAnimation() {
+    this.isTypingPassword = false;
+    this.isDeletingPassword = false;
+    this.animatedPasswordPlaceholder = '';
+
+    // Animar mientras estemos en login O register
+    while (this.mode() === 'login' || this.mode() === 'register') {
+      // Token único para TODO el ciclo (type + pause + delete) de la password
+      const token = this.bumpPasswordToken();
+
+      const password = this.loginPasswords[this.loginPasswordIndex];
+      await this.typePassword(password, token);
+      if (token !== this.passwordToken) break;
+
+      await this.delay(3500);
+      if (token !== this.passwordToken) break;
+
+      await this.deletePasswordText(password, token);
+      if (token !== this.passwordToken) break;
+
+      // Descanso breve sin texto
+      await this.delay(1000);
+      if (token !== this.passwordToken) break;
+
+      this.loginPasswordIndex = (this.loginPasswordIndex + 1) % this.loginPasswords.length;
+    }
+
+    // Limpiar al salir
+    this.animatedPasswordPlaceholder = '';
+  }
+
   private async startRegisterAnimation() {
     this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
     this.registerAnimationRunning = true;
@@ -279,23 +419,28 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.animatedNamePlaceholder = '';
 
     this.runRegisterAnimationLoop();
+    // Iniciar animación de password en paralelo
+    this.startLoginPasswordAnimation();
   }
 
   private restartAnimationForMode() {
     // Invalidar todo lo que esté en curso
     this.bumpEmailToken();
     this.bumpNameToken();
+    this.bumpPasswordToken();
 
     this.registerAnimationRunning = false;
-    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+    this.isTyping = this.isTypingName = this.isTypingPassword = this.isDeletingEmail = this.isDeletingName = this.isDeletingPassword = false;
 
     this.loginCharacterIndex = 0;
     this.registerCharacterIndex = 0;
 
     this.animatedPlaceholder = '';
     this.animatedNamePlaceholder = '';
+    this.animatedPasswordPlaceholder = '';
 
-    setTimeout(() => this.startAnimationForCurrentMode(), 60);
+    // Iniciar la animación inmediatamente sin delay
+    setTimeout(() => this.startAnimationForCurrentMode(), 0);
   }
 
   private async runRegisterAnimationLoop() {
@@ -382,6 +527,41 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (token === this.emailToken) this.isDeletingEmail = false;
   }
 
+  private async typePassword(text: string, token: number) {
+    if (this.isTypingPassword) return;
+    this.isTypingPassword = true;
+
+    // Escribir char a char, abortable
+    for (let i = 0; i <= text.length; i++) {
+      if (token !== this.passwordToken) break;
+      this.animatedPasswordPlaceholder = text.substring(0, i);
+
+      let speed = 100;
+      if (i < text.length * 0.3) speed = 130;
+      else if (i > text.length * 0.7) speed = 70;
+      if (text[i] === '_' || text[i] === '!' || text[i] === '@') speed = 180;
+
+      await this.delay(speed);
+    }
+
+    if (token === this.passwordToken) this.isTypingPassword = false;
+  }
+
+  private async deletePasswordText(text: string, token: number) {
+    if (this.isDeletingPassword) return;
+    this.isDeletingPassword = true;
+
+    const starting = this.animatedPasswordPlaceholder || text;
+
+    for (let i = starting.length; i >= 0; i--) {
+      if (token !== this.passwordToken) break;
+      this.animatedPasswordPlaceholder = starting.substring(0, i);
+      await this.delay(50);
+    }
+
+    if (token === this.passwordToken) this.isDeletingPassword = false;
+  }
+
   private async typeName(text: string, token: number) {
     if (this.isTypingName) return;
     this.isTypingName = true;
@@ -434,11 +614,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.errorLogin = null;
     this.needsEmailVerification.set(false);
     this.emailSent.set(false);
+    this.actualEmail.set(null);
     this.loadingLogin = true;
 
+    // Extract email and password before try block so they're accessible in catch
+    const { email, password } = this.loginForm.getRawValue()!;
+
     try {
-      const { email, password } = this.loginForm.getRawValue()!;
-      
       // ✅ Guardar credenciales ANTES del login (para auto-login post-verificación)
       localStorage.setItem('pendingAuth', JSON.stringify({ email, password }));
       
@@ -448,12 +630,44 @@ export class HomeComponent implements OnInit, OnDestroy {
       localStorage.removeItem('pendingAuth');
       console.log('[Home] Login exitoso, cerrando panel auth');
 
+      // Transición con velo y blur antes de mostrar el home
+      this.authTransitioning = true;
+      this.authPhase = 'loading';
+      this.transition.start('login');
+      this.authTimers.forEach(t => clearTimeout(t));
+      this.authTimers = [];
+
+      const __t1 = setTimeout(() => { this.authPhase = 'success'; this.transition.setSuccess(); }, 1400);
+      const __t2 = setTimeout(() => {
+        this.authTransitioning = false;
+        this.transition.finish();
+        if (this.showAuthPanel) {
+          this.hiding = true;
+          setTimeout(() => { this.showAuthPanel = false; this.hiding = false; }, 240);
+        }
+      }, 2400);
+      this.authTimers.push(__t1, __t2);
+
     } catch (error: any) {
       // ✅ Detectar error de verificación
       if (this.emailVerificationService.isEmailVerificationError(error)) {
         this.needsEmailVerification.set(true);
         this.emailSent.set(false);
+        this.waitingForVerification.set(true);
         this.errorLogin = null;
+
+        // Extraer el email real de la respuesta (útil cuando se loguea con username)
+        let emailToVerify = email!;
+        if (error?.error?.email) {
+          this.actualEmail.set(error.error.email);
+          emailToVerify = error.error.email;
+        }
+
+        console.log('[Home] Esperando verificación de email para:', emailToVerify);
+
+        // ✅ Iniciar polling para detectar cuando el email sea verificado
+        this.stopPolling = this.syncService.startPollingVerification(emailToVerify, 3000);
+
         // NO limpiar pendingAuth aquí
       } else {
         localStorage.removeItem('pendingAuth');
@@ -465,21 +679,24 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async resendVerificationEmailFromHome() {
-    const email = this.loginForm.get('email')?.value;
-    if (!email) {
+    // Usar el email real si está disponible (cuando se loguea con username)
+    // De lo contrario, usar el campo email del formulario (que puede ser email o username)
+    const emailToUse = this.actualEmail() || this.loginForm.get('email')?.value;
+
+    if (!emailToUse) {
       this.errorLogin = this.translate.instant('auth.errors.enter_email');
       return;
     }
-    
+
     this.resendingEmail.set(true);
     this.errorLogin = null;
     this.emailSent.set(false);
-    
+
     try {
       const response = await firstValueFrom(
-        this.emailVerificationService.resendForUnverified(email)
+        this.emailVerificationService.resendForUnverified(emailToUse)
       );
-      
+
       if (response.success) {
         this.emailSent.set(true);
         this.errorLogin = null;
@@ -488,12 +705,13 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     } catch (err: any) {
       console.error('[Home] Resend error:', err);
-      
+
       if (this.emailVerificationService.isCooldownError(err)) {
         this.errorLogin = this.translate.instant('auth.errors.cooldown');
       } else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
         this.errorLogin = this.translate.instant('auth.errors.already_verified');
         this.needsEmailVerification.set(false);
+        this.actualEmail.set(null);
       } else if (err.status === 404) {
         this.errorLogin = this.translate.instant('auth.errors.user_not_found');
       } else {
@@ -501,6 +719,94 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.resendingEmail.set(false);
+    }
+  }
+
+  /**
+   * Maneja cuando el email fue verificado desde otra pestaña (auto-login)
+   */
+  private handleEmailVerifiedFromAnotherTab(email: string): void {
+    console.log('[Home] Intentando auto-login después de verificación:', email);
+
+    // Obtener credenciales de pendingAuth
+    const raw = localStorage.getItem('pendingAuth');
+    if (!raw) {
+      console.warn('[Home] No hay credenciales pendientes para auto-login');
+      this.waitingForVerification.set(false);
+      return;
+    }
+
+    try {
+      const { email: savedEmail, password } = JSON.parse(raw);
+
+      // Verificar que el email coincida
+      if (savedEmail.toLowerCase() !== email.toLowerCase()) {
+        console.warn('[Home] El email verificado no coincide con las credenciales guardadas');
+        this.waitingForVerification.set(false);
+        return;
+      }
+
+      // Hacer auto-login
+      this.loadingLogin = true;
+      this.loadingRegister = true;
+      this.auth.login({ email: savedEmail, password })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (user) => {
+            console.log('[Home] Auto-login exitoso:', user);
+            this.waitingForVerification.set(false);
+            this.needsEmailVerification.set(false);
+            this.loadingLogin = false;
+            this.loadingRegister = false;
+
+            // Limpiar credenciales pendientes
+            localStorage.removeItem('pendingAuth');
+
+            // Detener polling si está activo
+            if (this.stopPolling) {
+              this.stopPolling();
+              this.stopPolling = undefined;
+            }
+
+            // Transición con velo y blur antes de mostrar el home
+            this.authTransitioning = true;
+            this.authPhase = 'loading';
+            this.transition.start('login');
+            this.authTimers.forEach(t => clearTimeout(t));
+            this.authTimers = [];
+
+            const __t1 = setTimeout(() => {
+              this.authPhase = 'success';
+              this.transition.setSuccess();
+            }, 1400);
+
+            const __t2 = setTimeout(() => {
+              this.authTransitioning = false;
+              this.transition.finish();
+              if (this.showAuthPanel) {
+                this.hiding = true;
+                setTimeout(() => {
+                  this.showAuthPanel = false;
+                  this.hiding = false;
+                }, 240);
+              }
+            }, 2400);
+
+            this.authTimers.push(__t1, __t2);
+          },
+          error: (err) => {
+            this.loadingLogin = false;
+            this.loadingRegister = false;
+            this.waitingForVerification.set(false);
+            console.error('[Home] Error en auto-login:', err);
+            this.errorLogin = this.translate.instant('auth.errors.auto_login_failed');
+            this.errorRegister = this.translate.instant('auth.errors.auto_login_failed');
+            localStorage.removeItem('pendingAuth');
+          }
+        });
+    } catch (e) {
+      console.error('[Home] Error parseando pendingAuth:', e);
+      this.waitingForVerification.set(false);
     }
   }
 
@@ -523,7 +829,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     try {
       const { username, email, password } = this.registerForm.getRawValue()!;
-      
+
       // ✅ Guardar credenciales ANTES del registro (para auto-login post-verificación)
       localStorage.setItem('pendingAuth', JSON.stringify({ email, password }));
 
@@ -536,17 +842,21 @@ export class HomeComponent implements OnInit, OnDestroy {
       // ✅ Siempre mostrar banner de verificación después del registro
       this.needsEmailVerification.set(true);
       this.emailSent.set(true);
+      this.waitingForVerification.set(true);
       this.errorRegister = null;
 
       // ✅ Mensaje informativo
-      console.log('[Home] Por favor verifica tu email antes de iniciar sesión');
+      console.log('[Home] Esperando verificación de email para:', email);
+
+      // ✅ Iniciar polling para detectar cuando el email sea verificado
+      this.stopPolling = this.syncService.startPollingVerification(email!, 3000);
 
     } catch (e: any) {
       console.error('[Home] Register error:', e);
-      
+
       // ✅ Si falla el registro, limpiar pendingAuth
       localStorage.removeItem('pendingAuth');
-      
+
       if (this.emailVerificationService.isEmailVerificationError(e)) {
         this.needsEmailVerification.set(true);
         this.emailSent.set(true);
@@ -557,6 +867,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     } finally {
       this.loadingRegister = false;
     }
+  }
+
+  scrollToIntro(): void {
+    if (typeof window === 'undefined') return;
+    const el = document.getElementById('intro-panel');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   goStore() { this.router.navigateByUrl('/tienda'); }

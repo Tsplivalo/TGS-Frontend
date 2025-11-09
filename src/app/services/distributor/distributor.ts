@@ -101,8 +101,14 @@ export class DistributorService {
       productsIds: (body.productsIds || []).map(Number).filter(n => !isNaN(n)),
     };
 
-    console.log('📤 Service sending CREATE:', payload);
-    
+    // ✅ Incluir credenciales si están presentes (modo manual con createCreds)
+    if (body.username) {
+      payload.username = String(body.username).trim();
+    }
+    if (body.password) {
+      payload.password = String(body.password).trim();
+    }
+
     return this.http.post<ApiResponse<DistributorDTO>>(this.base, payload).pipe(
       map((res: any) => this.normalizeOne(res?.data ?? res))
     );

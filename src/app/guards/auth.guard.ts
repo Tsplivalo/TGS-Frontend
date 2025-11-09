@@ -57,6 +57,11 @@ export const roleGuard = (allowed: Role[]): CanActivateFn => {
     if (isPublicVerificationUrl(url)) return true;
     if (!isLoggedInOrBypass(auth)) return router.createUrlTree(['/']);
     if (localStorage.getItem('authBypass') === 'true') return true;
+
+    // 🔄 Refresh roles if they're stale (older than 15 seconds)
+    // This ensures role changes (like approved role requests) are reflected immediately
+    auth.refreshIfStale(15000);
+
     const userRoles = auth.currentRoles();
     const ok = allowed.some(r => userRoles.includes(r));
     return ok ? true : router.createUrlTree(['/']);

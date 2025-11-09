@@ -55,6 +55,23 @@ export const routes: Routes = [
     loadComponent: () => import('./components/pages/contact/contact').then(m => m.ContactComponent)
   },
 
+  // Páginas legales
+  {
+    path: 'terminos',
+    loadComponent: () => import('./components/legal/terms').then(m => m.TermsComponent),
+    title: 'Términos y Condiciones - GarrSYS'
+  },
+  {
+    path: 'privacidad',
+    loadComponent: () => import('./components/legal/privacy').then(m => m.PrivacyComponent),
+    title: 'Política de Privacidad - GarrSYS'
+  },
+  {
+    path: 'cookies',
+    loadComponent: () => import('./components/legal/cookies').then(m => m.CookiesComponent),
+    title: 'Política de Cookies - GarrSYS'
+  },
+
   // ═══════════════════════════════════════════════════════════════════════
   // RUTAS DE AUTENTICACIÓN (redirigen a home que tiene el panel integrado)
   // ═══════════════════════════════════════════════════════════════════════
@@ -99,6 +116,13 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  {
+    path: 'mis-compras',
+    loadComponent: () => import('./components/my-purchases/my-purchases').then(m => m.MyPurchasesComponent),
+    canActivate: [authGuard],
+    title: 'Mis Compras - GarrSYS'
+  },
+
   // ═══════════════════════════════════════════════════════════════════════
   // INBOX
   // ═══════════════════════════════════════════════════════════════════════
@@ -126,7 +150,7 @@ export const routes: Routes = [
   {
     path: 'venta',
     loadComponent: () => import('./components/sale/sale.js').then(m => m.SaleComponent),
-    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.DISTRIBUTOR])]
+    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.DISTRIBUTOR, Role.AUTHORITY])] // ✅ AGREGADO AUTHORITY
   },
   {
     path: 'zona',
@@ -141,7 +165,7 @@ export const routes: Routes = [
   {
     path: 'sobornos',
     loadComponent: () => import('./components/bribe/bribe.js').then(m => m.BribeComponent),
-    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER])]
+    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER, Role.AUTHORITY])] // ✅ AGREGADO AUTHORITY
   },
   {
     path: 'distribuidor',
@@ -171,7 +195,7 @@ export const routes: Routes = [
   {
     path: 'acuerdos-clandestinos',
     loadComponent: () => import('./components/clandestine-agreement/clandestine-agreement.js').then(m => m.ClandestineAgreementComponent),
-    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER])]
+    canActivate: [authGuard, roleGuard([Role.ADMIN, Role.PARTNER, Role.AUTHORITY])]
   },
   {
     path: 'revisiones-mensuales',

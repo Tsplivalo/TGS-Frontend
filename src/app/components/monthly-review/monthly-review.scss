@@ -86,6 +86,100 @@
   min-height: 0;
 }
 
+.monthly-shell {
+  position: relative;
+  overflow: visible;
+}
+
+.monthly-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+  z-index: 120;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--sp-6);
+  overflow-y: auto;
+}
+
+.monthly-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.monthly-overlay__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  border: none;
+  cursor: pointer;
+  z-index: -1;
+}
+
+.monthly-overlay__panel {
+  position: relative;
+  width: min(840px, 100%);
+  margin-top: clamp(2rem, 6vh, 4rem);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+}
+
+.monthly-overlay__panel .form-grid {
+  gap: var(--sp-4);
+}
+
+.btn-close {
+  background: transparent;
+  border: 1px solid rgba(195, 164, 98, .2);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+  transition: all .2s ease;
+}
+
+.btn-close:hover {
+  background: rgba(195, 164, 98, .1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-close:active {
+  transform: scale(0.95);
+  background: rgba(195, 164, 98, .15);
+}
+
+@media (max-width: 768px) {
+  .monthly-overlay {
+    padding: var(--sp-4);
+  }
+
+  .monthly-overlay__panel {
+    margin-top: var(--sp-3);
+    width: min(100%, 560px);
+  }
+}
+
+@media (max-width: 520px) {
+  .monthly-overlay__panel {
+    margin-top: var(--sp-2);
+    padding: var(--sp-4);
+  }
+
+  }
+
 /* ===== CARD BASE ===== */
 .card,
 .panel {
@@ -133,6 +227,15 @@
   padding: 0 0 var(--sp-4);
   margin: 0 0 var(--sp-4);
   border-bottom: 1px solid var(--border);
+}
+
+.header.compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  margin-bottom: var(--sp-3);
 }
 
 .header h2,
@@ -1013,3 +1116,123 @@ fieldset.group legend {
     padding: 2px 8px;
   }
 }
+
+/* ===== MODAL PARA GRÁFICO EXPANDIDO ===== */
+.chart-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--sp-4);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.chart-modal-content {
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(30, 30, 30, 0.98));
+  border: 2px solid rgba(195, 164, 98, 0.3);
+  border-radius: var(--radius);
+  width: 95vw;
+  max-width: 1400px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+}
+
+.chart-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4);
+  border-bottom: 1px solid rgba(195, 164, 98, 0.2);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(195, 164, 98, 0.05));
+}
+
+.chart-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: rgba(147, 197, 253, 1);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.chart-modal-close {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: rgba(248, 113, 113, 1);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.5);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.chart-modal-body {
+  flex: 1;
+  padding: var(--sp-4);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Hover effect para botón expandir */
+button[title="Expandir gráfico"] {
+  &:hover {
+    background: rgba(59, 130, 246, 0.35) !important;
+    border-color: rgba(59, 130, 246, 0.6) !important;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+

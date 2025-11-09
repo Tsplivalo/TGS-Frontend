@@ -15,7 +15,7 @@ import { AuthService } from '../../../services/auth/auth';
         <h1>Verifica tu email</h1>
         
         <p class="message">
-          Hemos enviado un correo de verificación a <strong>{{ email }}</strong>.
+          Hemos enviado un correo de verificación a <strong>{{ email() }}</strong>.
           Por favor, revisa tu bandeja de entrada y sigue las instrucciones.
         </p>
 

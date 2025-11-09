@@ -19,7 +19,7 @@ export class AboutComponent {
   team: TeamItem[] = [
     { name: 'Lautaro Peralta', roleKey: 'backend' },
     { name: 'Tomas Splivalo', roleKey: 'frontend' },
-    { name: 'Luca Delprato', roleKey: 'frontend' },
+    { name: 'Luca Delprato', roleKey: 'testing' },
   ];
 
   private t = inject(TranslateService);

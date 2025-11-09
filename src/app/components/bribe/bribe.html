@@ -3,8 +3,6 @@
   <div class="glass-dark card stack-md">
     <div class="header">
       <h2>{{ 'bribes.title' | translate }}</h2>
-      <div class="right">
-      </div>
     </div>
 
     <!-- Estadísticas -->
@@ -124,7 +122,7 @@
         <col style="width: 100px;" /> <!-- Sale -->
         <col style="width: 110px;" /> <!-- Status -->
         <col style="width: 160px;" /> <!-- Date -->
-        <col style="width: 180px;" /> <!-- Actions -->
+        <col style="width: 180px;" *ngIf="canPay() || canDelete()" /> <!-- Actions -->
       </colgroup>
   
       <thead>
@@ -135,7 +133,7 @@
           <th>{{ 'bribes.table.sale' | translate }}</th>
           <th class="center">{{ 'bribes.table.paid' | translate }}</th>
           <th>{{ 'bribes.table.date' | translate }}</th>
-          <th style="text-align: right; padding-right: 14px;">{{ 'bribes.table.actions' | translate }}</th>
+          <th *ngIf="canPay() || canDelete()" style="text-align: right; padding-right: 14px;">{{ 'bribes.table.actions' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -156,33 +154,30 @@
           </td>
           <td>{{ b.creationDate | date:'dd/MM/yyyy HH:mm' }}</td>
   
-          <!-- ✅ ACCIONES MEJORADAS -->
-          <td style="text-align: right; padding-right: 6px;">
+          <!-- ✅ ACCIONES CON PERMISOS -->
+          <td *ngIf="canPay() || canDelete()" style="text-align: right; padding-right: 6px;">
             <div class="actions-group">
-              <!-- Si NO está pagado: Botón activo -->
-              <button *ngIf="!b.paid" class="btn success btn--icon" (click)="markAsPaid(b)"
+              <!-- Si NO está pagado: Botón activo (solo Admin y Socio) -->
+              <button *ngIf="!b.paid && canPay()" class="btn success btn--icon" (click)="markAsPaid(b)"
                 [attr.title]="'bribes.actions.pay' | translate">
                 ✅
               </button>
-  
+
               <!-- Si YA está pagado: Badge indicador -->
-              <div *ngIf="b.paid" class="paid-status" [attr.title]="'bribes.status.alreadyPaid' | translate">
+              <div *ngIf="b.paid && canPay()" class="paid-status" [attr.title]="'bribes.status.alreadyPaid' | translate">
                 <span class="paid-icon">🔒</span>
                 <span class="paid-text">Pagado</span>
               </div>
-  
-              <button class="btn ghost btn--icon" (click)="edit(b)" [attr.title]="'common.edit' | translate">
-                ✏️
-              </button>
-  
-              <button class="btn danger btn--icon" (click)="delete(b.id)" [attr.title]="'common.delete' | translate">
+
+              <!-- Botón eliminar (solo Admin) -->
+              <button *ngIf="canDelete()" class="btn danger btn--icon" (click)="delete(b.id)" [attr.title]="'common.delete' | translate">
                 🗑️
               </button>
             </div>
           </td>
         </tr>
         <tr *ngIf="filteredBribes().length === 0">
-          <td colspan="7" class="muted center">
+          <td [attr.colspan]="(canPay() || canDelete()) ? 7 : 6" class="muted center">
             {{ (fTextApplied() || fPaidApplied() !== 'all' || fDateTypeApplied() !== 'all')
             ? ('bribes.noResults' | translate)
             : ('bribes.empty' | translate) }}
@@ -282,75 +277,3 @@
       }
     }
   </style>
-
-  <!-- NEW / EDIT FORM (COLLAPSIBLE) -->
-  <div class="collapsible" [class.open]="isNewOpen">
-    <div class="collapsible__content glass-dark card">
-      <div class="header">
-        <h2>
-          {{ (editId() == null ? 'bribes.newTitle' : 'bribes.editTitle') | translate }}
-        </h2>
-      </div>
-
-      <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
-        <label class="label">
-          <span>{{ 'bribes.form.amount' | translate }} *</span>
-          <input class="input" type="number" formControlName="amount" min="0" step="0.01"
-            [placeholder]="'bribes.form.amountPh' | translate" [class.error-input]="hasError('amount')" />
-          <small class="error-text" *ngIf="hasError('amount')">
-            {{ getErrorMessage('amount') }}
-          </small>
-        </label>
-
-        <!-- AUTHORITY - SELECT AMIGABLE (usa DNI como string) -->
-        <label class="label" *ngIf="editId() === null">
-          <span>{{ 'bribes.form.authority' | translate }} *</span>
-          <select class="input" formControlName="authorityId" [class.error-input]="hasError('authorityId')">
-            <option [ngValue]="null" disabled>— Seleccioná una autoridad —</option>
-            <option *ngFor="let auth of authorities()" [ngValue]="auth.dni">
-              {{ auth.dni }} — {{ auth.name }}<ng-container *ngIf="auth.rank"> ({{ auth.rank }})</ng-container>
-            </option>
-          </select>
-          <small class="muted" *ngIf="!authorities().length && !loading()">
-            No hay autoridades disponibles. Creá una primero.
-          </small>
-          <small class="error-text" *ngIf="hasError('authorityId')">
-            {{ getErrorMessage('authorityId') }}
-          </small>
-        </label>
-
-        <!-- SALE - SELECT AMIGABLE -->
-        <label class="label" *ngIf="editId() === null">
-          <span>{{ 'bribes.form.sale' | translate }} *</span>
-          <select class="input" formControlName="saleId" [class.error-input]="hasError('saleId')">
-            <option [ngValue]="null" disabled>— Seleccioná una venta —</option>
-            <option *ngFor="let sale of sales()" [ngValue]="sale.id">
-              Venta #{{ sale.id }}<ng-container *ngIf="sale.client && sale.client.name"> — Cliente: {{ sale.client.name
-                }}</ng-container>
-            </option>
-          </select>
-          <small class="muted" *ngIf="!sales().length && !loading()">
-            No hay ventas disponibles. Creá una primero.
-          </small>
-          <small class="error-text" *ngIf="hasError('saleId')">
-            {{ getErrorMessage('saleId') }}
-          </small>
-        </label>
-
-        <div class="form-note" *ngIf="editId() !== null">
-          <span class="muted">
-            {{ 'bribes.form.editNote' | translate }}
-          </span>
-        </div>
-
-        <div class="right" style="grid-column: 1 / -1;">
-          <button class="btn success" type="submit" [disabled]="loading() || form.invalid">
-            {{ (editId() == null ? 'Crear' : 'Guardar') | translate }}
-          </button>
-          <button class="btn ghost" type="button" (click)="toggleNew()">
-            {{ 'Cancelar' | translate }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>

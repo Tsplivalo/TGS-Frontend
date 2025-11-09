@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EmailVerificationService } from '../services/email.verification';
 import { AuthService } from '../../../services/auth/auth';
+import { EmailVerificationSyncService } from '../../../services/email-verification-sync.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -24,13 +25,17 @@ import { firstValueFrom } from 'rxjs';
       <div *ngIf="state() === 'ok'" class="state-box">
         <div class="success-icon">✓</div>
         <h2 class="state-title">¡Email verificado!</h2>
-        <p class="state-text">Tu dirección de email ha sido verificada correctamente.</p>
-        <div class="badge badge-success" *ngIf="autoLoggedIn()">
-          ✓ Sesión iniciada automáticamente
+        <div style="margin: 0; background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; color: #e5e7eb; font-size: 0.95rem; line-height: 1.5; text-align: center;">
+          Tu dirección de email ha sido verificada correctamente.
         </div>
-        <p class="state-text muted" *ngIf="!autoLoggedIn()">
-          Redirigiendo al inicio...
-        </p>
+        <div style="margin: 1rem 0; background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; color: #e5e7eb; font-size: 0.95rem; line-height: 1.5; text-align: center;">
+          Vuelve a la pestaña anterior para continuar.
+          <br>
+          <span style="color: #9aa0a6; font-size: 0.85rem; background: transparent !important;">Tu sesión se iniciará automáticamente.</span>
+        </div>
+        <div style="margin-top: 1rem; background: transparent !important; border: none !important; padding: 0 !important; box-shadow: none !important; color: #9aa0a6; font-size: 0.75rem; text-align: center;">
+          Puedes cerrar esta pestaña de forma segura.
+        </div>
       </div>
 
       <!-- Estado: Error -->
@@ -69,7 +74,7 @@ import { firstValueFrom } from 'rxjs';
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      //background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
 
     /* ===== SHELL (Glass Dark) ===== */
@@ -84,7 +89,7 @@ import { firstValueFrom } from 'rxjs';
       padding: 2rem 1.5rem;
       color: var(--text-strong);
       box-shadow:
-        inset 1px 1px 2px rgba(255, 255, 255, .371),
+        inset 1px 1px 2px rgba(21, 45, 83, 0.71),
         inset -1px -1px 2px rgba(0, 0, 0, .4),
         0 10px 28px rgba(0, 0, 0, .645);
       animation: fadeIn 0.3s ease-out;
@@ -108,6 +113,7 @@ import { firstValueFrom } from 'rxjs';
       flex-direction: column;
       align-items: center;
       gap: 1rem;
+      background: transparent !important;
     }
 
     /* ===== SPINNER ===== */
@@ -180,11 +186,16 @@ import { firstValueFrom } from 'rxjs';
       color: var(--text);
       font-size: 0.95rem;
       line-height: 1.5;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      box-shadow: none !important;
     }
 
     .state-text.muted {
       color: var(--muted);
       font-size: 0.85rem;
+      background: transparent !important;
     }
 
     /* ===== ERROR MESSAGE ===== */
@@ -197,6 +208,11 @@ import { firstValueFrom } from 'rxjs';
       font-size: 0.9rem;
       width: 100%;
       text-align: center;
+    }
+
+    .small-text {
+      font-size: 0.75rem;
+      margin-top: 1rem;
     }
 
     /* ===== BADGE ===== */
@@ -303,15 +319,15 @@ export class EmailVerificationComponent implements OnInit {
   private router = inject(Router);
   private ev = inject(EmailVerificationService);
   private auth = inject(AuthService);
+  private syncService = inject(EmailVerificationSyncService);
 
   state = signal<'verifying' | 'ok' | 'error'>('verifying');
   message = signal<string>('');
-  autoLogged = signal<boolean>(false);
 
   ngOnInit() {
     const token = this.route.snapshot.paramMap.get('token') || '';
     console.log('[EmailVerification] Token recibido:', token);
-    
+
     if (token) {
       this.run(token);
     } else {
@@ -319,8 +335,6 @@ export class EmailVerificationComponent implements OnInit {
       this.message.set('Token no proporcionado en la URL');
     }
   }
-
-  autoLoggedIn() { return this.autoLogged(); }
 
   async run(token: string) {
     try {
@@ -332,7 +346,7 @@ export class EmailVerificationComponent implements OnInit {
 
       // ✅ Verificar si fue exitosa
       const isSuccess = verifyRes?.success === true || verifyRes?.data?.success === true;
-      
+
       if (!isSuccess) {
         throw {
           message: verifyRes?.message || 'Verificación fallida',
@@ -343,64 +357,62 @@ export class EmailVerificationComponent implements OnInit {
 
       console.log('[EmailVerification] ✅ Email verificado en el backend');
 
-      // 2️⃣ Intentar auto-login con credenciales guardadas
-      const raw = localStorage.getItem('pendingAuth');
-      if (raw) {
-        try {
-          const { email, password } = JSON.parse(raw);
-          console.log('[EmailVerification] Intentando auto-login para:', email);
-          
-          await firstValueFrom(this.auth.login({ email, password }));
-          
-          this.autoLogged.set(true);
-          localStorage.removeItem('pendingAuth');
-          console.log('[EmailVerification] ✅ Auto-login exitoso');
-        } catch (loginError: any) {
-          console.warn('[EmailVerification] Auto-login falló:', loginError?.message);
+      // 2️⃣ Obtener email del usuario para notificar a la pestaña original
+      let userEmail = verifyRes?.email || verifyRes?.data?.email;
+
+      // Si no viene en la respuesta, intentar obtenerlo de pendingAuth
+      if (!userEmail) {
+        const raw = localStorage.getItem('pendingAuth');
+        if (raw) {
+          try {
+            const { email } = JSON.parse(raw);
+            userEmail = email;
+          } catch (e) {
+            console.warn('[EmailVerification] No se pudo obtener email de pendingAuth');
+          }
         }
-      } else {
-        console.log('[EmailVerification] No hay pendingAuth');
       }
 
-      // 3️⃣ Éxito
+      // 3️⃣ Notificar a la pestaña original que el email fue verificado
+      if (userEmail) {
+        console.log('[EmailVerification] Notificando a otras pestañas que el email fue verificado:', userEmail);
+        this.syncService.notifyEmailVerified(userEmail);
+      } else {
+        console.warn('[EmailVerification] No se pudo obtener el email para notificar');
+      }
+
+      // 4️⃣ Mostrar mensaje de éxito (sin auto-login ni redirección)
       this.state.set('ok');
-      
-      setTimeout(() => {
-        console.log('[EmailVerification] Redirigiendo a home');
-        this.router.navigateByUrl('/');
-      }, 2000);
+      console.log('[EmailVerification] ✅ Verificación completa. El usuario debe volver a la pestaña anterior.');
 
     } catch (e: any) {
       console.error('[EmailVerification] Error:', e);
-      
+
       let errorMsg = e?.message || 'Token inválido o expirado';
-      
+
       // ✅ Detectar "ya verificado" - tratarlo como éxito
-      const alreadyVerified = 
+      const alreadyVerified =
         e?.message?.toLowerCase().includes('already verified') ||
         e?.message?.toLowerCase().includes('ya verificado') ||
         e?.message?.toLowerCase().includes('ya está verificado') ||
         e?.code === 'EMAIL_ALREADY_VERIFIED';
-      
+
       if (alreadyVerified) {
         console.log('[EmailVerification] Email ya verificado - tratando como éxito');
-        
-        // Intentar auto-login de todos modos
+
+        // Intentar obtener email de pendingAuth para notificar
         const raw = localStorage.getItem('pendingAuth');
         if (raw) {
           try {
-            const { email, password } = JSON.parse(raw);
-            await firstValueFrom(this.auth.login({ email, password }));
-            this.autoLogged.set(true);
-            localStorage.removeItem('pendingAuth');
+            const { email } = JSON.parse(raw);
+            this.syncService.notifyEmailVerified(email);
           } catch {}
         }
-        
+
         this.state.set('ok');
-        setTimeout(() => this.router.navigateByUrl('/'), 2000);
         return;
       }
-      
+
       // Otros errores
       if (e?.status === 400) {
         if (e?.message?.includes('expired') || e?.message?.includes('expirado')) {
@@ -409,7 +421,7 @@ export class EmailVerificationComponent implements OnInit {
       } else if (e?.status === 404) {
         errorMsg = 'Token no encontrado. Solicita uno nuevo desde el login.';
       }
-      
+
       this.message.set(errorMsg);
       this.state.set('error');
     }

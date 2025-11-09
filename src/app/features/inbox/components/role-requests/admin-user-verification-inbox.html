@@ -12,6 +12,10 @@
     </div>
   </div>
 
+  <div *ngIf="successKey" class="inline-notification success" role="status">
+    {{ successKey | translate }}
+  </div>
+
   <div *ngIf="loading" class="loading">{{ 'userVerification.adminInbox.loading' | translate }}</div>
 
   <div *ngIf="error && !loading" class="error-message">
@@ -56,6 +60,6 @@
   </div>
 
   <app-user-verification-review-modal *ngIf="reviewingVerification" [verification]="reviewingVerification"
-    (close)="closeReviewModal()" (reviewComplete)="handleReviewComplete()">
+    (close)="closeReviewModal()" (reviewComplete)="handleReviewComplete($event)">
   </app-user-verification-review-modal>
 </div>

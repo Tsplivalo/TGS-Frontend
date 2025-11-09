@@ -21,6 +21,7 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
   filteredRequests: RoleRequest[] = [];
   loading: boolean = true;
   error: string | null = null;
+  successKey: string | null = null;
 
   statusFilter: RequestStatus | 'ALL' = RequestStatus.PENDING;
   roleFilter: Role | 'ALL' = 'ALL';
@@ -85,9 +86,31 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
     this.reviewingRequest = null;
   }
 
-  async handleReviewComplete(): Promise<void> {
+  async handleReviewComplete(approvedUserId?: string): Promise<void> {
     this.closeReviewModal();
     await this.loadRequests();
+
+    // 🔄 Si se aprobó la solicitud Y el usuario aprobado es el usuario actual logueado,
+    // refrescar el perfil para actualizar los roles sin necesidad de desloguearse
+    if (approvedUserId) {
+      const currentUser = this.auth.user();
+      if (currentUser && currentUser.id === approvedUserId) {
+        console.log('🔄 [AdminRoleRequestsInbox] Role request approved for current user, refreshing profile...');
+        try {
+          // Esperar un momento para que el backend termine de actualizar los roles
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await this.auth.me().toPromise();
+          console.log('✅ [AdminRoleRequestsInbox] Profile refreshed successfully, roles updated');
+        } catch (err) {
+          console.error('❌ [AdminRoleRequestsInbox] Failed to refresh profile:', err);
+        }
+      }
+    }
+
+    this.successKey = approvedUserId
+      ? 'notifications.roleRequestApproved'
+      : 'notifications.roleRequestRejected';
+    setTimeout(() => (this.successKey = null), 3000);
   }
 
   get pendingCount(): number {

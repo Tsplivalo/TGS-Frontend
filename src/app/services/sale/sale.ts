@@ -37,7 +37,9 @@ export class SaleService {
 
   /** GET /api/sales - Obtiene todas las ventas */
   getAllSales(): Observable<SaleDTO[]> {
-    return this.http.get<ApiResponse<SaleDTO[]>>(this.base).pipe(
+    return this.http.get<ApiResponse<SaleDTO[]>>(this.base, {
+      withCredentials: true
+    }).pipe(
       map((res: any) => {
         if (Array.isArray(res)) return res;
         if (res?.data && Array.isArray(res.data)) return res.data;
@@ -48,7 +50,9 @@ export class SaleService {
 
   /** GET /api/sales/:id - Obtiene una venta por ID */
   getSale(id: number): Observable<SaleDTO> {
-    return this.http.get<ApiResponse<SaleDTO>>(`${this.base}/${id}`).pipe(
+    return this.http.get<ApiResponse<SaleDTO>>(`${this.base}/${id}`, {
+      withCredentials: true
+    }).pipe(
       map((res: any) => {
         if (res?.data) return res.data;
         return res;
@@ -105,12 +109,16 @@ export class SaleService {
 
   /** PATCH /api/sales/:id - Actualiza una venta (reasignar distribuidor/autoridad) */
   updateSale(id: number, payload: UpdateSaleDTO): Observable<ApiResponse<SaleDTO>> {
-    return this.http.patch<ApiResponse<SaleDTO>>(`${this.base}/${id}`, payload);
+    return this.http.patch<ApiResponse<SaleDTO>>(`${this.base}/${id}`, payload, {
+      withCredentials: true
+    });
   }
 
   /** DELETE /api/sales/:id - Elimina una venta */
   deleteSale(id: number): Observable<ApiResponse<unknown>> {
-    return this.http.delete<ApiResponse<unknown>>(`${this.base}/${id}`);
+    return this.http.delete<ApiResponse<unknown>>(`${this.base}/${id}`, {
+      withCredentials: true
+    });
   }
 
   /** GET /api/sales/search - Búsqueda avanzada */
@@ -123,8 +131,9 @@ export class SaleService {
     page?: number;
     limit?: number;
   }): Observable<SaleDTO[]> {
-    return this.http.get<ApiResponse<SaleDTO[]>>(`${this.base}/search`, { 
-      params: params as any 
+    return this.http.get<ApiResponse<SaleDTO[]>>(`${this.base}/search`, {
+      params: params as any,
+      withCredentials: true
     }).pipe(
       map((res: any) => {
         if (Array.isArray(res)) return res;

@@ -9,6 +9,7 @@ import { ClandestineAgreementService } from '../../services/clandestine-agreemen
 import { AuthorityService } from '../../services/authority/authority';
 import { AdminService } from '../../services/admin/admin';
 import { ShelbyCouncilService } from '../../services/shelby-council/shelby-council';
+import { AuthService, Role } from '../../services/user/user';
 
 // Modelos
 import {
@@ -30,10 +31,21 @@ import { ShelbyCouncilDTO } from '../../models/shelby-council/shelby-council.mod
 export class ClandestineAgreementComponent implements OnInit {
   private fb  = inject(FormBuilder);
   private srv = inject(ClandestineAgreementService);
-  private authSrv = inject(AuthorityService);
+  private authoritySrv = inject(AuthorityService);
   private adminSrv = inject(AdminService);
   private councilSrv = inject(ShelbyCouncilService);
+  private authSrv = inject(AuthService);
   private tr  = inject(TranslateService);
+
+  // --- Roles y permisos ---
+  isAdmin = computed(() => this.authSrv.hasRole(Role.ADMIN));
+  isPartner = computed(() => this.authSrv.hasRole(Role.PARTNER));
+  isAuthority = computed(() => this.authSrv.hasRole(Role.AUTHORITY));
+
+  // Permisos específicos por rol - Admin y Partner pueden hacer todo, Authority no puede hacer nada
+  canCreate = computed(() => this.isAdmin() || this.isPartner());
+  canEdit = computed(() => this.isAdmin() || this.isPartner());
+  canDelete = computed(() => this.isAdmin() || this.isPartner());
 
   // Estado
   items   = signal<ClandestineAgreementDTO[]>([]);
@@ -131,7 +143,7 @@ export class ClandestineAgreementComponent implements OnInit {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.isNewOpen.set(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
   }
 
   cancel(): void {
@@ -235,10 +247,10 @@ export class ClandestineAgreementComponent implements OnInit {
   private loadAll(): void {
     this.loading.set(true);
     this.error.set(null);
-    
+
     forkJoin({
       agreements: this.srv.list(),
-      authorities: this.authSrv.getAllAuthorities(),
+      authorities: this.authoritySrv.getAllAuthorities(),
       admins: this.adminSrv.list(),
       councils: this.councilSrv.list()
     }).subscribe({

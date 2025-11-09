@@ -100,4 +100,12 @@ export class PartnerService {
       });
     });
   }
+
+  /**
+   * Migración: Asigna rol PARTNER a todos los usuarios que tienen un socio asociado
+   * POST /api/partners/migrate/roles
+   */
+  migratePartnerRoles(): Observable<any> {
+    return this.http.post<any>(`${this.base}/migrate/roles`, {});
+  }
 }

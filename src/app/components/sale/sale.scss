@@ -334,6 +334,8 @@ textarea.input {
   overflow: auto;
   margin: 0;
   border-radius: var(--radius);
+  position: relative;
+  z-index: 3;
 }
 
 .table {
@@ -2144,6 +2146,7 @@ fieldset.group legend {
   top: var(--sp-4);
   max-height: calc(100vh - var(--sp-8));
   overflow-y: auto;
+  z-index: 1;
 }
 
 /* Scrollbar para el panel de stats */
@@ -2389,7 +2392,7 @@ fieldset.group legend {
   text-align: left;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 5;
 }
 
 /* Mejor espaciado en el contenedor de filtros */
@@ -2467,4 +2470,335 @@ fieldset.group legend {
   .sales-main-grid {
     gap: var(--sp-4);
   }
+}
+
+/* ===== NEW SALE OVERLAY (MODAL CENTRADO) ===== */
+.new-sale-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, visibility 0s linear .3s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+  overflow-y: auto;
+}
+
+.new-sale-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transition: opacity .3s ease, visibility 0s linear 0s;
+}
+
+.new-sale-overlay__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  border: none;
+  cursor: pointer;
+  z-index: -1;
+}
+
+.new-sale-overlay__panel {
+  position: relative;
+  width: min(850px, 100%);
+  max-height: calc(100vh - var(--sp-6) * 2);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: translateY(-20px) scale(.96);
+  opacity: 0;
+  transition: transform .3s cubic-bezier(.18, .84, .4, 1), opacity .3s ease;
+  pointer-events: auto;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, .8);
+
+  /* Mejoras para el glassmorphism */
+  border: 1px solid rgba(195, 164, 98, .3);
+
+  /* Custom scrollbar para mejor UX */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(195, 164, 98, .3) transparent;
+}
+
+.new-sale-overlay__panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.new-sale-overlay__panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.new-sale-overlay__panel::-webkit-scrollbar-thumb {
+  background: rgba(195, 164, 98, .3);
+  border-radius: 4px;
+}
+
+.new-sale-overlay__panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(195, 164, 98, .5);
+}
+
+.new-sale-overlay.is-open .new-sale-overlay__panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.new-sale-overlay__panel.card::before,
+.new-sale-overlay__panel.card::after {
+  display: none;
+}
+
+/* Header compacto para el panel */
+.header.compact {
+  padding-bottom: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.btn-close {
+  background: transparent;
+  border: 1px solid rgba(195, 164, 98, .2);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+  padding: 0;
+  transition: all .2s ease;
+  font-weight: 300;
+}
+
+.btn-close:hover {
+  background: rgba(195, 164, 98, .1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-close:active {
+  transform: scale(0.95);
+  background: rgba(195, 164, 98, .15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .new-sale-overlay {
+    padding: var(--sp-3);
+  }
+
+  .new-sale-overlay__panel {
+    margin-top: var(--sp-3);
+  }
+}
+
+@media (max-width: 640px) {
+  .new-sale-overlay__panel {
+    left: var(--sp-3);
+    right: var(--sp-3);
+    width: auto;
+    top: calc(56px + var(--sp-4));
+  }
+}
+
+/* ===== CLIENT AND PRODUCT CARDS (SALE FORM) ===== */
+
+/* Client cards - Green theme */
+.client-card {
+  padding: var(--sp-2);
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.client-card:hover {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.45);
+}
+
+.client-card.selected {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: rgba(76, 175, 80, 0.6);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Product cards - Blue theme */
+.product-card {
+  padding: var(--sp-2);
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.product-card:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.45);
+}
+
+.product-card.selected {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+/* ===== FILAS EXPANDIBLES ===== */
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(195, 164, 98, 0.08);
+}
+
+.table tbody tr.expanded {
+  background: rgba(195, 164, 98, 0.12);
+}
+
+/* Hacer que toda la fila sea clickeable */
+.table tbody tr.clickable-row {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  z-index: 2;
+}
+
+.table tbody tr.clickable-row td {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
+}
+
+.table tbody tr.clickable-row:hover td {
+  background: rgba(195, 164, 98, 0.12);
+}
+
+.table tbody tr.clickable-row.expanded td {
+  background: rgba(195, 164, 98, 0.15);
+  border-bottom-color: rgba(195, 164, 98, 0.3);
+}
+
+.table tbody tr.details-row {
+  background: transparent;
+  cursor: default;
+}
+
+.table tbody tr.details-row:hover {
+  background: transparent;
+}
+
+.table tbody tr.details-row td {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== FLECHA EXPANDIR/COLAPSAR ===== */
+.expand-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+  background: rgba(195, 164, 98, 0.15);
+  border-radius: 8px;
+  border: 1px solid rgba(195, 164, 98, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  svg {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: inherit;
+  }
+}
+
+.clickable-row:hover .expand-arrow {
+  background: rgba(195, 164, 98, 0.25);
+  border-color: rgba(195, 164, 98, 0.6);
+  transform: scale(1.08);
+  box-shadow: 0 4px 8px rgba(195, 164, 98, 0.3);
+}
+
+.expand-arrow.expanded {
+  background: rgba(195, 164, 98, 0.3);
+  border-color: rgba(195, 164, 98, 0.7);
+  color: rgba(195, 164, 98, 1);
+
+  svg {
+    transform: rotate(90deg);
+  }
+}
+
+.clickable-row:hover .expand-arrow.expanded {
+  transform: scale(1.08);
+  box-shadow: 0 4px 8px rgba(195, 164, 98, 0.4);
+}
+
+/* ===== MEJORAS PARA LOS GRÁFICOS ECHARTS ===== */
+
+/* Mejorar la hitbox e interactividad de los contenedores de gráficos */
+.chart-container {
+  width: 100%;
+  cursor: default;
+  pointer-events: all !important;
+  position: relative;
+  min-height: 320px;
+}
+
+/* Asegurar que el canvas de ECharts sea totalmente interactivo */
+.chart-container canvas {
+  pointer-events: all !important;
+  cursor: default;
+}
+
+/* Asegurar que el div de overlay de ECharts también sea interactivo */
+.chart-container > div {
+  pointer-events: all !important;
+}
+
+/* Asegurar que los labels de ECharts no bloqueen los eventos del mouse */
+.chart-container text {
+  pointer-events: none !important;
+}
+
+.chart-container svg {
+  pointer-events: all !important;
+}
+
+/* Mejorar la apariencia del chart-card en hover */
+.chart-card {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Espacio adicional en el chart-card para evitar cortes */
+.chart-card {
+  padding-bottom: var(--sp-4);
+}
+
+/* Asegurar que los tooltips de ECharts no se corten */
+.chart-card > div {
+  overflow: visible !important;
 }
