@@ -5,6 +5,7 @@
   "nav": {
     "store": "Tienda",
     "myAccount": "Mi cuenta",
+    "myPurchases": "Mis compras",
     "logout": "Salir",
     "management": "Gestión",
     "society": "Sociedad",
@@ -73,6 +74,35 @@
       "requestVerification": "Solicitar verificación",
       "completeProfile100": "Completa tu perfil al 100% para comprar.",
       "completeProfile": "Completar perfil"
+    }
+  },
+  "myPurchases": {
+    "title": "Mis Compras",
+    "loading": "Cargando compras...",
+    "stats": {
+      "totalPurchases": "Total de compras",
+      "totalSpent": "Total gastado",
+      "avgSpent": "Promedio por compra"
+    },
+    "filters": {
+      "searchPlaceholder": "Buscar por producto, fecha, distribuidor o monto..."
+    },
+    "empty": {
+      "title": "No tenés compras registradas",
+      "desc": "Cuando realices tu primera compra en la tienda, aparecerá aquí."
+    },
+    "table": {
+      "id": "ID",
+      "date": "Fecha",
+      "distributor": "Distribuidor",
+      "products": "Productos",
+      "total": "Total"
+    },
+    "showing": "Mostrando",
+    "of": "de",
+    "noResults": {
+      "title": "No se encontraron compras",
+      "desc": "Intentá ajustar tu búsqueda para encontrar lo que buscás."
     }
   },
   "account": {
@@ -627,7 +657,20 @@
       "distributionEmpty": "Sin datos para graficar",
       "distributionToggle": "Ver distribución por rango",
       "hoverHint": "Pasá el mouse sobre un rango para ver detalles",
-      "filteredLabel": "Filtradas"
+      "filteredLabel": "Filtradas",
+      "chartDistributionTitle": "Distribución por Rango",
+      "chartSummaryTitle": "Resumen por Rango",
+      "authoritySingular": "autoridad",
+      "authorityPlural": "autoridades",
+      "totalAuthorities": "Total de autoridades",
+      "mostCommon": "Más común",
+      "percentage": "Porcentaje",
+      "quantity": "Cantidad",
+      "chartRank0": "Rango Básico",
+      "chartRank1": "Rango Intermedio",
+      "chartRank2": "Rango Avanzado",
+      "chartRank3": "Rango Superior",
+      "authoritiesLabel": "Autoridades"
     }
   },
   "authority": {
@@ -1095,7 +1138,36 @@
     "charts": {
       "statusDistribution": "Distribución por Estado",
       "trend": "Tendencia de Revisiones por Mes",
-      "topProducts": "Top Productos por Ventas"
+      "topProducts": "Top Productos por Ventas",
+      "decisionsImpact": "Impacto de Decisiones en Ventas",
+      "decisionsImpactDesc": "Evolución de ventas y decisiones estratégicas a lo largo del tiempo",
+      "salesPrediction": "Predicción de Ventas Futuras",
+      "salesPredictionDesc": "Proyección de ventas para los próximos 6 meses usando regresión lineal",
+      "prediction": {
+        "title": "Predicción Científica Multi-Método",
+        "subtitle": "Regresión Lineal ({{linear}}%) + Crecimiento Exponencial ({{exponential}}%) | R² = {{r2}}% | Confianza: {{confidence}}%",
+        "series": {
+          "historical": "Datos Históricos",
+          "prediction": "Predicción",
+          "trend": "Línea de Tendencia"
+        },
+        "tooltip": {
+          "prediction": "PREDICCIÓN",
+          "real": "Real",
+          "projected": "Proyectado",
+          "trend": "Tendencia",
+          "confidence": "Intervalo 95%",
+          "max": "Máx",
+          "min": "Mín",
+          "variation": "Variación"
+        },
+        "markers": {
+          "maximum": "Máximo",
+          "minimum": "Mínimo",
+          "predictionStart": "Inicio Predicción"
+        },
+        "sales": "Ventas ($)"
+      }
     },
     "list": "Listado de Revisiones",
     "emptyTitle": "No hay revisiones",
@@ -1542,7 +1614,8 @@
     "team": {
       "roles": {
         "backend": "Backend",
-        "frontend": "Frontend"
+        "frontend": "Frontend",
+        "testing": "Testing"
       }
     }
   },

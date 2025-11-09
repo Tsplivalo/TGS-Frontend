@@ -5,6 +5,7 @@
   "nav": {
     "store": "Store",
     "myAccount": "My account",
+    "myPurchases": "My purchases",
     "logout": "Log out",
     "management": "Management",
     "society": "Society",
@@ -55,6 +56,35 @@
       "requestVerification": "Request verification",
       "completeProfile100": "Complete your profile to 100% to purchase.",
       "completeProfile": "Complete profile"
+    }
+  },
+  "myPurchases": {
+    "title": "My Purchases",
+    "loading": "Loading purchases...",
+    "stats": {
+      "totalPurchases": "Total purchases",
+      "totalSpent": "Total spent",
+      "avgSpent": "Average per purchase"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by product, date, distributor or amount..."
+    },
+    "empty": {
+      "title": "No purchases yet",
+      "desc": "When you make your first purchase in the store, it will appear here."
+    },
+    "table": {
+      "id": "ID",
+      "date": "Date",
+      "distributor": "Distributor",
+      "products": "Products",
+      "total": "Total"
+    },
+    "showing": "Showing",
+    "of": "of",
+    "noResults": {
+      "title": "No purchases found",
+      "desc": "Try adjusting your search to find what you're looking for."
     }
   },
   "account": {
@@ -611,7 +641,20 @@
       "distributionEmpty": "No authorities to chart",
       "distributionToggle": "View rank distribution",
       "hoverHint": "Hover a slice to see details",
-      "filteredLabel": "Filtered"
+      "filteredLabel": "Filtered",
+      "chartDistributionTitle": "Distribution by Rank",
+      "chartSummaryTitle": "Summary by Rank",
+      "authoritySingular": "authority",
+      "authorityPlural": "authorities",
+      "totalAuthorities": "Total authorities",
+      "mostCommon": "Most common",
+      "percentage": "Percentage",
+      "quantity": "Quantity",
+      "chartRank0": "Basic Rank",
+      "chartRank1": "Intermediate Rank",
+      "chartRank2": "Advanced Rank",
+      "chartRank3": "Superior Rank",
+      "authoritiesLabel": "Authorities"
     }
   },
   "authority": {
@@ -1091,7 +1134,36 @@
     "charts": {
       "statusDistribution": "Status distribution",
       "trend": "Review trend by month",
-      "topProducts": "Top products by sales"
+      "topProducts": "Top products by sales",
+      "decisionsImpact": "Impact of Decisions on Sales",
+      "decisionsImpactDesc": "Sales evolution and strategic decisions over time",
+      "salesPrediction": "Future Sales Prediction",
+      "salesPredictionDesc": "Sales projection for the next 6 months using linear regression",
+      "prediction": {
+        "title": "Multi-Method Scientific Prediction",
+        "subtitle": "Linear Regression ({{linear}}%) + Exponential Growth ({{exponential}}%) | R² = {{r2}}% | Confidence: {{confidence}}%",
+        "series": {
+          "historical": "Historical Data",
+          "prediction": "Prediction",
+          "trend": "Trend Line"
+        },
+        "tooltip": {
+          "prediction": "PREDICTION",
+          "real": "Actual",
+          "projected": "Projected",
+          "trend": "Trend",
+          "confidence": "95% Interval",
+          "max": "Max",
+          "min": "Min",
+          "variation": "Variation"
+        },
+        "markers": {
+          "maximum": "Maximum",
+          "minimum": "Minimum",
+          "predictionStart": "Prediction Start"
+        },
+        "sales": "Sales ($)"
+      }
     },
     "list": "List of Reviews",
     "emptyTitle": "No reviews",
@@ -1558,7 +1630,8 @@
     "team": {
       "roles": {
         "backend": "Backend",
-        "frontend": "Frontend"
+        "frontend": "Frontend",
+        "testing": "Testing"
       }
     }
   },

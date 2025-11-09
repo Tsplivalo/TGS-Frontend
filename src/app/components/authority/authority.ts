@@ -2,6 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormControl, FormGroup } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { NgxEchartsModule } from 'ngx-echarts';
+import type { EChartsOption } from 'echarts';
 import { AuthorityService } from '../../services/authority/authority';
 import { ApiResponse, AuthorityDTO, CreateAuthorityDTO, UpdateAuthorityDTO, PatchAuthorityDTO } from '../../models/authority/authority.model';
 import { AuthService, User, Role } from '../../services/user/user';
@@ -37,7 +39,7 @@ type AuthorityForm = {
 @Component({
   selector: 'app-authority',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, NgxEchartsModule],
   templateUrl: './authority.html',
   styleUrls: ['./authority.scss']
 })
@@ -109,6 +111,207 @@ export class AuthorityComponent implements OnInit {
   toggleRankOrder() {
     this.rankOrder.set(this.rankOrder() === 'asc' ? 'desc' : 'asc');
   }
+
+  // --- Gráfico de autoridades por rango ---
+  showChart = signal(false); // Estado plegable del gráfico
+  toggleChart() {
+    this.showChart.set(!this.showChart());
+  }
+
+  // Estadísticas calculadas por rango
+  rankStats = computed(() => {
+    const auths = this.authorities();
+    if (!auths.length) return null;
+
+    const rankCounts: { [key: number]: number } = {};
+    auths.forEach(a => {
+      const rank = a.rank ?? 0;
+      rankCounts[rank] = (rankCounts[rank] || 0) + 1;
+    });
+
+    const total = auths.length;
+    const stats = [0, 1, 2, 3].map(rank => ({
+      rank,
+      count: rankCounts[rank] || 0,
+      percentage: total > 0 ? ((rankCounts[rank] || 0) / total * 100).toFixed(1) : '0'
+    }));
+
+    return {
+      total,
+      byRank: stats,
+      mostCommon: stats.reduce((a, b) => a.count > b.count ? a : b)
+    };
+  });
+
+  // Opciones del gráfico de torta
+  rankChartOptions = computed<EChartsOption | null>(() => {
+    const auths = this.authorities();
+    if (!auths.length) return null;
+
+    // Agrupar por rango
+    const rankCounts: { [key: number]: number } = {};
+    auths.forEach(a => {
+      const rank = a.rank ?? 0;
+      rankCounts[rank] = (rankCounts[rank] || 0) + 1;
+    });
+
+    // Etiquetas descriptivas para los rangos
+    const rankLabels: { [key: number]: string } = {
+      0: this.t.instant('authorities.stats.chartRank0'),
+      1: this.t.instant('authorities.stats.chartRank1'),
+      2: this.t.instant('authorities.stats.chartRank2'),
+      3: this.t.instant('authorities.stats.chartRank3')
+    };
+
+    // Preparar datos para el gráfico
+    const data = Object.entries(rankCounts).map(([rank, count]) => ({
+      value: count,
+      name: rankLabels[Number(rank)] || `Rango ${rank}`
+    }));
+
+    const chartOptions: EChartsOption = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: 'rgba(20, 20, 20, 0.95)',
+        borderColor: 'rgba(195, 164, 98, 0.8)',
+        borderWidth: 2,
+        textStyle: {
+          color: '#fff',
+          fontSize: 14,
+          fontWeight: 500
+        },
+        formatter: (params: any) => {
+          const quantityLabel = this.t.instant('authorities.stats.quantity');
+          const percentageLabel = this.t.instant('authorities.stats.percentage');
+          return `
+            <div style="padding: 8px;">
+              <div style="font-weight: 700; margin-bottom: 8px; font-size: 15px; color: ${params.color};">
+                ${params.name}
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; justify-content: space-between; gap: 20px;">
+                  <span style="color: #9aa0a6;">${quantityLabel}:</span>
+                  <span style="font-weight: 700; color: #e5e7eb;">${params.value}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 20px;">
+                  <span style="color: #9aa0a6;">${percentageLabel}:</span>
+                  <span style="font-weight: 700; color: ${params.color};">${params.percent}%</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      },
+      legend: {
+        orient: 'vertical',
+        left: '5%',
+        top: 'center',
+        textStyle: {
+          color: '#e5e7eb',
+          fontSize: 13,
+          fontWeight: 500
+        },
+        itemGap: 16,
+        itemWidth: 20,
+        itemHeight: 14,
+        icon: 'roundRect',
+        formatter: (name: string) => {
+          const item = data.find(d => d.name === name);
+          return `${name}  (${item?.value || 0})`;
+        }
+      },
+      series: [
+        {
+          name: this.t.instant('authorities.stats.authoritiesLabel'),
+          type: 'pie',
+          radius: ['45%', '75%'],
+          center: ['65%', '50%'],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 12,
+            borderColor: 'rgba(20, 20, 20, 0.8)',
+            borderWidth: 3,
+            shadowBlur: 20,
+            shadowColor: 'rgba(0, 0, 0, 0.3)'
+          },
+          label: {
+            show: true,
+            position: 'outside',
+            formatter: '{d}%',
+            color: '#e5e7eb',
+            fontSize: 13,
+            fontWeight: 700,
+            distanceToLabelLine: 5
+          },
+          labelLine: {
+            show: true,
+            length: 15,
+            length2: 10,
+            smooth: true,
+            lineStyle: {
+              width: 2
+            }
+          },
+          emphasis: {
+            scale: true,
+            scaleSize: 10,
+            label: {
+              show: true,
+              fontSize: 16,
+              fontWeight: 800
+            },
+            itemStyle: {
+              shadowBlur: 30,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          },
+          data: data,
+          // Colores con gradientes más profesionales
+          color: [
+            {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: '#ffd700' },
+                { offset: 1, color: '#c3a462' }
+              ]
+            },
+            {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: '#60a5fa' },
+                { offset: 1, color: '#3b82f6' }
+              ]
+            },
+            {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: '#34d399' },
+                { offset: 1, color: '#10b981' }
+              ]
+            },
+            {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: '#f87171' },
+                { offset: 1, color: '#ef4444' }
+              ]
+            }
+          ],
+          animationType: 'scale',
+          animationEasing: 'elasticOut',
+          animationDelay: (idx: number) => idx * 100
+        }
+      ]
+    };
+
+    return chartOptions;
+  });
 
   // --- Form reactivo ---
   form: FormGroup<AuthorityForm> = this.fb.group<AuthorityForm>({

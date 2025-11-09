@@ -25,6 +25,14 @@
         </li>
       </ng-container>
 
+      <!-- ✅ Mis compras (visible solo en la tienda) -->
+      <li class="menu__item menu__item--purchases" role="none" *ngIf="isAuthenticated() && isInStore()" [@slideIn]>
+        <a #mainBtn role="menuitem" routerLink="/mis-compras" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          {{ 'nav.myPurchases' | translate }}
+          <span class="underline"></span>
+        </a>
+      </li>
+
       <!-- Selector de idioma -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
         <button class="dropdown__toggle has-underline lang-toggle" type="button" aria-haspopup="true"

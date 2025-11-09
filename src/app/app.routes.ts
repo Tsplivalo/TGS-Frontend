@@ -116,6 +116,13 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  {
+    path: 'mis-compras',
+    loadComponent: () => import('./components/my-purchases/my-purchases').then(m => m.MyPurchasesComponent),
+    canActivate: [authGuard],
+    title: 'Mis Compras - GarrSYS'
+  },
+
   // ═══════════════════════════════════════════════════════════════════════
   // INBOX
   // ═══════════════════════════════════════════════════════════════════════

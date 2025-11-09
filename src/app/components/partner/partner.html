@@ -57,14 +57,22 @@
       <h3 class="sub-title">{{ 'partner.list' | translate }}</h3>
       <div class="table-wrap" *ngIf="filteredPartners().length; else emptyState">
         <table class="table">
+          <colgroup>
+            <col style="width:120px" />
+            <col />
+            <col style="width:200px" />
+            <col style="width:140px" />
+            <col style="width:200px" />
+            <col style="width:140px" *ngIf="canEdit() || canDelete()" />
+          </colgroup>
           <thead>
             <tr>
-              <th style="width:120px;">DNI</th>
+              <th>DNI</th>
               <th>{{ 'partner.fields.name' | translate }}</th>
               <th>{{ 'partner.fields.email' | translate }}</th>
               <th>{{ 'partner.fields.phone' | translate }}</th>
               <th>{{ 'partner.fields.address' | translate }}</th>
-              <th *ngIf="canEdit() || canDelete()" style="width:200px;" class="right">{{ 'common.actions' | translate }}</th>
+              <th *ngIf="canEdit() || canDelete()" class="right">{{ 'common.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>

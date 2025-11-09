@@ -11,8 +11,9 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '../../services/auth/auth'; 
+import { AuthService } from '../../services/auth/auth';
 import { Role } from '../../models/user/user.model';
 import { I18nService } from '../../services/i18n/i18n.js';
 import { TranslateModule } from '@ngx-translate/core';
@@ -26,6 +27,33 @@ interface MenuItem { label: string; path: string; }
   imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss'],
+  animations: [
+    trigger('slideIn', [
+      transition(':enter', [
+        style({
+          opacity: 0,
+          transform: 'translateX(-150px) scale(0.75)',
+          maxWidth: '0px',
+          overflow: 'hidden',
+        }),
+        animate('1200ms 100ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', style({
+          opacity: 1,
+          transform: 'translateX(0) scale(1)',
+          maxWidth: '250px',
+        }))
+      ]),
+      transition(':leave', [
+        style({
+          overflow: 'hidden',
+        }),
+        animate('600ms cubic-bezier(0.6, 0.04, 0.98, 0.335)', style({
+          opacity: 0,
+          transform: 'translateX(-150px) scale(0.75)',
+          maxWidth: '0px',
+        }))
+      ])
+    ])
+  ]
 })
 export class NavbarComponent implements AfterViewInit {
   private auth = inject(AuthService);
@@ -279,9 +307,21 @@ export class NavbarComponent implements AfterViewInit {
     return url.startsWith('/inbox');
   }
 
+  isInStore(): boolean {
+    const url = this.routerSvc.url || '';
+    return url === '/tienda' || url.startsWith('/tienda?') || url.startsWith('/tienda/') ||
+           url === '/mis-compras' || url.startsWith('/mis-compras?') || url.startsWith('/mis-compras/');
+  }
+
   
 
   private updateIndicator() {
+    // ✅ Deshabilitar el indicador cuando estás en el store (tienda/mis-compras)
+    if (this.isInStore()) {
+      this.indicator.visible = false;
+      return;
+    }
+
     const menuEl = this.menuRef?.nativeElement;
     const activeEl = menuEl?.querySelector(
       '.menu__item a.active, .menu__item--dropdown > .has-underline.active'

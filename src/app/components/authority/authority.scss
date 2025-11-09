@@ -1186,3 +1186,306 @@ fieldset.group legend {
   color: var(--accent);
   letter-spacing: 0.5px;
 }
+
+/* ===== GRÁFICO PLEGABLE DE AUTORIDADES POR RANGO ===== */
+.chart-section {
+  margin-bottom: var(--sp-4);
+  border: 1px solid rgba(195, 164, 98, 0.2);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.chart-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-align: left;
+}
+
+.chart-toggle:hover {
+  background: rgba(195, 164, 98, 0.08);
+}
+
+.chart-toggle-icon {
+  color: var(--accent);
+  font-size: 14px;
+  transition: transform 0.3s ease;
+  display: inline-block;
+  width: 20px;
+}
+
+.chart-toggle-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.chart-toggle-text {
+  flex: 1;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.chart-toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(195, 164, 98, 0.15);
+  border: 1px solid rgba(195, 164, 98, 0.3);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.chart-collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease, opacity 0.2s ease;
+  opacity: 0;
+}
+
+.chart-collapsible.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.chart-collapsible__content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Grid para estadísticas + gráfico */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--sp-6);
+  padding: var(--sp-5);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.05));
+}
+
+@media (max-width: 1024px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Estadísticas por rango */
+.rank-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.stats-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  padding-bottom: var(--sp-2);
+  border-bottom: 2px solid rgba(195, 164, 98, 0.3);
+}
+
+.stats-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.stat-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(195, 164, 98, 0.2);
+  border-radius: 12px;
+  padding: var(--sp-3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--rank-color, rgba(195, 164, 98, 0.5));
+  transition: width 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateX(4px);
+  border-color: rgba(195, 164, 98, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card:hover::before {
+  width: 8px;
+}
+
+.stat-card[data-rank="0"] { --rank-color: #c3a462; }
+.stat-card[data-rank="1"] { --rank-color: #3b82f6; }
+.stat-card[data-rank="2"] { --rank-color: #10b981; }
+.stat-card[data-rank="3"] { --rank-color: #ef4444; }
+
+.stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
+
+.stat-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.stat-rank-badge.rank-0 {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.stat-rank-badge.rank-1 {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.stat-rank-badge.rank-2 {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stat-rank-badge.rank-3 {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.stat-percentage {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-card-body {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+
+.stat-count {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-strong);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.stat-progress {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stat-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-progress-bar.rank-0 {
+  background: linear-gradient(90deg, #ffd700, #c3a462);
+}
+
+.stat-progress-bar.rank-1 {
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+}
+
+.stat-progress-bar.rank-2 {
+  background: linear-gradient(90deg, #34d399, #10b981);
+}
+
+.stat-progress-bar.rank-3 {
+  background: linear-gradient(90deg, #f87171, #ef4444);
+}
+
+/* Resumen de estadísticas */
+.stats-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding-top: var(--sp-4);
+  border-top: 1px solid rgba(195, 164, 98, 0.2);
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: rgba(195, 164, 98, 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(195, 164, 98, 0.15);
+}
+
+.summary-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-strong);
+  line-height: 1.2;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Wrapper del gráfico */
+.chart-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  border: 1px solid rgba(195, 164, 98, 0.1);
+  padding: var(--sp-4);
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* Asegurar que los tooltips de ECharts no se corten */
+.chart-wrapper > div {
+  overflow: visible !important;
+}

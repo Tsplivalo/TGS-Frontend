@@ -38,11 +38,11 @@
     </section>
 
     <div class="table-wrap">
-      <table class="table" *ngIf="filtered().length; ">
+      <table class="table" *ngIf="filtered().length; else emptyTopics">
         <colgroup>
           <col style="width:100px" />
           <col />
-          <col style="width:160px" />
+          <col style="width:180px" />
         </colgroup>
 
         <thead>
@@ -72,11 +72,13 @@
         </tbody>
       </table>
 
-      <div class="center muted">
-        {{ filterTextApplied()
-        ? ('topics.noResults' | translate)
-        : ('topics.empty' | translate) }}
-      </div>
+      <ng-template #emptyTopics>
+        <div class="center muted">
+          {{ filterTextApplied()
+          ? ('topics.noResults' | translate)
+          : ('topics.empty' | translate) }}
+        </div>
+      </ng-template>
     </div>
   </div>
 
