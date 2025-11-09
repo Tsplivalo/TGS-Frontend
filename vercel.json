@@ -3,7 +3,7 @@
   "version": 2,
   "name": "tgs-frontend",
   "buildCommand": "pnpm build --configuration production",
-  "outputDirectory": "dist/frontend/browser",
+  "outputDirectory": "dist/The-Garrison-System",
   "framework": "angular",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "devCommand": "pnpm start",
