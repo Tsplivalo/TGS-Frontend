@@ -1,4 +1,4 @@
-﻿{
+{
   "brand": {
     "name": "GarrSYS"
   },
@@ -1104,6 +1104,7 @@
   },
   "monthlyReview": {
     "title": "Revisiones Mensuales",
+    "newReview": "Nueva Revisión",
     "loading": "Cargando...",
     "filters": {
       "year": "Año",
@@ -1141,8 +1142,11 @@
       "topProducts": "Top Productos por Ventas",
       "decisionsImpact": "Impacto de Decisiones en Ventas",
       "decisionsImpactDesc": "Evolución de ventas y decisiones estratégicas a lo largo del tiempo",
+      "decisionsImpactNote": "Este gráfico muestra datos de ejemplo. Las líneas verticales azules (📌) representan decisiones estratégicas tomadas en diferentes momentos, y los pines rojos marcan el impacto en las ventas.",
       "salesPrediction": "Predicción de Ventas Futuras",
       "salesPredictionDesc": "Proyección de ventas para los próximos 6 meses usando regresión lineal",
+      "salesPredictionNote": "Este gráfico muestra una proyección basada en regresión lineal. La línea dorada (📊) representa datos históricos, la azul (🔮) muestra la predicción y la roja punteada (📈) es la línea de tendencia calculada.",
+      "noteLabel": "Nota:",
       "prediction": {
         "title": "Predicción Científica Multi-Método",
         "subtitle": "Regresión Lineal ({{linear}}%) + Crecimiento Exponencial ({{exponential}}%) | R² = {{r2}}% | Confianza: {{confidence}}%",
@@ -1197,8 +1201,14 @@
         "observations": "Observaciones sobre las ventas del período...",
         "recommendations": "Recomendaciones o acciones a tomar..."
       },
+      "hints": {
+        "selectPartner": "— Seleccioná un socio —",
+        "noPartnersAvailable": "No hay socios disponibles. Creá uno primero.",
+        "dateExtraction": "El año y mes se extraerán automáticamente de esta fecha"
+      },
       "errors": {
-        "partnerDni": "DNI del socio requerido (mín. 6 caracteres)"
+        "partnerDni": "DNI del socio requerido (mín. 6 caracteres)",
+        "dateRequired": "Fecha requerida"
       }
     }
   },
@@ -1259,7 +1269,8 @@
       "userVerificationPlural": "✅ Verificación de usuarios",
       "roleRequestsPlural": "📋 Solicitudes de rol",
       "userVerification": "✅ Verificación de usuario",
-      "roleRequest": "📋 Solicitud de rol"
+      "roleRequest": "📋 Solicitud de rol",
+      "notifications": "🔔 Notificaciones"
     },
     "blocked": {
       "title": "Sección bloqueada",
@@ -1274,6 +1285,71 @@
       "title": "Sesión requerida",
       "desc": "Necesitás iniciar sesión para acceder a esta página.",
       "login": "Iniciar sesión"
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "subtitle": "Mantente al tanto de todas tus actualizaciones",
+    "roleRequestApproved": "Solicitud de rol aprobada correctamente.",
+    "roleRequestRejected": "Solicitud de rol rechazada correctamente.",
+    "userVerificationApproved": "Verificación de usuario aprobada correctamente.",
+    "userVerificationRejected": "Verificación de usuario rechazada correctamente.",
+    "loading": "Cargando notificaciones...",
+    "retry": "Reintentar",
+    "errorLoad": "Error al cargar las notificaciones",
+    "errorDelete": "Error al eliminar la notificación",
+    "errorMarkAllRead": "Error al marcar todas como leídas",
+    "confirmDelete": "¿Eliminar esta notificación?",
+    "markAsRead": "Marcar como leída",
+    "delete": "Eliminar",
+    "justNow": "Justo ahora",
+    "minutesAgo": "Hace {{count}} min",
+    "hoursAgo": "Hace {{count}}h",
+    "daysAgo": "Hace {{count}}d",
+    "stats": {
+      "unread": "Sin leer",
+      "total": "Total"
+    },
+    "filters": {
+      "all": "Todas",
+      "unread": "Sin leer",
+      "read": "Leídas"
+    },
+    "actions": {
+      "markAllRead": "Marcar todas como leídas"
+    },
+    "empty": {
+      "title": "No hay notificaciones",
+      "descAll": "Cuando recibas notificaciones, aparecerán aquí",
+      "descUnread": "No tienes notificaciones sin leer",
+      "descRead": "No tienes notificaciones leídas"
+    },
+    "labels": {
+      "createdAt": "Fecha de creación",
+      "readAt": "Fecha de lectura",
+      "relatedTo": "Relacionado con",
+      "additionalInfo": "Información adicional",
+      "userName": "Usuario",
+      "userEmail": "Email",
+      "requestedRole": "Rol solicitado",
+      "roleToRemove": "Rol a remover",
+      "requestedAt": "Solicitado el",
+      "roleChange": "Cambio de rol",
+      "currentRole": "Rol actual",
+      "newRole": "Rol nuevo"
+    },
+    "titles": {
+      "newUserVerification": "Nueva solicitud de verificación de usuario",
+      "newRoleRequest": "Nueva solicitud de rol",
+      "verificationApproved": "Solicitud de verificación aprobada",
+      "verificationRejected": "Solicitud de verificación rechazada",
+      "roleRequestApproved": "Solicitud de rol aprobada",
+      "roleRequestRejected": "Solicitud de rol rechazada"
+    },
+    "messages": {
+      "userVerificationRequest": "{{name}} ({{email}}) ha solicitado la verificación de su cuenta.",
+      "roleRequest": "{{name}} ha solicitado el rol {{role}}.",
+      "roleChange": "{{name}} ha solicitado cambiar de rol {{oldRole}} a {{newRole}}."
     }
   },
   "userVerification": {
@@ -1726,12 +1802,6 @@
       "github": "Síguenos en GitHub",
       "email": "Envíanos un email"
     }
-  },
-  "notifications": {
-    "roleRequestApproved": "Solicitud de rol aprobada correctamente.",
-    "roleRequestRejected": "Solicitud de rol rechazada correctamente.",
-    "userVerificationApproved": "Verificación de usuario aprobada correctamente.",
-    "userVerificationRejected": "Verificación de usuario rechazada correctamente."
   },
   "legal": {
     "backHome": "Volver al inicio",

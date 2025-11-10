@@ -2140,6 +2140,11 @@ fieldset.group legend {
   align-items: start;
 }
 
+/* ⚖️ Cuando las autoridades ven la página (sin panel de stats), usar una sola columna */
+.sales-main-grid.single-column {
+  grid-template-columns: 1fr;
+}
+
 /* Panel de estadísticas - más compacto */
 .stats-panel {
   position: sticky;

@@ -1,4 +1,4 @@
-﻿{
+{
   "brand": {
     "name": "GarrSYS"
   },
@@ -1105,6 +1105,7 @@
   },
   "monthlyReview": {
     "title": "Monthly Reviews",
+    "newReview": "New Review",
     "loading": "Loading...",
     "filters": {
       "year": "Year",
@@ -1137,8 +1138,11 @@
       "topProducts": "Top products by sales",
       "decisionsImpact": "Impact of Decisions on Sales",
       "decisionsImpactDesc": "Sales evolution and strategic decisions over time",
+      "decisionsImpactNote": "This chart shows sample data. The blue vertical lines (📌) represent strategic decisions made at different times, and the red pins mark the impact on sales.",
       "salesPrediction": "Future Sales Prediction",
       "salesPredictionDesc": "Sales projection for the next 6 months using linear regression",
+      "salesPredictionNote": "This chart shows a projection based on linear regression. The golden line (📊) represents historical data, the blue (🔮) shows the prediction, and the red dotted line (📈) is the calculated trend line.",
+      "noteLabel": "Note:",
       "prediction": {
         "title": "Multi-Method Scientific Prediction",
         "subtitle": "Linear Regression ({{linear}}%) + Exponential Growth ({{exponential}}%) | R² = {{r2}}% | Confidence: {{confidence}}%",
@@ -1193,8 +1197,14 @@
         "observations": "Observations about the period's sales...",
         "recommendations": "Recommendations or action items..."
       },
+      "hints": {
+        "selectPartner": "— Select a partner —",
+        "noPartnersAvailable": "No partners available. Create one first.",
+        "dateExtraction": "Year and month will be automatically extracted from this date"
+      },
       "errors": {
-        "partnerDni": "Partner DNI required (min. 6 characters)"
+        "partnerDni": "Partner DNI required (min. 6 characters)",
+        "dateRequired": "Date required"
       }
     },
     "buttons": {
@@ -1275,7 +1285,8 @@
       "userVerificationPlural": "✅ User verification",
       "roleRequestsPlural": "📋 Role requests",
       "userVerification": "✅ User verification",
-      "roleRequest": "📋 Role request"
+      "roleRequest": "📋 Role request",
+      "notifications": "🔔 Notifications"
     },
     "blocked": {
       "title": "Blocked section",
@@ -1290,6 +1301,71 @@
       "title": "Session required",
       "desc": "You need to sign in to access this page.",
       "login": "Sign in"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Stay up to date with all your updates",
+    "roleRequestApproved": "Role request approved successfully.",
+    "roleRequestRejected": "Role request rejected successfully.",
+    "userVerificationApproved": "User verification approved successfully.",
+    "userVerificationRejected": "User verification rejected successfully.",
+    "loading": "Loading notifications...",
+    "retry": "Retry",
+    "errorLoad": "Error loading notifications",
+    "errorDelete": "Error deleting notification",
+    "errorMarkAllRead": "Error marking all as read",
+    "confirmDelete": "Delete this notification?",
+    "markAsRead": "Mark as read",
+    "delete": "Delete",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "stats": {
+      "unread": "Unread",
+      "total": "Total"
+    },
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "actions": {
+      "markAllRead": "Mark all as read"
+    },
+    "empty": {
+      "title": "No notifications",
+      "descAll": "When you receive notifications, they will appear here",
+      "descUnread": "You have no unread notifications",
+      "descRead": "You have no read notifications"
+    },
+    "labels": {
+      "createdAt": "Created at",
+      "readAt": "Read at",
+      "relatedTo": "Related to",
+      "additionalInfo": "Additional information",
+      "userName": "User",
+      "userEmail": "Email",
+      "requestedRole": "Requested role",
+      "roleToRemove": "Role to remove",
+      "requestedAt": "Requested at",
+      "roleChange": "Role change",
+      "currentRole": "Current role",
+      "newRole": "New role"
+    },
+    "titles": {
+      "newUserVerification": "New user verification request",
+      "newRoleRequest": "New role request",
+      "verificationApproved": "Verification request approved",
+      "verificationRejected": "Verification request rejected",
+      "roleRequestApproved": "Role request approved",
+      "roleRequestRejected": "Role request rejected"
+    },
+    "messages": {
+      "userVerificationRequest": "{{name}} ({{email}}) has requested account verification.",
+      "roleRequest": "{{name}} has requested the {{role}} role.",
+      "roleChange": "{{name}} has requested to change role from {{oldRole}} to {{newRole}}."
     }
   },
   "userVerification": {
@@ -1745,12 +1821,6 @@
         "name": "UTN Rosario"
       }
     }
-  },
-  "notifications": {
-    "roleRequestApproved": "Role request approved successfully.",
-    "roleRequestRejected": "Role request rejected successfully.",
-    "userVerificationApproved": "User verification approved successfully.",
-    "userVerificationRejected": "User verification rejected successfully."
   },
   "legal": {
     "backHome": "Back to home",

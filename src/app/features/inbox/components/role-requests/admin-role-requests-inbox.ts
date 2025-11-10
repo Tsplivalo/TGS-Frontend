@@ -110,7 +110,7 @@ export class AdminRoleRequestsInboxComponent implements OnInit {
     this.successKey = approvedUserId
       ? 'notifications.roleRequestApproved'
       : 'notifications.roleRequestRejected';
-    setTimeout(() => (this.successKey = null), 3000);
+    setTimeout(() => (this.successKey = null), 5000);
   }
 
   get pendingCount(): number {

@@ -40,25 +40,32 @@
                   </button>
                 </div>
                 <p class="banner-text-large">
-                  Debes verificar tu email antes de poder acceder. Revisa tu bandeja de entrada y haz clic en el enlace
-                  de verificación.
+                  Debes verificar tu email antes de poder acceder.
                 </p>
 
+                <!-- Mensaje de email enviado -->
                 <div class="banner-success-large" *ngIf="emailSent()">
                   <span class="success-icon">✓</span>
-                  Email de verificación enviado correctamente
+                  <strong>Email de verificación enviado</strong>
+                  <p>Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.</p>
                 </div>
 
+                <!-- Mensaje cuando NO se ha enviado aún -->
+                <div class="banner-info-large" *ngIf="!emailSent()">
+                  <p><strong>¿No recibiste el email?</strong> Haz clic en el botón de abajo para reenviarlo.</p>
+                </div>
+
+                <!-- Botón de reenvío - siempre habilitado (no deshabilitado cuando emailSent) -->
                 <button type="button" class="btn-resend-large" (click)="resendVerificationEmailFromHome()"
-                  [disabled]="resendingEmail() || emailSent()">
+                  [disabled]="resendingEmail()">
+                  <span *ngIf="resendingEmail()">
+                    ⏳ Enviando<span class="dots">...</span>
+                  </span>
+                  <span *ngIf="!resendingEmail() && emailSent()">
+                    📧 Reenviar nuevamente
+                  </span>
                   <span *ngIf="!resendingEmail() && !emailSent()">
-                    Reenviar email de verificación
-                  </span>
-                  <span *ngIf="resendingEmail()" class="loading-text">
-                    Enviando<span class="dots">...</span>
-                  </span>
-                  <span *ngIf="emailSent() && !resendingEmail()">
-                    ✓ Enviado
+                    📧 Enviar email de verificación
                   </span>
                 </button>
               </div>

@@ -6,8 +6,8 @@
       <div class="right">
         <button class="btn" type="button" (click)="toggleNew()" [attr.aria-expanded]="isNewOpen()">
           {{ isNewOpen()
-          ? ('Cerrar' | translate : {} : 'Cerrar')
-          : ('Nueva Revisión' | translate : {} : 'Nueva Revisión') }}
+          ? ('common.close' | translate : {} : 'Cerrar')
+          : ('monthlyReview.newReview' | translate : {} : 'Nueva Revisión') }}
         </button>
       </div>
     </header>
@@ -86,7 +86,8 @@
             </div>
             <div *ngIf="!sales() || sales().length === 0" style="margin-top: var(--sp-3); padding: var(--sp-3); background: rgba(59, 130, 246, 0.1); border-left: 3px solid rgba(59, 130, 246, 0.6); border-radius: 4px;">
               <p style="margin: 0; color: rgba(147, 197, 253, 0.9); font-size: 12px;">
-                💡 <strong>Nota:</strong> Este gráfico muestra datos de ejemplo. Las líneas verticales azules (📌) representan decisiones estratégicas tomadas en diferentes momentos, y los pines rojos marcan el impacto en las ventas.
+                💡 <strong>{{ 'monthlyReview.charts.noteLabel' | translate : {} : 'Nota:' }}</strong>
+                {{ 'monthlyReview.charts.decisionsImpactNote' | translate : {} : 'Este gráfico muestra datos de ejemplo.' }}
               </p>
             </div>
           </div>
@@ -120,7 +121,8 @@
             </div>
             <div *ngIf="!sales() || sales().length === 0" style="margin-top: var(--sp-3); padding: var(--sp-3); background: rgba(96, 165, 250, 0.1); border-left: 3px solid rgba(96, 165, 250, 0.6); border-radius: 4px;">
               <p style="margin: 0; color: rgba(147, 197, 253, 0.9); font-size: 12px;">
-                💡 <strong>Nota:</strong> Este gráfico muestra una proyección basada en regresión lineal. La línea dorada (📊) representa datos históricos, la azul (🔮) muestra la predicción y la roja punteada (📈) es la línea de tendencia calculada.
+                💡 <strong>{{ 'monthlyReview.charts.noteLabel' | translate : {} : 'Nota:' }}</strong>
+                {{ 'monthlyReview.charts.salesPredictionNote' | translate : {} : 'Este gráfico muestra una proyección basada en regresión lineal.' }}
               </p>
             </div>
           </div>
@@ -222,13 +224,13 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th style="width:50px;">ID</th>
-                  <th>PERÍODO</th>
-                  <th>ESTADO</th>
-                  <th>REVISOR</th>
-                  <th class="right">MONTO</th>
-                  <th class="right">VENTAS</th>
-                  <th class="right" style="width:100px;">ACCIONES</th>
+                  <th style="width:50px;">{{ 'monthlyReview.table.id' | translate : {} : 'ID' }}</th>
+                  <th>{{ 'monthlyReview.table.period' | translate : {} : 'PERÍODO' }}</th>
+                  <th>{{ 'monthlyReview.table.status' | translate : {} : 'ESTADO' }}</th>
+                  <th>{{ 'monthlyReview.table.reviewer' | translate : {} : 'REVISOR' }}</th>
+                  <th class="right">{{ 'monthlyReview.table.totalAmount' | translate : {} : 'MONTO' }}</th>
+                  <th class="right">{{ 'monthlyReview.table.totalCount' | translate : {} : 'VENTAS' }}</th>
+                  <th class="right" style="width:100px;">{{ 'common.actions' | translate : {} : 'ACCIONES' }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -242,10 +244,12 @@
                   <td class="right">{{ formatCurrency(it.totalSalesAmount) }}</td>
                   <td class="right">{{ it.totalSalesCount || 0 }}</td>
                   <td class="right">
-                    <button class="btn ghost btn--icon" type="button" (click)="edit(it)" title="Editar">
+                    <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+                      [attr.title]="'common.edit' | translate : {} : 'Editar'">
                       ✏️
                     </button>
-                    <button class="btn danger btn--icon" type="button" (click)="delete(it)" title="Eliminar">
+                    <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                      [attr.title]="'common.delete' | translate : {} : 'Eliminar'">
                       🗑️
                     </button>
                   </td>
@@ -274,7 +278,8 @@
 
 <!-- Overlay flotante para crear/editar revisi�n -->
 <div class="monthly-overlay is-open" *ngIf="isNewOpen()">
-  <button type="button" class="monthly-overlay__backdrop" (click)="cancel()" aria-label="Cerrar"></button>
+  <button type="button" class="monthly-overlay__backdrop" (click)="cancel()"
+    [attr.aria-label]="'common.close' | translate : {} : 'Cerrar'"></button>
 
   <div class="monthly-overlay__panel glass-dark card" role="dialog" aria-modal="true"
     (click)="$event.stopPropagation()">
@@ -284,7 +289,8 @@
         ? ('monthlyReview.form.titleEdit' | translate : { id: form.value.id } : ('Editar #' + form.value.id))
         : ('monthlyReview.form.titleCreate' | translate : {} : 'Crear Revisi�n Mensual') }}
       </h2>
-      <button type="button" class="btn-close" (click)="cancel()" aria-label="Cerrar">&times;</button>
+      <button type="button" class="btn-close" (click)="cancel()"
+        [attr.aria-label]="'common.close' | translate : {} : 'Cerrar'">&times;</button>
     </div>
 
     <div class="error" *ngIf="error()">{{ error() }}</div>
@@ -294,13 +300,13 @@
       <label class="label col-2">
         <span>👤 {{ 'monthlyReview.form.fields.partnerDni' | translate : {} : 'Socio Revisor' }} *</span>
         <select class="input" formControlName="partnerDni">
-          <option value="" disabled>— Seleccioná un socio —</option>
+          <option value="" disabled>{{ 'monthlyReview.form.hints.selectPartner' | translate : {} : '— Seleccioná un socio —' }}</option>
           <option *ngFor="let p of partners()" [value]="p.dni">
             {{ p.dni }} — {{ p.name }}
           </option>
         </select>
         <small class="muted" *ngIf="!partners().length && !loading()">
-          ⚠️ No hay socios disponibles. Creá uno primero.
+          ⚠️ {{ 'monthlyReview.form.hints.noPartnersAvailable' | translate : {} : 'No hay socios disponibles. Creá uno primero.' }}
         </small>
         <small class="error" *ngIf="form.controls.partnerDni.invalid && form.controls.partnerDni.touched">
           ❌ {{ 'monthlyReview.form.errors.partnerDni' | translate : {} : 'Socio requerido' }}
@@ -315,10 +321,10 @@
           <input class="input" type="date" formControlName="reviewDate"
             [attr.aria-label]="'monthlyReview.form.fields.reviewDate' | translate : {} : 'Fecha de Revisión'" />
           <small class="muted">
-            💡 El año y mes se extraerán automáticamente de esta fecha
+            💡 {{ 'monthlyReview.form.hints.dateExtraction' | translate : {} : 'El año y mes se extraerán automáticamente de esta fecha' }}
           </small>
           <small class="error" *ngIf="form.controls.reviewDate.invalid && form.controls.reviewDate.touched">
-            ❌ Fecha requerida
+            ❌ {{ 'monthlyReview.form.errors.dateRequired' | translate : {} : 'Fecha requerida' }}
           </small>
         </label>
 
@@ -375,7 +381,8 @@
           ? ('monthlyReview.charts.decisionsImpact' | translate : {} : 'Impacto de Decisiones en Ventas')
           : ('monthlyReview.charts.salesPrediction' | translate : {} : 'Predicción de Ventas Futuras') }}
       </h3>
-      <button type="button" class="chart-modal-close" (click)="closeExpandedChart()" [attr.aria-label]="'Cerrar'">
+      <button type="button" class="chart-modal-close" (click)="closeExpandedChart()"
+        [attr.aria-label]="'common.close' | translate : {} : 'Cerrar'">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>

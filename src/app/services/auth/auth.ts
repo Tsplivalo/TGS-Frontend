@@ -12,7 +12,7 @@ import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError, of, timer } from 'rxjs';
-import { tap, catchError, map, take } from 'rxjs/operators';
+import { tap, catchError, map, take, timeout } from 'rxjs/operators';
 import { Role, User } from '../../models/user/user.model';
 
 const API_URL = '';
@@ -261,28 +261,37 @@ export class AuthService {
 
   /**
    * Cierra la sesión del usuario
+   * OPTIMIZADO: Limpia el estado local inmediatamente sin esperar al backend
    */
   logout(): Observable<void> {
-    console.log('[AuthService] 🚪 Logout');
-    
-    // Cancelar el timer de refresh
+    console.log('[AuthService] 🚪 Logout - limpiando estado local inmediatamente');
+
+    // ✅ OPTIMIZACIÓN 1: Cancelar el timer de refresh
     this.cancelTokenRefresh();
 
-    return this.http.post<void>(
+    // ✅ OPTIMIZACIÓN 2: Limpiar estado local INMEDIATAMENTE (sin esperar backend)
+    this.clearUser();
+
+    // ✅ OPTIMIZACIÓN 3: Redirigir inmediatamente
+    this.router.navigate(['/']);
+
+    // ✅ OPTIMIZACIÓN 4: Notificar al backend en segundo plano (con timeout)
+    // Si el backend no responde en 5 segundos, ignorar el error
+    this.http.post<void>(
       `${API_URL}/api/auth/logout`,
       {},
       { withCredentials: true }
     ).pipe(
-      tap(() => {
-        this.clearUser();
-        this.router.navigate(['/']);
-      }),
+      timeout(5000), // Timeout de 5 segundos
       catchError(err => {
-        this.clearUser();
-        this.router.navigate(['/']);
+        // Ignorar errores del backend - ya limpiamos el estado local
+        console.warn('[AuthService] ⚠️ Logout backend falló o tardó, pero estado local ya fue limpiado:', err);
         return of(undefined as any);
       })
-    );
+    ).subscribe(); // Fire and forget
+
+    // Retornar observable completado inmediatamente
+    return of(undefined as any);
   }
 
   /**
@@ -626,9 +635,22 @@ export class AuthService {
       }
     }
 
-    const normalized = {
+    const normalized: any = {
       status: error.status,
       code: error.error?.errors?.[0]?.code || error.error?.code,
+      message: errorMessage
+    };
+
+    // ✅ Preservar el email del backend cuando está presente (importante para verificación)
+    if (error.error?.email) {
+      normalized.email = error.error.email;
+      console.log('[AuthService] 📧 Email preservado en error normalizado:', normalized.email);
+    }
+
+    // ✅ Preservar la estructura completa del error para casos especiales
+    normalized.error = {
+      ...error.error,
+      code: normalized.code,
       message: errorMessage
     };
 

@@ -87,7 +87,7 @@ export class AdminUserVerificationInboxComponent implements OnInit {
     this.successKey = action === 'approve'
       ? 'notifications.userVerificationApproved'
       : 'notifications.userVerificationRejected';
-    setTimeout(() => (this.successKey = null), 3000);
+    setTimeout(() => (this.successKey = null), 5000);
   }
 
   get pendingCount(): number {

@@ -1,0 +1,114 @@
+<div class="notifications-inbox">
+  <!-- Header -->
+  <div class="inbox-header">
+    <div class="header-content">
+      <h2>{{ 'notifications.title' | translate : {} : 'Notificaciones' }}</h2>
+      <p class="subtitle">{{ 'notifications.subtitle' | translate : {} : 'Mantente al tanto de todas tus actualizaciones' }}</p>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats">
+      <div class="stat-badge unread">
+        <span class="icon">🔔</span>
+        <span class="label">{{ 'notifications.stats.unread' | translate : {} : 'Sin leer' }}</span>
+        <span class="count">{{ unreadCount }}</span>
+      </div>
+      <div class="stat-badge total">
+        <span class="icon">📋</span>
+        <span class="label">{{ 'notifications.stats.total' | translate : {} : 'Total' }}</span>
+        <span class="count">{{ notifications.length }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros y acciones -->
+  <div class="inbox-filters">
+    <div class="filter-buttons">
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === 'all'"
+        (click)="setFilter('all')">
+        {{ 'notifications.filters.all' | translate : {} : 'Todas' }}
+        <span class="count">({{ notifications.length }})</span>
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === 'unread'"
+        (click)="setFilter('unread')">
+        {{ 'notifications.filters.unread' | translate : {} : 'Sin leer' }}
+        <span class="count">({{ unreadCount }})</span>
+      </button>
+      <button
+        class="filter-btn"
+        [class.active]="selectedFilter === 'read'"
+        (click)="setFilter('read')">
+        {{ 'notifications.filters.read' | translate : {} : 'Leídas' }}
+        <span class="count">({{ notifications.length - unreadCount }})</span>
+      </button>
+    </div>
+
+    <div class="action-buttons">
+      <button
+        *ngIf="unreadCount > 0"
+        class="btn btn-secondary"
+        (click)="markAllAsRead()"
+        [title]="'notifications.actions.markAllRead' | translate : {} : 'Marcar todas como leídas'">
+        <span class="icon">✅</span>
+        {{ 'notifications.actions.markAllRead' | translate : {} : 'Marcar todas como leídas' }}
+      </button>
+      <button
+        class="btn btn-ghost"
+        (click)="loadNotifications()"
+        [title]="'common.refresh' | translate : {} : 'Actualizar'">
+        <span class="icon">🔄</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'notifications.loading' | translate : {} : 'Cargando notificaciones...' }}</p>
+  </div>
+
+  <!-- Estado de error -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p class="error-message">{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadNotifications()">
+      {{ 'notifications.retry' | translate : {} : 'Reintentar' }}
+    </button>
+  </div>
+
+  <!-- Lista de notificaciones -->
+  <div *ngIf="!loading && !error" class="notifications-list">
+    <!-- Estado vacío -->
+    <div *ngIf="filteredNotifications.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <span *ngIf="selectedFilter === 'unread'">📬</span>
+        <span *ngIf="selectedFilter === 'read'">📭</span>
+        <span *ngIf="selectedFilter === 'all'">🔔</span>
+      </div>
+      <h3>{{ 'notifications.empty.title' | translate : {} : 'No hay notificaciones' }}</h3>
+      <p *ngIf="selectedFilter === 'all'">
+        {{ 'notifications.empty.descAll' | translate : {} : 'Cuando recibas notificaciones, aparecerán aquí' }}
+      </p>
+      <p *ngIf="selectedFilter === 'unread'">
+        {{ 'notifications.empty.descUnread' | translate : {} : 'No tienes notificaciones sin leer' }}
+      </p>
+      <p *ngIf="selectedFilter === 'read'">
+        {{ 'notifications.empty.descRead' | translate : {} : 'No tienes notificaciones leídas' }}
+      </p>
+    </div>
+
+    <!-- Tarjetas de notificaciones -->
+    <div class="cards-container">
+      <app-notification-card
+        *ngFor="let notification of filteredNotifications; trackBy: trackByNotificationId"
+        [notification]="notification"
+        (markAsRead)="onMarkAsRead(notification)"
+        (delete)="onDeleteNotification(notification)">
+      </app-notification-card>
+    </div>
+  </div>
+</div>

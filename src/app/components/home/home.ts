@@ -207,16 +207,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   // --- Detectar verificación de email desde otra pestaña ---
   private verificationEffect = effect(() => {
     const verificationEvent = this.syncService.emailVerified();
-    console.log('[Home] Effect ejecutado. Verification event:', verificationEvent, 'Waiting:', this.waitingForVerification());
+    const waiting = this.waitingForVerification();
+
+    console.log('[Home] 🔄 Effect ejecutado');
+    console.log('[Home]   - Verification event:', verificationEvent);
+    console.log('[Home]   - Waiting for verification:', waiting);
 
     if (verificationEvent) {
       console.log('[Home] ✅ Email verificado detectado!', verificationEvent);
-      if (this.waitingForVerification()) {
-        console.log('[Home] Procediendo con auto-login para:', verificationEvent.email);
+      console.log('[Home]   - Email:', verificationEvent.email);
+      console.log('[Home]   - Timestamp:', verificationEvent.timestamp);
+
+      if (waiting) {
+        console.log('[Home] 🚀 Procediendo con auto-login para:', verificationEvent.email);
         this.handleEmailVerifiedFromAnotherTab(verificationEvent.email);
       } else {
-        console.log('[Home] No estamos esperando verificación, ignorando evento');
+        console.log('[Home] ⏸️ No estamos esperando verificación (waiting=false), ignorando evento');
       }
+    } else {
+      console.log('[Home] ⏳ Aún no hay evento de verificación');
     }
   });
 
@@ -288,6 +297,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    console.log('[Home] 🧹 Limpiando recursos en ngOnDestroy');
+
     // Invalidar todo lo pendiente
     this.bumpEmailToken();
     this.bumpNameToken();
@@ -298,22 +309,39 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.registerCharacterIndex = 0;
     this.loginPasswordIndex = 0;
 
+    // ✅ OPTIMIZACIÓN: Limpiar todos los timers pendientes
+    console.log('[Home] Limpiando', this.authTimers.length, 'timers pendientes');
+    this.authTimers.forEach(t => clearTimeout(t));
+    this.authTimers = [];
+
+    // ✅ Limpiar timer de éxito de auth si existe
+    if (this.authSuccessTimer) {
+      clearTimeout(this.authSuccessTimer);
+      this.authSuccessTimer = undefined;
+    }
+
     // Limpiar recursos de verificación de email
     this.destroy$.next();
     this.destroy$.complete();
 
     // Limpiar polling si está activo
     if (this.stopPolling) {
+      console.log('[Home] Deteniendo polling de verificación');
       this.stopPolling();
+      this.stopPolling = undefined;
     }
 
     // Remover listener de storage
     if (this.removeStorageListener) {
+      console.log('[Home] Removiendo listener de storage');
       this.removeStorageListener();
+      this.removeStorageListener = undefined;
     }
 
     // Limpiar el servicio de sincronización
     this.syncService.reset();
+
+    console.log('[Home] ✅ Recursos limpiados correctamente');
   }
 
   emailAnimOn(): boolean {
@@ -651,22 +679,75 @@ export class HomeComponent implements OnInit, OnDestroy {
     } catch (error: any) {
       // ✅ Detectar error de verificación
       if (this.emailVerificationService.isEmailVerificationError(error)) {
+        console.log('[Home] 🔍 Error completo recibido:', error);
+        console.log('[Home] 🔍 error.error:', error?.error);
+        console.log('[Home] 🔍 error.error.email:', error?.error?.email);
+        console.log('[Home] 🔍 error.email (nivel superior):', error?.email);
+
         this.needsEmailVerification.set(true);
         this.emailSent.set(false);
         this.waitingForVerification.set(true);
         this.errorLogin = null;
 
-        // Extraer el email real de la respuesta (útil cuando se loguea con username)
+        // ✅ Extraer el email real de la respuesta (CRÍTICO cuando se loguea con username)
+        // Primero intentar nivel superior (error normalizado), luego error.error (directo del backend)
         let emailToVerify = email!;
-        if (error?.error?.email) {
-          this.actualEmail.set(error.error.email);
-          emailToVerify = error.error.email;
+        const realEmail = (error as any)?.email || error?.error?.email;
+
+        if (realEmail) {
+          console.log('[Home] ✅ Email real extraído del backend:', realEmail);
+          this.actualEmail.set(realEmail);
+          emailToVerify = realEmail;
+        } else {
+          console.warn('[Home] ⚠️ Backend NO devolvió el email real. Usando valor ingresado:', emailToVerify);
         }
 
-        console.log('[Home] Esperando verificación de email para:', emailToVerify);
+        // ✅ Guardar credenciales con email real ANTES de iniciar polling
+        console.log('[Home] Guardando credenciales para auto-login con email:', emailToVerify);
+        localStorage.setItem('pendingAuth', JSON.stringify({
+          email: emailToVerify,
+          password: password!
+        }));
+
+        console.log('[Home] Iniciando polling con email:', emailToVerify);
 
         // ✅ Iniciar polling para detectar cuando el email sea verificado
         this.stopPolling = this.syncService.startPollingVerification(emailToVerify, 3000);
+
+        // ✅ Enviar automáticamente el email de verificación (como en el registro)
+        console.log('[Home] 📧 Intentando enviar automáticamente email de verificación para:', emailToVerify);
+        this.emailVerificationService.resendForUnverified(emailToVerify)
+          .subscribe({
+            next: (response) => {
+              console.log('[Home] Respuesta del servidor:', response);
+              if (response.success) {
+                this.emailSent.set(true);
+                console.log('[Home] ✅ Email de verificación enviado automáticamente con éxito');
+                this.errorLogin = null;
+              } else {
+                console.warn('[Home] ⚠️ El servidor respondió pero no fue exitoso:', response.message);
+              }
+            },
+            error: (err: any) => {
+              console.error('[Home] ❌ Error completo al enviar email:', err);
+              console.error('[Home] Error status:', err.status);
+              console.error('[Home] Error message:', err.message);
+              console.error('[Home] Error body:', err.error);
+
+              // No mostrar error si ya está verificado o está en cooldown
+              if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
+                console.log('[Home] Email ya verificado');
+                this.errorLogin = this.translate.instant('auth.errors.email_already_verified');
+              } else if (this.emailVerificationService.isCooldownError(err)) {
+                console.log('[Home] Email enviado recientemente, en cooldown');
+                this.emailSent.set(true); // Marcar como enviado para no confundir al usuario
+                this.errorLogin = null;
+              } else {
+                console.error('[Home] Error inesperado al enviar email automáticamente');
+                this.errorLogin = this.translate.instant('auth.errors.email_send_failed_use_button');
+              }
+            }
+          });
 
         // NO limpiar pendingAuth aquí
       } else {
@@ -726,34 +807,45 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Maneja cuando el email fue verificado desde otra pestaña (auto-login)
    */
   private handleEmailVerifiedFromAnotherTab(email: string): void {
-    console.log('[Home] Intentando auto-login después de verificación:', email);
+    console.log('[Home] 🎯 Auto-login iniciado. Email verificado:', email);
 
     // Obtener credenciales de pendingAuth
     const raw = localStorage.getItem('pendingAuth');
     if (!raw) {
-      console.warn('[Home] No hay credenciales pendientes para auto-login');
+      console.warn('[Home] ⚠️ No hay credenciales pendientes para auto-login');
       this.waitingForVerification.set(false);
       return;
     }
 
     try {
       const { email: savedEmail, password } = JSON.parse(raw);
+      console.log('[Home] 📝 Credenciales guardadas. Email:', savedEmail);
 
-      // Verificar que el email coincida
-      if (savedEmail.toLowerCase() !== email.toLowerCase()) {
-        console.warn('[Home] El email verificado no coincide con las credenciales guardadas');
+      // Verificar que el email coincida (case-insensitive)
+      const emailsMatch = savedEmail.toLowerCase().trim() === email.toLowerCase().trim();
+      console.log('[Home] 🔍 Comparando emails:');
+      console.log('  - Guardado:', savedEmail.toLowerCase().trim());
+      console.log('  - Verificado:', email.toLowerCase().trim());
+      console.log('  - Coinciden:', emailsMatch);
+
+      if (!emailsMatch) {
+        console.error('[Home] ❌ Los emails NO coinciden! No se puede hacer auto-login.');
         this.waitingForVerification.set(false);
         return;
       }
 
+      console.log('[Home] ✅ Emails coinciden. Procediendo con auto-login...');
+
       // Hacer auto-login
+      console.log('[Home] 🔐 Llamando a auth.login con email:', savedEmail);
       this.loadingLogin = true;
       this.loadingRegister = true;
       this.auth.login({ email: savedEmail, password })
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (user) => {
-            console.log('[Home] Auto-login exitoso:', user);
+            console.log('[Home] 🎉 Auto-login EXITOSO!');
+            console.log('[Home]   - Usuario:', user);
             this.waitingForVerification.set(false);
             this.needsEmailVerification.set(false);
             this.loadingLogin = false;
@@ -795,10 +887,14 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.authTimers.push(__t1, __t2);
           },
           error: (err) => {
+            console.error('[Home] ❌ Error en auto-login:', err);
+            console.error('[Home]   - Status:', err?.status);
+            console.error('[Home]   - Message:', err?.message);
+            console.error('[Home]   - Error body:', err?.error);
+
             this.loadingLogin = false;
             this.loadingRegister = false;
             this.waitingForVerification.set(false);
-            console.error('[Home] Error en auto-login:', err);
             this.errorLogin = this.translate.instant('auth.errors.auto_login_failed');
             this.errorRegister = this.translate.instant('auth.errors.auto_login_failed');
             localStorage.removeItem('pendingAuth');

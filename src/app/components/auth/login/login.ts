@@ -156,13 +156,20 @@ export class LoginComponent implements OnDestroy {
       this.error.set('Debes verificar tu email antes de iniciar sesión.');
 
       // Extraer el email real de la respuesta (útil cuando se loguea con username)
+      // Primero intentar nivel superior (error normalizado), luego error.error (directo del backend)
       let emailToVerify = this.email();
-      if (error.error?.email) {
-        this.actualEmail.set(error.error.email);
-        emailToVerify = error.error.email;
+      const realEmail = (error as any)?.email || error.error?.email;
+
+      if (realEmail) {
+        console.log('[Login] ✅ Email real extraído del backend:', realEmail);
+        this.actualEmail.set(realEmail);
+        emailToVerify = realEmail;
+      } else {
+        console.warn('[Login] ⚠️ Backend NO devolvió el email real. Usando valor ingresado:', emailToVerify);
       }
 
       // Guardar credenciales para auto-login después de verificación
+      console.log('[Login] Guardando credenciales para auto-login con email:', emailToVerify);
       localStorage.setItem('pendingAuth', JSON.stringify({
         email: emailToVerify,
         password: this.password()
@@ -174,6 +181,45 @@ export class LoginComponent implements OnDestroy {
       // Iniciar polling para verificar el estado del email
       console.log('[Login] Iniciando polling para verificar email:', emailToVerify);
       this.stopPolling = this.syncService.startPollingVerification(emailToVerify, 3000);
+
+      // ✅ Enviar automáticamente el email de verificación (como en el registro)
+      console.log('[Login] 📧 Intentando enviar automáticamente email de verificación para:', emailToVerify);
+      this.emailVerificationService.resendForUnverified(emailToVerify)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            console.log('[Login] Respuesta del servidor:', response);
+            if (response.success) {
+              this.emailSent.set(true);
+              console.log('[Login] ✅ Email de verificación enviado automáticamente con éxito');
+              // Limpiar el error principal para que solo se muestre el mensaje de email enviado
+              this.error.set('Revisa tu bandeja de entrada para verificar tu email.');
+            } else {
+              console.warn('[Login] ⚠️ El servidor respondió pero no fue exitoso:', response.message);
+              // No marcar como enviado si el servidor dice que falló
+            }
+          },
+          error: (err: HttpErrorResponse) => {
+            console.error('[Login] ❌ Error completo al enviar email:', err);
+            console.error('[Login] Error status:', err.status);
+            console.error('[Login] Error message:', err.message);
+            console.error('[Login] Error body:', err.error);
+
+            // No mostrar error si ya está verificado o está en cooldown
+            if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
+              console.log('[Login] Email ya verificado');
+              this.error.set('Tu email ya está verificado. Intenta iniciar sesión nuevamente.');
+            } else if (this.emailVerificationService.isCooldownError(err)) {
+              console.log('[Login] Email enviado recientemente, en cooldown');
+              this.emailSent.set(true); // Marcar como enviado para no confundir al usuario
+              this.error.set('El email de verificación ya fue enviado. Revisa tu bandeja de entrada.');
+            } else {
+              console.error('[Login] Error inesperado al enviar email automáticamente');
+              // No marcar como enviado si hubo un error real
+              this.error.set('No se pudo enviar el email automáticamente. Usa el botón de reenvío abajo.');
+            }
+          }
+        });
 
       return;
     }

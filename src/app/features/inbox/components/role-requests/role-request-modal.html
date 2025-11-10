@@ -304,7 +304,7 @@
             class="select-input"
           >
             <option [ngValue]="null">Selecciona tu rango...</option>
-            <option *ngFor="let rank of AUTHORITY_RANKS" [value]="rank.value">
+            <option *ngFor="let rank of AUTHORITY_RANKS" [ngValue]="rank.value">
               {{ rank.label }}
             </option>
           </select>

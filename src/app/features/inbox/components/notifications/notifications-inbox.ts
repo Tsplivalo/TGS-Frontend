@@ -1,0 +1,131 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NotificationService } from '../../services/notification.service';
+import { Notification, NotificationStatus } from '../../models/notification.model';
+import { NotificationCardComponent } from './notification-card';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
+@Component({
+  selector: 'app-notifications-inbox',
+  standalone: true,
+  imports: [CommonModule, NotificationCardComponent, TranslateModule],
+  templateUrl: './notifications-inbox.html',
+  styleUrls: ['./notifications.scss']
+})
+export class NotificationsInboxComponent implements OnInit {
+  private t = inject(TranslateService);
+  private notificationService = inject(NotificationService);
+
+  notifications: Notification[] = [];
+  filteredNotifications: Notification[] = [];
+  loading: boolean = true;
+  error: string | null = null;
+
+  // Filtros
+  selectedFilter: 'all' | 'unread' | 'read' = 'all';
+  unreadCount: number = 0;
+
+  NotificationStatus = NotificationStatus;
+
+  ngOnInit(): void {
+    this.loadNotifications();
+  }
+
+  async loadNotifications(): Promise<void> {
+    try {
+      this.loading = true;
+      this.error = null;
+
+      const fetched = await this.notificationService.getMyNotifications();
+
+      // Ordenar por fecha descendente (más recientes primero)
+      this.notifications = fetched.sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      this.unreadCount = this.notifications.filter(n => n.status === NotificationStatus.UNREAD).length;
+      this.applyFilter();
+    } catch (err: any) {
+      console.error('❌ [NotificationsInbox] Error loading notifications:', err);
+      this.error = err.error?.message || this.t.instant('notifications.errorLoad') || 'Error al cargar las notificaciones';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  applyFilter(): void {
+    switch (this.selectedFilter) {
+      case 'unread':
+        this.filteredNotifications = this.notifications.filter(n => n.status === NotificationStatus.UNREAD);
+        break;
+      case 'read':
+        this.filteredNotifications = this.notifications.filter(n => n.status === NotificationStatus.READ);
+        break;
+      default:
+        this.filteredNotifications = this.notifications;
+    }
+  }
+
+  setFilter(filter: 'all' | 'unread' | 'read'): void {
+    this.selectedFilter = filter;
+    this.applyFilter();
+  }
+
+  async onMarkAsRead(notification: Notification): Promise<void> {
+    try {
+      await this.notificationService.markAsRead(notification.id);
+      notification.status = NotificationStatus.READ;
+      notification.readAt = new Date().toISOString();
+      this.unreadCount = Math.max(0, this.unreadCount - 1);
+      this.applyFilter();
+    } catch (err: any) {
+      console.error('❌ Error marking notification as read:', err);
+    }
+  }
+
+  async onDeleteNotification(notification: Notification): Promise<void> {
+    if (!confirm(this.t.instant('notifications.confirmDelete') || '¿Eliminar esta notificación?')) {
+      return;
+    }
+
+    try {
+      await this.notificationService.deleteNotification(notification.id);
+
+      // Actualizar la lista local
+      this.notifications = this.notifications.filter(n => n.id !== notification.id);
+
+      if (notification.status === NotificationStatus.UNREAD) {
+        this.unreadCount = Math.max(0, this.unreadCount - 1);
+      }
+
+      this.applyFilter();
+    } catch (err: any) {
+      console.error('❌ Error deleting notification:', err);
+      this.error = this.t.instant('notifications.errorDelete') || 'Error al eliminar la notificación';
+    }
+  }
+
+  async markAllAsRead(): Promise<void> {
+    try {
+      await this.notificationService.markAllAsRead();
+
+      // Actualizar todas las notificaciones localmente
+      this.notifications.forEach(n => {
+        if (n.status === NotificationStatus.UNREAD) {
+          n.status = NotificationStatus.READ;
+          n.readAt = new Date().toISOString();
+        }
+      });
+
+      this.unreadCount = 0;
+      this.applyFilter();
+    } catch (err: any) {
+      console.error('❌ Error marking all as read:', err);
+      this.error = this.t.instant('notifications.errorMarkAllRead') || 'Error al marcar todas como leídas';
+    }
+  }
+
+  trackByNotificationId(index: number, notification: Notification): string {
+    return notification.id;
+  }
+}

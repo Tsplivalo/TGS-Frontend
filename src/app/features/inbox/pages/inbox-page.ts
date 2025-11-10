@@ -9,6 +9,7 @@ import { AdminRoleRequestsInboxComponent } from '../components/role-requests/adm
 import { UserRoleRequestsInboxComponent } from '../components/role-requests/user-role-requests-inbox';
 import { AdminUserVerificationInboxComponent } from '../components/role-requests/admin-user-verification-inbox';
 import { UserVerificationStatusComponent } from '../components/role-requests/user-verification-status';
+import { NotificationsInboxComponent } from '../components/notifications/notifications-inbox';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 
@@ -22,6 +23,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     UserRoleRequestsInboxComponent,
     AdminUserVerificationInboxComponent,
     UserVerificationStatusComponent,
+    NotificationsInboxComponent,
     TranslateModule
   ],
   templateUrl: './inbox-page.html',
@@ -32,7 +34,7 @@ export class InboxPageComponent implements OnInit {
   private tr  = inject(TranslateService);
 
   // Sección activa para ADMIN y USER
-  activeSection = signal<'user-verification' | 'role-requests'>('user-verification');
+  activeSection = signal<'user-verification' | 'role-requests' | 'notifications'>('notifications');
 
   // Computed signals desde AuthService
   user = computed(() => this.authService.user());
@@ -114,13 +116,13 @@ export class InboxPageComponent implements OnInit {
     });
   }
 
-  setActiveSection(section: 'user-verification' | 'role-requests'): void {
+  setActiveSection(section: 'user-verification' | 'role-requests' | 'notifications'): void {
     // ✅ Prevenir cambio a role-requests si no está verificado (solo para usuarios no-admin)
     if (section === 'role-requests' && !this.isVerified() && !this.isAdmin()) {
       console.warn('[InboxPage] ⚠️ Cannot access role-requests without verification');
       return;
     }
-    
+
     this.activeSection.set(section);
     console.log('[InboxPage] 📑 Active section changed to:', section);
   }

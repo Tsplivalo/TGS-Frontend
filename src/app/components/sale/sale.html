@@ -1,10 +1,10 @@
 <section class="stack-lg">
 
   <!-- GRID PRINCIPAL: STATS (FIJO) + LISTA -->
-  <div class="sales-main-grid">
+  <div class="sales-main-grid" [class.single-column]="isAuthority() && !isAdmin()">
 
-    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS -->
-    <aside class="stats-panel">
+    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS (Oculto para Autoridades) -->
+    <aside class="stats-panel" *ngIf="!isAuthority() || isAdmin()">
       <div class="glass-dark card">
 
         @if (loadingStats()) {
@@ -92,8 +92,8 @@
         </div>
       </div>
 
-      <!-- Estadísticas resumen -->
-      <div *ngIf="!loading() && sales().length > 0" class="filters"
+      <!-- Estadísticas resumen (Oculto para Autoridades) -->
+      <div *ngIf="!loading() && sales().length > 0 && (!isAuthority() || isAdmin())" class="filters"
         style="background: rgba(195, 164, 98, 0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2);">
         <span class="muted"><strong>{{ 'sales.stats.totalLabel' | translate }}</strong> {{ totalSales() }}</span>
         <span class="muted"><strong>{{ 'sales.stats.revenueLabel' | translate }}</strong> {{ totalRevenue() |

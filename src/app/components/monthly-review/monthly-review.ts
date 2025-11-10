@@ -967,12 +967,12 @@ export class MonthlyReviewComponent implements OnInit {
         top: 10,
         textStyle: {
           color: 'rgba(255, 255, 255, 0.95)',
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: 700
         },
         subtextStyle: {
           color: 'rgba(255, 255, 255, 0.6)',
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: 500
         }
       },
@@ -1052,8 +1052,8 @@ export class MonthlyReviewComponent implements OnInit {
             if (p.seriesName === seriesNames.trend) {
               const val = Math.round(p.value);
               content += `<div style="margin: 6px 0; display: flex; align-items: center; justify-content: space-between;">`;
-              content += `<span style="color: rgba(255, 99, 132, 0.8);"><b>📈 ${this.tr.instant('monthlyReview.charts.prediction.tooltip.trend')}</b></span>`;
-              content += `<span style="color: rgba(255, 99, 132, 0.8); font-weight: bold;">$${val.toLocaleString('es-AR')}</span>`;
+              content += `<span style="color: #ef4444;"><b>📈 ${this.tr.instant('monthlyReview.charts.prediction.tooltip.trend')}</b></span>`;
+              content += `<span style="color: #ef4444; font-weight: bold;">$${val.toLocaleString('es-AR')}</span>`;
               content += `</div>`;
             }
           });
@@ -1093,15 +1093,16 @@ export class MonthlyReviewComponent implements OnInit {
           this.tr.instant('monthlyReview.charts.prediction.series.prediction'),
           this.tr.instant('monthlyReview.charts.prediction.series.trend')
         ],
-        top: 55,
+        top: 58,
+        left: 'center',
         textStyle: {
           color: 'rgba(255, 255, 255, 0.85)',
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: 500
         },
-        itemGap: 25,
-        itemWidth: 30,
-        itemHeight: 14,
+        itemGap: 15,
+        itemWidth: 25,
+        itemHeight: 12,
         icon: 'roundRect',
         inactiveColor: 'rgba(255, 255, 255, 0.2)'
       },
@@ -1362,14 +1363,17 @@ export class MonthlyReviewComponent implements OnInit {
           smooth: false,
           symbol: 'none',
           z: 5,
+          itemStyle: {
+            color: '#ef4444'
+          },
           lineStyle: {
-            color: 'rgba(255, 99, 132, 0.7)',
+            color: '#ef4444',
             width: 2,
             type: [4, 4]
           },
           emphasis: {
             lineStyle: {
-              color: 'rgba(255, 99, 132, 0.9)',
+              color: '#f87171',
               width: 3
             }
           },

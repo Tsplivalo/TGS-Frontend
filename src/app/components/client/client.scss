@@ -1111,3 +1111,18 @@ fieldset.group legend {
   opacity: 0.8;
   color: var(--muted);
 }
+
+/* ===== TABLA CLIENTES RESPONSIVE ===== */
+.table {
+  table-layout: fixed;
+}
+
+.table td .truncate {
+  max-width: 180px;
+}
+
+@media (max-width: 1200px) {
+  .table td .truncate {
+    max-width: 120px;
+  }
+}
