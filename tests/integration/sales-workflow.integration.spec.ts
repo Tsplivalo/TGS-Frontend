@@ -168,11 +168,10 @@ describe('Integration: Sales Workflow', () => {
     // Create sale
     saleService.createSale(saleData).subscribe({
       next: (response) => {
-        expect(response.success).toBe(true);
         expect(response.data).toBeDefined();
         expect(response.data?.id).toBe(1);
         expect(response.data?.total).toBeCloseTo(124.48, 2);
-        expect(response.data?.details.length).toBe(2);
+        expect(response.data?.details?.length).toBe(2);
 
         // Verify cart is cleared after sale
         cartService.clear();
@@ -205,7 +204,7 @@ describe('Integration: Sales Workflow', () => {
         ...mockSale,
         id: 2,
         total: 65.49,
-        createdAt: new Date(Date.now() - 86400000).toISOString() // Yesterday
+        saleDate: new Date(Date.now() - 86400000).toISOString() // Yesterday
       }
     ];
 
@@ -217,7 +216,7 @@ describe('Integration: Sales Workflow', () => {
         // Verify first sale
         expect(sales[0].id).toBe(1);
         expect(sales[0].total).toBeCloseTo(124.48, 2);
-        expect(sales[0].details.length).toBe(2);
+        expect(sales[0].details?.length).toBe(2);
 
         // Verify second sale
         expect(sales[1].id).toBe(2);
@@ -227,9 +226,9 @@ describe('Integration: Sales Workflow', () => {
         sales.forEach(sale => {
           expect(sale.id).toBeDefined();
           expect(sale.total).toBeDefined();
-          expect(sale.clientDni).toBeDefined();
-          expect(sale.distributorDni).toBeDefined();
-          expect(sale.createdAt).toBeDefined();
+          expect(sale.client?.dni).toBeDefined();
+          expect(sale.distributor?.dni).toBeDefined();
+          expect(sale.saleDate).toBeDefined();
         });
 
         done();
@@ -269,7 +268,7 @@ describe('Integration: Sales Workflow', () => {
 
         // Verify all sales are within date range
         sales.forEach(sale => {
-          const saleDate = new Date(sale.createdAt);
+          const saleDate = new Date(sale.saleDate || sale.date || '');
           expect(saleDate >= new Date(startDate)).toBe(true);
           expect(saleDate <= new Date(endDate)).toBe(true);
         });
@@ -395,7 +394,9 @@ describe('Integration: Sales Workflow', () => {
         expect(sale).toBeDefined();
         expect(sale.id).toBe(saleId);
         expect(sale.details).toBeDefined();
-        expect(sale.details.length).toBeGreaterThan(0);
+        if (sale.details) {
+          expect(sale.details.length).toBeGreaterThan(0);
+        }
 
         done();
       }

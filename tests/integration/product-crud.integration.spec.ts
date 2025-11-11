@@ -158,8 +158,7 @@ describe('Integration: Product CRUD', () => {
 
     const updatedProduct: ProductDTO = {
       ...mockProduct,
-      ...updateData,
-      updatedAt: new Date().toISOString()
+      ...updateData
     };
 
     // Update product

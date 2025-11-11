@@ -6,8 +6,10 @@ import {
   CreateRoleRequestDTO,
   ReviewRoleRequestDTO,
   RoleRequestSearchParams,
-  PaginatedRoleRequests
+  PaginatedRoleRequests,
+  RequestStatus
 } from '../models/role-request.model';
+import { Role } from '../../../models/user/user.model';
 
 describe('RoleRequestService', () => {
   let service: RoleRequestService;
@@ -16,13 +18,18 @@ describe('RoleRequestService', () => {
 
   const mockRoleRequest: RoleRequest = {
     id: '123',
-    userId: 'user-456',
-    requestedRole: 'PARTNER',
-    currentRole: 'USER',
+    user: {
+      id: 'user-456',
+      username: 'testuser',
+      email: 'test@example.com'
+    },
+    requestedRole: Role.PARTNER,
+    roleToRemove: null,
+    isRoleChange: false,
     justification: 'I want to become a partner',
-    status: 'PENDING',
+    status: RequestStatus.PENDING,
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
+    reviewedBy: null
   };
 
   beforeEach(() => {
@@ -41,7 +48,7 @@ describe('RoleRequestService', () => {
   describe('createRequest()', () => {
     it('should create a new role request', async () => {
       const createDTO: CreateRoleRequestDTO = {
-        requestedRole: 'PARTNER',
+        requestedRole: Role.PARTNER,
         justification: 'I want to become a partner'
       };
 
@@ -56,12 +63,12 @@ describe('RoleRequestService', () => {
 
       const result = await promise;
       expect(result).toEqual(mockRoleRequest);
-      expect(result.requestedRole).toBe('PARTNER');
+      expect(result.requestedRole).toBe(Role.PARTNER);
     });
 
     it('should handle validation errors when creating request', async () => {
       const createDTO: CreateRoleRequestDTO = {
-        requestedRole: 'INVALID_ROLE',
+        requestedRole: 'INVALID_ROLE' as any, // Intentionally invalid for testing
         justification: ''
       };
 
@@ -84,7 +91,7 @@ describe('RoleRequestService', () => {
 
     it('should handle duplicate request error', async () => {
       const createDTO: CreateRoleRequestDTO = {
-        requestedRole: 'PARTNER',
+        requestedRole: Role.PARTNER,
         justification: 'Test justification'
       };
 
@@ -104,7 +111,7 @@ describe('RoleRequestService', () => {
     it('should get all requests for current user', async () => {
       const mockRequests: RoleRequest[] = [
         mockRoleRequest,
-        { ...mockRoleRequest, id: '789', requestedRole: 'DISTRIBUTOR' }
+        { ...mockRoleRequest, id: '789', requestedRole: Role.DISTRIBUTOR }
       ];
 
       const promise = service.getMyRequests();
@@ -148,7 +155,7 @@ describe('RoleRequestService', () => {
     it('should get all pending requests (admin only)', async () => {
       const mockPendingRequests: RoleRequest[] = [
         mockRoleRequest,
-        { ...mockRoleRequest, id: '456', userId: 'user-789' }
+        { ...mockRoleRequest, id: '456', user: { ...mockRoleRequest.user, id: 'user-789' } }
       ];
 
       const promise = service.getPendingRequests();
@@ -161,7 +168,7 @@ describe('RoleRequestService', () => {
 
       const result = await promise;
       expect(result).toEqual(mockPendingRequests);
-      expect(result.every(r => r.status === 'PENDING')).toBe(true);
+      expect(result.every(r => r.status === RequestStatus.PENDING)).toBe(true);
     });
 
     it('should handle forbidden error for non-admin users', async () => {
@@ -180,8 +187,8 @@ describe('RoleRequestService', () => {
   describe('searchRequests()', () => {
     it('should search requests with all parameters', async () => {
       const searchParams: RoleRequestSearchParams = {
-        status: 'APPROVED',
-        requestedRole: 'PARTNER',
+        status: RequestStatus.APPROVED,
+        requestedRole: Role.PARTNER,
         userId: 'user-123',
         page: 1,
         limit: 10
@@ -189,7 +196,7 @@ describe('RoleRequestService', () => {
 
       const mockPaginatedResponse: PaginatedRoleRequests = {
         data: [mockRoleRequest],
-        meta: {
+        pagination: {
           page: 1,
           limit: 10,
           total: 1,
@@ -209,8 +216,8 @@ describe('RoleRequestService', () => {
       });
 
       expect(req.request.method).toBe('GET');
-      expect(req.request.params.get('status')).toBe('APPROVED');
-      expect(req.request.params.get('requestedRole')).toBe('PARTNER');
+      expect(req.request.params.get('status')).toBe(RequestStatus.APPROVED);
+      expect(req.request.params.get('requestedRole')).toBe(Role.PARTNER);
       expect(req.request.params.get('userId')).toBe('user-123');
       expect(req.request.params.get('page')).toBe('1');
       expect(req.request.params.get('limit')).toBe('10');
@@ -220,17 +227,17 @@ describe('RoleRequestService', () => {
 
       const result = await promise;
       expect(result.data.length).toBe(1);
-      expect(result.meta.total).toBe(1);
+      expect(result.pagination.total).toBe(1);
     });
 
     it('should search requests with partial parameters', async () => {
       const searchParams: RoleRequestSearchParams = {
-        status: 'PENDING'
+        status: RequestStatus.PENDING
       };
 
       const mockPaginatedResponse: PaginatedRoleRequests = {
         data: [mockRoleRequest, mockRoleRequest],
-        meta: {
+        pagination: {
           page: 1,
           limit: 20,
           total: 2,
@@ -244,7 +251,7 @@ describe('RoleRequestService', () => {
         return request.url === baseUrl && request.params.has('status');
       });
 
-      expect(req.request.params.get('status')).toBe('PENDING');
+      expect(req.request.params.get('status')).toBe(RequestStatus.PENDING);
       req.flush(mockPaginatedResponse);
 
       const result = await promise;
@@ -256,7 +263,7 @@ describe('RoleRequestService', () => {
 
       const mockPaginatedResponse: PaginatedRoleRequests = {
         data: [],
-        meta: { page: 1, limit: 20, total: 0, totalPages: 0 }
+        pagination: { page: 1, limit: 20, total: 0, totalPages: 0 }
       };
 
       const promise = service.searchRequests(searchParams);
@@ -273,16 +280,16 @@ describe('RoleRequestService', () => {
     it('should approve a role request', async () => {
       const requestId = '123';
       const reviewDTO: ReviewRoleRequestDTO = {
-        status: 'APPROVED',
-        adminNotes: 'Application looks good'
+        action: 'approve',
+        comments: 'Application looks good'
       };
 
       const approvedRequest: RoleRequest = {
         ...mockRoleRequest,
-        status: 'APPROVED',
+        status: RequestStatus.APPROVED,
         reviewedAt: '2024-01-02T00:00:00Z',
-        reviewedBy: 'admin-123',
-        adminNotes: 'Application looks good'
+        reviewedBy: { id: 'admin-123', username: 'admin' },
+        adminComments: 'Application looks good'
       };
 
       const promise = service.reviewRequest(requestId, reviewDTO);
@@ -295,23 +302,23 @@ describe('RoleRequestService', () => {
       req.flush({ data: approvedRequest });
 
       const result = await promise;
-      expect(result.status).toBe('APPROVED');
-      expect(result.adminNotes).toBe('Application looks good');
+      expect(result.status).toBe(RequestStatus.APPROVED);
+      expect(result.adminComments).toBe('Application looks good');
     });
 
     it('should reject a role request', async () => {
       const requestId = '123';
       const reviewDTO: ReviewRoleRequestDTO = {
-        status: 'REJECTED',
-        adminNotes: 'Insufficient experience'
+        action: 'reject',
+        comments: 'Insufficient experience'
       };
 
       const rejectedRequest: RoleRequest = {
         ...mockRoleRequest,
-        status: 'REJECTED',
+        status: RequestStatus.REJECTED,
         reviewedAt: '2024-01-02T00:00:00Z',
-        reviewedBy: 'admin-123',
-        adminNotes: 'Insufficient experience'
+        reviewedBy: { id: 'admin-123', username: 'admin' },
+        adminComments: 'Insufficient experience'
       };
 
       const promise = service.reviewRequest(requestId, reviewDTO);
@@ -320,14 +327,14 @@ describe('RoleRequestService', () => {
       req.flush({ data: rejectedRequest });
 
       const result = await promise;
-      expect(result.status).toBe('REJECTED');
-      expect(result.adminNotes).toBe('Insufficient experience');
+      expect(result.status).toBe(RequestStatus.REJECTED);
+      expect(result.adminComments).toBe('Insufficient experience');
     });
 
     it('should handle request not found error', async () => {
       const requestId = 'non-existent';
       const reviewDTO: ReviewRoleRequestDTO = {
-        status: 'APPROVED'
+        action: 'approve'
       };
 
       const promise = service.reviewRequest(requestId, reviewDTO);
@@ -344,7 +351,7 @@ describe('RoleRequestService', () => {
     it('should handle already reviewed error', async () => {
       const requestId = '123';
       const reviewDTO: ReviewRoleRequestDTO = {
-        status: 'APPROVED'
+        action: 'approve'
       };
 
       const promise = service.reviewRequest(requestId, reviewDTO);
@@ -385,7 +392,8 @@ describe('RoleRequestService', () => {
       const promise = service.getMyRequests();
 
       const req = httpMock.expectOne(`${baseUrl}/me`);
-      req.flush({ invalid: 'response' });
+      // Trigger a parsing error by sending invalid JSON
+      req.error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
 
       await expectAsync(promise).toBeRejected();
     });
