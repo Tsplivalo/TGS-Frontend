@@ -83,14 +83,13 @@
             <td><span class="truncate">{{ z.name }}</span></td>
             <td><span class="truncate">{{ z.description || '-' }}</span></td>
             <td *ngIf="isAdmin()" class="right">
-              <button class="btn btn--icon" (click)="edit(z); isFormOpen = true"
-                [attr.aria-label]="'common.edit' | translate" [attr.title]="'common.edit' | translate">
-                ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>
+              <button class="btn ghost btn--icon" (click)="edit(z); isFormOpen = true"
+                [attr.title]="'common.edit' | translate">
+                ✏️
               </button>
-
-              <button class="btn danger btn--icon" (click)="delete(z)" [attr.aria-label]="'common.delete' | translate"
+              <button class="btn danger btn--icon" (click)="delete(z)"
                 [attr.title]="'common.delete' | translate">
-                🗑️ <span class="sr-only">{{ 'common.delete' | translate }}</span>
+                🗑️
               </button>
             </td>
 

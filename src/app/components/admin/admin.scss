@@ -1054,6 +1054,22 @@ fieldset.group legend {
   :host {
     padding-bottom: 2rem;
   }
+
+  /* Tabla responsiva en móviles */
+  .table thead th {
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+
+  .table tbody td {
+    font-size: 13px;
+    padding: 10px 6px;
+  }
+
+  .table thead th:nth-child(4),
+  .table tbody td:nth-child(4) {
+    display: none; /* Ocultar columna phone en móvil */
+  }
 }
 
 @media (max-width: 768px) {
@@ -1063,6 +1079,24 @@ fieldset.group legend {
 
   .new-admin-overlay__panel {
     margin-top: var(--sp-3);
+  }
+
+  /* Tabla en tablets */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 700px; /* Ancho mínimo para mantener el diseño */
+  }
+}
+
+@media (min-width: 1200px) {
+  /* Optimización para pantallas grandes */
+  .table thead th,
+  .table tbody td {
+    padding: 14px 16px;
   }
 }
 
@@ -1109,4 +1143,26 @@ fieldset.group legend {
   font-size: 11px;
   opacity: 0.8;
   color: var(--muted);
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA TABLA DE ADMIN ===== */
+.table tbody td {
+  vertical-align: middle;
+
+  /* Mejora visual para celdas con botones */
+  &.right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+/* Efecto hover en filas más suave */
+.table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+  transform: translateX(2px);
 }

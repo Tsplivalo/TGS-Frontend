@@ -33,6 +33,10 @@
     <ng-container *ngIf="shouldShowAdminView()">
       <!-- Tabs de navegación -->
       <nav class="inbox-tabs" role="tablist">
+        <button role="tab" [attr.aria-selected]="activeSection() === 'notifications'"
+          [class.active]="activeSection() === 'notifications'" (click)="setActiveSection('notifications')">
+          {{ 'inbox.tabs.notifications' | translate : {} : '🔔 Notificaciones' }}
+        </button>
         <button role="tab" [attr.aria-selected]="activeSection() === 'user-verification'"
           [class.active]="activeSection() === 'user-verification'" (click)="setActiveSection('user-verification')">
           {{ 'inbox.tabs.userVerificationPlural' | translate }}
@@ -45,6 +49,11 @@
 
       <!-- Contenido según tab activo -->
       <div class="tab-content" role="tabpanel">
+        <!-- Tab: Notificaciones -->
+        <div *ngIf="activeSection() === 'notifications'" class="tab-panel">
+          <app-notifications-inbox></app-notifications-inbox>
+        </div>
+
         <!-- Tab: Verificación de Usuarios -->
         <div *ngIf="activeSection() === 'user-verification'" class="tab-panel">
           <app-admin-user-verification-inbox></app-admin-user-verification-inbox>
@@ -63,6 +72,10 @@
     <ng-container *ngIf="shouldShowUserView()">
       <!-- Tabs de navegación para usuario -->
       <nav class="inbox-tabs" role="tablist">
+        <button role="tab" [attr.aria-selected]="activeSection() === 'notifications'"
+          [class.active]="activeSection() === 'notifications'" (click)="setActiveSection('notifications')">
+          {{ 'inbox.tabs.notifications' | translate : {} : '🔔 Notificaciones' }}
+        </button>
         <button role="tab" [attr.aria-selected]="activeSection() === 'user-verification'"
           [class.active]="activeSection() === 'user-verification'" (click)="setActiveSection('user-verification')">
           {{ 'inbox.tabs.userVerification' | translate }}
@@ -77,6 +90,11 @@
 
       <!-- Contenido según tab activo -->
       <div class="tab-content" role="tabpanel">
+        <!-- Tab: Notificaciones -->
+        <div *ngIf="activeSection() === 'notifications'" class="tab-panel">
+          <app-notifications-inbox></app-notifications-inbox>
+        </div>
+
         <!-- Tab: Verificación de Usuario -->
         <div *ngIf="activeSection() === 'user-verification'" class="tab-panel">
           <app-user-verification-status [userEmail]="getUserEmail()" [isVerified]="isVerified()"

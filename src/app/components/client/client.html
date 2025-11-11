@@ -79,13 +79,13 @@
     <div class="table-wrap" *ngIf="!loading()">
       <table class="table" *ngIf="filteredClients().length > 0; else empty">
         <colgroup>
-          <col style="width:100px" />
-          <col />
-          <col />
-          <col />
-          <col style="width:120px" />
-          <col style="width:100px" />
-          <col style="width:100px" *ngIf="isAdmin()" />
+          <col style="width:10%" />
+          <col style="width:18%" />
+          <col style="width:22%" />
+          <col style="width:20%" />
+          <col style="width:13%" />
+          <col style="width:8%" />
+          <col *ngIf="isAdmin()" style="width:9%" />
         </colgroup>
 
         <thead>
@@ -112,16 +112,16 @@
               </span>
             </td>
             <td class="right" *ngIf="isAdmin()">
-              <button class="btn ghost btn--icon" (click)="edit(c)" [attr.title]="'common.edit' | translate"
-                [attr.aria-label]="'common.edit' | translate">
-                ✏️
-                <span class="sr-only">{{ 'common.edit' | translate }}</span>
-              </button>
-              <button class="btn danger btn--icon" (click)="delete(c.dni)" [attr.title]="'common.delete' | translate"
-                [attr.aria-label]="'common.delete' | translate">
-                🗑️
-                <span class="sr-only">{{ 'common.delete' | translate }}</span>
-              </button>
+              <div style="display: inline-flex; gap: 8px; justify-content: flex-end; padding-right: 8px;">
+                <button class="btn ghost btn--icon" (click)="edit(c)"
+                  [attr.title]="'common.edit' | translate">
+                  ✏️
+                </button>
+                <button class="btn danger btn--icon" (click)="delete(c.dni)"
+                  [attr.title]="'common.delete' | translate">
+                  🗑️
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

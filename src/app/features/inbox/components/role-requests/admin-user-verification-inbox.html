@@ -12,8 +12,23 @@
     </div>
   </div>
 
-  <div *ngIf="successKey" class="inline-notification success" role="status">
-    {{ successKey | translate }}
+  <!-- Notification Toast - Mejorado -->
+  <div *ngIf="successKey" class="notification-toast"
+       [class.success]="successKey === 'notifications.userVerificationApproved'"
+       [class.info]="successKey === 'notifications.userVerificationRejected'"
+       role="status"
+       aria-live="polite">
+    <div class="toast-icon">
+      <span *ngIf="successKey === 'notifications.userVerificationApproved'">✓</span>
+      <span *ngIf="successKey === 'notifications.userVerificationRejected'">ℹ</span>
+    </div>
+    <div class="toast-content">
+      <strong class="toast-title">
+        {{ (successKey === 'notifications.userVerificationApproved' ? 'notifications.titles.verificationApproved' : 'notifications.titles.verificationRejected') | translate }}
+      </strong>
+      <p class="toast-message">{{ successKey | translate }}</p>
+    </div>
+    <button class="toast-close" (click)="successKey = null" aria-label="Cerrar notificación">×</button>
   </div>
 
   <div *ngIf="loading" class="loading">{{ 'userVerification.adminInbox.loading' | translate }}</div>

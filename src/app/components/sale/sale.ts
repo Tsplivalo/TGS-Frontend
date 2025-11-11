@@ -171,14 +171,20 @@ export class SaleComponent implements OnInit {
   toggleNew(){ this.isNewOpen = !this.isNewOpen; }
   
   toggleStats() {
+    // ⚖️ Las autoridades (sin rol de admin) no pueden ver estadísticas
+    if (this.isAuthority() && !this.isAdmin()) {
+      console.log('⚖️ Authority users cannot view statistics');
+      return;
+    }
+
     const newValue = !this.showStats();
-    console.log('🔄 Toggle stats:', { 
-      before: this.showStats(), 
+    console.log('🔄 Toggle stats:', {
+      before: this.showStats(),
       after: newValue,
       hasStats: !!this.stats()
     });
     this.showStats.set(newValue);
-    
+
     if (newValue && !this.stats()) {
       console.log('📊 Loading stats for first time...');
       this.loadStats();
@@ -254,14 +260,14 @@ export class SaleComponent implements OnInit {
           distributorList = res.dists.distributors;
         }
         
-        console.log('📦 Products loaded:', productList.length, productList);
-        console.log('👥 Clients loaded:', clientList.length, clientList);
-        console.log('🚚 Distributors loaded:', distributorList.length, distributorList);
-        
+        console.log('📦 Products loaded:', productList.length);
+        console.log('👥 Clients loaded:', clientList.length);
+        console.log('🚚 Distributors loaded:', distributorList.length);
+
         this.products.set(productList);
         this.clients.set(clientList);
         this.distributors.set(distributorList);
-        
+
         this.loadSales();
       },
       error: (err) => { 
@@ -975,10 +981,13 @@ export class SaleComponent implements OnInit {
         this.sales.set(filteredSales);
         this.loading.set(false);
 
-        if (filteredSales.length > 0) {
+        // ⚖️ Las autoridades (sin rol de admin) no cargan estadísticas
+        if (filteredSales.length > 0 && !(this.isAuthority() && !this.isAdmin())) {
           console.log('📊 Auto-loading stats because sales exist');
           this.showStats.set(true);
           this.loadStats();
+        } else if (this.isAuthority() && !this.isAdmin()) {
+          console.log('⚖️ Authority user - skipping stats auto-load');
         }
       },
       error: (err) => {
@@ -999,13 +1008,25 @@ export class SaleComponent implements OnInit {
   }
 
   detailDescription(d: SaleDetailDTO): string {
+    // 1. Intentar obtener descripción del producto embebido en el detalle
     if (d?.product?.description) return d.product.description;
-    const pid = d.productId ?? (d as any)?.product?.id ?? null;
+
+    // 2. Intentar obtener del objeto product dentro del detalle (varias estructuras posibles)
+    const product = (d as any)?.product;
+    if (product?.description) return product.description;
+
+    // 3. Buscar en la lista de productos cargados por productId
+    const pid = d.productId ?? product?.id ?? null;
     if (pid != null) {
       const p = this.products().find(x => x.id === Number(pid));
       if (p?.description) return p.description;
+
+      // 4. Si no encontramos en la lista pero tenemos el nombre del producto en el detalle
+      if (product?.name) return product.name;
+
       return `#${pid}`;
     }
+
     return '—';
   }
 

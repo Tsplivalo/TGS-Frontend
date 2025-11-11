@@ -119,3 +119,69 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Botón de reenvío de email */
+.btn-resend {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(0, 0, 0, .08)),
+    linear-gradient(180deg, #f97316, #ea580c);
+  border: 1.5px solid rgba(249, 115, 22, 0.4);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(.25, .6, .3, 1);
+  box-shadow: 0 3px 10px rgba(249, 115, 22, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+    border-color: rgba(249, 115, 22, 0.55);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    background: linear-gradient(180deg, rgba(100, 100, 100, .25), rgba(60, 60, 60, .25)),
+      linear-gradient(180deg, #94a3b8, #64748b);
+    border-color: rgba(148, 163, 184, 0.35);
+    box-shadow: 0 2px 5px rgba(100, 116, 139, 0.15);
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+
+  &:not(:disabled)::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  &:hover:not(:disabled)::before {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}

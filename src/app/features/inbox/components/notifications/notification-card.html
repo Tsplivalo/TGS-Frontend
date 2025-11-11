@@ -1,0 +1,103 @@
+<div class="notification-card"
+     [class.expanded]="isExpanded"
+     [class.unread]="isUnread()"
+     (click)="toggleExpanded()">
+
+  <div class="card-header">
+    <!-- Indicador de no leída -->
+    <div *ngIf="isUnread()" class="unread-indicator"></div>
+
+    <!-- Ícono de tipo de notificación -->
+    <div class="notification-icon" [class]="'icon-' + getTypeColor(notification.type)">
+      <span class="icon">{{ getTypeIcon(notification.type) }}</span>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="notification-content">
+      <h4 class="notification-title">{{ getTranslatedTitle(notification.title) }}</h4>
+      <p class="notification-message">{{ getTranslatedMessage(notification.message) }}</p>
+      <span class="notification-time">{{ formatDate(notification.createdAt) }}</span>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="card-actions">
+      <button
+        *ngIf="isUnread()"
+        class="action-btn mark-read"
+        (click)="onMarkAsRead($event)"
+        [title]="'notifications.markAsRead' | translate : {} : 'Marcar como leída'">
+        <span class="icon">👁️</span>
+      </button>
+      <button
+        class="action-btn delete"
+        (click)="onDelete($event)"
+        [title]="'notifications.delete' | translate : {} : 'Eliminar'">
+        <span class="icon">🗑️</span>
+      </button>
+      <button class="expand-btn" type="button">
+        <span class="icon" [class.expanded]="isExpanded">▼</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Detalles expandidos -->
+  <div *ngIf="isExpanded" class="card-body">
+    <div class="detail-section">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">{{ 'notifications.labels.createdAt' | translate : {} : 'Fecha de creación' }}</span>
+          <span class="value">{{ formatDate(notification.createdAt) }}</span>
+        </div>
+
+        <div *ngIf="notification.readAt" class="detail-item">
+          <span class="label">{{ 'notifications.labels.readAt' | translate : {} : 'Fecha de lectura' }}</span>
+          <span class="value">{{ formatDate(notification.readAt) }}</span>
+        </div>
+
+        <div *ngIf="notification.relatedEntityType" class="detail-item">
+          <span class="label">{{ 'notifications.labels.relatedTo' | translate : {} : 'Relacionado con' }}</span>
+          <span class="value">{{ notification.relatedEntityType }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metadata adicional si existe -->
+    <div *ngIf="notification.metadata && hasMetadata()" class="detail-section metadata">
+      <h4>{{ 'notifications.labels.additionalInfo' | translate : {} : 'Información adicional' }}</h4>
+      <div class="metadata-grid">
+        <div *ngIf="notification.metadata['userName']" class="metadata-item">
+          <span class="metadata-label">{{ 'notifications.labels.userName' | translate : {} : 'Usuario' }}</span>
+          <span class="metadata-value">{{ notification.metadata['userName'] }}</span>
+        </div>
+
+        <div *ngIf="notification.metadata['userEmail']" class="metadata-item">
+          <span class="metadata-label">{{ 'notifications.labels.userEmail' | translate : {} : 'Email' }}</span>
+          <span class="metadata-value">{{ notification.metadata['userEmail'] }}</span>
+        </div>
+
+        <!-- Cambio de rol visualizado -->
+        <div *ngIf="notification.metadata['requestedRole']" class="metadata-item role-change-item">
+          <span class="metadata-label">{{ notification.metadata['roleToRemove'] ? ('notifications.labels.roleChange' | translate : {} : 'Cambio de rol') : ('notifications.labels.requestedRole' | translate : {} : 'Rol solicitado') }}</span>
+          <div class="role-change-display">
+            <div *ngIf="notification.metadata['roleToRemove']" class="role-badge-container from-role">
+              <span class="role-label">{{ 'notifications.labels.currentRole' | translate : {} : 'Rol actual' }}</span>
+              <span class="metadata-value role-badge role-remove">{{ notification.metadata['roleToRemove'] }}</span>
+            </div>
+
+            <span *ngIf="notification.metadata['roleToRemove']" class="role-arrow">→</span>
+
+            <div class="role-badge-container to-role">
+              <span class="role-label">{{ notification.metadata['roleToRemove'] ? ('notifications.labels.newRole' | translate : {} : 'Rol nuevo') : '' }}</span>
+              <span class="metadata-value role-badge role-new">{{ notification.metadata['requestedRole'] }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="notification.metadata['requestedAt']" class="metadata-item">
+          <span class="metadata-label">{{ 'notifications.labels.requestedAt' | translate : {} : 'Solicitado el' }}</span>
+          <span class="metadata-value">{{ formatMetadataDate(notification.metadata['requestedAt']) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

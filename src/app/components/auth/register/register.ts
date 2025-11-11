@@ -34,9 +34,15 @@ export class RegisterComponent implements OnDestroy {
   waitingForVerification = signal(false);
   registrationSuccess = signal(false);
 
+  // Estado del botón de reenvío
+  resendCooldown = signal(0); // Segundos restantes para poder reenviar
+  canResend = signal(false); // Si puede reenviar el email
+  resendingEmail = signal(false); // Si está enviando el email
+
   // Cleanup functions
   private stopPolling?: () => void;
   private removeStorageListener?: () => void;
+  private cooldownInterval?: any;
 
   form = this.fb.group({
     username: ['', [
@@ -88,6 +94,11 @@ export class RegisterComponent implements OnDestroy {
     // Remover listener de storage
     if (this.removeStorageListener) {
       this.removeStorageListener();
+    }
+
+    // Limpiar el temporizador de cooldown
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
     }
 
     // Limpiar el servicio de sincronización
@@ -159,6 +170,9 @@ export class RegisterComponent implements OnDestroy {
 
         // Iniciar polling para detectar cuando el email sea verificado
         this.stopPolling = this.syncService.startPollingVerification(email!, 3000);
+
+        // Iniciar temporizador de 30 segundos para reenvío
+        this.startResendCooldown();
       },
       error: (err) => {
         this.loading.set(false);
@@ -300,5 +314,107 @@ export class RegisterComponent implements OnDestroy {
     this.error.set(null);
     this.needsEmailVerification.set(false);
     this.waitingForVerification.set(false);
+  }
+
+  /**
+   * Inicia el temporizador de 30 segundos para poder reenviar el email
+   */
+  private startResendCooldown(): void {
+    this.resendCooldown.set(30);
+    this.canResend.set(false);
+
+    // Limpiar intervalo anterior si existe
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
+
+    // Iniciar cuenta regresiva
+    this.cooldownInterval = setInterval(() => {
+      const current = this.resendCooldown();
+      if (current > 0) {
+        this.resendCooldown.set(current - 1);
+      } else {
+        // Cuando llega a 0, habilitar el botón de reenvío
+        this.canResend.set(true);
+        if (this.cooldownInterval) {
+          clearInterval(this.cooldownInterval);
+          this.cooldownInterval = undefined;
+        }
+      }
+    }, 1000);
+  }
+
+  /**
+   * Reenvía el email de verificación
+   */
+  resendVerificationEmail(): void {
+    console.log('[Register] 🔄 Botón de reenvío clickeado');
+
+    // Intentar obtener el email de múltiples fuentes
+    let emailToUse = this.form.get('email')?.value;
+
+    if (!emailToUse) {
+      // Intentar desde pendingAuth en localStorage
+      const pendingAuth = localStorage.getItem('pendingAuth');
+      if (pendingAuth) {
+        try {
+          const parsed = JSON.parse(pendingAuth);
+          emailToUse = parsed.email;
+          console.log('[Register] Email obtenido de pendingAuth:', emailToUse);
+        } catch (e) {
+          console.error('[Register] Error parseando pendingAuth:', e);
+        }
+      }
+    }
+
+    if (!emailToUse) {
+      console.error('[Register] ❌ No se pudo obtener el email para reenviar');
+      this.error.set('Por favor ingresa tu email');
+      return;
+    }
+
+    console.log('[Register] 📧 Reenviando email a:', emailToUse);
+    this.resendingEmail.set(true);
+    this.error.set(null);
+
+    // Usar endpoint público para usuarios no autenticados
+    this.emailVerificationService.resendForUnverified(emailToUse)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.resendingEmail.set(false);
+          console.log('[Register] Respuesta del reenvío:', response);
+          if (response.success) {
+            console.log('[Register] ✅ Email de verificación reenviado');
+            this.error.set('Email reenviado correctamente. Revisa tu bandeja de entrada.');
+
+            // Reiniciar temporizador de cooldown
+            this.startResendCooldown();
+          } else {
+            console.warn('[Register] ⚠️ Reenvío no exitoso:', response.message);
+            this.error.set(response.message || 'No se pudo enviar el email.');
+          }
+        },
+        error: (err: HttpErrorResponse) => {
+          this.resendingEmail.set(false);
+          console.error('[Register] ❌ Error al reenviar:', err);
+
+          // Usar helpers del servicio para detectar errores específicos
+          if (this.emailVerificationService.isCooldownError(err)) {
+            console.log('[Register] Error de cooldown detectado');
+            this.error.set('Ya enviamos un email recientemente. Por favor espera unos minutos antes de reenviar.');
+            // Aún así, reiniciar el temporizador para que el usuario pueda intentar después
+            this.startResendCooldown();
+          } else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
+            console.log('[Register] Email ya verificado');
+            this.error.set('Tu email ya está verificado. Intenta iniciar sesión.');
+            this.needsEmailVerification.set(false);
+          } else if (err.status === 404) {
+            this.error.set('No se encontró una cuenta con este email.');
+          } else {
+            this.error.set(err.error?.message || 'Error al enviar el email de verificación.');
+          }
+        }
+      });
   }
 }

@@ -25,6 +25,14 @@
         </li>
       </ng-container>
 
+      <!-- ✅ Mis compras (visible solo en la tienda) -->
+      <li class="menu__item menu__item--purchases" role="none" *ngIf="isAuthenticated() && isInStore()" [@slideIn]>
+        <a #mainBtn role="menuitem" routerLink="/mis-compras" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          {{ 'nav.myPurchases' | translate }}
+          <span class="underline"></span>
+        </a>
+      </li>
+
       <!-- Selector de idioma -->
       <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
         <button class="dropdown__toggle has-underline lang-toggle" type="button" aria-haspopup="true"
@@ -356,5 +364,17 @@
         </ul>
       </li>
     </ul>
+  </div>
+
+  <!-- Toast flotante para nuevas notificaciones -->
+  <div *ngIf="newNotificationToast()" class="notification-toast-floating">
+    <div class="toast-floating-icon">
+      <span>{{ newNotificationToast()!.type }}</span>
+    </div>
+    <div class="toast-floating-content">
+      <strong class="toast-floating-title">{{ newNotificationToast()!.title }}</strong>
+      <p class="toast-floating-message">{{ newNotificationToast()!.message }}</p>
+    </div>
+    <button class="toast-floating-close" (click)="closeNotificationToast()" aria-label="Cerrar notificación">×</button>
   </div>
 </nav>

@@ -10,18 +10,27 @@
       <div class="alert-icon">⚠️</div>
       <div class="alert-content">
         <strong>Email no verificado</strong>
-        <p>Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.</p>
+        <p>Debes verificar tu email antes de iniciar sesión.</p>
 
         <!-- Mensaje de email enviado -->
         <div class="email-sent-message" *ngIf="emailSent()">
           <span class="success-icon">✓</span>
-          Email de verificación enviado. Revisa tu bandeja de entrada.
+          <strong>Email de verificación enviado</strong>
+          <p>Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.</p>
         </div>
 
-        <!-- Botón de reenvío -->
+        <!-- Mensaje cuando NO se ha enviado aún -->
+        <div *ngIf="!emailSent()">
+          <p><strong>¿No recibiste el email?</strong> Haz clic en el botón de abajo para reenviarlo.</p>
+        </div>
+
+        <!-- Botón de reenvío con temporizador -->
         <button type="button" class="btn-resend-small" (click)="resendVerificationEmail()"
-          [disabled]="resendingEmail() || emailSent()">
-          {{ resendingEmail() ? 'Enviando...' : emailSent() ? 'Email enviado ✓' : 'Reenviar email de verificación' }}
+          [disabled]="resendingEmail() || !canResend()">
+          <span *ngIf="resendingEmail()">⏳ Enviando...</span>
+          <span *ngIf="!resendingEmail() && !canResend()">📧 Reenviar email ({{ resendCooldown() }}s)</span>
+          <span *ngIf="!resendingEmail() && canResend() && emailSent()">📧 Reenviar nuevamente</span>
+          <span *ngIf="!resendingEmail() && canResend() && !emailSent()">📧 Enviar email de verificación</span>
         </button>
       </div>
     </div>
@@ -32,6 +41,14 @@
       <div class="waiting-content">
         <strong>Esperando verificación...</strong>
         <p>Haz clic en el enlace que enviamos a tu email. Esta página se actualizará automáticamente cuando verifiques tu cuenta.</p>
+
+        <!-- Botón de reenvío con temporizador -->
+        <button type="button" class="btn-resend-small" (click)="resendVerificationEmail()"
+          [disabled]="resendingEmail() || !canResend()">
+          <span *ngIf="resendingEmail()">⏳ Enviando...</span>
+          <span *ngIf="!resendingEmail() && !canResend()">📧 Reenviar email ({{ resendCooldown() }}s)</span>
+          <span *ngIf="!resendingEmail() && canResend()">📧 Reenviar email</span>
+        </button>
       </div>
     </div>
 

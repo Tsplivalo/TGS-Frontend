@@ -22,6 +22,20 @@
               <div class="waiting-content-large">
                 <strong>Esperando verificación de email...</strong>
                 <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+
+                <!-- Botón de reenvío con temporizador -->
+                <button type="button" class="btn-resend-large" (click)="resendVerificationEmailFromHome()"
+                  [disabled]="resendingEmail() || !canResend()">
+                  <span *ngIf="resendingEmail()">
+                    ⏳ Enviando<span class="dots">...</span>
+                  </span>
+                  <span *ngIf="!resendingEmail() && !canResend()">
+                    📧 Reenviar email ({{ resendCooldown() }}s)
+                  </span>
+                  <span *ngIf="!resendingEmail() && canResend()">
+                    📧 Reenviar email
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -40,25 +54,35 @@
                   </button>
                 </div>
                 <p class="banner-text-large">
-                  Debes verificar tu email antes de poder acceder. Revisa tu bandeja de entrada y haz clic en el enlace
-                  de verificación.
+                  Debes verificar tu email antes de poder acceder.
                 </p>
 
+                <!-- Mensaje de email enviado -->
                 <div class="banner-success-large" *ngIf="emailSent()">
                   <span class="success-icon">✓</span>
-                  Email de verificación enviado correctamente
+                  <strong>Email de verificación enviado</strong>
+                  <p>Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.</p>
                 </div>
 
+                <!-- Mensaje cuando NO se ha enviado aún -->
+                <div class="banner-info-large" *ngIf="!emailSent()">
+                  <p><strong>¿No recibiste el email?</strong> Haz clic en el botón de abajo para reenviarlo.</p>
+                </div>
+
+                <!-- Botón de reenvío con temporizador -->
                 <button type="button" class="btn-resend-large" (click)="resendVerificationEmailFromHome()"
-                  [disabled]="resendingEmail() || emailSent()">
-                  <span *ngIf="!resendingEmail() && !emailSent()">
-                    Reenviar email de verificación
+                  [disabled]="resendingEmail() || !canResend()">
+                  <span *ngIf="resendingEmail()">
+                    ⏳ Enviando<span class="dots">...</span>
                   </span>
-                  <span *ngIf="resendingEmail()" class="loading-text">
-                    Enviando<span class="dots">...</span>
+                  <span *ngIf="!resendingEmail() && !canResend()">
+                    📧 Reenviar email ({{ resendCooldown() }}s)
                   </span>
-                  <span *ngIf="emailSent() && !resendingEmail()">
-                    ✓ Enviado
+                  <span *ngIf="!resendingEmail() && canResend() && emailSent()">
+                    📧 Reenviar nuevamente
+                  </span>
+                  <span *ngIf="!resendingEmail() && canResend() && !emailSent()">
+                    📧 Enviar email de verificación
                   </span>
                 </button>
               </div>
@@ -72,21 +96,21 @@
 
             <label>
               <span>{{ 'auth.fields.emailOrUsername' | translate : {} : 'Email o Usuario' }}</span>
-              <input type="text" formControlName="email" [attr.placeholder]="emailAnimOn() ? animatedPlaceholder : ''"
-                [attr.data-anim]="emailAnimOn() ? 'on' : 'off'" autocomplete="username" required
-                [class.star-wars-placeholder]="emailAnimOn()" (focus)="mode() === 'login' ? onEmailFocus() : null"
-                (blur)="mode() === 'login' ? onEmailBlur() : null" />
+              <input type="text" formControlName="email" [attr.placeholder]="mode() === 'login' && emailAnimOn() ? animatedPlaceholder : ''"
+                [attr.data-anim]="mode() === 'login' && emailAnimOn() ? 'on' : 'off'" autocomplete="username" required
+                [class.star-wars-placeholder]="mode() === 'login' && emailAnimOn()" (focus)="onEmailFocus()"
+                (blur)="onEmailBlur()" />
             </label>
 
             <label>
               <span>{{ 'auth.fields.password' | translate }}</span>
               <div class="input-with-toggle">
                 <input [type]="showLoginPwd ? 'text' : 'password'" formControlName="password"
-                  [attr.placeholder]="passwordAnimOn() ? animatedPasswordPlaceholder : ''"
-                  [attr.data-anim]="passwordAnimOn() ? 'on' : 'off'"
-                  [class.star-wars-placeholder]="passwordAnimOn()"
-                  (focus)="mode() === 'login' ? onPasswordFocus() : null"
-                  (blur)="mode() === 'login' ? onPasswordBlur() : null"
+                  [attr.placeholder]="mode() === 'login' && passwordAnimOn() ? animatedPasswordPlaceholder : ''"
+                  [attr.data-anim]="mode() === 'login' && passwordAnimOn() ? 'on' : 'off'"
+                  [class.star-wars-placeholder]="mode() === 'login' && passwordAnimOn()"
+                  (focus)="onPasswordFocus()"
+                  (blur)="onPasswordBlur()"
                   autocomplete="current-password"
                   required />
                 <button type="button" class="pwd-toggle" (click)="showLoginPwd = !showLoginPwd"
@@ -123,6 +147,20 @@
               <div class="waiting-content-large">
                 <strong>Esperando verificación de email...</strong>
                 <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+
+                <!-- Botón de reenvío con temporizador -->
+                <button type="button" class="btn-resend-large" (click)="resendVerificationEmailFromHome()"
+                  [disabled]="resendingEmail() || !canResend()">
+                  <span *ngIf="resendingEmail()">
+                    ⏳ Enviando<span class="dots">...</span>
+                  </span>
+                  <span *ngIf="!resendingEmail() && !canResend()">
+                    📧 Reenviar email ({{ resendCooldown() }}s)
+                  </span>
+                  <span *ngIf="!resendingEmail() && canResend()">
+                    📧 Reenviar email
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -165,29 +203,29 @@
             <label>
               <span>{{ 'auth.fields.username' | translate }}</span>
               <input type="text" formControlName="username"
-                [attr.placeholder]="nameAnimOn() ? animatedNamePlaceholder : ''"
-                [attr.data-anim]="nameAnimOn() ? 'on' : 'off'" autocomplete="off" required
-                [class.star-wars-placeholder]="nameAnimOn()" (focus)="mode() === 'register' ? onNameFocus() : null"
-                (blur)="mode() === 'register' ? onNameBlur() : null" />
+                [attr.placeholder]="mode() === 'register' && nameAnimOn() ? animatedNamePlaceholder : ''"
+                [attr.data-anim]="mode() === 'register' && nameAnimOn() ? 'on' : 'off'" autocomplete="off" required
+                [class.star-wars-placeholder]="mode() === 'register' && nameAnimOn()" (focus)="onNameFocus()"
+                (blur)="onNameBlur()" />
             </label>
 
             <label>
               <span>{{ 'auth.fields.email' | translate }}</span>
-              <input type="email" formControlName="email" [attr.placeholder]="emailAnimOn() ? animatedPlaceholder : ''"
-                [attr.data-anim]="emailAnimOn() ? 'on' : 'off'" autocomplete="email" required
-                [class.star-wars-placeholder]="emailAnimOn()" (focus)="mode() === 'register' ? onEmailFocus() : null"
-                (blur)="mode() === 'register' ? onEmailBlur() : null" />
+              <input type="email" formControlName="email" [attr.placeholder]="mode() === 'register' && emailAnimOn() ? animatedPlaceholder : ''"
+                [attr.data-anim]="mode() === 'register' && emailAnimOn() ? 'on' : 'off'" autocomplete="email" required
+                [class.star-wars-placeholder]="mode() === 'register' && emailAnimOn()" (focus)="onEmailFocus()"
+                (blur)="onEmailBlur()" />
             </label>
 
             <label>
               <span>{{ 'auth.fields.password' | translate }}</span>
               <div class="input-with-toggle">
                 <input [type]="showRegisterPwd ? 'text' : 'password'" formControlName="password"
-                  [attr.placeholder]="passwordAnimOn() ? animatedPasswordPlaceholder : ''"
-                  [attr.data-anim]="passwordAnimOn() ? 'on' : 'off'"
-                  [class.star-wars-placeholder]="passwordAnimOn()"
-                  (focus)="mode() === 'register' ? onPasswordFocus() : null"
-                  (blur)="mode() === 'register' ? onPasswordBlur() : null"
+                  [attr.placeholder]="mode() === 'register' && passwordAnimOn() ? animatedPasswordPlaceholder : ''"
+                  [attr.data-anim]="mode() === 'register' && passwordAnimOn() ? 'on' : 'off'"
+                  [class.star-wars-placeholder]="mode() === 'register' && passwordAnimOn()"
+                  (focus)="onPasswordFocus()"
+                  (blur)="onPasswordBlur()"
                   autocomplete="new-password" required />
                 <button type="button" class="pwd-toggle" (click)="showRegisterPwd = !showRegisterPwd"
                   [attr.aria-label]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"

@@ -1,10 +1,10 @@
 <section class="stack-lg">
 
   <!-- GRID PRINCIPAL: STATS (FIJO) + LISTA -->
-  <div class="sales-main-grid">
+  <div class="sales-main-grid" [class.single-column]="isAuthority() && !isAdmin()">
 
-    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS -->
-    <aside class="stats-panel">
+    <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS (Oculto para Autoridades) -->
+    <aside class="stats-panel" *ngIf="!isAuthority() || isAdmin()">
       <div class="glass-dark card">
 
         @if (loadingStats()) {
@@ -92,8 +92,8 @@
         </div>
       </div>
 
-      <!-- Estadísticas resumen -->
-      <div *ngIf="!loading() && sales().length > 0" class="filters"
+      <!-- Estadísticas resumen (Oculto para Autoridades) -->
+      <div *ngIf="!loading() && sales().length > 0 && (!isAuthority() || isAdmin())" class="filters"
         style="background: rgba(195, 164, 98, 0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(195, 164, 98, 0.2);">
         <span class="muted"><strong>{{ 'sales.stats.totalLabel' | translate }}</strong> {{ totalSales() }}</span>
         <span class="muted"><strong>{{ 'sales.stats.revenueLabel' | translate }}</strong> {{ totalRevenue() |
@@ -147,7 +147,9 @@
             <tr class="clickable-row" [class.expanded]="isSaleExpanded(v.id)">
               <td (click)="toggleSaleExpanded(v.id)" style="text-align: center; vertical-align: middle;">
                 <div class="expand-arrow" [class.expanded]="isSaleExpanded(v.id)">
-                  {{ isSaleExpanded(v.id) ? '▼' : '▶' }}
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 </div>
               </td>
               <td (click)="toggleSaleExpanded(v.id)">#{{ v.id }}</td>

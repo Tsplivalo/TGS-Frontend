@@ -24,7 +24,7 @@
     </div>
     <div class="toast-content">
       <strong class="toast-title">
-        {{ successKey === 'notifications.roleRequestApproved' ? 'Solicitud Aprobada' : 'Solicitud Rechazada' }}
+        {{ (successKey === 'notifications.roleRequestApproved' ? 'notifications.titles.roleRequestApproved' : 'notifications.titles.roleRequestRejected') | translate }}
       </strong>
       <p class="toast-message">{{ successKey | translate }}</p>
     </div>

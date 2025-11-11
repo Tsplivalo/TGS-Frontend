@@ -7,6 +7,19 @@
     <div class="waiting-content">
       <strong>Esperando verificación de email...</strong>
       <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+
+      <!-- Botón de reenvío con temporizador -->
+      <div class="resend-section">
+        <button
+          type="button"
+          class="btn-resend"
+          (click)="resendVerificationEmail()"
+          [disabled]="!canResend() || resendingEmail()">
+          <span *ngIf="resendingEmail()">⏳ Enviando...</span>
+          <span *ngIf="!resendingEmail() && !canResend()">📧 Reenviar email ({{ resendCooldown() }}s)</span>
+          <span *ngIf="!resendingEmail() && canResend()">📧 Reenviar email</span>
+        </button>
+      </div>
     </div>
   </div>
 

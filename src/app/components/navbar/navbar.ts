@@ -8,15 +8,19 @@ import {
   inject,
   computed,
   effect,
+  signal,
+  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '../../services/auth/auth'; 
+import { AuthService } from '../../services/auth/auth';
 import { Role } from '../../models/user/user.model';
 import { I18nService } from '../../services/i18n/i18n.js';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthTransitionService } from '../../services/ui/auth-transition';
+import { NotificationService } from '../../features/inbox/services/notification.service';
 
 interface MenuItem { label: string; path: string; }
 
@@ -26,12 +30,52 @@ interface MenuItem { label: string; path: string; }
   imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss'],
+  animations: [
+    trigger('slideIn', [
+      transition(':enter', [
+        style({
+          opacity: 0,
+          transform: 'translateX(-150px) scale(0.75)',
+          maxWidth: '0px',
+          overflow: 'hidden',
+        }),
+        animate('1200ms 100ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', style({
+          opacity: 1,
+          transform: 'translateX(0) scale(1)',
+          maxWidth: '250px',
+        }))
+      ]),
+      transition(':leave', [
+        style({
+          overflow: 'hidden',
+        }),
+        animate('600ms cubic-bezier(0.6, 0.04, 0.98, 0.335)', style({
+          opacity: 0,
+          transform: 'translateX(-150px) scale(0.75)',
+          maxWidth: '0px',
+        }))
+      ])
+    ])
+  ]
 })
-export class NavbarComponent implements AfterViewInit {
+export class NavbarComponent implements AfterViewInit, OnDestroy {
   private auth = inject(AuthService);
   private routerSvc = inject(Router);
   private i18n = inject(I18nService);
   private transition = inject(AuthTransitionService);
+  private notificationService = inject(NotificationService);
+
+  // Signal para el contador de notificaciones no leídas
+  private unreadNotifications = signal<number>(0);
+  private pollingInterval?: number;
+
+  // Toast para nuevas notificaciones
+  newNotificationToast = signal<{
+    title: string;
+    message: string;
+    type: string;
+    show: boolean;
+  } | null>(null);
 
   // ✅ Señales reactivas del AuthService
   readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
@@ -127,9 +171,15 @@ export class NavbarComponent implements AfterViewInit {
   constructor(router: Router) {
     router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe(() => setTimeout(() => this.updateIndicator(), 0));
+      .subscribe(() => {
+        setTimeout(() => this.updateIndicator(), 0);
+        // Actualizar contador de notificaciones al navegar
+        if (this.isAuthenticated()) {
+          this.loadUnreadCount();
+        }
+      });
 
-    
+
     // ♻️ Refrescar roles del usuario en cada navegación (ligero y seguro)
     if (this.isAuthenticated()) {
       this.auth.refreshIfStale(0); // 0 = siempre que cambies de ruta
@@ -139,18 +189,21 @@ export class NavbarComponent implements AfterViewInit {
     effect(() => {
       const roles = this.userRoles();
       const user = this.user();
-      
+
       if (user && roles.length > 0) {
         console.log('[Navbar] 👤 Usuario actualizado:', {
           id: user.id,
           username: user.username,
           roles: roles
         });
-        
+
         // Actualizar indicador visual después de cambios
         setTimeout(() => this.updateIndicator(), 100);
       }
     });
+
+    // Iniciar polling de notificaciones
+    this.startNotificationPolling();
   }
 
   ngAfterViewInit() { 
@@ -251,7 +304,96 @@ export class NavbarComponent implements AfterViewInit {
   }
 
   inboxCount(): number {
-    return 0;
+    return this.unreadNotifications();
+  }
+
+  /**
+   * Carga el contador de notificaciones no leídas
+   */
+  private async loadUnreadCount(): Promise<void> {
+    if (!this.isAuthenticated()) {
+      this.unreadNotifications.set(0);
+      return;
+    }
+
+    try {
+      const previousCount = this.unreadNotifications();
+      const count = await this.notificationService.getUnreadCount();
+
+      // Detectar si hay una nueva notificación
+      if (count > previousCount && previousCount > 0) {
+        await this.showNewNotificationToast();
+      }
+
+      this.unreadNotifications.set(count);
+    } catch (error) {
+      console.error('[Navbar] Error loading unread notifications count:', error);
+      // No establecer a 0 en caso de error para mantener el último valor conocido
+    }
+  }
+
+  /**
+   * Muestra un toast con la última notificación recibida
+   */
+  private async showNewNotificationToast(): Promise<void> {
+    try {
+      const notifications = await this.notificationService.getMyNotifications();
+
+      // Obtener la notificación más reciente no leída
+      const latestNotification = notifications
+        .filter(n => n.status === 'UNREAD')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+      if (latestNotification) {
+        const typeIcons: Record<string, string> = {
+          'USER_VERIFICATION_APPROVED': '✅',
+          'USER_VERIFICATION_REJECTED': '❌',
+          'ROLE_REQUEST_APPROVED': '🎉',
+          'ROLE_REQUEST_REJECTED': '⚠️',
+          'SYSTEM': 'ℹ️',
+        };
+
+        this.newNotificationToast.set({
+          title: latestNotification.title,
+          message: latestNotification.message,
+          type: typeIcons[latestNotification.type] || 'ℹ️',
+          show: true
+        });
+
+        // Auto-ocultar después de 5 segundos
+        setTimeout(() => {
+          this.newNotificationToast.set(null);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('[Navbar] Error showing notification toast:', error);
+    }
+  }
+
+  /**
+   * Cierra el toast de notificación manualmente
+   */
+  closeNotificationToast(): void {
+    this.newNotificationToast.set(null);
+  }
+
+  /**
+   * Inicia el polling periódico para actualizar el contador de notificaciones
+   */
+  private startNotificationPolling(): void {
+    // Cargar inmediatamente si está autenticado
+    if (this.isAuthenticated()) {
+      this.loadUnreadCount();
+    }
+
+    // Actualizar cada 30 segundos
+    this.pollingInterval = window.setInterval(() => {
+      if (this.isAuthenticated()) {
+        this.loadUnreadCount();
+      } else {
+        this.unreadNotifications.set(0);
+      }
+    }, 30000);
   }
 
   trackByPath(_i: number, it: MenuItem) { return it.path; }
@@ -279,9 +421,21 @@ export class NavbarComponent implements AfterViewInit {
     return url.startsWith('/inbox');
   }
 
+  isInStore(): boolean {
+    const url = this.routerSvc.url || '';
+    return url === '/tienda' || url.startsWith('/tienda?') || url.startsWith('/tienda/') ||
+           url === '/mis-compras' || url.startsWith('/mis-compras?') || url.startsWith('/mis-compras/');
+  }
+
   
 
   private updateIndicator() {
+    // ✅ Deshabilitar el indicador cuando estás en el store (tienda/mis-compras)
+    if (this.isInStore()) {
+      this.indicator.visible = false;
+      return;
+    }
+
     const menuEl = this.menuRef?.nativeElement;
     const activeEl = menuEl?.querySelector(
       '.menu__item a.active, .menu__item--dropdown > .has-underline.active'
@@ -323,5 +477,14 @@ export class NavbarComponent implements AfterViewInit {
         }
       });
     }, 120);
+  }
+
+  /**
+   * Limpia el polling al destruir el componente
+   */
+  ngOnDestroy(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
   }
 }
