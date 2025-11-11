@@ -24,12 +24,13 @@
           <p><strong>¿No recibiste el email?</strong> Haz clic en el botón de abajo para reenviarlo.</p>
         </div>
 
-        <!-- Botón de reenvío - siempre visible y más prominente -->
+        <!-- Botón de reenvío con temporizador -->
         <button type="button" class="btn-resend-small" (click)="resendVerificationEmail()"
-          [disabled]="resendingEmail()">
+          [disabled]="resendingEmail() || !canResend()">
           <span *ngIf="resendingEmail()">⏳ Enviando...</span>
-          <span *ngIf="!resendingEmail() && emailSent()">📧 Reenviar nuevamente</span>
-          <span *ngIf="!resendingEmail() && !emailSent()">📧 Enviar email de verificación</span>
+          <span *ngIf="!resendingEmail() && !canResend()">📧 Reenviar email ({{ resendCooldown() }}s)</span>
+          <span *ngIf="!resendingEmail() && canResend() && emailSent()">📧 Reenviar nuevamente</span>
+          <span *ngIf="!resendingEmail() && canResend() && !emailSent()">📧 Enviar email de verificación</span>
         </button>
       </div>
     </div>
@@ -40,6 +41,14 @@
       <div class="waiting-content">
         <strong>Esperando verificación...</strong>
         <p>Haz clic en el enlace que enviamos a tu email. Esta página se actualizará automáticamente cuando verifiques tu cuenta.</p>
+
+        <!-- Botón de reenvío con temporizador -->
+        <button type="button" class="btn-resend-small" (click)="resendVerificationEmail()"
+          [disabled]="resendingEmail() || !canResend()">
+          <span *ngIf="resendingEmail()">⏳ Enviando...</span>
+          <span *ngIf="!resendingEmail() && !canResend()">📧 Reenviar email ({{ resendCooldown() }}s)</span>
+          <span *ngIf="!resendingEmail() && canResend()">📧 Reenviar email</span>
+        </button>
       </div>
     </div>
 

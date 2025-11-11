@@ -42,9 +42,14 @@ export class LoginComponent implements OnDestroy {
   // Mensaje de éxito (ej: después de registro)
   successMessage = signal<string | null>(null);
 
+  // Estado del botón de reenvío
+  resendCooldown = signal(0); // Segundos restantes para poder reenviar
+  canResend = signal(false); // Si puede reenviar el email
+
   // Cleanup functions para los listeners
   private stopPolling?: () => void;
   private removeStorageListener?: () => void;
+  private cooldownInterval?: any;
 
   constructor() {
     // Verificar si hay mensajes de éxito en query params
@@ -94,6 +99,11 @@ export class LoginComponent implements OnDestroy {
     // Remover listener de storage
     if (this.removeStorageListener) {
       this.removeStorageListener();
+    }
+
+    // Limpiar el temporizador de cooldown
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
     }
 
     // Limpiar el servicio de sincronización
@@ -182,6 +192,9 @@ export class LoginComponent implements OnDestroy {
       console.log('[Login] Iniciando polling para verificar email:', emailToVerify);
       this.stopPolling = this.syncService.startPollingVerification(emailToVerify, 3000);
 
+      // ✅ Iniciar temporizador SIEMPRE al activar waitingForVerification
+      this.startResendCooldown();
+
       // ✅ Enviar automáticamente el email de verificación (como en el registro)
       console.log('[Login] 📧 Intentando enviar automáticamente email de verificación para:', emailToVerify);
       this.emailVerificationService.resendForUnverified(emailToVerify)
@@ -244,15 +257,38 @@ export class LoginComponent implements OnDestroy {
    * Reenvía el email de verificación para usuario no verificado
    */
   resendVerificationEmail(): void {
-    // Usar el email real si está disponible (cuando se loguea con username)
-    // De lo contrario, usar el campo email (que puede ser email o username)
-    const emailToUse = this.actualEmail() || this.email();
+    console.log('[Login] 🔄 Botón de reenvío clickeado');
+
+    // Intentar obtener el email de múltiples fuentes
+    let emailToUse = this.actualEmail(); // Primero el email real (cuando se loguea con username)
 
     if (!emailToUse) {
+      // Si no está en actualEmail, intentar desde pendingAuth en localStorage
+      const pendingAuth = localStorage.getItem('pendingAuth');
+      if (pendingAuth) {
+        try {
+          const parsed = JSON.parse(pendingAuth);
+          emailToUse = parsed.email;
+          console.log('[Login] Email obtenido de pendingAuth:', emailToUse);
+        } catch (e) {
+          console.error('[Login] Error parseando pendingAuth:', e);
+        }
+      }
+    }
+
+    if (!emailToUse) {
+      // Fallback al campo email del formulario
+      emailToUse = this.email();
+      console.log('[Login] Email obtenido del formulario:', emailToUse);
+    }
+
+    if (!emailToUse) {
+      console.error('[Login] ❌ No se pudo obtener el email para reenviar');
       this.error.set('Por favor ingresa tu email');
       return;
     }
 
+    console.log('[Login] 📧 Reenviando email a:', emailToUse);
     this.resendingEmail.set(true);
     this.error.set(null);
     this.emailSent.set(false);
@@ -263,10 +299,11 @@ export class LoginComponent implements OnDestroy {
       .subscribe({
         next: (response) => {
           this.resendingEmail.set(false);
+          console.log('[Login] Respuesta del reenvío:', response);
           if (response.success) {
             this.emailSent.set(true);
             this.error.set(null);
-            console.log('[Login] Email de verificación enviado');
+            console.log('[Login] ✅ Email de verificación reenviado');
 
             // Activar estado de espera si no está activo
             if (!this.waitingForVerification()) {
@@ -278,17 +315,26 @@ export class LoginComponent implements OnDestroy {
                 this.stopPolling = this.syncService.startPollingVerification(emailToUse, 3000);
               }
             }
+
+            // Reiniciar temporizador de cooldown
+            this.startResendCooldown();
           } else {
+            console.warn('[Login] ⚠️ Reenvío no exitoso:', response.message);
             this.error.set(response.message || 'No se pudo enviar el email.');
           }
         },
         error: (err: HttpErrorResponse) => {
           this.resendingEmail.set(false);
+          console.error('[Login] ❌ Error al reenviar:', err);
 
           // Usar helpers del servicio para detectar errores específicos
           if (this.emailVerificationService.isCooldownError(err)) {
-            this.error.set('Por favor espera 2 minutos antes de reenviar el email.');
+            console.log('[Login] Error de cooldown detectado');
+            this.error.set('Ya enviamos un email recientemente. Por favor espera unos minutos antes de reenviar.');
+            // Aún así, reiniciar el temporizador para que el usuario pueda intentar después
+            this.startResendCooldown();
           } else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
+            console.log('[Login] Email ya verificado');
             this.error.set('Tu email ya está verificado. Intenta iniciar sesión.');
             this.needsEmailVerification.set(false);
           } else if (err.status === 404) {
@@ -382,5 +428,33 @@ export class LoginComponent implements OnDestroy {
    */
   clearSuccess(): void {
     this.successMessage.set(null);
+  }
+
+  /**
+   * Inicia el temporizador de 30 segundos para poder reenviar el email
+   */
+  private startResendCooldown(): void {
+    this.resendCooldown.set(30);
+    this.canResend.set(false);
+
+    // Limpiar intervalo anterior si existe
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
+
+    // Iniciar cuenta regresiva
+    this.cooldownInterval = setInterval(() => {
+      const current = this.resendCooldown();
+      if (current > 0) {
+        this.resendCooldown.set(current - 1);
+      } else {
+        // Cuando llega a 0, habilitar el botón de reenvío
+        this.canResend.set(true);
+        if (this.cooldownInterval) {
+          clearInterval(this.cooldownInterval);
+          this.cooldownInterval = undefined;
+        }
+      }
+    }, 1000);
   }
 }

@@ -44,9 +44,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   actualEmail = signal<string | null>(null); // Email real cuando se loguea con username
   waitingForVerification = signal(false);
 
+  // Estado del botón de reenvío
+  resendCooldown = signal(0); // Segundos restantes para poder reenviar
+  canResend = signal(false); // Si puede reenviar el email
+
   // Cleanup functions para polling
   private stopPolling?: () => void;
   private removeStorageListener?: () => void;
+  private cooldownInterval?: any;
 
   // --- Auth panel / animaciones de entrada/salida ---
   showAuthPanel = true;
@@ -99,18 +104,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   authSuccess = false;
   private authSuccessTimer?: any;
 
-  // --- Placeholders animados ---
-  animatedPlaceholder = '';       // email (login/register)
-  animatedNamePlaceholder = '';   // username (register)
-  animatedPasswordPlaceholder = ''; // password (login)
+  // --- Placeholders animados (separados por modo) ---
+  animatedEmailLogin = '';        // email (login)
+  animatedPasswordLogin = '';     // password (login)
+  animatedNameRegister = '';      // username (register)
+  animatedEmailRegister = '';     // email (register)
+  animatedPasswordRegister = '';  // password (register)
 
-  // --- Tokens para cancelar bucles de animación ---
-  private emailToken = 0;
-  private nameToken = 0;
-  private passwordToken = 0;
-  private bumpEmailToken(): number { return ++this.emailToken; }
-  private bumpNameToken(): number { return ++this.nameToken; }
-  private bumpPasswordToken(): number { return ++this.passwordToken; }
+  // --- Tokens para cancelar bucles de animación (separados por modo) ---
+  private emailLoginToken = 0;
+  private passwordLoginToken = 0;
+  private nameRegisterToken = 0;
+  private emailRegisterToken = 0;
+  private passwordRegisterToken = 0;
+
+  private bumpEmailLoginToken(): number { return ++this.emailLoginToken; }
+  private bumpPasswordLoginToken(): number { return ++this.passwordLoginToken; }
+  private bumpNameRegisterToken(): number { return ++this.nameRegisterToken; }
+  private bumpEmailRegisterToken(): number { return ++this.emailRegisterToken; }
+  private bumpPasswordRegisterToken(): number { return ++this.passwordRegisterToken; }
 
   // --- Datos para animación (placeholders de ejemplo) ---
   private loginCharacters = [
@@ -147,13 +159,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   ];
   private loginPasswordIndex = 0;
 
-  // --- Estados animación ---
-  private isTyping = false;
-  private isTypingName = false;
-  private isTypingPassword = false;
-  private isDeletingEmail = false;
-  private isDeletingName = false;
-  private isDeletingPassword = false;
+  // --- Estados animación (separados por modo) ---
+  private isTypingEmailLogin = false;
+  private isTypingPasswordLogin = false;
+  private isDeletingEmailLogin = false;
+  private isDeletingPasswordLogin = false;
+
+  private isTypingNameRegister = false;
+  private isTypingEmailRegister = false;
+  private isTypingPasswordRegister = false;
+  private isDeletingNameRegister = false;
+  private isDeletingEmailRegister = false;
+  private isDeletingPasswordRegister = false;
+
+  private loginAnimationRunning = false;
   private registerAnimationRunning = false;
 
   // ==========================
@@ -233,58 +252,88 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Handlers de focus/blur (animación placeholders)
   // ==========================
   onEmailFocus() {
-    // Detenemos la animación de email al enfocar
-    this.bumpEmailToken();
-    this.isTyping = false;
-    this.isDeletingEmail = false;
-    this.animatedPlaceholder = '';
+    // SOLO procesar el focus si estamos en el modo correcto
+    const isLogin = this.mode() === 'login';
+    if (isLogin) {
+      this.bumpEmailLoginToken();
+      this.isTypingEmailLogin = false;
+      this.isDeletingEmailLogin = false;
+      this.animatedEmailLogin = '';
+    } else {
+      this.bumpEmailRegisterToken();
+      this.isTypingEmailRegister = false;
+      this.isDeletingEmailRegister = false;
+      this.animatedEmailRegister = '';
+    }
   }
 
   onEmailBlur() {
-    // Si el campo está vacío, reanudar animación
+    // SOLO reanudar animación si estamos en el modo correcto Y el campo está vacío
     const isLogin = this.mode() === 'login';
-    const emailLogin = this.loginForm.get('email')?.value || '';
-    const emailRegister = this.registerForm.get('email')?.value || '';
-    const emptyLogin = isLogin && !emailLogin;
-    const emptyRegister = !isLogin && !emailRegister;
 
-    if (emptyLogin) {
-      setTimeout(() => this.startLoginAnimation(), 100);
-    } else if (emptyRegister) {
-      setTimeout(() => this.startRegisterAnimation(), 100);
+    if (isLogin) {
+      const emailLogin = this.loginForm.get('email')?.value || '';
+      if (!emailLogin && !this.loginAnimationRunning) {
+        setTimeout(() => this.startLoginAnimation(), 100);
+      }
+    } else {
+      const emailRegister = this.registerForm.get('email')?.value || '';
+      if (!emailRegister && !this.registerAnimationRunning) {
+        setTimeout(() => this.startRegisterAnimation(), 100);
+      }
     }
   }
 
   onNameFocus() {
-    this.bumpNameToken();
-    this.isTypingName = false;
-    this.isDeletingName = false;
-    this.animatedNamePlaceholder = '';
+    // SOLO procesar el focus si estamos en modo registro
+    if (this.mode() !== 'register') return;
+
+    this.bumpNameRegisterToken();
+    this.isTypingNameRegister = false;
+    this.isDeletingNameRegister = false;
+    this.animatedNameRegister = '';
   }
 
   onNameBlur() {
+    // SOLO reanudar animación si estamos en modo registro Y el campo está vacío
+    if (this.mode() !== 'register') return;
+
     const nameValue = this.registerForm.get('username')?.value || '';
-    if (!nameValue && this.mode() === 'register') {
+    if (!nameValue && !this.registerAnimationRunning) {
       setTimeout(() => this.startRegisterAnimation(), 100);
     }
   }
 
   onPasswordFocus() {
-    // Detenemos la animación de password al enfocar
-    this.bumpPasswordToken();
-    this.isTypingPassword = false;
-    this.isDeletingPassword = false;
-    this.animatedPasswordPlaceholder = '';
+    // SOLO procesar el focus si estamos en el modo correcto
+    const isLogin = this.mode() === 'login';
+    if (isLogin) {
+      this.bumpPasswordLoginToken();
+      this.isTypingPasswordLogin = false;
+      this.isDeletingPasswordLogin = false;
+      this.animatedPasswordLogin = '';
+    } else {
+      this.bumpPasswordRegisterToken();
+      this.isTypingPasswordRegister = false;
+      this.isDeletingPasswordRegister = false;
+      this.animatedPasswordRegister = '';
+    }
   }
 
   onPasswordBlur() {
-    // Si el campo está vacío, reanudar animación (tanto en login como register)
-    const passwordValue = this.mode() === 'login'
-      ? this.loginForm.get('password')?.value || ''
-      : this.registerForm.get('password')?.value || '';
+    // SOLO reanudar animación si estamos en el modo correcto Y el campo está vacío
+    const isLogin = this.mode() === 'login';
 
-    if (!passwordValue) {
-      setTimeout(() => this.startLoginPasswordAnimation(), 100);
+    if (isLogin) {
+      const passwordValue = this.loginForm.get('password')?.value || '';
+      if (!passwordValue && !this.loginAnimationRunning) {
+        setTimeout(() => this.startLoginAnimation(), 100);
+      }
+    } else {
+      const passwordValue = this.registerForm.get('password')?.value || '';
+      if (!passwordValue && !this.registerAnimationRunning) {
+        setTimeout(() => this.startRegisterAnimation(), 100);
+      }
     }
   }
   // ==========================
@@ -300,11 +349,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     console.log('[Home] 🧹 Limpiando recursos en ngOnDestroy');
 
     // Invalidar todo lo pendiente
-    this.bumpEmailToken();
-    this.bumpNameToken();
-    this.bumpPasswordToken();
+    this.bumpEmailLoginToken();
+    this.bumpPasswordLoginToken();
+    this.bumpNameRegisterToken();
+    this.bumpEmailRegisterToken();
+    this.bumpPasswordRegisterToken();
+
+    this.loginAnimationRunning = false;
     this.registerAnimationRunning = false;
-    this.isTyping = this.isTypingName = this.isTypingPassword = this.isDeletingEmail = this.isDeletingName = this.isDeletingPassword = false;
+
+    this.isTypingEmailLogin = this.isTypingPasswordLogin = this.isDeletingEmailLogin = this.isDeletingPasswordLogin = false;
+    this.isTypingNameRegister = this.isTypingEmailRegister = this.isTypingPasswordRegister = false;
+    this.isDeletingNameRegister = this.isDeletingEmailRegister = this.isDeletingPasswordRegister = false;
+
     this.loginCharacterIndex = 0;
     this.registerCharacterIndex = 0;
     this.loginPasswordIndex = 0;
@@ -338,6 +395,11 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.removeStorageListener = undefined;
     }
 
+    // Limpiar el temporizador de cooldown
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
+
     // Limpiar el servicio de sincronización
     this.syncService.reset();
 
@@ -345,187 +407,265 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   emailAnimOn(): boolean {
-    return this.isTyping || this.isDeletingEmail || !!this.animatedPlaceholder;
+    // Solo activar si estamos en el modo correcto
+    const isLogin = this.mode() === 'login';
+    if (isLogin) {
+      return this.isTypingEmailLogin || this.isDeletingEmailLogin || !!this.animatedEmailLogin;
+    } else {
+      return this.isTypingEmailRegister || this.isDeletingEmailRegister || !!this.animatedEmailRegister;
+    }
   }
+
   nameAnimOn(): boolean {
-    return this.isTypingName || this.isDeletingName || !!this.animatedNamePlaceholder;
+    // Solo activar en modo registro
+    if (this.mode() !== 'register') return false;
+    return this.isTypingNameRegister || this.isDeletingNameRegister || !!this.animatedNameRegister;
   }
+
   passwordAnimOn(): boolean {
-    return this.isTypingPassword || this.isDeletingPassword || !!this.animatedPasswordPlaceholder;
+    // Solo activar si estamos en el modo correcto
+    const isLogin = this.mode() === 'login';
+    if (isLogin) {
+      return this.isTypingPasswordLogin || this.isDeletingPasswordLogin || !!this.animatedPasswordLogin;
+    } else {
+      return this.isTypingPasswordRegister || this.isDeletingPasswordRegister || !!this.animatedPasswordRegister;
+    }
+  }
+
+  // Getters para los placeholders animados - FORZAR cadena vacía si no es el modo correcto
+  get animatedPlaceholder(): string {
+    const isLogin = this.mode() === 'login';
+    if (isLogin) {
+      // En login, solo devolver el placeholder de login (ignorar el de registro)
+      return this.animatedEmailLogin;
+    } else {
+      // En registro, solo devolver el placeholder de registro (ignorar el de login)
+      return this.animatedEmailRegister;
+    }
+  }
+
+  get animatedNamePlaceholder(): string {
+    // El nombre solo existe en registro, devolver vacío en login
+    if (this.mode() !== 'register') return '';
+    return this.animatedNameRegister;
+  }
+
+  get animatedPasswordPlaceholder(): string {
+    const isLogin = this.mode() === 'login';
+    if (isLogin) {
+      // En login, solo devolver el placeholder de login (ignorar el de registro)
+      return this.animatedPasswordLogin;
+    } else {
+      // En registro, solo devolver el placeholder de registro (ignorar el de login)
+      return this.animatedPasswordRegister;
+    }
   }
 
   // ===== Inicio / reinicio animación =====
   private startStarWarsAnimation() {
-    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+    // Invalidar tokens para cancelar cualquier animación en curso
+    this.bumpEmailLoginToken();
+    this.bumpPasswordLoginToken();
+    this.bumpNameRegisterToken();
+    this.bumpEmailRegisterToken();
+    this.bumpPasswordRegisterToken();
+
+    // Resetear todos los estados de animación
+    this.isTypingEmailLogin = this.isTypingPasswordLogin = this.isDeletingEmailLogin = this.isDeletingPasswordLogin = false;
+    this.isTypingNameRegister = this.isTypingEmailRegister = this.isTypingPasswordRegister = false;
+    this.isDeletingNameRegister = this.isDeletingEmailRegister = this.isDeletingPasswordRegister = false;
+    this.loginAnimationRunning = false;
     this.registerAnimationRunning = false;
 
     this.loginCharacterIndex = 0;
     this.registerCharacterIndex = 0;
 
-    // Limpiar y empezar
-    this.animatedPlaceholder = '';
-    this.animatedNamePlaceholder = '';
+    // Limpiar placeholders
+    this.animatedEmailLogin = '';
+    this.animatedPasswordLogin = '';
+    this.animatedNameRegister = '';
+    this.animatedEmailRegister = '';
+    this.animatedPasswordRegister = '';
 
+    // Iniciar solo la animación del modo actual
     this.startAnimationForCurrentMode();
   }
 
   private startAnimationForCurrentMode() {
-    if (this.mode() === 'login') this.startLoginAnimation();
-    else this.startRegisterAnimation();
+    // Iniciar solo la animación del modo actual
+    // Las animaciones previas ya fueron detenidas por startStarWarsAnimation o restartAnimationForMode
+    if (this.mode() === 'login') {
+      this.startLoginAnimation();
+    } else {
+      this.startRegisterAnimation();
+    }
   }
 
   private async startLoginAnimation() {
-    this.isTyping = false;
-    this.isDeletingEmail = false;
-    this.animatedNamePlaceholder = '';
-    this.animatedPlaceholder = '';
+    // SOLO iniciar si estamos en modo login
+    if (this.mode() !== 'login') return;
 
-    // También iniciar animación de password
-    this.startLoginPasswordAnimation();
+    // Si ya está corriendo, no iniciar otra vez
+    if (this.loginAnimationRunning) return;
 
-    while (this.mode() === 'login') {
-      // Token único para TODO el ciclo (type + pause + delete) del email
-      const token = this.bumpEmailToken();
+    this.loginAnimationRunning = true;
+
+    // Asegurar que los placeholders de registro estén vacíos
+    this.animatedNameRegister = '';
+    this.animatedEmailRegister = '';
+    this.animatedPasswordRegister = '';
+
+    while (this.loginAnimationRunning && this.mode() === 'login') {
+      // Tokens únicos para el ciclo completo
+      const emailToken = this.bumpEmailLoginToken();
+      const passwordToken = this.bumpPasswordLoginToken();
 
       const email = this.loginCharacters[this.loginCharacterIndex].email;
-      await this.typeEmail(email, token);
-      if (token !== this.emailToken) break;
+      const password = this.loginPasswords[this.loginPasswordIndex];
 
+      // 1. Animar entrada de email
+      await this.typeEmailLogin(email, emailToken);
+      if (emailToken !== this.emailLoginToken || !this.loginAnimationRunning || this.mode() !== 'login') break;
+
+      // 2. Animar entrada de password
+      await this.typePasswordLogin(password, passwordToken);
+      if (passwordToken !== this.passwordLoginToken || !this.loginAnimationRunning || this.mode() !== 'login') break;
+
+      // 3. Pausa de 3 segundos con todo completo
       await this.delay(3000);
-      if (token !== this.emailToken) break;
+      if (emailToken !== this.emailLoginToken || passwordToken !== this.passwordLoginToken || !this.loginAnimationRunning || this.mode() !== 'login') break;
 
-      await this.deleteEmailText(email, token);
-      if (token !== this.emailToken) break;
+      // 4. Animar salida de password (primero)
+      await this.deletePasswordLogin(password, passwordToken);
+      if (passwordToken !== this.passwordLoginToken || !this.loginAnimationRunning || this.mode() !== 'login') break;
+
+      // 5. Animar salida de email (después)
+      await this.deleteEmailLogin(email, emailToken);
+      if (emailToken !== this.emailLoginToken || !this.loginAnimationRunning || this.mode() !== 'login') break;
 
       // Descanso breve sin texto
       await this.delay(800);
-      if (token !== this.emailToken) break;
+      if (emailToken !== this.emailLoginToken || passwordToken !== this.passwordLoginToken || !this.loginAnimationRunning || this.mode() !== 'login') break;
 
       this.loginCharacterIndex = (this.loginCharacterIndex + 1) % this.loginCharacters.length;
-    }
-
-    // Limpiar al salir
-    this.animatedPlaceholder = '';
-  }
-
-  private async startLoginPasswordAnimation() {
-    this.isTypingPassword = false;
-    this.isDeletingPassword = false;
-    this.animatedPasswordPlaceholder = '';
-
-    // Animar mientras estemos en login O register
-    while (this.mode() === 'login' || this.mode() === 'register') {
-      // Token único para TODO el ciclo (type + pause + delete) de la password
-      const token = this.bumpPasswordToken();
-
-      const password = this.loginPasswords[this.loginPasswordIndex];
-      await this.typePassword(password, token);
-      if (token !== this.passwordToken) break;
-
-      await this.delay(3500);
-      if (token !== this.passwordToken) break;
-
-      await this.deletePasswordText(password, token);
-      if (token !== this.passwordToken) break;
-
-      // Descanso breve sin texto
-      await this.delay(1000);
-      if (token !== this.passwordToken) break;
-
       this.loginPasswordIndex = (this.loginPasswordIndex + 1) % this.loginPasswords.length;
     }
 
     // Limpiar al salir
-    this.animatedPasswordPlaceholder = '';
+    this.animatedEmailLogin = '';
+    this.animatedPasswordLogin = '';
+    this.loginAnimationRunning = false;
   }
 
+
   private async startRegisterAnimation() {
-    this.isTyping = this.isTypingName = this.isDeletingEmail = this.isDeletingName = false;
+    // SOLO iniciar si estamos en modo registro
+    if (this.mode() !== 'register') return;
+
+    // Si ya está corriendo, no iniciar otra vez
+    if (this.registerAnimationRunning) return;
+
     this.registerAnimationRunning = true;
-
-    this.animatedPlaceholder = '';
-    this.animatedNamePlaceholder = '';
-
     this.runRegisterAnimationLoop();
-    // Iniciar animación de password en paralelo
-    this.startLoginPasswordAnimation();
   }
 
   private restartAnimationForMode() {
     // Invalidar todo lo que esté en curso
-    this.bumpEmailToken();
-    this.bumpNameToken();
-    this.bumpPasswordToken();
+    this.bumpEmailLoginToken();
+    this.bumpPasswordLoginToken();
+    this.bumpNameRegisterToken();
+    this.bumpEmailRegisterToken();
+    this.bumpPasswordRegisterToken();
 
+    // Detener ambas animaciones
+    this.loginAnimationRunning = false;
     this.registerAnimationRunning = false;
-    this.isTyping = this.isTypingName = this.isTypingPassword = this.isDeletingEmail = this.isDeletingName = this.isDeletingPassword = false;
+
+    this.isTypingEmailLogin = this.isTypingPasswordLogin = this.isDeletingEmailLogin = this.isDeletingPasswordLogin = false;
+    this.isTypingNameRegister = this.isTypingEmailRegister = this.isTypingPasswordRegister = false;
+    this.isDeletingNameRegister = this.isDeletingEmailRegister = this.isDeletingPasswordRegister = false;
 
     this.loginCharacterIndex = 0;
     this.registerCharacterIndex = 0;
 
-    this.animatedPlaceholder = '';
-    this.animatedNamePlaceholder = '';
-    this.animatedPasswordPlaceholder = '';
+    // LIMPIAR TODOS los placeholders inmediatamente
+    this.animatedEmailLogin = '';
+    this.animatedPasswordLogin = '';
+    this.animatedNameRegister = '';
+    this.animatedEmailRegister = '';
+    this.animatedPasswordRegister = '';
 
-    // Iniciar la animación inmediatamente sin delay
-    setTimeout(() => this.startAnimationForCurrentMode(), 0);
+    // Iniciar solo la animación del modo actual después de un breve delay
+    setTimeout(() => this.startAnimationForCurrentMode(), 50);
   }
 
   private async runRegisterAnimationLoop() {
+    // Asegurar que los placeholders de login estén vacíos
+    this.animatedEmailLogin = '';
+    this.animatedPasswordLogin = '';
+
     while (this.registerAnimationRunning && this.mode() === 'register') {
-      // Tokens por campo (independientes)
-      const nameToken  = this.bumpNameToken();
-      const emailToken = this.bumpEmailToken();
+      // Tokens únicos para el ciclo completo
+      const nameToken = this.bumpNameRegisterToken();
+      const emailToken = this.bumpEmailRegisterToken();
+      const passwordToken = this.bumpPasswordRegisterToken();
 
       const character = this.registerCharacters[this.registerCharacterIndex];
+      const password = this.loginPasswords[this.loginPasswordIndex];
 
-      await this.typeName(character.name, nameToken);
-      if (nameToken !== this.nameToken) break;
+      // 1. Animar entrada de username
+      await this.typeNameRegister(character.name, nameToken);
+      if (nameToken !== this.nameRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
-      await this.delay(1000);
-      if (emailToken !== this.emailToken) break;
+      // 2. Animar entrada de email
+      await this.typeEmailRegister(character.email, emailToken);
+      if (emailToken !== this.emailRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
-      await this.typeEmail(character.email, emailToken);
-      if (emailToken !== this.emailToken) break;
+      // 3. Animar entrada de password
+      await this.typePasswordRegister(password, passwordToken);
+      if (passwordToken !== this.passwordRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
+      // 4. Pausa de 3 segundos con todo completo
       await this.delay(3000);
-      if (emailToken !== this.emailToken) break;
+      if (nameToken !== this.nameRegisterToken || emailToken !== this.emailRegisterToken || passwordToken !== this.passwordRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
-      await this.deleteEmailText(character.email, emailToken);
-      if (emailToken !== this.emailToken) break;
+      // 5. Animar salida de password (primero)
+      await this.deletePasswordRegister(password, passwordToken);
+      if (passwordToken !== this.passwordRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
-      await this.delay(500);
-      if (nameToken !== this.nameToken) break;
+      // 6. Animar salida de email (después)
+      await this.deleteEmailRegister(character.email, emailToken);
+      if (emailToken !== this.emailRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
-      await this.deleteNameText(character.name, nameToken);
-      if (nameToken !== this.nameToken) break;
-
-      await this.delay(500);
-      if (nameToken !== this.nameToken || emailToken !== this.emailToken) break;
+      // 7. Animar salida de username (último)
+      await this.deleteNameRegister(character.name, nameToken);
+      if (nameToken !== this.nameRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
       // Descanso breve sin texto
-      this.animatedPlaceholder = '';
-      this.animatedNamePlaceholder = '';
-      await this.delay(1200);
-      if (nameToken !== this.nameToken || emailToken !== this.emailToken) break;
+      await this.delay(800);
+      if (nameToken !== this.nameRegisterToken || emailToken !== this.emailRegisterToken || passwordToken !== this.passwordRegisterToken || !this.registerAnimationRunning || this.mode() !== 'register') break;
 
       this.registerCharacterIndex = (this.registerCharacterIndex + 1) % this.registerCharacters.length;
+      this.loginPasswordIndex = (this.loginPasswordIndex + 1) % this.loginPasswords.length;
     }
 
     // Limpiar al salir
-    this.animatedPlaceholder = '';
-    this.animatedNamePlaceholder = '';
+    this.animatedNameRegister = '';
+    this.animatedEmailRegister = '';
+    this.animatedPasswordRegister = '';
+    this.registerAnimationRunning = false;
   }
 
-  // ===== Lógica de tipeo/borrado (con tokens y snapshots) =====
-  private async typeEmail(text: string, token: number) {
-    if (this.isTyping) return;
-    this.isTyping = true;
+  // ===== Lógica de tipeo/borrado LOGIN =====
+  private async typeEmailLogin(text: string, token: number) {
+    if (this.isTypingEmailLogin) return;
+    this.isTypingEmailLogin = true;
 
-    // Escribir char a char, abortable
     for (let i = 0; i <= text.length; i++) {
-      if (token !== this.emailToken) break;
-      this.animatedPlaceholder = text.substring(0, i);
+      if (token !== this.emailLoginToken || this.mode() !== 'login') break;
+      this.animatedEmailLogin = text.substring(0, i);
+      // Asegurar que el registro esté vacío
+      this.animatedEmailRegister = '';
 
       let speed = 120;
       if (i < text.length * 0.3) speed = 150;
@@ -535,34 +675,33 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.delay(speed);
     }
 
-    // Si se canceló, no tocar flags
-    if (token === this.emailToken) this.isTyping = false;
+    if (token === this.emailLoginToken) this.isTypingEmailLogin = false;
   }
 
-  private async deleteEmailText(text: string, token: number) {
-    if (this.isDeletingEmail) return;
-    this.isDeletingEmail = true;
+  private async deleteEmailLogin(text: string, token: number) {
+    if (this.isDeletingEmailLogin) return;
+    this.isDeletingEmailLogin = true;
 
-    // Snapshot del texto actual para evitar "reapariciones"
-    const starting = this.animatedPlaceholder || text;
+    const starting = this.animatedEmailLogin || text;
 
     for (let i = starting.length; i >= 0; i--) {
-      if (token !== this.emailToken) break;
-      this.animatedPlaceholder = starting.substring(0, i);
+      if (token !== this.emailLoginToken) break;
+      this.animatedEmailLogin = starting.substring(0, i);
       await this.delay(60);
     }
 
-    if (token === this.emailToken) this.isDeletingEmail = false;
+    if (token === this.emailLoginToken) this.isDeletingEmailLogin = false;
   }
 
-  private async typePassword(text: string, token: number) {
-    if (this.isTypingPassword) return;
-    this.isTypingPassword = true;
+  private async typePasswordLogin(text: string, token: number) {
+    if (this.isTypingPasswordLogin) return;
+    this.isTypingPasswordLogin = true;
 
-    // Escribir char a char, abortable
     for (let i = 0; i <= text.length; i++) {
-      if (token !== this.passwordToken) break;
-      this.animatedPasswordPlaceholder = text.substring(0, i);
+      if (token !== this.passwordLoginToken || this.mode() !== 'login') break;
+      this.animatedPasswordLogin = text.substring(0, i);
+      // Asegurar que el registro esté vacío
+      this.animatedPasswordRegister = '';
 
       let speed = 100;
       if (i < text.length * 0.3) speed = 130;
@@ -572,31 +711,35 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.delay(speed);
     }
 
-    if (token === this.passwordToken) this.isTypingPassword = false;
+    if (token === this.passwordLoginToken) this.isTypingPasswordLogin = false;
   }
 
-  private async deletePasswordText(text: string, token: number) {
-    if (this.isDeletingPassword) return;
-    this.isDeletingPassword = true;
+  private async deletePasswordLogin(text: string, token: number) {
+    if (this.isDeletingPasswordLogin) return;
+    this.isDeletingPasswordLogin = true;
 
-    const starting = this.animatedPasswordPlaceholder || text;
+    const starting = this.animatedPasswordLogin || text;
 
     for (let i = starting.length; i >= 0; i--) {
-      if (token !== this.passwordToken) break;
-      this.animatedPasswordPlaceholder = starting.substring(0, i);
+      if (token !== this.passwordLoginToken) break;
+      this.animatedPasswordLogin = starting.substring(0, i);
       await this.delay(50);
     }
 
-    if (token === this.passwordToken) this.isDeletingPassword = false;
+    if (token === this.passwordLoginToken) this.isDeletingPasswordLogin = false;
   }
 
-  private async typeName(text: string, token: number) {
-    if (this.isTypingName) return;
-    this.isTypingName = true;
+  // ===== Lógica de tipeo/borrado REGISTRO =====
+  private async typeNameRegister(text: string, token: number) {
+    if (this.isTypingNameRegister) return;
+    this.isTypingNameRegister = true;
 
     for (let i = 0; i <= text.length; i++) {
-      if (token !== this.nameToken) break;
-      this.animatedNamePlaceholder = text.substring(0, i);
+      if (token !== this.nameRegisterToken || this.mode() !== 'register') break;
+      this.animatedNameRegister = text.substring(0, i);
+      // Asegurar que el login esté vacío
+      this.animatedEmailLogin = '';
+      this.animatedPasswordLogin = '';
 
       let speed = 120;
       if (i < text.length * 0.3) speed = 150;
@@ -607,22 +750,94 @@ export class HomeComponent implements OnInit, OnDestroy {
       await this.delay(speed);
     }
 
-    if (token === this.nameToken) this.isTypingName = false;
+    if (token === this.nameRegisterToken) this.isTypingNameRegister = false;
   }
 
-  private async deleteNameText(text: string, token: number) {
-    if (this.isDeletingName) return;
-    this.isDeletingName = true;
+  private async deleteNameRegister(text: string, token: number) {
+    if (this.isDeletingNameRegister) return;
+    this.isDeletingNameRegister = true;
 
-    const starting = this.animatedNamePlaceholder || text;
+    const starting = this.animatedNameRegister || text;
 
     for (let i = starting.length; i >= 0; i--) {
-      if (token !== this.nameToken) break;
-      this.animatedNamePlaceholder = starting.substring(0, i);
+      if (token !== this.nameRegisterToken) break;
+      this.animatedNameRegister = starting.substring(0, i);
       await this.delay(60);
     }
 
-    if (token === this.nameToken) this.isDeletingName = false;
+    if (token === this.nameRegisterToken) this.isDeletingNameRegister = false;
+  }
+
+  private async typeEmailRegister(text: string, token: number) {
+    if (this.isTypingEmailRegister) return;
+    this.isTypingEmailRegister = true;
+
+    for (let i = 0; i <= text.length; i++) {
+      if (token !== this.emailRegisterToken || this.mode() !== 'register') break;
+      this.animatedEmailRegister = text.substring(0, i);
+      // Asegurar que el login esté vacío
+      this.animatedEmailLogin = '';
+
+      let speed = 120;
+      if (i < text.length * 0.3) speed = 150;
+      else if (i > text.length * 0.7) speed = 80;
+      if (text[i] === '@' || text[i] === '.') speed = 200;
+
+      await this.delay(speed);
+    }
+
+    if (token === this.emailRegisterToken) this.isTypingEmailRegister = false;
+  }
+
+  private async deleteEmailRegister(text: string, token: number) {
+    if (this.isDeletingEmailRegister) return;
+    this.isDeletingEmailRegister = true;
+
+    const starting = this.animatedEmailRegister || text;
+
+    for (let i = starting.length; i >= 0; i--) {
+      if (token !== this.emailRegisterToken) break;
+      this.animatedEmailRegister = starting.substring(0, i);
+      await this.delay(60);
+    }
+
+    if (token === this.emailRegisterToken) this.isDeletingEmailRegister = false;
+  }
+
+  private async typePasswordRegister(text: string, token: number) {
+    if (this.isTypingPasswordRegister) return;
+    this.isTypingPasswordRegister = true;
+
+    for (let i = 0; i <= text.length; i++) {
+      if (token !== this.passwordRegisterToken || this.mode() !== 'register') break;
+      this.animatedPasswordRegister = text.substring(0, i);
+      // Asegurar que el login esté vacío
+      this.animatedPasswordLogin = '';
+
+      let speed = 100;
+      if (i < text.length * 0.3) speed = 130;
+      else if (i > text.length * 0.7) speed = 70;
+      if (text[i] === '_' || text[i] === '!' || text[i] === '@') speed = 180;
+
+      await this.delay(speed);
+    }
+
+    if (token === this.passwordRegisterToken) this.isTypingPasswordRegister = false;
+  }
+
+  private async deletePasswordRegister(text: string, token: number) {
+    if (this.isDeletingPasswordRegister) return;
+    this.isDeletingPasswordRegister = true;
+
+    const starting = this.animatedPasswordRegister || text;
+
+    for (let i = starting.length; i >= 0; i--) {
+      if (token !== this.passwordRegisterToken) break;
+      this.animatedPasswordRegister = starting.substring(0, i);
+      await this.delay(50);
+    }
+
+    if (token === this.passwordRegisterToken) this.isDeletingPasswordRegister = false;
   }
 
   private delay(ms: number): Promise<void> {
@@ -714,6 +929,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         // ✅ Iniciar polling para detectar cuando el email sea verificado
         this.stopPolling = this.syncService.startPollingVerification(emailToVerify, 3000);
 
+        // ✅ Iniciar temporizador SIEMPRE al activar waitingForVerification
+        this.startResendCooldown();
+
         // ✅ Enviar automáticamente el email de verificación (como en el registro)
         console.log('[Home] 📧 Intentando enviar automáticamente email de verificación para:', emailToVerify);
         this.emailVerificationService.resendForUnverified(emailToVerify)
@@ -760,17 +978,45 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async resendVerificationEmailFromHome() {
-    // Usar el email real si está disponible (cuando se loguea con username)
-    // De lo contrario, usar el campo email del formulario (que puede ser email o username)
-    const emailToUse = this.actualEmail() || this.loginForm.get('email')?.value;
+    console.log('[Home] 🔄 Botón de reenvío clickeado');
+
+    // Intentar obtener el email de múltiples fuentes
+    let emailToUse = this.actualEmail(); // Primero el email real (cuando se loguea con username)
 
     if (!emailToUse) {
+      // Si no está en actualEmail, intentar desde pendingAuth en localStorage
+      const pendingAuth = localStorage.getItem('pendingAuth');
+      if (pendingAuth) {
+        try {
+          const parsed = JSON.parse(pendingAuth);
+          emailToUse = parsed.email;
+          console.log('[Home] Email obtenido de pendingAuth:', emailToUse);
+        } catch (e) {
+          console.error('[Home] Error parseando pendingAuth:', e);
+        }
+      }
+    }
+
+    if (!emailToUse) {
+      // Fallback a los formularios
+      const isLogin = this.mode() === 'login';
+      emailToUse = (isLogin
+        ? this.loginForm.get('email')?.value
+        : this.registerForm.get('email')?.value) || null;
+      console.log('[Home] Email obtenido del formulario:', emailToUse, 'Modo:', this.mode());
+    }
+
+    if (!emailToUse) {
+      console.error('[Home] ❌ No se pudo obtener el email para reenviar');
       this.errorLogin = this.translate.instant('auth.errors.enter_email');
+      this.errorRegister = this.translate.instant('auth.errors.enter_email');
       return;
     }
 
+    console.log('[Home] 📧 Reenviando email a:', emailToUse);
     this.resendingEmail.set(true);
     this.errorLogin = null;
+    this.errorRegister = null;
     this.emailSent.set(false);
 
     try {
@@ -778,28 +1024,44 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.emailVerificationService.resendForUnverified(emailToUse)
       );
 
+      console.log('[Home] Respuesta del reenvío:', response);
       if (response.success) {
         this.emailSent.set(true);
         this.errorLogin = null;
+        this.errorRegister = null;
+        console.log('[Home] ✅ Email reenviado exitosamente');
+        // Reiniciar temporizador de cooldown
+        this.startResendCooldown();
       } else {
+        console.warn('[Home] ⚠️ Reenvío no exitoso:', response.message);
         this.errorLogin = response.message || this.translate.instant('auth.errors.email_send_failed');
+        this.errorRegister = response.message || this.translate.instant('auth.errors.email_send_failed');
       }
     } catch (err: any) {
-      console.error('[Home] Resend error:', err);
+      console.error('[Home] ❌ Error al reenviar:', err);
 
       if (this.emailVerificationService.isCooldownError(err)) {
-        this.errorLogin = this.translate.instant('auth.errors.cooldown');
+        const cooldownMsg = this.translate.instant('auth.errors.cooldown');
+        this.errorLogin = cooldownMsg;
+        this.errorRegister = cooldownMsg;
       } else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
-        this.errorLogin = this.translate.instant('auth.errors.already_verified');
+        const verifiedMsg = this.translate.instant('auth.errors.already_verified');
+        this.errorLogin = verifiedMsg;
+        this.errorRegister = verifiedMsg;
         this.needsEmailVerification.set(false);
         this.actualEmail.set(null);
       } else if (err.status === 404) {
-        this.errorLogin = this.translate.instant('auth.errors.user_not_found');
+        const notFoundMsg = this.translate.instant('auth.errors.user_not_found');
+        this.errorLogin = notFoundMsg;
+        this.errorRegister = notFoundMsg;
       } else {
-        this.errorLogin = err.message || this.translate.instant('auth.errors.verification_send_failed');
+        const genericMsg = err.message || this.translate.instant('auth.errors.verification_send_failed');
+        this.errorLogin = genericMsg;
+        this.errorRegister = genericMsg;
       }
     } finally {
       this.resendingEmail.set(false);
+      console.log('[Home] Reenvío completado. resendingEmail.set(false)');
     }
   }
 
@@ -947,6 +1209,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       // ✅ Iniciar polling para detectar cuando el email sea verificado
       this.stopPolling = this.syncService.startPollingVerification(email!, 3000);
 
+      // Iniciar temporizador de 30 segundos para reenvío
+      this.startResendCooldown();
+
     } catch (e: any) {
       console.error('[Home] Register error:', e);
 
@@ -972,4 +1237,32 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   goStore() { this.router.navigateByUrl('/tienda'); }
+
+  /**
+   * Inicia el temporizador de 30 segundos para poder reenviar el email
+   */
+  private startResendCooldown(): void {
+    this.resendCooldown.set(30);
+    this.canResend.set(false);
+
+    // Limpiar intervalo anterior si existe
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
+
+    // Iniciar cuenta regresiva
+    this.cooldownInterval = setInterval(() => {
+      const current = this.resendCooldown();
+      if (current > 0) {
+        this.resendCooldown.set(current - 1);
+      } else {
+        // Cuando llega a 0, habilitar el botón de reenvío
+        this.canResend.set(true);
+        if (this.cooldownInterval) {
+          clearInterval(this.cooldownInterval);
+          this.cooldownInterval = undefined;
+        }
+      }
+    }, 1000);
+  }
 }
