@@ -230,6 +230,10 @@
   },
   "auth": {
     "user": "usuario",
+    "validatingSession": "Validando sesión…",
+    "welcomeUser": "Bienvenido, {{username}}",
+    "defaultUser": "Usuario",
+    "closingSession": "Cerrando sesión…",
     "login": {
       "title": "Iniciar sesión",
       "submit": "Entrar"
@@ -253,7 +257,34 @@
     "errors": {
       "missingFields": "Completá todos los campos.",
       "loginFailed": "No se pudo iniciar sesión.",
-      "registerFailed": "No se pudo registrar."
+      "registerFailed": "No se pudo registrar.",
+      "complete_fields": "Por favor completá todos los campos.",
+      "email_invalid": "Por favor ingresá un email válido.",
+      "email_or_username_invalid": "El email o usuario debe tener al menos 3 caracteres.",
+      "password_requirements": "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).",
+      "password_min_length": "La contraseña debe tener al menos 8 caracteres.",
+      "login_failed": "Email o contraseña incorrectos.",
+      "register_failed": "No se pudo registrar la cuenta.",
+      "email_already_verified": "El email ya está verificado.",
+      "cooldown": "Ya se envió un email recientemente. Esperá unos minutos.",
+      "email_send_failed": "No se pudo enviar el email de verificación.",
+      "email_send_failed_use_button": "No se pudo enviar el email automáticamente. Usá el botón de reenvío.",
+      "enter_email": "Por favor ingresá tu email.",
+      "auto_login_failed": "Error al iniciar sesión automáticamente.",
+      "verification_send_failed": "Error al enviar el email de verificación.",
+      "user_not_found": "No se encontró un usuario con ese email.",
+      "already_verified": "El email ya está verificado. Intentá iniciar sesión.",
+      "email_already_exists": "El email ya está registrado. Intentá iniciar sesión.",
+      "username_already_exists": "El nombre de usuario ya está en uso. Elegí otro.",
+      "account_already_exists": "Ya existe una cuenta con estos datos."
+    },
+    "password_requirements": {
+      "title": "La contraseña debe tener:",
+      "min_length": "Mínimo 8 caracteres",
+      "uppercase": "Al menos una mayúscula (A-Z)",
+      "lowercase": "Al menos una minúscula (a-z)",
+      "number": "Al menos un número (0-9)",
+      "special": "Al menos un carácter especial (@$!%*?&)"
     }
   },
   "home": {
@@ -671,7 +702,10 @@
       "chartRank2": "Rango Avanzado",
       "chartRank3": "Rango Superior",
       "authoritiesLabel": "Autoridades"
-    }
+    },
+    "successCreate": "Autoridad creada correctamente",
+    "successUpdate": "Autoridad actualizada correctamente",
+    "successDelete": "Autoridad eliminada correctamente"
   },
   "authority": {
     "fields": {

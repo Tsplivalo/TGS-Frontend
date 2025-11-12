@@ -410,6 +410,72 @@
   font-weight: 700;
 }
 
+/* Mensaje de requisitos de contraseña */
+.password-requirements {
+  margin-top: .6rem;
+  padding: .7rem .8rem;
+  border-radius: .5rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.04));
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  animation: slideDown 0.25s cubic-bezier(.25, .6, .3, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.requirements-title {
+  margin: 0 0 .5rem 0;
+  font-size: .8rem;
+  font-weight: 800;
+  color: var(--blue-accent, #3b82f6);
+  letter-spacing: .2px;
+}
+
+.requirements-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+
+  li {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--muted, #cbd5e1);
+    padding-left: 1.2rem;
+    position: relative;
+    transition: color .2s ease;
+    line-height: 1.4;
+
+    &::before {
+      content: "✗";
+      position: absolute;
+      left: 0;
+      color: rgba(248, 113, 113, 0.8);
+      font-weight: 900;
+      transition: color .2s ease;
+    }
+
+    &.met {
+      color: rgba(134, 239, 172, 0.95);
+
+      &::before {
+        content: "✓";
+        color: rgba(134, 239, 172, 1);
+      }
+    }
+  }
+}
+
 .auth-divider {
   position: absolute;
   top: 0;

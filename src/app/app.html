@@ -27,12 +27,12 @@
       <span class="brand">GarrSYS</span>
       <!-- Login copy -->
       <ng-container *ngIf="transition.mode()==='login'; else logoutCopy">
-        <span class="sub" *ngIf="transition.phase()!=='success'">Validando sesión…</span>
-        <span class="sub" *ngIf="transition.phase()==='success'">Bienvenido, {{ auth.user()?.username || 'Usuario' }}</span>
+        <span class="sub" *ngIf="transition.phase()!=='success'">{{ 'auth.validatingSession' | translate }}</span>
+        <span class="sub" *ngIf="transition.phase()==='success'">{{ 'auth.welcomeUser' | translate: { username: auth.user()?.username || ('auth.defaultUser' | translate) } }}</span>
       </ng-container>
       <!-- Logout copy -->
       <ng-template #logoutCopy>
-        <span class="sub">Cerrando sesión…</span>
+        <span class="sub">{{ 'auth.closingSession' | translate }}</span>
       </ng-template>
     </div>
   </div>

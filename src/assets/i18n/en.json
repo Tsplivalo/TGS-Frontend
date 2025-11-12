@@ -212,6 +212,10 @@
   },
   "auth": {
     "user": "user",
+    "validatingSession": "Validating session…",
+    "welcomeUser": "Welcome, {{username}}",
+    "defaultUser": "User",
+    "closingSession": "Closing session…",
     "login": {
       "title": "Sign in",
       "submit": "Sign in"
@@ -235,7 +239,34 @@
     "errors": {
       "missingFields": "Please complete all fields.",
       "loginFailed": "Could not sign in.",
-      "registerFailed": "Could not register."
+      "registerFailed": "Could not register.",
+      "complete_fields": "Please complete all fields.",
+      "email_invalid": "Please enter a valid email.",
+      "email_or_username_invalid": "Email or username must be at least 3 characters.",
+      "password_requirements": "Password must have at least 8 characters, one uppercase, one lowercase, one number and one special character (@$!%*?&).",
+      "password_min_length": "Password must be at least 8 characters.",
+      "login_failed": "Incorrect email or password.",
+      "register_failed": "Could not register account.",
+      "email_already_verified": "Email is already verified.",
+      "cooldown": "An email was already sent recently. Please wait a few minutes.",
+      "email_send_failed": "Could not send verification email.",
+      "email_send_failed_use_button": "Could not send email automatically. Use the resend button.",
+      "enter_email": "Please enter your email.",
+      "auto_login_failed": "Error logging in automatically.",
+      "verification_send_failed": "Error sending verification email.",
+      "user_not_found": "No user found with that email.",
+      "already_verified": "Email is already verified. Try logging in.",
+      "email_already_exists": "Email is already registered. Try logging in.",
+      "username_already_exists": "Username is already taken. Choose another one.",
+      "account_already_exists": "An account with this data already exists."
+    },
+    "password_requirements": {
+      "title": "Password must have:",
+      "min_length": "Minimum 8 characters",
+      "uppercase": "At least one uppercase letter (A-Z)",
+      "lowercase": "At least one lowercase letter (a-z)",
+      "number": "At least one number (0-9)",
+      "special": "At least one special character (@$!%*?&)"
     }
   },
   "home": {
@@ -655,7 +686,10 @@
       "chartRank2": "Advanced Rank",
       "chartRank3": "Superior Rank",
       "authoritiesLabel": "Authorities"
-    }
+    },
+    "successCreate": "Authority created successfully",
+    "successUpdate": "Authority updated successfully",
+    "successDelete": "Authority deleted successfully"
   },
   "authority": {
     "fields": {

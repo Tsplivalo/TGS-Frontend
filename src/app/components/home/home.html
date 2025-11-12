@@ -127,7 +127,7 @@
             </button>
 
             <p class="auth-error" *ngIf="errorLogin && !needsEmailVerification()">
-              {{ errorLogin | translate }}
+              {{ errorLogin }}
             </p>
           </form>
         </div>
@@ -224,8 +224,8 @@
                   [attr.placeholder]="mode() === 'register' && passwordAnimOn() ? animatedPasswordPlaceholder : ''"
                   [attr.data-anim]="mode() === 'register' && passwordAnimOn() ? 'on' : 'off'"
                   [class.star-wars-placeholder]="mode() === 'register' && passwordAnimOn()"
-                  (focus)="onPasswordFocus()"
-                  (blur)="onPasswordBlur()"
+                  (focus)="onRegisterPasswordFocus()"
+                  (blur)="onRegisterPasswordBlur()"
                   autocomplete="new-password" required />
                 <button type="button" class="pwd-toggle" (click)="showRegisterPwd = !showRegisterPwd"
                   [attr.aria-label]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
@@ -233,12 +233,23 @@
                   <span class="material-symbols-outlined">{{ showRegisterPwd ? 'visibility_off' : 'visibility' }}</span>
                 </button>
               </div>
+              <!-- Mensaje de requisitos de contraseña -->
+              <div class="password-requirements" *ngIf="showRegisterPasswordRequirements">
+                <p class="requirements-title">{{ 'auth.password_requirements.title' | translate }}</p>
+                <ul class="requirements-list">
+                  <li [class.met]="passwordHasMinLength()">{{ 'auth.password_requirements.min_length' | translate }}</li>
+                  <li [class.met]="passwordHasUppercase()">{{ 'auth.password_requirements.uppercase' | translate }}</li>
+                  <li [class.met]="passwordHasLowercase()">{{ 'auth.password_requirements.lowercase' | translate }}</li>
+                  <li [class.met]="passwordHasNumber()">{{ 'auth.password_requirements.number' | translate }}</li>
+                  <li [class.met]="passwordHasSpecial()">{{ 'auth.password_requirements.special' | translate }}</li>
+                </ul>
+              </div>
             </label>
 
             <button type="submit" [disabled]="loadingRegister">{{ 'auth.register.submit' | translate }}</button>
 
             <p class="auth-error" *ngIf="errorRegister">
-              {{ errorRegister | translate }}
+              {{ errorRegister }}
             </p>
           </form>
         </div>

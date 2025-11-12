@@ -95,6 +95,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   showLoginPwd = false;
   showRegisterPwd = false;
 
+  // Mostrar requisitos de contraseña
+  showRegisterPasswordRequirements = false;
+
   // Transición de login (velo con blur)
   authTransitioning = false;
   authPhase: 'loading' | 'success' = 'loading';
@@ -335,6 +338,45 @@ export class HomeComponent implements OnInit, OnDestroy {
         setTimeout(() => this.startRegisterAnimation(), 100);
       }
     }
+  }
+
+  // Handlers específicos para el password del registro (con requisitos)
+  onRegisterPasswordFocus() {
+    if (this.mode() !== 'register') return;
+    this.showRegisterPasswordRequirements = true;
+    this.onPasswordFocus(); // Mantener la lógica de animación existente
+  }
+
+  onRegisterPasswordBlur() {
+    if (this.mode() !== 'register') return;
+    this.showRegisterPasswordRequirements = false;
+    this.onPasswordBlur(); // Mantener la lógica de animación existente
+  }
+
+  // Métodos para validar requisitos de contraseña
+  passwordHasMinLength(): boolean {
+    const password = this.registerForm.get('password')?.value || '';
+    return password.length >= 8;
+  }
+
+  passwordHasUppercase(): boolean {
+    const password = this.registerForm.get('password')?.value || '';
+    return /[A-Z]/.test(password);
+  }
+
+  passwordHasLowercase(): boolean {
+    const password = this.registerForm.get('password')?.value || '';
+    return /[a-z]/.test(password);
+  }
+
+  passwordHasNumber(): boolean {
+    const password = this.registerForm.get('password')?.value || '';
+    return /\d/.test(password);
+  }
+
+  passwordHasSpecial(): boolean {
+    const password = this.registerForm.get('password')?.value || '';
+    return /[@$!%*?&]/.test(password);
   }
   // ==========================
 
@@ -850,7 +892,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   async submitLogin() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
-      this.errorLogin = this.translate.instant('auth.errors.complete_fields');
+
+      // Validación específica de campos
+      const emailControl = this.loginForm.get('email');
+      const passwordControl = this.loginForm.get('password');
+
+      if (!emailControl?.value || !passwordControl?.value) {
+        this.errorLogin = this.translate.instant('auth.errors.complete_fields');
+      } else if (emailControl.hasError('required') || emailControl.hasError('minLength')) {
+        this.errorLogin = this.translate.instant('auth.errors.email_or_username_invalid');
+      } else if (passwordControl.hasError('required')) {
+        this.errorLogin = this.translate.instant('auth.errors.complete_fields');
+      } else {
+        this.errorLogin = this.translate.instant('auth.errors.complete_fields');
+      }
       return;
     }
 
@@ -970,7 +1025,21 @@ export class HomeComponent implements OnInit, OnDestroy {
         // NO limpiar pendingAuth aquí
       } else {
         localStorage.removeItem('pendingAuth');
-        this.errorLogin = error?.message || this.translate.instant('auth.errors.login_failed');
+
+        // Detectar y traducir errores comunes del backend
+        const errorMessage = error?.message || error?.error?.message || '';
+
+        if (errorMessage.toLowerCase().includes('invalid credentials') ||
+            errorMessage.toLowerCase().includes('credenciales inválidas')) {
+          this.errorLogin = this.translate.instant('auth.errors.login_failed');
+        } else if (errorMessage.toLowerCase().includes('user not found') ||
+                   errorMessage.toLowerCase().includes('usuario no encontrado')) {
+          this.errorLogin = this.translate.instant('auth.errors.user_not_found');
+        } else if (error?.status === 401 || error?.status === 403) {
+          this.errorLogin = this.translate.instant('auth.errors.login_failed');
+        } else {
+          this.errorLogin = errorMessage || this.translate.instant('auth.errors.login_failed');
+        }
       }
     } finally {
       this.loadingLogin = false;
@@ -1171,8 +1240,21 @@ export class HomeComponent implements OnInit, OnDestroy {
   async submitRegister() {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
-      const pwd = this.registerForm.get('password');
-      if (pwd?.hasError('pattern')) {
+
+      // Validación específica de campos
+      const usernameControl = this.registerForm.get('username');
+      const emailControl = this.registerForm.get('email');
+      const passwordControl = this.registerForm.get('password');
+
+      if (!usernameControl?.value || !emailControl?.value || !passwordControl?.value) {
+        this.errorRegister = this.translate.instant('auth.errors.complete_fields');
+      } else if (usernameControl.hasError('required') || usernameControl.hasError('minLength')) {
+        this.errorRegister = this.translate.instant('auth.errors.complete_fields');
+      } else if (emailControl.hasError('email')) {
+        this.errorRegister = this.translate.instant('auth.errors.email_invalid');
+      } else if (passwordControl.hasError('minLength')) {
+        this.errorRegister = this.translate.instant('auth.errors.password_min_length');
+      } else if (passwordControl.hasError('pattern')) {
         this.errorRegister = this.translate.instant('auth.errors.password_requirements');
       } else {
         this.errorRegister = this.translate.instant('auth.errors.complete_fields');
@@ -1223,7 +1305,20 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.emailSent.set(true);
         this.errorRegister = null;
       } else {
-        this.errorRegister = e?.message || this.translate.instant('auth.errors.register_failed');
+        // Detectar y traducir errores comunes del backend
+        const errorMessage = e?.message || e?.error?.message || '';
+
+        if (errorMessage.toLowerCase().includes('email already exists') ||
+            errorMessage.toLowerCase().includes('email ya existe')) {
+          this.errorRegister = this.translate.instant('auth.errors.email_already_exists');
+        } else if (errorMessage.toLowerCase().includes('username already exists') ||
+                   errorMessage.toLowerCase().includes('usuario ya existe')) {
+          this.errorRegister = this.translate.instant('auth.errors.username_already_exists');
+        } else if (e?.status === 409) {
+          this.errorRegister = this.translate.instant('auth.errors.account_already_exists');
+        } else {
+          this.errorRegister = errorMessage || this.translate.instant('auth.errors.register_failed');
+        }
       }
     } finally {
       this.loadingRegister = false;
