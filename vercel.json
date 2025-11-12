@@ -1,11 +1,16 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist/The-Garrison-System/browser",
   "framework": "angular",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json))",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
