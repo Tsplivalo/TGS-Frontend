@@ -3,6 +3,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/The-Garrison-System/browser",
   "framework": "angular",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://tgs-backend-u5xz.onrender.com/api/:path*"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json))",
