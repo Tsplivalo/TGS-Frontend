@@ -14,7 +14,7 @@ import {
   providedIn: 'root'
 })
 export class UserVerificationService {
-  private readonly baseUrl = 'http://localhost:3000/api/user-verification';
+  private readonly baseUrl = '/api/user-verification';
 
   constructor(private http: HttpClient) {}
 

@@ -27,7 +27,7 @@ export interface SalesStats {
 })
 export class StatsService {
   private http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:3000/api/stats';
+  private readonly baseUrl = '/api/stats';
   
   private readonly USE_MOCK_DATA = true;
 
