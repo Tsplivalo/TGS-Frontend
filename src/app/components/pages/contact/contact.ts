@@ -32,7 +32,7 @@ export class ContactComponent {
 
   // URLs de enlaces
   linkHrefs: Record<string, string> = {
-    github: 'https://github.com/lautaro-peralta/TP-Desarrollo-de-Software',
+    github: 'https://github.com/lautaro-peralta/GarrSYS',
     utn: 'https://www.frro.utn.edu.ar/',
     techSupport: 'mailto:thegarrisonsystem@gmail.com',
   };
