@@ -1,26 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx ng build:*)",
-      "Read(//c/Users/tomas/Documents/GitHub/**)",
-      "Bash(find:*)",
-      "Bash(npm run build:*)",
-      "Bash(npm run dev:*)",
+      "Bash(nul)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(npm test:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run test:coverage:*)",
       "Bash(cat:*)",
-      "Bash(git checkout:*)",
-      "Bash(node -e:*)",
-      "Bash(powershell -Command:*)",
-      "Bash(admin.scss.new)",
-      "Bash(admin.ts.new)",
-      "Bash(npx tsc:*)",
-      "Bash($null)",
-      "Bash(Select-String -Pattern \"jasmine|karma|cypress\")",
-      "Bash(node --version)",
-      "Bash(npm --version:*)",
-      "Bash(npm audit:*)",
       "Bash(npm run test:ci:*)",
+      "Bash(del \"c:\\Users\\Usuario\\Documents\\GitHub\\TGS-Frontend\\src\\app\\services\\integration\\auth-user.integration.spec.ts\")",
       "Bash(tee:*)",
-      "Bash(npm test:*)"
+      "Bash(npx artillery --version)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

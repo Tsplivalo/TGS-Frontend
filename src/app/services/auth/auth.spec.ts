@@ -1,0 +1,401 @@
+import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
+import { AuthService, AuthResponse, LoginRequest, RegisterRequest } from './auth';
+import { Role, User } from '../../models/user/user.model';
+
+describe('AuthService', () => {
+  let service: AuthService;
+  let httpMock: HttpTestingController;
+  let router: jasmine.SpyObj<Router>;
+
+  const mockUser: User = {
+    id: 'test-user-id',
+    username: 'testuser',
+    email: 'test@example.com',
+    roles: [Role.USER],
+    isActive: true,
+    isVerified: true,
+    emailVerified: true,
+    profileCompleteness: 75,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    hasPersonalInfo: false
+  };
+
+  const mockAuthResponse: AuthResponse = {
+    success: true,
+    message: 'Login successful',
+    data: mockUser,
+    meta: {
+      timestamp: new Date().toISOString(),
+      statusCode: 200
+    }
+  };
+
+  beforeEach(() => {
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [
+        AuthService,
+        { provide: Router, useValue: routerSpy }
+      ]
+    });
+
+    service = TestBed.inject(AuthService);
+    httpMock = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+
+    // Clear localStorage before each test
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    localStorage.clear();
+  });
+
+  describe('Service Initialization', () => {
+    it('should be created', () => {
+      expect(service).toBeTruthy();
+    });
+
+    it('should initialize with null user', () => {
+      expect(service.user()).toBeNull();
+    });
+
+    it('should initialize as not authenticated', () => {
+      expect(service.isAuthenticated()).toBe(false);
+    });
+
+    it('should initialize with empty roles', () => {
+      expect(service.currentRoles()).toEqual([]);
+    });
+
+    it('should initialize with 0 profile completeness', () => {
+      expect(service.profileCompleteness()).toBe(0);
+    });
+  });
+
+  describe('login()', () => {
+    it('should login successfully with valid credentials', (done) => {
+      const credentials: LoginRequest = {
+        email: 'test@example.com',
+        password: 'Password123!'
+      };
+
+      service.login(credentials).subscribe({
+        next: (user) => {
+          expect(user).toEqual(mockUser);
+          expect(service.isAuthenticated()).toBe(true);
+          expect(service.user()).toEqual(mockUser);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne('/api/auth/login');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(credentials);
+      req.flush(mockAuthResponse);
+
+      // Login triggers a call to /api/users/me to fetch full profile
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(mockAuthResponse);
+    });
+
+    it('should handle login error with 401', (done) => {
+      const credentials: LoginRequest = {
+        email: 'wrong@example.com',
+        password: 'wrongpassword'
+      };
+
+      service.login(credentials).subscribe({
+        error: (error) => {
+          expect(error.status).toBe(401);
+          expect(service.isAuthenticated()).toBe(false);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush({ message: 'Invalid credentials' }, { status: 401, statusText: 'Unauthorized' });
+    });
+
+    it('should handle network errors', (done) => {
+      const credentials: LoginRequest = {
+        email: 'test@example.com',
+        password: 'password'
+      };
+
+      service.login(credentials).subscribe({
+        error: (error) => {
+          expect(error).toBeDefined();
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne('/api/auth/login');
+      req.error(new ProgressEvent('Network error'));
+    });
+  });
+
+  describe('register()', () => {
+    it('should register new user successfully', (done) => {
+      const registerData: RegisterRequest = {
+        username: 'newuser',
+        email: 'newuser@example.com',
+        password: 'Password123!'
+      };
+
+      service.register(registerData).subscribe({
+        next: (user) => {
+          expect(user).toEqual(mockUser);
+          expect(service.isAuthenticated()).toBe(true);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne('/api/auth/register');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(registerData);
+      req.flush(mockAuthResponse);
+
+      // Register triggers forceRefresh() which calls /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(mockAuthResponse);
+    });
+
+    it('should handle registration error for duplicate email', (done) => {
+      const registerData: RegisterRequest = {
+        username: 'newuser',
+        email: 'existing@example.com',
+        password: 'Password123!'
+      };
+
+      service.register(registerData).subscribe({
+        error: (error) => {
+          expect(error.status).toBe(409);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne('/api/auth/register');
+      req.flush({ message: 'Email already exists' }, { status: 409, statusText: 'Conflict' });
+    });
+  });
+
+  describe('logout()', () => {
+    it('should logout successfully and clear user data', (done) => {
+      // First login
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe(() => {
+        expect(service.isAuthenticated()).toBe(true);
+
+        // Now logout
+        service.logout().subscribe(() => {
+          expect(service.isAuthenticated()).toBe(false);
+          expect(service.user()).toBeNull();
+          expect(router.navigate).toHaveBeenCalledWith(['/']);
+          done();
+        });
+
+        const logoutReq = httpMock.expectOne('/api/auth/logout');
+        logoutReq.flush({ success: true });
+      });
+
+      const loginReq = httpMock.expectOne('/api/auth/login');
+      loginReq.flush(mockAuthResponse);
+    });
+
+    it('should clear localStorage on logout', (done) => {
+      localStorage.setItem('authToken', 'test-token');
+      localStorage.setItem('authUser', JSON.stringify(mockUser));
+
+      service.logout().subscribe(() => {
+        expect(localStorage.getItem('authToken')).toBeNull();
+        expect(localStorage.getItem('authUser')).toBeNull();
+        done();
+      });
+
+      const req = httpMock.expectOne('/api/auth/logout');
+      req.flush({ success: true });
+    });
+  });
+
+  describe('Role Checks', () => {
+    beforeEach(() => {
+      // Setup authenticated user
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(mockAuthResponse);
+    });
+
+    it('should correctly identify admin role', () => {
+      const adminUser: User = { ...mockUser, roles: [Role.ADMIN] };
+      const adminResponse: AuthResponse = { ...mockAuthResponse, data: adminUser };
+
+      service.login({ email: 'admin@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(adminResponse);
+
+      expect(service.isAdmin()).toBe(true);
+    });
+
+    it('should correctly identify partner role', () => {
+      const partnerUser: User = { ...mockUser, roles: [Role.PARTNER] };
+      const partnerResponse: AuthResponse = { ...mockAuthResponse, data: partnerUser };
+
+      service.login({ email: 'partner@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(partnerResponse);
+
+      expect(service.hasRole(Role.PARTNER)).toBe(true);
+    });
+
+    it('should correctly identify distributor role', () => {
+      const distributorUser: User = { ...mockUser, roles: [Role.DISTRIBUTOR] };
+      const distributorResponse: AuthResponse = { ...mockAuthResponse, data: distributorUser };
+
+      service.login({ email: 'distributor@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(distributorResponse);
+
+      expect(service.hasRole(Role.DISTRIBUTOR)).toBe(true);
+    });
+
+    it('should correctly identify authority role', () => {
+      const authorityUser: User = { ...mockUser, roles: [Role.AUTHORITY] };
+      const authorityResponse: AuthResponse = { ...mockAuthResponse, data: authorityUser };
+
+      service.login({ email: 'authority@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(authorityResponse);
+
+      expect(service.hasRole(Role.AUTHORITY)).toBe(true);
+    });
+
+    it('should handle multiple roles', () => {
+      const multiRoleUser: User = { ...mockUser, roles: [Role.USER, Role.PARTNER] };
+      const multiRoleResponse: AuthResponse = { ...mockAuthResponse, data: multiRoleUser };
+
+      service.login({ email: 'multi@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(multiRoleResponse);
+
+      expect(service.hasRole(Role.PARTNER)).toBe(true);
+      expect(service.isAdmin()).toBe(false);
+    });
+  });
+
+  describe('Profile Completeness', () => {
+    it('should calculate profile completeness from backend value', () => {
+      const userWith75: User = { ...mockUser, profileCompleteness: 75 };
+      const response: AuthResponse = { ...mockAuthResponse, data: userWith75 };
+
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(response);
+
+      expect(service.profileCompleteness()).toBe(75);
+    });
+
+    it('should return 0 for unauthenticated users', () => {
+      expect(service.profileCompleteness()).toBe(0);
+    });
+
+    it('should check if profile is complete', () => {
+      const completeUser: User = { ...mockUser, profileCompleteness: 100 };
+      const response: AuthResponse = { ...mockAuthResponse, data: completeUser };
+
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(response);
+
+      expect(service.profileCompleteness()).toBe(100);
+    });
+
+    it('should check if profile is incomplete', () => {
+      const incompleteUser: User = { ...mockUser, profileCompleteness: 50 };
+      const response: AuthResponse = { ...mockAuthResponse, data: incompleteUser };
+
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(response);
+
+      expect(service.profileCompleteness()).toBe(50);
+    });
+  });
+
+  describe('Session Persistence', () => {
+    it('should save token to localStorage on login', (done) => {
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe(() => {
+        expect(localStorage.getItem('authToken')).toBeTruthy();
+        done();
+      });
+
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush({ ...mockAuthResponse, meta: { ...mockAuthResponse.meta, token: 'test-token-123' } as any });
+    });
+
+    it('should restore session from localStorage on initialization', () => {
+      localStorage.setItem('authToken', 'existing-token');
+      localStorage.setItem('authUser', JSON.stringify(mockUser));
+
+      service.initialize();
+
+      expect(service.isAuthenticated()).toBe(true);
+      expect(service.user()).toEqual(mockUser);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle 500 server errors', (done) => {
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe({
+        error: (error) => {
+          expect(error.status).toBe(500);
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush({ message: 'Internal server error' }, { status: 500, statusText: 'Internal Server Error' });
+    });
+
+    it('should handle timeout errors', (done) => {
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe({
+        error: (error) => {
+          expect(error).toBeDefined();
+          done();
+        }
+      });
+
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush({ message: 'Timeout' }, { status: 408, statusText: 'Request Timeout' });
+    });
+  });
+
+  describe('Email Verification', () => {
+    it('should check if email is verified', () => {
+      const verifiedUser: User = { ...mockUser, emailVerified: true };
+      const response: AuthResponse = { ...mockAuthResponse, data: verifiedUser };
+
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(response);
+
+      expect(service.emailVerified()).toBe(true);
+    });
+
+    it('should check if email is not verified', () => {
+      const unverifiedUser: User = { ...mockUser, emailVerified: false };
+      const response: AuthResponse = { ...mockAuthResponse, data: unverifiedUser };
+
+      service.login({ email: 'test@example.com', password: 'password' }).subscribe();
+      const req = httpMock.expectOne('/api/auth/login');
+      req.flush(response);
+
+      expect(service.emailVerified()).toBe(false);
+    });
+  });
+});

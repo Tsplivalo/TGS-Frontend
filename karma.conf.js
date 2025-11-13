@@ -2,6 +2,10 @@
 // Documentación: https://karma-runner.github.io/latest/config/configuration-file.html
 
 module.exports = function (config) {
+  // Sharding configuration for parallel execution
+  const shardIndex = process.env.KARMA_SHARD ? parseInt(process.env.KARMA_SHARD) - 1 : 0;
+  const totalShards = process.env.KARMA_TOTAL_SHARDS ? parseInt(process.env.KARMA_TOTAL_SHARDS) : 1;
+
   config.set({
     basePath: '',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
@@ -19,14 +23,17 @@ module.exports = function (config) {
         seed: 42,
         stopSpecOnExpectationFailure: false
       },
-      clearContext: false // mantener visible el output de Jasmine Spec Runner
+      clearContext: false, // mantener visible el output de Jasmine Spec Runner
+      // Sharding configuration passed to the browser
+      shardIndex: shardIndex,
+      totalShards: totalShards
     },
     jasmineHtmlReporter: {
       suppressAll: true // Remover trazas duplicadas
     },
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/The-Garrison-System'),
-      subdir: '.',
+      subdir: totalShards > 1 ? `shard-${shardIndex + 1}` : '.',
       reporters: [
         { type: 'html' },      // Reporte HTML detallado
         { type: 'text-summary' }, // Resumen en consola

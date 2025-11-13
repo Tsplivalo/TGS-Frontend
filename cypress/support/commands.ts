@@ -62,6 +62,20 @@ declare global {
        * @example cy.dataCy('login-button')
        */
       dataCy(value: string): Chainable<JQuery<HTMLElement>>;
+
+      /**
+       * Custom command to check accessibility with detailed logging
+       * @example cy.checkA11y()
+       * @example cy.checkA11y('.main-content')
+       */
+      checkA11y(context?: string | Node, options?: any): Chainable<void>;
+
+      /**
+       * Custom command to check WCAG 2.1 AA compliance
+       * @example cy.checkA11yWCAG()
+       * @example cy.checkA11yWCAG('.form-section')
+       */
+      checkA11yWCAG(context?: string | Node): Chainable<void>;
     }
   }
 }
@@ -149,9 +163,6 @@ Cypress.Commands.add('waitForAngular', () => {
   cy.wait(500); // Small delay to ensure Angular is fully loaded
 });
 
-// Note: checkA11y is provided by cypress-axe package
-// No need to redefine it here
-
 /**
  * Navigate to a route
  */
@@ -165,6 +176,49 @@ Cypress.Commands.add('navigateTo', (route: string) => {
  */
 Cypress.Commands.add('dataCy', (value: string) => {
   return cy.get(`[data-cy="${value}"]`);
+});
+
+/**
+ * Check accessibility with detailed logging
+ * Extends cypress-axe's checkA11y with detailed violation reporting
+ */
+Cypress.Commands.add('checkA11y', (context?: string | Node, options?: any) => {
+  cy.injectAxe();
+  cy.checkA11y(context, options, (violations) => {
+    if (violations.length) {
+      cy.task('log', `\n❌ ${violations.length} accessibility violation(s) detected:`);
+
+      violations.forEach((violation, index) => {
+        cy.task('log', `\n${index + 1}. ${violation.id}: ${violation.description}`);
+        cy.task('log', `   Impact: ${violation.impact}`);
+        cy.task('log', `   Help: ${violation.help}`);
+        cy.task('log', `   Help URL: ${violation.helpUrl}`);
+        cy.task('log', `   Elements affected: ${violation.nodes.length}`);
+
+        violation.nodes.forEach((node, nodeIndex) => {
+          cy.task('log', `\n   Element ${nodeIndex + 1}:`);
+          cy.task('log', `   - HTML: ${node.html}`);
+          cy.task('log', `   - Target: ${node.target.join(' > ')}`);
+          cy.task('log', `   - Failure: ${node.failureSummary}`);
+        });
+      });
+    } else {
+      cy.task('log', '✅ No accessibility violations detected');
+    }
+  });
+});
+
+/**
+ * Check WCAG 2.1 AA compliance
+ * Specialized command that only checks WCAG 2.1 Level A and AA rules
+ */
+Cypress.Commands.add('checkA11yWCAG', (context?: string | Node) => {
+  cy.checkA11y(context, {
+    runOnly: {
+      type: 'tag',
+      values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
+    }
+  });
 });
 
 // Export empty object to satisfy TypeScript module system
