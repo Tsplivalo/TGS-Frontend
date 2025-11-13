@@ -42,7 +42,7 @@
     "a11y:navigation": "cypress run --spec \"cypress/e2e/accessibility/navigation.a11y.cy.ts\"",
     "a11y:responsive": "cypress run --spec \"cypress/e2e/accessibility/responsive.a11y.cy.ts\"",
     "a11y:ci": "start-server-and-test start http://localhost:4200 a11y:test",
-    "test:shard": "cross-env KARMA_SHARD=${SHARD} KARMA_TOTAL_SHARDS=${TOTAL_SHARDS} npm run test:ci",
+    "test:shard": "cross-env KARMA_SHARD=$SHARD KARMA_TOTAL_SHARDS=$TOTAL_SHARDS npm run test:ci",
     "coverage:merge": "node scripts/merge-coverage.js",
     "coverage:report:merged": "nyc report --reporter=lcov --reporter=text --reporter=html --temp-dir=coverage/merged --report-dir=coverage/final",
     "optimize:css": "node scripts/optimize-css.js",

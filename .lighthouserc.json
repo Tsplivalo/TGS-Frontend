@@ -12,6 +12,8 @@
       "startServerReadyPattern": "Application bundle generation complete",
       "settings": {
         "preset": "desktop",
+        "maxWaitForLoad": 90000,
+        "maxWaitForFcp": 60000,
         "throttling": {
           "rttMs": 40,
           "throughputKbps": 10240,

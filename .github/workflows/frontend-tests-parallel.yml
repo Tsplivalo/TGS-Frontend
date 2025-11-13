@@ -298,9 +298,10 @@ jobs:
         if: matrix.test-type == 'lighthouse'
         run: |
           npm install -g @lhci/cli@0.15.x
-          lhci autorun
+          lhci autorun --max-old-space-size=4096
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          CHROME_FLAGS: "--disable-gpu --no-sandbox --disable-dev-shm-usage"
 
       - name: Run Artillery API Load Test
         if: matrix.test-type == 'artillery-api'
@@ -447,8 +448,19 @@ jobs:
 
       - name: Check bundle size
         run: |
-          du -sh dist/the-garrison-system/browser/*
-          echo "✅ Build completed successfully"
+          echo "Checking dist folder structure:"
+          find dist -type d -name "browser" || echo "Browser folder not found"
+          if [ -d "dist/The-Garrison-System/browser" ]; then
+            du -sh dist/The-Garrison-System/browser/*
+            echo "✅ Build completed successfully"
+          elif [ -d "dist/the-garrison-system/browser" ]; then
+            du -sh dist/the-garrison-system/browser/*
+            echo "✅ Build completed successfully"
+          else
+            echo "❌ Error: Could not find browser folder"
+            ls -la dist/
+            exit 1
+          fi
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
