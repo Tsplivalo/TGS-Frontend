@@ -73,11 +73,17 @@ module.exports = function (config) {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
         flags: [
-          '--no-sandbox',
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-software-rasterizer',
-          '--disable-extensions'
+          '--no-sandbox',                    // CRITICAL: Required for Docker/CI environments
+          '--disable-gpu',                   // Disable GPU hardware acceleration
+          '--disable-dev-shm-usage',         // Overcome limited resource problems
+          '--disable-software-rasterizer',   // Disable software rasterizer
+          '--disable-extensions',            // Disable extensions
+          '--disable-setuid-sandbox',        // Required for running as root in containers
+          '--remote-debugging-port=9222',    // Enable remote debugging
+          '--headless=new',                  // Use new headless mode (Chrome 109+)
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding'
         ]
       },
       ChromeDebug: {
