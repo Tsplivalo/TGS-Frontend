@@ -112,5 +112,10 @@
     "typescript": "~5.8.2",
     "wait-on": "^8.0.1",
     "webpack-bundle-analyzer": "^4.10.2"
+  },
+  "overrides": {
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/core": "1.25.1",
+    "@opentelemetry/sdk-trace-base": "1.25.1"
   }
 }
