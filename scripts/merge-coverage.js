@@ -46,6 +46,7 @@ function findShardDirectories() {
 
   if (!directoryExists(COVERAGE_DIR)) {
     console.error(`❌ Coverage directory not found: ${COVERAGE_DIR}`);
+    console.error(`   Tried: ${path.resolve(COVERAGE_DIR)}`);
     process.exit(1);
   }
 

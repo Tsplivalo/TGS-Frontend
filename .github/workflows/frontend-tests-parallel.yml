@@ -46,10 +46,10 @@ jobs:
         run: npm ci
 
       - name: Run unit tests with sharding (Shard ${{ matrix.shard }}/4)
-        run: npm run test:ci -- --shard=${{ matrix.shard }}/4
+        run: npm run test:shard
         env:
-          KARMA_SHARD: ${{ matrix.shard }}
-          KARMA_TOTAL_SHARDS: 4
+          SHARD: ${{ matrix.shard }}
+          TOTAL_SHARDS: 4
 
       - name: Upload coverage for shard ${{ matrix.shard }}
         uses: actions/upload-artifact@v4
@@ -84,18 +84,23 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: coverage-shard-*
-          path: coverage-shards/
+          path: coverage/The-Garrison-System/
+          merge-multiple: true
 
-      - name: Merge coverage reports
+      - name: List downloaded coverage structure
         run: |
-          npm install -g nyc
-          mkdir -p coverage/merged
+          echo "Downloaded coverage structure:"
+          ls -la coverage/The-Garrison-System/ || dir coverage\The-Garrison-System /s
 
-          # Merge all shard coverage
-          nyc merge coverage-shards coverage/merged/coverage.json
+      - name: Install nyc globally
+        run: npm install -g nyc
 
-          # Generate reports
-          nyc report --reporter=lcov --reporter=text --reporter=html --temp-dir=coverage/merged --report-dir=coverage/final
+      - name: Merge coverage reports using custom script
+        run: node scripts/merge-coverage.js
+        env:
+          COVERAGE_DIR: ./coverage/The-Garrison-System
+          OUTPUT_DIR: ./coverage/merged
+          FINAL_DIR: ./coverage/final
 
       - name: Upload merged coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -146,18 +151,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Start application
+        run: |
+          npm start &
+          npx wait-on http://localhost:4200 --timeout 120000
+
       - name: Cypress run (${{ matrix.browser }} - Container ${{ matrix.containers }})
         uses: cypress-io/github-action@v6
         with:
-          start: npm start
-          wait-on: 'http://localhost:4200'
-          wait-on-timeout: 120
           browser: ${{ matrix.browser }}
           headless: true
           config: video=true,screenshotOnRunFailure=true
-          record: true
-          parallel: true
-          group: 'E2E-${{ matrix.browser }}'
+          install: false
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -209,13 +214,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install wait-on
+        run: npm install -g wait-on
+
       - name: Start application
         run: |
           npm start &
-          npx wait-on http://localhost:4200 --timeout 120000
+          wait-on http://localhost:4200 --timeout 120000
 
       - name: Run accessibility test - ${{ matrix.spec }}
-        run: cypress run --spec "cypress/e2e/accessibility/${{ matrix.spec }}"
+        run: npx cypress run --spec "cypress/e2e/accessibility/${{ matrix.spec }}"
 
       - name: Upload accessibility test results
         if: always()
