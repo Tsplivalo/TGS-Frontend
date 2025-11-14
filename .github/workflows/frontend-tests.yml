@@ -1,10 +1,8 @@
-name: Frontend Tests
+name: Frontend Tests (DEPRECATED - Use frontend-tests-parallel.yml)
 
+# DISABLED: This workflow has been replaced by frontend-tests-parallel.yml
+# Only runs on manual trigger for backwards compatibility
 on:
-  push:
-    branches: [main, develop, implement-testing]
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
 
 env:
