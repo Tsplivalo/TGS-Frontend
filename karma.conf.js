@@ -6,6 +6,9 @@ module.exports = function (config) {
   const shardIndex = process.env.KARMA_SHARD ? parseInt(process.env.KARMA_SHARD) - 1 : 0;
   const totalShards = process.env.KARMA_TOTAL_SHARDS ? parseInt(process.env.KARMA_TOTAL_SHARDS) : 1;
 
+  // Detect CI environment
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
   config.set({
     basePath: '',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
@@ -66,7 +69,7 @@ module.exports = function (config) {
     autoWatch: true,
 
     // Browsers para testing
-    browsers: ['Chrome'],
+    browsers: isCI ? ['ChromeHeadlessCI'] : ['Chrome'],
 
     // Configuración para CI/CD
     customLaunchers: {
@@ -95,8 +98,8 @@ module.exports = function (config) {
     },
 
     // Tiempo de espera
-    singleRun: false,
-    restartOnFileChange: true,
+    singleRun: isCI,
+    restartOnFileChange: !isCI,
     browserDisconnectTimeout: 10000,
     browserDisconnectTolerance: 3,
     browserNoActivityTimeout: 60000,
