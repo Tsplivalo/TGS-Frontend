@@ -136,7 +136,6 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chrome, edge]
-        containers: [1, 2, 3]
 
     steps:
       - name: Checkout code
@@ -163,18 +162,17 @@ jobs:
       - name: Verify application is running
         run: curl -I http://localhost:4200 || echo "App might still be starting..."
 
-      - name: Run Cypress E2E tests (${{ matrix.browser }} - Container ${{ matrix.containers }})
+      - name: Run Cypress E2E tests (${{ matrix.browser }})
         run: |
           npx cypress run \
             --browser ${{ matrix.browser }} \
             --headless \
-            --config video=true,screenshotOnRunFailure=true,chromeWebSecurity=false \
-            --reporter json \
-            --reporter-options "output=cypress/results/result-${{ matrix.browser }}-${{ matrix.containers }}.json"
+            --spec "cypress/e2e/**/*.cy.ts" \
+            --exclude-spec-pattern "**/*.a11y.cy.ts" \
+            --config video=false,screenshotOnRunFailure=true,chromeWebSecurity=false
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEBUG: cypress:*
 
       - name: Kill application process
         if: always()
@@ -186,17 +184,10 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-screenshots-${{ matrix.browser }}-${{ matrix.containers }}
+          name: cypress-screenshots-${{ matrix.browser }}
           path: cypress/screenshots
           retention-days: 7
-
-      - name: Upload Cypress videos
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-videos-${{ matrix.browser }}-${{ matrix.containers }}
-          path: cypress/videos
-          retention-days: 7
+          if-no-files-found: ignore
 
   # ============================================
   # Job 4: Accessibility Tests (Parallel)
@@ -247,11 +238,7 @@ jobs:
             --spec "cypress/e2e/accessibility/${{ matrix.spec }}" \
             --browser chrome \
             --headless \
-            --config video=true,screenshotOnRunFailure=true,chromeWebSecurity=false \
-            --reporter json \
-            --reporter-options "output=cypress/results/a11y-${{ matrix.spec }}.json"
-        env:
-          DEBUG: cypress:*
+            --config video=false,screenshotOnRunFailure=true,chromeWebSecurity=false
 
       - name: Kill application process
         if: always()
