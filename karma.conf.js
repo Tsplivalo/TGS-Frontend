@@ -66,7 +66,7 @@ module.exports = function (config) {
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
-    autoWatch: true,
+    autoWatch: !isCI,
 
     // Browsers para testing
     browsers: isCI ? ['ChromeHeadlessCI'] : ['Chrome'],
@@ -76,17 +76,38 @@ module.exports = function (config) {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
         flags: [
-          '--no-sandbox',                    // CRITICAL: Required for Docker/CI environments
-          '--disable-gpu',                   // Disable GPU hardware acceleration
-          '--disable-dev-shm-usage',         // Overcome limited resource problems
-          '--disable-software-rasterizer',   // Disable software rasterizer
-          '--disable-extensions',            // Disable extensions
-          '--disable-setuid-sandbox',        // Required for running as root in containers
-          '--remote-debugging-port=9222',    // Enable remote debugging
-          '--headless=new',                  // Use new headless mode (Chrome 109+)
+          // CRITICAL: Flags para ambiente headless sin X server
+          '--headless',                          // Modo headless explícito
+          '--no-sandbox',                        // REQUIRED: Bypass OS security model (CI/Docker)
+          '--disable-gpu',                       // No usar GPU en headless
+          '--disable-dev-shm-usage',             // Overcome limited resource problems
+          '--disable-software-rasterizer',       // Disable software rasterizer
+          '--disable-extensions',                // No cargar extensiones
+          '--disable-setuid-sandbox',            // Required para running as root en containers
+
+          // CRITICAL FIX: Usar Ozone platform headless en lugar de X11
+          '--ozone-platform=headless',           // ← FIX PRINCIPAL para "Missing X server"
+
+          // Performance y estabilidad
           '--disable-background-timer-throttling',
           '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding'
+          '--disable-renderer-backgrounding',
+          '--disable-ipc-flooding-protection',
+          '--disable-hang-monitor',
+          '--disable-prompt-on-repost',
+          '--disable-sync',
+          '--force-color-profile=srgb',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--enable-automation',
+          '--password-store=basic',
+          '--use-mock-keychain',
+
+          // Remote debugging (útil para troubleshooting)
+          '--remote-debugging-port=9222',
+
+          // Window size (necesario para algunos tests)
+          '--window-size=1920,1080'
         ]
       },
       ChromeDebug: {
@@ -103,6 +124,7 @@ module.exports = function (config) {
     browserDisconnectTimeout: 10000,
     browserDisconnectTolerance: 3,
     browserNoActivityTimeout: 60000,
+    captureTimeout: 210000,
 
     // Configuración de archivos
     files: [
