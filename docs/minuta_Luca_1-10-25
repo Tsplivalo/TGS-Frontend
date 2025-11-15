@@ -1,0 +1,53 @@
+Luca Delprato
+Fecha: 01/10/2025
+
+✅ Mejoras completadas en el Frontend 
+📄 Páginas estáticas implementadas
+
+Sobre nosotros
+
+Creada carpeta src/app/pages/about/ con componente standalone.
+
+Estructura con misión, valores, equipo e hitos del proyecto.
+
+Contáctanos
+
+Creada carpeta src/app/pages/contact/ con componente standalone.
+
+Formulario reactivo con validaciones de Angular Forms.
+
+Simulación de servicio (contact.service.ts) para envío de mensajes.
+
+Toasts de feedback para éxito y error.
+
+FAQs
+
+Creada carpeta src/app/pages/faqs/ con componente standalone.
+
+Implementación de acordeón accesible para mostrar preguntas y respuestas frecuentes.
+
+⚙️ Configuración de rutas
+
+Se actualizaron rutas en app.routes.ts para soportar:
+
+/sobre-nosotros → AboutComponent
+
+/contactanos → ContactComponent
+
+/faqs → FaqsComponent
+
+Se mantuvieron las rutas existentes para módulos de gestión (Producto, Cliente, Socio, etc.).
+
+🖼️ Interfaz principal (app.html)
+
+Se agregó navegación superior con links a:
+
+Inicio
+
+Sobre nosotros
+
+Contáctanos
+
+FAQs
+
+Manteniendo router-outlet como punto de renderizado principal.
