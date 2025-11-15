@@ -22,17 +22,22 @@ export default defineConfig({
     screenshotsFolder: 'cypress/screenshots',
     screenshotOnRunFailure: true,
 
-    // Timeouts
-    defaultCommandTimeout: 10000,
-    requestTimeout: 10000,
-    responseTimeout: 30000,
-    pageLoadTimeout: 60000,
+    // Timeouts (aumentados para CI)
+    defaultCommandTimeout: 30000,  // 30s para comandos (era 10s)
+    requestTimeout: 15000,          // 15s para requests (era 10s)
+    responseTimeout: 60000,         // 60s para responses (era 30s)
+    pageLoadTimeout: 120000,        // 120s para page load (era 60s)
+    execTimeout: 120000,            // 120s para exec commands
 
     // Retry en caso de fallos (útil para tests flaky)
     retries: {
-      runMode: 2, // CI/CD
-      openMode: 0  // Desarrollo local
+      runMode: 2,    // CI/CD - retry 2 veces
+      openMode: 0    // Desarrollo local - no retry
     },
+
+    // Wait for animations
+    waitForAnimations: true,
+    animationDistanceThreshold: 5,
 
     // Configuración de especificaciones
     specPattern: 'cypress/e2e/**/*.cy.ts',
