@@ -49,6 +49,7 @@ jobs:
         run: npm run test:ci
         env:
           CI: true
+          CHROME_BIN: /usr/bin/google-chrome
           KARMA_SHARD: ${{ matrix.shard }}
           KARMA_TOTAL_SHARDS: 4
 
