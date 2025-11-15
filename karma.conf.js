@@ -7,7 +7,17 @@ module.exports = function (config) {
   const totalShards = process.env.KARMA_TOTAL_SHARDS ? parseInt(process.env.KARMA_TOTAL_SHARDS) : 1;
 
   // Detect CI environment
-  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  const isCI = process.env.CI === 'true' ||
+               process.env.GITHUB_ACTIONS === 'true' ||
+               Boolean(process.env.CI) ||
+               Boolean(process.env.GITHUB_ACTIONS);
+
+  // Debug logging
+  console.log('🔍 Karma Config Debug:');
+  console.log('  - CI env var:', process.env.CI);
+  console.log('  - GITHUB_ACTIONS env var:', process.env.GITHUB_ACTIONS);
+  console.log('  - isCI:', isCI);
+  console.log('  - Browser to use:', isCI ? 'ChromeHeadlessCI' : 'Chrome');
 
   config.set({
     basePath: '',
