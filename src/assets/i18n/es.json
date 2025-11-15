@@ -1462,6 +1462,8 @@
     },
     "card": {
       "infoTitle": "Información de la Solicitud",
+      "verificationLabel": "VERIFICACIÓN DE EMAIL",
+      "attemptsLabel": "{{attempts}} / {{max}} intentos",
       "labels": {
         "email": "Email:",
         "requestedAt": "Fecha de solicitud:",
@@ -1475,23 +1477,30 @@
     },
     "reviewModal": {
       "title": "Revisar Verificación de Usuario",
+      "subtitle": "Revisá y aprobá o rechazá esta solicitud de verificación de email",
       "closeAria": "Cerrar",
+      "verificationInfo": "Información de Verificación",
       "summary": {
         "email": "Email:",
         "requestedAt": "Fecha de solicitud:",
         "expiresAt": "Expira:",
         "attempts": "Intentos:"
       },
-      "errorPrefix": "Error",
+      "error": "Error",
       "decision": "Decisión:",
       "approve": "Aprobar",
+      "approveDesc": "Verificar y otorgar acceso a esta dirección de email",
       "reject": "Rechazar",
+      "rejectDesc": "Denegar esta solicitud de verificación",
+      "recommended": "(recomendado)",
       "rejectReasonLabel": "Motivo del rechazo",
       "rejectReasonOptional": "(opcional)",
       "rejectReasonPh": "Explicá por qué se rechaza la verificación (opcional, mínimo 3 caracteres si lo proporcionás)",
       "rejectReasonCounter": "{{n}}/500 caracteres",
       "rejectReasonMinWarn": "(mínimo 3 si proporcionás un motivo)",
       "rejectReasonHelp": "Este motivo será visible para el usuario en caso de rechazo.",
+      "characters": "caracteres",
+      "selectOption": "Seleccioná una opción",
       "approveInfoTitle": "Al aprobar esta verificación:",
       "approveInfoList": [
         "El usuario será marcado como verificado",

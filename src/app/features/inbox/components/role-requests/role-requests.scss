@@ -4,11 +4,11 @@
 $primary-color: #c3a462;
 $primary-700: #9e844e;
 $success-color: #10b981;
-$danger-color: #ef4444;
+$danger-color: #ff3b3b;
 $warning-color: #f59e0b;
 $pending-color: #f59e0b;
 $approved-color: #10b981;
-$rejected-color: #ef4444;
+$rejected-color: #ff3b3b;
 
 $text-light: #e5e7eb;
 $text-strong: #ffffff;
@@ -465,7 +465,8 @@ select {
 }
 
 /* ====== Role Request Card ====== */
-.role-request-card {
+.role-request-card,
+.user-verification-card {
   background: $glass-bg;
   border: 1px solid $border-glass;
   border-radius: $border-radius;
@@ -603,22 +604,31 @@ select {
     backdrop-filter: blur(8px);
     border: 1px solid transparent;
 
-    &.PENDING {
+    &.PENDING,
+    &.pending {
       background: linear-gradient(180deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.2));
       border-color: rgba(245, 158, 11, 0.4);
       color: #fbbf24;
     }
 
-    &.APPROVED {
+    &.APPROVED,
+    &.verified {
       background: linear-gradient(180deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.2));
       border-color: rgba(16, 185, 129, 0.4);
       color: #6ee7b7;
     }
 
-    &.REJECTED {
+    &.REJECTED,
+    &.cancelled {
       background: linear-gradient(180deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.2));
       border-color: rgba(239, 68, 68, 0.4);
       color: #fca5a5;
+    }
+
+    &.expired {
+      background: linear-gradient(180deg, rgba(156, 163, 175, 0.3), rgba(156, 163, 175, 0.2));
+      border-color: rgba(156, 163, 175, 0.4);
+      color: #d1d5db;
     }
   }
 
@@ -1198,7 +1208,8 @@ select {
     }
   }
 
-  .role-request-card {
+  .role-request-card,
+  .user-verification-card {
     .card-header {
       flex-direction: column;
       align-items: flex-start;
@@ -2587,27 +2598,7 @@ select {
   }
 
   .check-indicator {
-    position: absolute;
-    top: $spacing-sm;
-    right: $spacing-sm;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    opacity: 0;
-    transition: all 0.3s ease;
-
-    &::after {
-      content: '✓';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      font-size: 0.875rem;
-      font-weight: 700;
-    }
+    display: none;
   }
 
   &:hover:not(.selected) {
@@ -2630,12 +2621,6 @@ select {
       .decision-label {
         color: #6ee7b7;
       }
-
-      .check-indicator {
-        opacity: 1;
-        background: $success-color;
-        border-color: $success-color;
-      }
     }
 
     &:hover {
@@ -2655,12 +2640,6 @@ select {
 
       .decision-label {
         color: #fca5a5;
-      }
-
-      .check-indicator {
-        opacity: 1;
-        background: $danger-color;
-        border-color: $danger-color;
       }
     }
 

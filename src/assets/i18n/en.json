@@ -1478,6 +1478,8 @@
     },
     "card": {
       "infoTitle": "Request Information",
+      "verificationLabel": "EMAIL VERIFICATION",
+      "attemptsLabel": "{{attempts}} / {{max}} attempts",
       "labels": {
         "email": "Email:",
         "requestedAt": "Request date:",
@@ -1491,23 +1493,30 @@
     },
     "reviewModal": {
       "title": "Review User Verification",
+      "subtitle": "Review and approve or reject this email verification request",
       "closeAria": "Close",
+      "verificationInfo": "Verification Information",
       "summary": {
         "email": "Email:",
         "requestedAt": "Request date:",
         "expiresAt": "Expires:",
         "attempts": "Attempts:"
       },
-      "errorPrefix": "Error",
+      "error": "Error",
       "decision": "Decision:",
       "approve": "Approve",
+      "approveDesc": "Verify and grant access to this email address",
       "reject": "Reject",
+      "rejectDesc": "Deny this verification request",
+      "recommended": "(recommended)",
       "rejectReasonLabel": "Rejection reason",
       "rejectReasonOptional": "(optional)",
       "rejectReasonPh": "Explain why the verification is rejected (optional, minimum 3 characters if provided)",
       "rejectReasonCounter": "{{n}}/500 characters",
       "rejectReasonMinWarn": "(minimum 3 if you provide a reason)",
       "rejectReasonHelp": "This reason will be visible to the user in case of rejection.",
+      "characters": "characters",
+      "selectOption": "Select an option",
       "approveInfoTitle": "When approving this verification:",
       "approveInfoList": [
         "The user will be marked as verified",
