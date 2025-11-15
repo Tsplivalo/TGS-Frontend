@@ -8,7 +8,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   standalone: true,
   imports: [CommonModule,TranslateModule],
   templateUrl: './user-verification-card.html',
-  styleUrls: ['./user-verification.scss']
+  styleUrls: ['./role-requests.scss']
 })
 export class UserVerificationCardComponent {
   @Input() verification!: UserVerification;
