@@ -1132,12 +1132,13 @@ select {
   }
 
   &.btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.15);
     border-color: $border-glass;
     color: $text-light;
+    text-transform: uppercase;
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.20);
       transform: translateY(-1px);
     }
   }
