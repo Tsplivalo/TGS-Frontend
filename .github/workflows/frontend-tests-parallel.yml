@@ -159,10 +159,16 @@ jobs:
         run: npm start &
 
       - name: Wait for application to be ready
-        run: npx wait-on http://localhost:4200 --timeout 120000
+        run: npx wait-on http://localhost:4200 --timeout 180000
+
+      - name: Wait additional time for Angular compilation
+        run: sleep 30
 
       - name: Verify application is running
-        run: curl -I http://localhost:4200 || echo "App might still be starting..."
+        run: |
+          curl -I http://localhost:4200
+          echo "Checking if app bundle loaded..."
+          curl http://localhost:4200 | grep -q "The-Garrison-System" || echo "Warning: App may not be fully loaded"
 
       - name: Run Cypress E2E tests (${{ matrix.browser }})
         run: |
@@ -228,10 +234,16 @@ jobs:
         run: npm start &
 
       - name: Wait for application to be ready
-        run: npx wait-on http://localhost:4200 --timeout 120000
+        run: npx wait-on http://localhost:4200 --timeout 180000
+
+      - name: Wait additional time for Angular compilation
+        run: sleep 30
 
       - name: Verify application is running
-        run: curl -I http://localhost:4200 || echo "App might still be starting..."
+        run: |
+          curl -I http://localhost:4200
+          echo "Checking if app bundle loaded..."
+          curl http://localhost:4200 | grep -q "The-Garrison-System" || echo "Warning: App may not be fully loaded"
 
       - name: Run accessibility test - ${{ matrix.spec }}
         continue-on-error: true

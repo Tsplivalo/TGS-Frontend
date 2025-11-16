@@ -53,19 +53,19 @@ module.exports = function (config) {
         { type: 'json' }       // Para análisis adicional
       ],
       check: {
-        // Umbrales de cobertura (ajustados a valores actuales + 5% margen)
+        // Coverage checks disabled for sharded execution
+        // Coverage validation happens in merge job using nyc
         global: {
-          statements: 55,
-          branches: 45,
-          functions: 50,
-          lines: 55
+          statements: 0,  // Disabled - validated in merge job
+          branches: 0,     // Disabled - validated in merge job
+          functions: 0,    // Disabled - validated in merge job
+          lines: 0         // Disabled - validated in merge job
         },
-        // Umbrales por archivo (más flexibles durante implementación)
         each: {
-          statements: 0,  // Deshabilitado temporalmente
-          branches: 0,     // Deshabilitado temporalmente
-          functions: 0,    // Deshabilitado temporalmente
-          lines: 0         // Deshabilitado temporalmente
+          statements: 0,  // Disabled - per-file checks not applicable to shards
+          branches: 0,     // Disabled - per-file checks not applicable to shards
+          functions: 0,    // Disabled - per-file checks not applicable to shards
+          lines: 0         // Disabled - per-file checks not applicable to shards
         }
       }
     },
