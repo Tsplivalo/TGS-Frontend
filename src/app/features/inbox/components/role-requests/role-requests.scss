@@ -640,13 +640,39 @@ select {
     }
   }
 
-  .toggle-icon {
-    font-size: 1.5rem;
+  .expand-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: $spacing-xs;
     color: $text-muted;
-    transition: transform 0.3s ease, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: $text-light;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .toggle-icon {
+    font-size: 1.25rem;
+    color: currentColor;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    line-height: 1;
 
     &.expanded {
-      transform: rotate(180deg);
+      transform: rotate(90deg);
     }
   }
 
@@ -1132,12 +1158,13 @@ select {
   }
 
   &.btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.15);
     border-color: $border-glass;
     color: $text-light;
+    text-transform: uppercase;
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.20);
       transform: translateY(-1px);
     }
   }

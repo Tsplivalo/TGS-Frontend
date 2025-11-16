@@ -18,8 +18,8 @@
         <span class="icon">{{ getStatusIcon(verification.status) }}</span>
         {{ getStatusText(verification.status) }}
       </span>
-      <button class="expand-btn" type="button">
-        <span class="icon" [class.expanded]="isExpanded">▼</span>
+      <button class="expand-btn" type="button" [attr.aria-label]="isExpanded ? 'Contraer' : 'Expandir'">
+        <span class="toggle-icon" [class.expanded]="isExpanded">▸</span>
       </button>
     </div>
   </div>

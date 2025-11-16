@@ -140,6 +140,9 @@
     },
     "infoSection": {
       "title": "Información de la cuenta",
+      "email": "Email",
+      "phone": "Teléfono",
+      "address": "Dirección",
       "status": "Estado de la cuenta:",
       "active": "✓ Activa",
       "inactive": "✗ Inactiva",
