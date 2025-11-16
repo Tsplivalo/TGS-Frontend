@@ -122,8 +122,11 @@
     },
     "infoSection": {
       "title": "Account information",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
       "status": "Account status:",
-      "active": "âœ“ Active",
+      "active": "âœ" Active",
       "inactive": "Inactive",
       "emailVerified": "Email verified:",
       "adminVerified": "Admin verified",
