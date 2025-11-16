@@ -732,20 +732,33 @@ $spacing-xl: 32px;
     cursor: pointer;
     padding: $spacing-xs;
     color: $text-muted;
-    font-size: 1.2rem;
-    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
 
     &:hover {
+      background: rgba(255, 255, 255, 0.08);
       color: $text-light;
     }
 
-    .icon {
-      transition: transform 0.25s cubic-bezier(0.25, 0.6, 0.3, 1);
-      display: inline-block;
+    &:active {
+      transform: scale(0.95);
+    }
+  }
 
-      &.expanded {
-        transform: rotate(180deg);
-      }
+  .toggle-icon {
+    font-size: 1.25rem;
+    color: currentColor;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    line-height: 1;
+
+    &.expanded {
+      transform: rotate(90deg);
     }
   }
 
