@@ -48,6 +48,19 @@ export class SaleService {
     );
   }
 
+  /** GET /api/sales/my-purchases - Obtiene las compras del usuario actual */
+  getMyPurchases(): Observable<SaleDTO[]> {
+    return this.http.get<ApiResponse<SaleDTO[]>>(`${this.base}/my-purchases`, {
+      withCredentials: true
+    }).pipe(
+      map((res: any) => {
+        if (Array.isArray(res)) return res;
+        if (res?.data && Array.isArray(res.data)) return res.data;
+        return [];
+      })
+    );
+  }
+
   /** GET /api/sales/:id - Obtiene una venta por ID */
   getSale(id: number): Observable<SaleDTO> {
     return this.http.get<ApiResponse<SaleDTO>>(`${this.base}/${id}`, {

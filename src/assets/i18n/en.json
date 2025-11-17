@@ -3,12 +3,16 @@
     "name": "GarrSYS"
   },
   "nav": {
+    "menu": "Menu",
     "store": "Store",
     "myAccount": "My account",
     "myPurchases": "My purchases",
     "logout": "Log out",
+    "login": "Log in",
+    "register": "Sign up",
     "management": "Management",
     "society": "Society",
+    "information": "Information",
     "inbox": "Inbox",
     "unread": "unread",
     "roleRequests": "Role requests",
@@ -122,11 +126,8 @@
     },
     "infoSection": {
       "title": "Account information",
-      "email": "Email",
-      "phone": "Phone",
-      "address": "Address",
       "status": "Account status:",
-      "active": "âœ" Active",
+      "active": "âœ“ Active",
       "inactive": "Inactive",
       "emailVerified": "Email verified:",
       "adminVerified": "Admin verified",
@@ -221,7 +222,8 @@
     "closingSession": "Closing session…",
     "login": {
       "title": "Sign in",
-      "submit": "Sign in"
+      "submit": "Sign in",
+      "forgot_password": "Forgot your password?"
     },
     "register": {
       "title": "Create account",
@@ -238,6 +240,63 @@
       "email": "you@email.com",
       "emailOrUsername": "you@email.com or your_username",
       "password": "••••••••"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send you a link to reset your password",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@email.com",
+      "sending": "Sending...",
+      "sendButton": "Send link",
+      "backButton": "Back",
+      "successTitle": "Email sent",
+      "successMessage": "We've sent a reset link to your email",
+      "checkEmail": "Check your inbox and click the link",
+      "tryAgain": "Try again",
+      "errors": {
+        "enterEmail": "Please enter your email",
+        "sendFailed": "Error sending email",
+        "cooldown": "Please wait 5 minutes before requesting another reset",
+        "requestFailed": "Error processing request"
+      }
+    },
+    "resetPassword": {
+      "validating": "Validating link...",
+      "pleaseWait": "Please wait",
+      "title": "Reset password",
+      "subtitle": "Enter your new password",
+      "newPasswordLabel": "New password",
+      "passwordPlaceholder": "Minimum 12 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPlaceholder": "Re-enter your password",
+      "requirementsTitle": "Password requirements:",
+      "minLength": "Minimum 12 characters",
+      "uppercase": "At least one uppercase letter (A-Z)",
+      "lowercase": "At least one lowercase letter (a-z)",
+      "number": "At least one number (0-9)",
+      "special": "At least one special character (@$!%*?&)",
+      "processing": "Processing...",
+      "resetButton": "Reset password",
+      "successTitle": "Password reset",
+      "successMessage": "Your password has been updated successfully",
+      "redirecting": "Redirecting to login...",
+      "goToLogin": "Go to login",
+      "requestNewLink": "Request new link",
+      "errors": {
+        "tokenNotProvided": "Token not provided",
+        "linkUsed": "This link has already been used",
+        "linkExpired": "This link has expired",
+        "linkInvalid": "This link is invalid",
+        "validationFailed": "Error validating link",
+        "passwordsMismatch": "Passwords do not match",
+        "minLengthError": "Password must be at least 12 characters",
+        "uppercaseError": "Password must contain at least one uppercase letter",
+        "lowercaseError": "Password must contain at least one lowercase letter",
+        "numberError": "Password must contain at least one number",
+        "specialError": "Password must contain at least one special character (@$!%*?&)",
+        "resetFailed": "Error resetting password",
+        "requestNew": "The link has expired. Please request a new one."
+      }
     },
     "errors": {
       "missingFields": "Please complete all fields.",
@@ -271,6 +330,9 @@
       "number": "At least one number (0-9)",
       "special": "At least one special character (@$!%*?&)"
     }
+  },
+  "credential": {
+    "member": "Member Credential"
   },
   "home": {
     "welcome": "Welcome,",
@@ -1170,6 +1232,8 @@
       "filtered": "Filtered"
     },
     "charts": {
+      "showCharts": "Show Charts",
+      "hideCharts": "Hide Charts",
       "statusDistribution": "Status distribution",
       "trend": "Review trend by month",
       "topProducts": "Top products by sales",
@@ -1404,6 +1468,23 @@
       "roleRequest": "{{name}} has requested the {{role}} role.",
       "roleChange": "{{name}} has requested to change role from {{oldRole}} to {{newRole}}."
     }
+  },
+  "backendMessages": {
+    "NEW_USER_VERIFICATION_REQUEST_TITLE": "New user verification request",
+    "NEW_USER_VERIFICATION_REQUEST_MESSAGE": "{{userName}} ({{userEmail}}) has requested account verification.",
+    "ROLE_REQUEST_CREATED_TITLE": "New role request",
+    "ROLE_REQUEST_CREATED_MESSAGE": "{{userName}} has requested the {{requestedRole}} role.",
+    "ROLE_CHANGE_REQUEST_CREATED_TITLE": "New role change request",
+    "ROLE_CHANGE_REQUEST_CREATED_MESSAGE": "{{userName}} has requested to change role from {{roleToRemove}} to {{requestedRole}}.",
+    "USER_VERIFICATION_APPROVED_TITLE": "User verification approved",
+    "USER_VERIFICATION_APPROVED_MESSAGE": "Your verification request has been approved. You can now access all platform features.",
+    "USER_VERIFICATION_REJECTED_TITLE": "User verification rejected",
+    "USER_VERIFICATION_REJECTED_MESSAGE": "Your verification request has been rejected.{{reason}}",
+    "USER_VERIFICATION_REJECTED_WITH_REASON": " Reason: {{reason}}",
+    "ROLE_REQUEST_APPROVED_TITLE": "Role request approved",
+    "ROLE_REQUEST_APPROVED_MESSAGE": "Your request for the {{requestedRole}} role has been approved.",
+    "ROLE_REQUEST_REJECTED_TITLE": "Role request rejected",
+    "ROLE_REQUEST_REJECTED_MESSAGE": "Your request for the {{requestedRole}} role has been rejected."
   },
   "userVerification": {
     "status": {
@@ -1644,28 +1725,6 @@
       },
       "changeLabel": "Role change"
     },
-    "modal": {
-      "title": "Request Special Role",
-      "changeToggle": "Exchange one of your current roles for another",
-      "changeHelp": "If you want to swap one of your current roles for another, enable this option",
-      "roleToRemove": "Role to remove",
-      "roleToRemoveRequired": "Role to remove *",
-      "roleToRemovePh": "Select the role to remove",
-      "requestedRole": "Requested role *",
-      "requestedRolePh": "Select a role",
-      "roleDescription": "Description",
-      "justification": "Justification",
-      "justificationOptional": "(optional)",
-      "justificationPh": "Explain why you request this role (optional, minimum 20 characters if provided)",
-      "justCounter": "{{n}}/500 characters",
-      "justMinWarn": "(minimum 20 if you provide justification)",
-      "incompatibleNote": "Note: the role {{role}} is incompatible with: {{list}}",
-      "actions": {
-        "cancel": "Cancel",
-        "submit": "Submit Request",
-        "sending": "Sending..."
-      }
-    },
     "card": {
       "changeLabel": "Role change",
       "newLabel": "New request",
@@ -1711,6 +1770,54 @@
       "empty": {
         "title": "No requests",
         "desc": "No requests were found with the selected filters"
+      }
+    },
+    "modal": {
+      "title": "Request Special Role",
+      "additionalDataTitle": "Additional Data",
+      "selectRole": "Select the role you want to request",
+      "completeDataFor": "Complete the additional data for",
+      "error": "Error",
+      "changeToggle": "Exchange one of your current roles for another",
+      "changeHelp": "If you want to swap one of your current roles for another, enable this option",
+      "roleToRemove": "Role to remove",
+      "roleToRemoveRequired": "Role to remove",
+      "roleToRemovePh": "Select the role to remove",
+      "requestedRole": "Requested role",
+      "requestedRolePh": "Select a role",
+      "roleDescription": "Description",
+      "selectRoleFirst": "First select a requested role",
+      "noRolesAvailable": "No roles available to request",
+      "justification": "Justification",
+      "justificationOptional": "(optional)",
+      "justificationPh": "Explain why you request this role (optional, minimum 20 characters if provided)",
+      "justCounter": "{{n}}/500 characters",
+      "justMinWarn": "(minimum 20 if you provide justification)",
+      "minCharacters": "Minimum 20 characters",
+      "valid": "Valid ✓",
+      "continue": "Continue",
+      "incompatibleNote": "Note: the role {{role}} is incompatible with: {{list}}",
+      "distributor": {
+        "zone": "Zone",
+        "selectZone": "Select a zone",
+        "zoneHelp": "Geographic zone where you will operate as a distributor",
+        "address": "Address",
+        "addressPlaceholder": "Enter your complete address",
+        "addressHelp": "Physical address of your distribution point"
+      },
+      "authority": {
+        "rank": "Rank",
+        "selectRank": "Select a rank",
+        "rankHelp": "Hierarchical level within the organization",
+        "zone": "Zone",
+        "selectZone": "Select a zone",
+        "zoneHelp": "Zone where you will exercise your authority"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "submit": "Submit Request",
+        "sending": "Sending...",
+        "back": "Back"
       }
     }
   },

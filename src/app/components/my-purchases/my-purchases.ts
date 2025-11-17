@@ -88,18 +88,13 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
    * Carga las compras del usuario actual y la lista de productos
    */
   private loadPurchases(): void {
-    const user = this.me();
-    if (!user?.person?.dni) {
-      this.error.set('No se pudo obtener la información del usuario');
-      return;
-    }
-
     this.loading.set(true);
     this.error.set(null);
 
     // Cargar ventas y productos en paralelo
+    // Usamos getMyPurchases() que ya filtra las compras del usuario en el backend
     forkJoin({
-      sales: this.saleService.getAllSales(),
+      sales: this.saleService.getMyPurchases(),
       products: this.productService.getAllProducts()
     })
       .pipe(takeUntil(this.destroy$))
@@ -108,12 +103,11 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
           // Guardar productos
           this.products.set(products);
 
-          // Filtrar solo las ventas del usuario actual
-          const userPurchases = sales.filter(sale => sale.client?.dni === user.person?.dni);
-          console.log('[MyPurchases] 📦 Compras del usuario:', userPurchases);
+          console.log('[MyPurchases] 📦 Compras del usuario:', sales.length);
           console.log('[MyPurchases] 🛍️ Productos cargados:', products.length);
 
-          this.purchases.set(userPurchases);
+          // Las compras ya vienen filtradas del backend
+          this.purchases.set(sales);
           this.loading.set(false);
         },
         error: (err: HttpErrorResponse) => {
@@ -159,7 +153,16 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
     if (error.status === 401) {
       this.error.set('No autorizado. Por favor, inicia sesión nuevamente.');
     } else if (error.status === 403) {
-      this.error.set('No tienes permisos para ver esta información.');
+      // Si recibe 403, mostrar lista vacía en lugar de error
+      // Esto puede pasar si el usuario no tiene el rol adecuado o el endpoint no existe
+      console.log('[MyPurchases] ⚠️ Acceso denegado (403). Mostrando lista vacía.');
+      this.purchases.set([]);
+      this.products.set([]);
+    } else if (error.status === 404) {
+      // El endpoint no existe en el backend
+      console.warn('[MyPurchases] ⚠️ Endpoint /api/sales/my-purchases no encontrado (404). Mostrando lista vacía.');
+      this.purchases.set([]);
+      this.products.set([]);
     } else if (error.error?.message) {
       this.error.set(error.error.message);
     } else {

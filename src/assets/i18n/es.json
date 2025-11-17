@@ -3,12 +3,16 @@
     "name": "GarrSYS"
   },
   "nav": {
+    "menu": "Menú",
     "store": "Tienda",
     "myAccount": "Mi cuenta",
     "myPurchases": "Mis compras",
     "logout": "Salir",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
     "management": "Gestión",
     "society": "Sociedad",
+    "information": "Información",
     "inbox": "Bandeja",
     "unread": "sin leer",
     "roleRequests": "Solicitudes de rol",
@@ -239,7 +243,8 @@
     "closingSession": "Cerrando sesión…",
     "login": {
       "title": "Iniciar sesión",
-      "submit": "Entrar"
+      "submit": "Entrar",
+      "forgot_password": "¿Olvidaste tu contraseña?"
     },
     "register": {
       "title": "Crear cuenta",
@@ -256,6 +261,63 @@
       "email": "tu@email.com",
       "emailOrUsername": "tu@email.com o tu_usuario",
       "password": "••••••••"
+    },
+    "forgotPassword": {
+      "title": "¿Olvidaste tu contraseña?",
+      "subtitle": "Ingresá tu email y te enviaremos un enlace para restablecer tu contraseña",
+      "emailLabel": "Email",
+      "emailPlaceholder": "tu@email.com",
+      "sending": "Enviando...",
+      "sendButton": "Enviar enlace",
+      "backButton": "Volver",
+      "successTitle": "Email enviado",
+      "successMessage": "Te enviamos un enlace de restablecimiento a tu correo",
+      "checkEmail": "Revisá tu bandeja de entrada y hacé clic en el enlace",
+      "tryAgain": "Intentar nuevamente",
+      "errors": {
+        "enterEmail": "Por favor ingresa tu email",
+        "sendFailed": "Error al enviar el email",
+        "cooldown": "Por favor espera 5 minutos antes de solicitar otro restablecimiento",
+        "requestFailed": "Error al procesar la solicitud"
+      }
+    },
+    "resetPassword": {
+      "validating": "Validando enlace...",
+      "pleaseWait": "Por favor espera",
+      "title": "Restablecer contraseña",
+      "subtitle": "Ingresá tu nueva contraseña",
+      "newPasswordLabel": "Nueva contraseña",
+      "passwordPlaceholder": "Mínimo 12 caracteres",
+      "confirmPasswordLabel": "Confirmar contraseña",
+      "confirmPlaceholder": "Volvé a ingresar tu contraseña",
+      "requirementsTitle": "Requisitos de la contraseña:",
+      "minLength": "Mínimo 12 caracteres",
+      "uppercase": "Al menos una mayúscula (A-Z)",
+      "lowercase": "Al menos una minúscula (a-z)",
+      "number": "Al menos un número (0-9)",
+      "special": "Al menos un carácter especial (@$!%*?&)",
+      "processing": "Procesando...",
+      "resetButton": "Restablecer contraseña",
+      "successTitle": "Contraseña restablecida",
+      "successMessage": "Tu contraseña se actualizó correctamente",
+      "redirecting": "Redirigiendo al inicio de sesión...",
+      "goToLogin": "Ir a inicio de sesión",
+      "requestNewLink": "Solicitar nuevo enlace",
+      "errors": {
+        "tokenNotProvided": "Token no proporcionado",
+        "linkUsed": "Este enlace ya ha sido utilizado",
+        "linkExpired": "Este enlace ha expirado",
+        "linkInvalid": "Este enlace es inválido",
+        "validationFailed": "Error al validar el enlace",
+        "passwordsMismatch": "Las contraseñas no coinciden",
+        "minLengthError": "La contraseña debe tener al menos 12 caracteres",
+        "uppercaseError": "La contraseña debe contener al menos una mayúscula",
+        "lowercaseError": "La contraseña debe contener al menos una minúscula",
+        "numberError": "La contraseña debe contener al menos un número",
+        "specialError": "La contraseña debe contener al menos un carácter especial (@$!%*?&)",
+        "resetFailed": "Error al restablecer la contraseña",
+        "requestNew": "El enlace ha expirado. Por favor solicita uno nuevo."
+      }
     },
     "errors": {
       "missingFields": "Completá todos los campos.",
@@ -1174,6 +1236,8 @@
       "filtered": "Filtrados"
     },
     "charts": {
+      "showCharts": "Mostrar Gráficos",
+      "hideCharts": "Ocultar Gráficos",
       "statusDistribution": "Distribución por Estado",
       "trend": "Tendencia de Revisiones por Mes",
       "topProducts": "Top Productos por Ventas",
@@ -1388,6 +1452,23 @@
       "roleRequest": "{{name}} ha solicitado el rol {{role}}.",
       "roleChange": "{{name}} ha solicitado cambiar de rol {{oldRole}} a {{newRole}}."
     }
+  },
+  "backendMessages": {
+    "NEW_USER_VERIFICATION_REQUEST_TITLE": "Nueva solicitud de verificación de usuario",
+    "NEW_USER_VERIFICATION_REQUEST_MESSAGE": "{{userName}} ({{userEmail}}) ha solicitado la verificación de su cuenta.",
+    "ROLE_REQUEST_CREATED_TITLE": "Nueva solicitud de rol",
+    "ROLE_REQUEST_CREATED_MESSAGE": "{{userName}} ha solicitado el rol {{requestedRole}}.",
+    "ROLE_CHANGE_REQUEST_CREATED_TITLE": "Nueva solicitud de cambio de rol",
+    "ROLE_CHANGE_REQUEST_CREATED_MESSAGE": "{{userName}} ha solicitado cambiar de rol {{roleToRemove}} a {{requestedRole}}.",
+    "USER_VERIFICATION_APPROVED_TITLE": "Verificación de usuario aprobada",
+    "USER_VERIFICATION_APPROVED_MESSAGE": "Tu solicitud de verificación ha sido aprobada. Ahora puedes acceder a todas las funciones de la plataforma.",
+    "USER_VERIFICATION_REJECTED_TITLE": "Verificación de usuario rechazada",
+    "USER_VERIFICATION_REJECTED_MESSAGE": "Tu solicitud de verificación ha sido rechazada.{{reason}}",
+    "USER_VERIFICATION_REJECTED_WITH_REASON": " Motivo: {{reason}}",
+    "ROLE_REQUEST_APPROVED_TITLE": "Solicitud de rol aprobada",
+    "ROLE_REQUEST_APPROVED_MESSAGE": "Tu solicitud para el rol {{requestedRole}} ha sido aprobada.",
+    "ROLE_REQUEST_REJECTED_TITLE": "Solicitud de rol rechazada",
+    "ROLE_REQUEST_REJECTED_MESSAGE": "Tu solicitud para el rol {{requestedRole}} ha sido rechazada."
   },
   "userVerification": {
     "status": {
@@ -1628,28 +1709,6 @@
       },
       "changeLabel": "Cambio de rol"
     },
-    "modal": {
-      "title": "Solicitar Rol Especial",
-      "changeToggle": "Cambiar un rol existente por otro",
-      "changeHelp": "Si querés intercambiar uno de tus roles actuales por otro, activá esta opción",
-      "roleToRemove": "Rol a remover",
-      "roleToRemoveRequired": "Rol a remover *",
-      "roleToRemovePh": "Seleccioná el rol a remover",
-      "requestedRole": "Rol solicitado *",
-      "requestedRolePh": "Seleccioná un rol",
-      "roleDescription": "Descripción",
-      "justification": "Justificación",
-      "justificationOptional": "(opcional)",
-      "justificationPh": "Explicá por qué solicitás este rol (opcional, mínimo 20 caracteres si lo proporcionás)",
-      "justCounter": "{{n}}/500 caracteres",
-      "justMinWarn": "(mínimo 20 si proporcionás justificación)",
-      "incompatibleNote": "Nota: el rol {{role}} es incompatible con: {{list}}",
-      "actions": {
-        "cancel": "Cancelar",
-        "submit": "Enviar Solicitud",
-        "sending": "Enviando..."
-      }
-    },
     "card": {
       "changeLabel": "Cambio de rol",
       "newLabel": "Nueva solicitud",
@@ -1695,6 +1754,54 @@
       "empty": {
         "title": "No hay solicitudes",
         "desc": "No se encontraron solicitudes con los filtros seleccionados"
+      }
+    },
+    "modal": {
+      "title": "Solicitar Rol Especial",
+      "additionalDataTitle": "Datos Adicionales",
+      "selectRole": "Seleccioná el rol que querés solicitar",
+      "completeDataFor": "Completá los datos adicionales para",
+      "error": "Error",
+      "changeToggle": "Cambiar un rol existente por otro",
+      "changeHelp": "Si querés intercambiar uno de tus roles actuales por otro, activá esta opción",
+      "roleToRemove": "Rol a remover",
+      "roleToRemoveRequired": "Rol a remover",
+      "roleToRemovePh": "Seleccioná el rol a remover",
+      "requestedRole": "Rol solicitado",
+      "requestedRolePh": "Seleccioná un rol",
+      "roleDescription": "Descripción",
+      "selectRoleFirst": "Primero seleccioná un rol solicitado",
+      "noRolesAvailable": "No hay roles disponibles para solicitar",
+      "justification": "Justificación",
+      "justificationOptional": "(opcional)",
+      "justificationPh": "Explicá por qué solicitás este rol (opcional, mínimo 20 caracteres si lo proporcionás)",
+      "justCounter": "{{n}}/500 caracteres",
+      "justMinWarn": "(mínimo 20 si proporcionás justificación)",
+      "minCharacters": "Mínimo 20 caracteres",
+      "valid": "Válido ✓",
+      "continue": "Continuar",
+      "incompatibleNote": "Nota: el rol {{role}} es incompatible con: {{list}}",
+      "distributor": {
+        "zone": "Zona",
+        "selectZone": "Seleccioná una zona",
+        "zoneHelp": "Zona geográfica donde operarás como distribuidor",
+        "address": "Dirección",
+        "addressPlaceholder": "Ingresá tu dirección completa",
+        "addressHelp": "Dirección física de tu punto de distribución"
+      },
+      "authority": {
+        "rank": "Rango",
+        "selectRank": "Seleccioná un rango",
+        "rankHelp": "Nivel jerárquico dentro de la organización",
+        "zone": "Zona",
+        "selectZone": "Seleccioná una zona",
+        "zoneHelp": "Zona donde ejercerás tu autoridad"
+      },
+      "actions": {
+        "cancel": "Cancelar",
+        "submit": "Enviar Solicitud",
+        "sending": "Enviando...",
+        "back": "Volver"
       }
     }
   },
@@ -1820,6 +1927,9 @@
         "a": "Ofrecemos API e importadores para conectar tu stack actual."
       }
     }
+  },
+  "credential": {
+    "member": "Credencial de Miembro"
   },
   "footer": {
     "tagline": "Sistema de gestión y control de distribución",

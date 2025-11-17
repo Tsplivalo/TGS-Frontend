@@ -103,30 +103,30 @@
           </thead>
           <tbody>
             <tr *ngFor="let it of filtered(); trackBy: trackById">
-              <td>#{{ it.id }}</td>
-              <td>{{ it.shelbyCouncil?.id || '—' }}</td>
-              <td>
+              <td [attr.data-label]="'ID'">#{{ it.id }}</td>
+              <td [attr.data-label]="('clandestineAgreement.table.shelbyCouncil' | translate)">{{ it.shelbyCouncil?.id || '—' }}</td>
+              <td [attr.data-label]="('clandestineAgreement.table.admin' | translate)">
                 <span class="truncate" style="max-width: 160px;">
-                  {{ it.admin?.dni }} 
+                  {{ it.admin?.dni }}
                 </span>
               </td>
-              <td>
+              <td [attr.data-label]="('clandestineAgreement.table.authority' | translate)">
                 <span class="truncate" style="max-width: 160px;">
                   {{ it.authority?.dni }}
                 </span>
               </td>
-              <td>{{ it.agreementDate | date:'dd/MM/yyyy' }}</td>
-              <td>
+              <td [attr.data-label]="('clandestineAgreement.table.date' | translate)">{{ it.agreementDate | date:'dd/MM/yyyy' }}</td>
+              <td [attr.data-label]="('clandestineAgreement.table.status' | translate)">
                 <span class="badge {{ it.status }}">
                   {{ ('status.' + it.status) | translate }}
                 </span>
               </td>
-              <td>
+              <td [attr.data-label]="('clandestineAgreement.table.description' | translate)">
                 <span class="truncate" style="max-width: 200px;">
                   {{ it.description || '—' }}
                 </span>
               </td>
-              <td *ngIf="canEdit() || canDelete()" class="right">
+              <td *ngIf="canEdit() || canDelete()" class="right" [attr.data-label]="('common.actions' | translate)">
                 <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(it)"
                   [attr.title]="'common.edit' | translate">
                   ✏️

@@ -1,3 +1,6 @@
+/* ========== Import Responsive Mixins ========== */
+@import 'app/styles/responsive';
+
 /* ========== Reset suave ========== */
 *,
 *::before,
@@ -17,7 +20,26 @@ body {
   color: #fefefe;
   /*color: var(--text);*/
   line-height: 1.5;
-  font-size: 16px;
+
+  /* Mobile-first font size */
+  font-size: 14px;
+
+  @include min-width(md) {
+    font-size: 16px;
+  }
+
+  /* Better mobile rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+
+  /* Compensar navbar fija en móvil */
+  @media (max-width: 768px) {
+    padding-top: 60px; /* Altura aproximada de la navbar */
+  }
 }
 
 
@@ -30,9 +52,9 @@ body {
   /* elevaciones */
   --bg-panel: #0f1419;
   /* inputs/paneles */
-  --text: #efe9dd;
+  --text: #f2f0ec;
   /* marfil tibio */
-  --muted: #b7ad99;
+  --muted: #d8cebc;
   /* pergamino */
   --accent: #c3a462;
   /* latón/dorado */
@@ -115,25 +137,57 @@ h3 {
   max-width: var(--container-max);
   margin-inline: auto;
   padding-inline: var(--sp-5);
+
+  /* Responsive padding */
+  @include max-width(md) {
+    padding-inline: var(--sp-3);
+  }
+
+  @include max-width(sm) {
+    padding-inline: var(--sp-2);
+  }
 }
 
 .grid {
   display: grid;
   gap: var(--sp-5);
+
+  /* Responsive gap */
+  @include max-width(md) {
+    gap: var(--sp-3);
+  }
+
+  @include max-width(sm) {
+    gap: var(--sp-2);
+  }
 }
 
 .flex {
   display: flex;
   gap: var(--sp-3);
   align-items: center;
+
+  /* Adjust gap on smaller screens */
+  @include max-width(sm) {
+    gap: var(--sp-2);
+  }
 }
 
 .right {
   justify-content: flex-end;
+
+  @include max-width(sm) {
+    justify-content: center;
+  }
 }
 
 .space {
   justify-content: space-between;
+
+  @include max-width(sm) {
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
 }
 
 /* Cards con marco "art déco" */
@@ -144,6 +198,16 @@ h3 {
   box-shadow: var(--shadow);
   padding: var(--sp-5);
   position: relative;
+
+  /* Responsive padding */
+  @include max-width(md) {
+    padding: var(--sp-4);
+  }
+
+  @include max-width(sm) {
+    padding: var(--sp-3);
+    border-radius: 10px;
+  }
 }
 
 .card::before,
@@ -154,6 +218,11 @@ h3 {
   border: 1px solid rgba(195, 164, 98, .22);
   pointer-events: none;
   border-radius: calc(var(--radius) - 8px);
+
+  /* Hide decorative borders on small screens */
+  @include max-width(sm) {
+    display: none;
+  }
 }
 
 /* Controles */
@@ -200,6 +269,17 @@ h3 {
     linear-gradient(180deg, var(--accent), var(--accent-700));
   color: #1a1308;
   box-shadow: 0 6px 16px rgba(195, 164, 98, .22);
+
+  /* Touch-friendly on mobile */
+  @include max-width(md) {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  @include max-width(sm) {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .btn:hover {
@@ -251,12 +331,30 @@ h3 {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+
+  /* Responsive table */
+  @include max-width(md) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .table th,
 .table td {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
+
+  /* Smaller padding on mobile */
+  @include max-width(md) {
+    padding: 8px 10px;
+    font-size: 0.875rem;
+  }
+
+  @include max-width(sm) {
+    padding: 6px 8px;
+    font-size: 0.8125rem;
+  }
 }
 
 .table th {
@@ -264,6 +362,10 @@ h3 {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .5px;
+
+  @include max-width(sm) {
+    font-size: 0.75rem;
+  }
 }
 
 .table tr:hover td {

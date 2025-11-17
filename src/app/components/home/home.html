@@ -9,6 +9,29 @@
     <section *ngIf="showAuthPanel" class="auth-panel glass" [class.mode-login]="mode()==='login'"
       [class.mode-register]="mode()==='register'" [class.hiding]="hiding" [class.enter]="entering"
       [style.--split]="mode()==='login' ? '64%' : '36%'" aria-label="Authentication">
+
+      <!-- 📱 Tab switcher para móviles -->
+      <div class="mobile-auth-tabs">
+        <button
+          type="button"
+          class="mobile-tab"
+          [class.active]="mode()==='login'"
+          (click)="setMode('login')"
+          aria-label="Iniciar sesión">
+          <span class="tab-icon">🔐</span>
+          <span class="tab-text">{{ 'auth.login.title' | translate }}</span>
+        </button>
+        <button
+          type="button"
+          class="mobile-tab"
+          [class.active]="mode()==='register'"
+          (click)="setMode('register')"
+          aria-label="Registrarse">
+          <span class="tab-icon">✨</span>
+          <span class="tab-text">{{ 'auth.register.title' | translate }}</span>
+        </button>
+      </div>
+
       <div class="auth-body">
         <!-- LOGIN -->
         <div class="auth-half left" [class.active]="mode()==='login'" (click)="setMode('login')" role="button"
@@ -116,10 +139,14 @@
                 <button type="button" class="pwd-toggle" (click)="showLoginPwd = !showLoginPwd"
                   [attr.aria-label]="showLoginPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                   [attr.title]="showLoginPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-                  <span class="material-symbols-outlined">{{ showLoginPwd ? 'visibility_off' : 'visibility' }}</span>
+                  <span class="material-symbols-outlined">{{ showLoginPwd ? 'visibility' : 'visibility_off' }}</span>
                 </button>
               </div>
             </label>
+
+            <div class="forgot-password-link">
+              <a routerLink="/forgot-password">{{ 'auth.login.forgot_password' | translate }}</a>
+            </div>
 
             <button type="submit" [disabled]="loadingLogin" class="btn-main" [class.is-loading]="loadingLogin">
               <span class="btn-label">{{ 'auth.login.submit' | translate }}</span>
@@ -230,7 +257,7 @@
                 <button type="button" class="pwd-toggle" (click)="showRegisterPwd = !showRegisterPwd"
                   [attr.aria-label]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                   [attr.title]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-                  <span class="material-symbols-outlined">{{ showRegisterPwd ? 'visibility_off' : 'visibility' }}</span>
+                  <span class="material-symbols-outlined">{{ showRegisterPwd ? 'visibility' : 'visibility_off' }}</span>
                 </button>
               </div>
               <!-- Mensaje de requisitos de contraseña -->

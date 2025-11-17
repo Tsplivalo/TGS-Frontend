@@ -100,7 +100,7 @@
   opacity: 0;
   transition: opacity .3s ease;
   z-index: 110;
-  display: flex;
+  display: none; /* Oculto por defecto */
   align-items: flex-start;
   justify-content: center;
   padding: var(--sp-6);
@@ -110,6 +110,7 @@
 .new-client-overlay.is-open {
   opacity: 1;
   pointer-events: auto;
+  display: flex; /* Solo visible cuando está abierto */
 }
 
 .new-client-overlay__backdrop {
@@ -1057,13 +1058,14 @@ fieldset.group legend {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px) and (min-width: 641px) {
   .new-client-overlay {
     padding: var(--sp-3);
   }
 
   .new-client-overlay__panel {
     margin-top: var(--sp-3);
+    width: 95%;
   }
 }
 
@@ -1124,5 +1126,214 @@ fieldset.group legend {
 @media (max-width: 1200px) {
   .table td .truncate {
     max-width: 120px;
+  }
+}
+
+/* ===== DISEÑO MÓVIL PARA TABLA DE CLIENTES ===== */
+@media (max-width: 768px) {
+  /* Ocultar la tabla tradicional en móvil */
+  .table-wrap .table {
+    border: none;
+  }
+
+  /* Ocultar el thead */
+  .table thead {
+    display: none;
+  }
+
+  /* Hacer que el tbody sea un contenedor flex */
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  /* Convertir cada fila en una tarjeta */
+  .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    background: rgba(20, 20, 20, 0.5);
+    border: 1px solid rgba(195, 164, 98, 0.25);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    gap: var(--sp-3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3),
+                inset 0 1px 0 rgba(255, 255, 255, .08);
+    backdrop-filter: blur(12px) saturate(110%);
+    -webkit-backdrop-filter: blur(12px) saturate(110%);
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+  }
+
+  .table tbody tr:hover {
+    transform: translateY(-2px);
+    background: rgba(20, 20, 20, 0.65);
+    border-color: rgba(195, 164, 98, 0.4);
+    box-shadow: 0 6px 18px rgba(195, 164, 98, .25),
+                0 0 0 1px rgba(195, 164, 98, .1),
+                inset 0 1px 0 rgba(255, 255, 255, .12);
+  }
+
+  .table tbody tr:hover td {
+    background: transparent;
+  }
+
+  /* Estilizar cada celda como un campo de datos */
+  .table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+    gap: var(--sp-3);
+  }
+
+  .table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Agregar etiquetas antes de cada celda usando data-label */
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+
+  /* Hacer que el contenido de la celda se alinee a la derecha */
+  .table tbody td > * {
+    margin-left: auto;
+  }
+
+  /* Casos especiales para celdas con contenido específico */
+
+  /* DNI - hacer más prominente */
+  .table tbody tr td:first-child {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+    padding-bottom: var(--sp-3);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  /* Nombre */
+  .table tbody td:nth-child(2) {
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  /* Compras - centrar badge */
+  .table tbody td.center {
+    justify-content: space-between;
+  }
+
+  .table tbody td.center .badge {
+    margin-left: auto;
+  }
+
+  /* Acciones - botones de editar y eliminar */
+  .table tbody td.right {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-4) 0 var(--sp-2);
+    margin-top: var(--sp-3);
+    border-top: 2px solid rgba(195, 164, 98, .2);
+    border-bottom: none;
+  }
+
+  .table tbody td.right::before {
+    /* El label de "Acciones" va arriba, ocupando toda la fila */
+    flex-basis: 100%;
+    text-align: center;
+    min-width: 100%;
+    margin-bottom: var(--sp-2);
+    color: var(--text-strong);
+    font-size: 13px;
+  }
+
+  .table tbody td.right > div {
+    display: flex;
+    gap: var(--sp-4);
+    width: 100%;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .table tbody td.right .btn {
+    width: auto;
+    min-width: 110px;
+    padding: 0 var(--sp-5);
+    height: 44px;
+    font-size: 16px;
+    gap: var(--sp-2);
+  }
+
+  /* Override para el overlay en móvil */
+  .new-client-overlay {
+    padding: 0;
+    align-items: stretch;
+    overflow: hidden;
+    display: none; /* Oculto por defecto */
+  }
+
+  .new-client-overlay.is-open {
+    display: flex; /* Solo visible cuando está abierto */
+  }
+
+  .new-client-overlay__panel {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ajustar el formulario para que no se corte */
+  .form-grid {
+    padding-bottom: var(--sp-8);
+  }
+
+  /* Asegurar que el header no se salga del scroll */
+  .new-client-overlay__panel .header {
+    position: sticky;
+    top: 0;
+    background: var(--bg-elev);
+    z-index: 10;
+    margin-bottom: var(--sp-4);
+    padding-bottom: var(--sp-3);
+  }
+
+  /* Prevenir scroll en el body cuando el modal está abierto */
+  body:has(.new-client-overlay.is-open) {
+    overflow: hidden;
+  }
+}
+
+/* Móvil pequeño - ajustes adicionales */
+@media (max-width: 480px) {
+  .table tbody td::before {
+    min-width: 80px;
+    font-size: 11px;
+  }
+
+  /* Botones más compactos en móviles pequeños */
+  .table tbody td.right .btn {
+    min-width: 100px;
+    padding: 0 var(--sp-4);
+    height: 40px;
+    font-size: 15px;
   }
 }

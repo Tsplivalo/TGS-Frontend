@@ -138,7 +138,7 @@ select {
     font-size: 0.95rem;
     box-shadow: 0 0 15px rgba(255, 59, 59, 0.25),
                 0 4px 12px rgba(255, 59, 59, 0.15);
-    animation: fadeIn 0.3s ease-out, shake 0.5s ease-out;
+    animation: shake 0.5s ease-out;
     line-height: 1.5;
 
     &::before {
@@ -1228,26 +1228,95 @@ select {
 
   .user-role-requests-inbox,
   .admin-role-requests-inbox {
-    padding: $spacing-md;
+    padding: 0;
 
     .inbox-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: $spacing-md;
+      gap: $spacing-sm;
+      padding-bottom: $spacing-sm;
+
+      h2 {
+        font-size: 1.4rem;
+      }
+
+      .subtitle {
+        font-size: 0.85rem;
+      }
 
       .header-actions {
         width: 100%;
         flex-wrap: wrap;
+        gap: $spacing-sm;
+
+        .pending-badge {
+          padding: $spacing-xs $spacing-sm;
+          font-size: 0.8rem;
+
+          .count {
+            font-size: 1.1rem;
+          }
+
+          .label {
+            font-size: 0.75rem;
+          }
+        }
+
+        .incomplete-profile-warning {
+          padding: $spacing-xs $spacing-sm;
+          font-size: 0.75rem;
+        }
       }
+    }
+
+    .empty-state {
+      padding: $spacing-xl;
+
+      .empty-icon {
+        font-size: 3.5rem;
+      }
+
+      h3 {
+        font-size: 1.2rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .info-button-wrapper {
+    .btn-info {
+      width: 36px;
+      height: 36px;
+      font-size: 1rem;
     }
   }
 
   .filters-bar {
     flex-direction: column;
     align-items: stretch;
+    padding: $spacing-sm;
+    gap: $spacing-sm;
+
+    .filter-group {
+      label {
+        font-size: 0.8rem;
+      }
+
+      .filter-select {
+        padding: $spacing-xs $spacing-sm;
+        font-size: 0.85rem;
+      }
+    }
 
     .btn-sm {
       margin-left: 0;
+      width: 100%;
+      justify-content: center;
+      padding: $spacing-sm;
+      font-size: 0.85rem;
     }
   }
 
@@ -1256,32 +1325,738 @@ select {
     .card-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: $spacing-md;
+      gap: $spacing-sm;
+      padding: $spacing-sm;
+
+      .request-info {
+        width: 100%;
+
+        .user-info {
+          .username {
+            font-size: 0.95rem;
+          }
+
+          .email {
+            font-size: 0.8rem;
+          }
+        }
+
+        .role-info {
+          flex-wrap: wrap;
+          gap: $spacing-xs;
+
+          .role-badge {
+            font-size: 0.75rem;
+            padding: 2px 10px;
+          }
+        }
+
+        .role-change {
+          flex-wrap: wrap;
+
+          .arrow {
+            font-size: 0.9rem;
+          }
+
+          .change-label {
+            font-size: 0.65rem;
+          }
+        }
+      }
+
+      .card-actions {
+        width: 100%;
+        justify-content: space-between;
+
+        .status-badge {
+          padding: 4px 10px;
+          font-size: 0.7rem;
+        }
+
+        .expand-btn {
+          width: 36px;
+          height: 36px;
+
+          .toggle-icon {
+            font-size: 1.1rem;
+          }
+        }
+      }
     }
 
-    .card-actions {
-      width: 100%;
-      justify-content: space-between;
-    }
+    .card-body {
+      padding: $spacing-sm;
 
-    .detail-grid {
-      grid-template-columns: 1fr;
-    }
+      .detail-section {
+        padding: $spacing-sm;
 
-    .action-buttons {
-      flex-direction: column;
+        h4 {
+          font-size: 0.8rem;
+        }
+
+        .justification {
+          font-size: 0.85rem;
+          padding: $spacing-xs;
+        }
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+        gap: $spacing-sm;
+
+        .detail-item {
+          .label {
+            font-size: 0.7rem;
+          }
+
+          .value {
+            font-size: 0.85rem;
+          }
+        }
+      }
+
+      .additional-data {
+        padding: $spacing-sm;
+
+        h4 {
+          font-size: 0.8rem;
+        }
+
+        .data-grid {
+          grid-template-columns: 1fr;
+
+          .data-item {
+            .data-label {
+              font-size: 0.65rem;
+            }
+
+            .data-value {
+              font-size: 0.8rem;
+            }
+          }
+        }
+
+        .products-list {
+          .products-label {
+            font-size: 0.65rem;
+          }
+
+          .products-items {
+            .product-tag {
+              font-size: 0.7rem;
+            }
+          }
+        }
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        padding-top: $spacing-sm;
+
+        .btn {
+          width: 100%;
+          min-width: auto;
+          padding: $spacing-sm;
+          font-size: 0.85rem;
+        }
+      }
     }
   }
 
   .action-selector {
     grid-template-columns: 1fr;
+
+    .action-option {
+      padding: $spacing-md;
+
+      .action-icon {
+        font-size: 2.5rem;
+      }
+
+      .action-label {
+        font-size: 0.95rem;
+      }
+    }
   }
 
   .modal {
     max-width: 100%;
     margin: 0;
-    border-radius: 0;
+    border-radius: $border-radius $border-radius 0 0;
     max-height: 100vh;
+
+    .modal-header {
+      padding: $spacing-md;
+
+      h2 {
+        font-size: 1.3rem;
+      }
+
+      .close-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1.75rem;
+      }
+
+      .header-content {
+        .subtitle {
+          font-size: 0.8rem;
+        }
+
+        .step-indicator {
+          gap: $spacing-xs;
+
+          .step {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+          }
+
+          .step-divider {
+            width: 24px;
+          }
+        }
+      }
+    }
+
+    .modal-body {
+      padding: $spacing-md;
+
+      .form-group {
+        margin-bottom: $spacing-md;
+
+        label {
+          font-size: 0.85rem;
+        }
+
+        .form-control {
+          padding: $spacing-sm;
+          font-size: 0.9rem;
+        }
+
+        textarea.form-control {
+          min-height: 100px;
+        }
+
+        .helper-text {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    .modal-footer {
+      padding: $spacing-md;
+      flex-direction: column-reverse;
+      gap: $spacing-sm;
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  /* Roles Grid Mobile */
+  .roles-grid {
+    grid-template-columns: 1fr;
+    gap: $spacing-sm;
+  }
+
+  .role-card {
+    padding: $spacing-sm;
+
+    .role-icon {
+      font-size: 2rem;
+    }
+
+    .role-title {
+      font-size: 1rem;
+    }
+
+    .role-description {
+      font-size: 0.75rem;
+    }
+
+    .role-check {
+      width: 20px;
+      height: 20px;
+
+      .checkmark {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  /* Toggle Label Mobile */
+  .toggle-label {
+    padding: $spacing-sm;
+
+    .toggle-slider {
+      width: 40px;
+      height: 22px;
+
+      &::before {
+        width: 16px;
+        height: 16px;
+        top: 3px;
+        left: 3px;
+      }
+    }
+
+    .toggle-text {
+      strong {
+        font-size: 0.9rem;
+      }
+
+      .help-text {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  /* Textarea Wrapper Mobile */
+  .textarea-wrapper {
+    .textarea-input {
+      min-height: 80px;
+      padding: $spacing-sm;
+      font-size: 0.875rem;
+    }
+
+    .textarea-footer {
+      font-size: 0.75rem;
+    }
+  }
+
+  /* Summary Card Mobile */
+  .summary-card {
+    padding: $spacing-md;
+
+    .summary-header {
+      gap: $spacing-sm;
+
+      .summary-icon {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1rem;
+      }
+    }
+
+    .summary-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-md;
+
+      .summary-item {
+        .item-label {
+          font-size: 0.7rem;
+        }
+
+        .item-value {
+          .username {
+            font-size: 0.95rem;
+          }
+
+          .email {
+            font-size: 0.8rem;
+          }
+
+          &.date-value {
+            font-size: 0.85rem;
+          }
+        }
+      }
+    }
+  }
+
+  /* Role Change Display Mobile */
+  .role-change-display {
+    flex-direction: column;
+    text-align: center;
+
+    .arrow-icon {
+      font-size: 1.5rem;
+      transform: rotate(90deg);
+    }
+
+    .role-badge {
+      &.main-role {
+        font-size: 0.85rem;
+        padding: 4px 10px;
+      }
+    }
+  }
+
+  /* Decision Options Mobile */
+  .decision-options {
+    grid-template-columns: 1fr;
+
+    .decision-card {
+      padding: $spacing-md;
+
+      .card-content {
+        .decision-icon {
+          font-size: 2rem;
+        }
+
+        .decision-label {
+          font-size: 0.95rem;
+        }
+
+        .decision-desc {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+
+  /* Additional Data Card Mobile */
+  .additional-data-card {
+    padding: $spacing-sm;
+
+    .data-item {
+      padding: $spacing-xs;
+
+      .data-icon {
+        font-size: 1.25rem;
+      }
+
+      .data-content {
+        .data-label {
+          font-size: 0.7rem;
+        }
+
+        .data-value {
+          font-size: 0.85rem;
+        }
+      }
+    }
+
+    .products-tags {
+      .product-tag {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  /* Products Grid Mobile */
+  .products-grid {
+    grid-template-columns: 1fr;
+    max-height: 250px;
+    padding: $spacing-sm;
+
+    .product-checkbox {
+      padding: $spacing-xs;
+      font-size: 0.85rem;
+
+      .checkbox-custom {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  /* Modal Actions Mobile */
+  .modal-actions {
+    padding: $spacing-md;
+
+    .btn {
+      width: 100%;
+      min-width: auto;
+      padding: $spacing-sm $spacing-md;
+      font-size: 0.875rem;
+
+      .btn-icon {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  /* Info Box Mobile */
+  .info-box {
+    padding: $spacing-sm;
+    gap: $spacing-sm;
+
+    .info-icon {
+      font-size: 1.1rem;
+    }
+
+    .info-content {
+      strong {
+        font-size: 0.85rem;
+      }
+
+      p {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  /* Alert Mobile */
+  .alert {
+    padding: $spacing-sm;
+    gap: $spacing-sm;
+
+    .alert-icon {
+      font-size: 1.25rem;
+    }
+
+    .alert-content {
+      strong {
+        font-size: 0.85rem;
+      }
+
+      p {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  /* Additional Data Box Mobile */
+  .additional-data-box {
+    padding: $spacing-sm;
+
+    .data-row {
+      flex-direction: column;
+      gap: $spacing-xs;
+
+      .data-label {
+        font-size: 0.75rem;
+        min-width: auto;
+      }
+
+      .data-value {
+        font-size: 0.85rem;
+      }
+    }
+
+    .product-badge {
+      font-size: 0.7rem;
+    }
+  }
+
+  /* Review Modal Mobile */
+  .review-modal {
+    .modal-header {
+      padding: $spacing-sm;
+
+      .header-content {
+        .subtitle {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    .modal-footer {
+      padding: $spacing-sm;
+    }
+  }
+
+  .decision-section {
+    .section-header {
+      .section-icon {
+        font-size: 1.25rem;
+      }
+
+      .section-title {
+        font-size: 0.95rem;
+      }
+
+      .recommended-tag {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .comments-section {
+    .section-label {
+      font-size: 0.85rem;
+    }
+  }
+
+  .justification-box {
+    padding: $spacing-sm;
+
+    p {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+/* Responsive para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .user-role-requests-inbox,
+  .admin-role-requests-inbox {
+    .inbox-header {
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      .subtitle {
+        font-size: 0.8rem;
+      }
+
+      .header-actions {
+        flex-direction: column;
+
+        .pending-badge {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .incomplete-profile-warning {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .info-button-wrapper {
+    .btn-info {
+      width: 32px;
+      height: 32px;
+      font-size: 0.9rem;
+    }
+  }
+
+  .filters-bar {
+    padding: $spacing-xs;
+
+    .filter-group {
+      .filter-select {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .role-request-card,
+  .user-verification-card {
+    .card-header {
+      padding: $spacing-xs;
+
+      .request-info {
+        .user-info {
+          .username {
+            font-size: 0.9rem;
+          }
+
+          .email {
+            font-size: 0.75rem;
+          }
+        }
+      }
+
+      .card-actions {
+        .status-badge {
+          font-size: 0.65rem;
+        }
+
+        .expand-btn {
+          width: 32px;
+          height: 32px;
+
+          .toggle-icon {
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+
+    .card-body {
+      padding: $spacing-xs;
+
+      .detail-section {
+        padding: $spacing-xs;
+      }
+    }
+  }
+
+  .modal {
+    border-radius: $border-radius $border-radius 0 0;
+
+    .modal-header {
+      padding: $spacing-sm;
+
+      h2 {
+        font-size: 1.2rem;
+      }
+
+      .close-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 1.5rem;
+      }
+
+      .header-content {
+        .step-indicator {
+          .step {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+          }
+
+          .step-divider {
+            width: 20px;
+          }
+        }
+      }
+    }
+
+    .modal-body {
+      padding: $spacing-sm;
+    }
+
+    .modal-footer {
+      padding: $spacing-sm;
+    }
+  }
+
+  .role-card {
+    .role-icon {
+      font-size: 1.75rem;
+    }
+
+    .role-title {
+      font-size: 0.95rem;
+    }
+
+    .role-description {
+      font-size: 0.7rem;
+    }
+  }
+
+  .summary-card {
+    padding: $spacing-sm;
+
+    .summary-header {
+      .summary-icon {
+        font-size: 1.25rem;
+      }
+
+      h3 {
+        font-size: 0.95rem;
+      }
+    }
+  }
+
+  .decision-options {
+    .decision-card {
+      padding: $spacing-sm;
+
+      .card-content {
+        .decision-icon {
+          font-size: 1.75rem;
+        }
+
+        .decision-label {
+          font-size: 0.9rem;
+        }
+
+        .decision-desc {
+          font-size: 0.7rem;
+        }
+      }
+    }
   }
 }
 
@@ -1952,7 +2727,7 @@ select {
     color: #fee2e2;
     box-shadow: 0 0 15px rgba($danger-color, 0.25),
                 0 4px 12px rgba($danger-color, 0.15);
-    animation: fadeIn 0.3s ease-out, shake 0.5s ease-out;
+    animation: shake 0.5s ease-out;
 
     strong {
       color: #fef2f2;

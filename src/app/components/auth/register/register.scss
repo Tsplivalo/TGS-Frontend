@@ -28,7 +28,7 @@
   font-size: 0.95rem;
   box-shadow: 0 0 15px rgba(255, 59, 59, 0.25),
               0 4px 12px rgba(255, 59, 59, 0.15);
-  animation: fadeIn 0.3s ease-out, shake 0.5s ease-out;
+  animation: shake 0.5s ease-out;
   line-height: 1.5;
 
   &::before {

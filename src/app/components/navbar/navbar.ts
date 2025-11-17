@@ -77,6 +77,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     show: boolean;
   } | null>(null);
 
+  // 📱 Menú móvil
+  mobileMenuOpen = signal<boolean>(false);
+
   // ✅ Señales reactivas del AuthService
   readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
   readonly user = computed(() => this.auth.user());
@@ -173,6 +176,8 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => {
         setTimeout(() => this.updateIndicator(), 0);
+        // 📱 Cerrar menú móvil al navegar
+        this.closeMobileMenu();
         // Actualizar contador de notificaciones al navegar
         if (this.isAuthenticated()) {
           this.loadUnreadCount();
@@ -477,6 +482,27 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
         }
       });
     }, 120);
+  }
+
+  /**
+   * 📱 Toggle del menú móvil
+   */
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen.set(!this.mobileMenuOpen());
+  }
+
+  /**
+   * 📱 Cierra el menú móvil
+   */
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
+  }
+
+  /**
+   * 📱 Abre el menú móvil
+   */
+  openMobileMenu(): void {
+    this.mobileMenuOpen.set(true);
   }
 
   /**

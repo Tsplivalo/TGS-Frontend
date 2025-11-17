@@ -97,7 +97,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity .3s ease;
-  z-index: 120;
+  z-index: 100;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -1233,6 +1233,353 @@ button[title="Expandir gráfico"] {
 
   &:active {
     transform: scale(0.95);
+  }
+}
+
+/* ===== DISEÑO MÓVIL PARA MONTHLY REVIEW ===== */
+
+/* En desktop, reorganizar usando grid para que los gráficos aparezcan a la izquierda */
+@media (min-width: 769px) {
+  /* Convertir la sección en grid container */
+  section.stack-lg {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "header header"
+      "charts filters";
+    gap: var(--sp-6);
+    align-items: start;
+  }
+
+  /* Asignar áreas del grid */
+  section.stack-lg > .glass-dark.card:first-child {
+    grid-area: header;
+  }
+
+  section.stack-lg > .charts-container-mobile {
+    grid-area: charts;
+  }
+
+  section.stack-lg > div[style*="grid-template-columns"] {
+    grid-area: filters;
+    display: block !important;
+    grid-template-columns: unset !important;
+  }
+
+  /* Ocultar columna izquierda vacía del grid interno */
+  section.stack-lg > div[style*="grid-template-columns"] > .stack-md:first-child {
+    display: none !important;
+  }
+
+  /* Columna derecha ocupa todo el ancho */
+  section.stack-lg > div[style*="grid-template-columns"] > .stack-md:last-child {
+    width: 100%;
+  }
+
+  /* Botón toggle oculto en desktop */
+  .charts-toggle-mobile {
+    display: none !important;
+  }
+
+  /* Gráficos siempre visibles en desktop */
+  .charts-container-mobile {
+    max-height: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* En tablet, convertir a 1 columna */
+  section.stack-lg {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "header"
+      "filters"
+      "charts" !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Desactivar el grid de desktop y volver al flujo normal */
+  section.stack-lg {
+    display: block !important;
+    grid-template-columns: unset !important;
+    grid-template-areas: unset !important;
+  }
+
+  /* Resetear grid areas */
+  section.stack-lg > .glass-dark.card:first-child,
+  section.stack-lg > .charts-toggle-mobile,
+  section.stack-lg > .charts-container-mobile,
+  section.stack-lg > div[style*="grid-template-columns"] {
+    grid-area: unset !important;
+  }
+
+  /* Convertir el grid interno en block y mostrar solo la columna derecha */
+  section.stack-lg > div[style*="grid-template-columns"] {
+    display: block !important;
+    grid-template-columns: unset !important;
+  }
+
+  /* Ocultar la columna izquierda vacía del grid interno */
+  section.stack-lg > div[style*="grid-template-columns"] > .stack-md:first-child {
+    display: none !important;
+  }
+
+  /* Columna derecha ocupa todo el ancho */
+  section.stack-lg > div[style*="grid-template-columns"] > .stack-md:last-child {
+    width: 100%;
+  }
+
+  /* Mostrar botón de toggle en mobile */
+  .charts-toggle-mobile {
+    display: flex !important;
+  }
+
+  /* Ocultar la tabla tradicional en móvil */
+  .table-wrap .table {
+    border: none;
+  }
+
+  /* Ocultar el thead */
+  .table thead {
+    display: none;
+  }
+
+  /* Hacer que el tbody sea un contenedor flex */
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  /* Convertir cada fila en una tarjeta glassmorphism */
+  .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    background: rgba(20, 20, 20, 0.5);
+    border: 1px solid rgba(195, 164, 98, 0.25);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    gap: var(--sp-3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3),
+                inset 0 1px 0 rgba(255, 255, 255, .08);
+    backdrop-filter: blur(12px) saturate(110%);
+    -webkit-backdrop-filter: blur(12px) saturate(110%);
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+  }
+
+  .table tbody tr:hover {
+    transform: translateY(-2px);
+    background: rgba(20, 20, 20, 0.65);
+    border-color: rgba(195, 164, 98, 0.4);
+    box-shadow: 0 6px 18px rgba(195, 164, 98, .25),
+                0 0 0 1px rgba(195, 164, 98, .1),
+                inset 0 1px 0 rgba(255, 255, 255, .12);
+  }
+
+  .table tbody tr:hover td {
+    background: transparent;
+  }
+
+  /* Estilizar cada celda como un campo de datos */
+  .table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+    gap: var(--sp-3);
+  }
+
+  .table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Agregar etiquetas antes de cada celda usando data-label */
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+
+  /* Hacer que el contenido de la celda se alinee a la derecha */
+  .table tbody td > * {
+    margin-left: auto;
+  }
+
+  /* ID - hacer más prominente */
+  .table tbody tr td:first-child {
+    font-size: 16px;
+    font-weight: 700;
+    padding-bottom: var(--sp-3);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  /* Acciones - botones de editar y eliminar */
+  .table tbody td.right {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-4) 0 var(--sp-2);
+    margin-top: var(--sp-3);
+    border-top: 2px solid rgba(195, 164, 98, .2);
+    border-bottom: none;
+  }
+
+  .table tbody td.right::before {
+    /* El label de "Acciones" va arriba, ocupando toda la fila */
+    flex-basis: 100%;
+    text-align: center;
+    min-width: 100%;
+    margin-bottom: var(--sp-2);
+    color: var(--text-strong);
+    font-size: 13px;
+  }
+
+  .table tbody td.right button {
+    width: auto;
+    min-width: 110px;
+    padding: 0 var(--sp-5);
+    height: 44px;
+    font-size: 16px;
+    gap: var(--sp-2);
+  }
+
+  /* Botón para mostrar/ocultar gráficos en mobile */
+  .charts-toggle-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--sp-4);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(195, 164, 98, 0.1));
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--radius);
+    color: var(--text-strong);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: var(--sp-6) 0 var(--sp-4);
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(195, 164, 98, 0.15));
+      border-color: rgba(59, 130, 246, 0.5);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .charts-toggle-icon {
+      font-size: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    &.collapsed .charts-toggle-icon {
+      transform: rotate(180deg);
+    }
+  }
+
+  /* Contenedor de gráficos colapsable */
+  .charts-container-mobile {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+
+    &.expanded {
+      max-height: 10000px;
+      opacity: 1;
+      margin-bottom: var(--sp-4);
+    }
+  }
+
+  /* Ajustar gráficos en mobile */
+  .monthly-shell section > div {
+    margin-bottom: var(--sp-3) !important;
+  }
+
+  /* Reducir altura de gráficos en mobile */
+  div[echarts] {
+    height: 320px !important;
+  }
+
+  /* Ajustar filtros para mobile */
+  .filters {
+    flex-direction: column;
+  }
+
+  .filters .label {
+    width: 100%;
+  }
+
+  .filters button {
+    width: 100%;
+  }
+
+  /* Empty state en mobile */
+  .empty-state {
+    padding: var(--sp-6) var(--sp-4);
+  }
+
+  /* Ajustar overlay en mobile */
+  .monthly-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .monthly-overlay__panel {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    padding-bottom: var(--sp-8);
+  }
+
+  .form-grid .col-2 {
+    grid-column: span 1 !important;
+  }
+}
+
+/* Móvil pequeño - ajustes adicionales */
+@media (max-width: 480px) {
+  .table tbody td::before {
+    min-width: 70px;
+    font-size: 11px;
+  }
+
+  /* Botones más compactos en móviles pequeños */
+  .table tbody td.right button {
+    min-width: 100px;
+    padding: 0 var(--sp-4);
+    height: 40px;
+    font-size: 15px;
+  }
+
+  /* Reducir aún más la altura de gráficos */
+  div[echarts] {
+    height: 280px !important;
   }
 }
 

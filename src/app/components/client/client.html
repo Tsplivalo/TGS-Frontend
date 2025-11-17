@@ -101,17 +101,17 @@
         </thead>
         <tbody>
           <tr *ngFor="let c of filteredClients()">
-            <td><span class="mono">{{ c.dni }}</span></td>
-            <td><span class="truncate">{{ c.name }}</span></td>
-            <td><span class="truncate">{{ c.email || '—' }}</span></td>
-            <td><span class="truncate">{{ c.address || '—' }}</span></td>
-            <td>{{ c.phone || '—' }}</td>
-            <td class="center">
+            <td [attr.data-label]="'clients.table.dni' | translate"><span class="mono">{{ c.dni }}</span></td>
+            <td [attr.data-label]="'clients.table.name' | translate"><span class="truncate">{{ c.name }}</span></td>
+            <td [attr.data-label]="'clients.table.email' | translate"><span class="truncate">{{ c.email || '—' }}</span></td>
+            <td [attr.data-label]="'clients.table.address' | translate"><span class="truncate">{{ c.address || '—' }}</span></td>
+            <td [attr.data-label]="'clients.table.phone' | translate">{{ c.phone || '—' }}</td>
+            <td class="center" [attr.data-label]="'clients.table.purchases' | translate">
               <span class="badge" [class.badge-success]="hasPurchases(c)" [class.badge-neutral]="!hasPurchases(c)">
                 {{ getPurchaseCount(c) }}
               </span>
             </td>
-            <td class="right" *ngIf="isAdmin()">
+            <td class="right" *ngIf="isAdmin()" [attr.data-label]="'clients.table.actions' | translate">
               <div style="display: inline-flex; gap: 8px; justify-content: flex-end; padding-right: 8px;">
                 <button class="btn ghost btn--icon" (click)="edit(c)"
                   [attr.title]="'common.edit' | translate">
