@@ -615,9 +615,10 @@ describe('AdminService', () => {
 
       service.search('').subscribe();
 
-      const req = httpMock.expectOne(request => {
-        return request.url.includes('/search') && request.params.get('q') === '';
-      });
+      // ✅ Cuando q es '', la condición q? es false, entonces params=undefined
+      // Por lo tanto, la petición no tiene parámetros
+      const req = httpMock.expectOne(`${apiUrl}/search`);
+      expect(req.request.params.keys().length).toBe(0);
       req.flush(mockResponse);
     });
   });

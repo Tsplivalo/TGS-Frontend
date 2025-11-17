@@ -152,7 +152,9 @@ describe('AuthService', () => {
       service.register(registerData).subscribe({
         next: (user) => {
           expect(user).toEqual(mockUser);
-          expect(service.isAuthenticated()).toBe(true);
+          // ✅ Register NO autentica automáticamente al usuario
+          // El usuario debe hacer login después de registrarse
+          expect(service.isAuthenticated()).toBe(false);
           done();
         }
       });
@@ -161,10 +163,6 @@ describe('AuthService', () => {
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(registerData);
       req.flush(mockAuthResponse);
-
-      // Register triggers forceRefresh() which calls /api/users/me
-      const meReq = httpMock.expectOne('/api/users/me');
-      meReq.flush(mockAuthResponse);
     });
 
     it('should handle registration error for duplicate email', (done) => {
@@ -209,12 +207,13 @@ describe('AuthService', () => {
     });
 
     it('should clear localStorage on logout', (done) => {
-      localStorage.setItem('authToken', 'test-token');
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
+      // ✅ Usar los nombres correctos de las keys de localStorage
+      localStorage.setItem('auth_token', 'test-token');
+      localStorage.setItem('auth_user', JSON.stringify(mockUser));
 
       service.logout().subscribe(() => {
-        expect(localStorage.getItem('authToken')).toBeNull();
-        expect(localStorage.getItem('authUser')).toBeNull();
+        expect(localStorage.getItem('auth_token')).toBeNull();
+        expect(localStorage.getItem('auth_user')).toBeNull();
         done();
       });
 
@@ -229,6 +228,10 @@ describe('AuthService', () => {
       service.login({ email: 'test@example.com', password: 'password' }).subscribe();
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(mockAuthResponse);
+
+      // ✅ Manejar la petición /api/users/me que se dispara por forceRefresh()
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(mockAuthResponse);
     });
 
     it('should correctly identify admin role', () => {
@@ -238,6 +241,10 @@ describe('AuthService', () => {
       service.login({ email: 'admin@example.com', password: 'password' }).subscribe();
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(adminResponse);
+
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(adminResponse);
 
       expect(service.isAdmin()).toBe(true);
     });
@@ -250,6 +257,10 @@ describe('AuthService', () => {
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(partnerResponse);
 
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(partnerResponse);
+
       expect(service.hasRole(Role.PARTNER)).toBe(true);
     });
 
@@ -260,6 +271,10 @@ describe('AuthService', () => {
       service.login({ email: 'distributor@example.com', password: 'password' }).subscribe();
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(distributorResponse);
+
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(distributorResponse);
 
       expect(service.hasRole(Role.DISTRIBUTOR)).toBe(true);
     });
@@ -272,6 +287,10 @@ describe('AuthService', () => {
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(authorityResponse);
 
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(authorityResponse);
+
       expect(service.hasRole(Role.AUTHORITY)).toBe(true);
     });
 
@@ -282,6 +301,10 @@ describe('AuthService', () => {
       service.login({ email: 'multi@example.com', password: 'password' }).subscribe();
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(multiRoleResponse);
+
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(multiRoleResponse);
 
       expect(service.hasRole(Role.PARTNER)).toBe(true);
       expect(service.isAdmin()).toBe(false);
@@ -296,6 +319,10 @@ describe('AuthService', () => {
       service.login({ email: 'test@example.com', password: 'password' }).subscribe();
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(response);
+
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(response);
 
       expect(service.profileCompleteness()).toBe(75);
     });
@@ -312,6 +339,10 @@ describe('AuthService', () => {
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(response);
 
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(response);
+
       expect(service.profileCompleteness()).toBe(100);
     });
 
@@ -323,6 +354,10 @@ describe('AuthService', () => {
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(response);
 
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(response);
+
       expect(service.profileCompleteness()).toBe(50);
     });
   });
@@ -330,19 +365,29 @@ describe('AuthService', () => {
   describe('Session Persistence', () => {
     it('should save token to localStorage on login', (done) => {
       service.login({ email: 'test@example.com', password: 'password' }).subscribe(() => {
-        expect(localStorage.getItem('authToken')).toBeTruthy();
+        // ✅ Usar el nombre correcto de la key
+        expect(localStorage.getItem('auth_token')).toBeTruthy();
         done();
       });
 
       const req = httpMock.expectOne('/api/auth/login');
       req.flush({ ...mockAuthResponse, meta: { ...mockAuthResponse.meta, token: 'test-token-123' } as any });
+
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(mockAuthResponse);
     });
 
     it('should restore session from localStorage on initialization', () => {
-      localStorage.setItem('authToken', 'existing-token');
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
+      // ✅ Usar los nombres correctos de las keys
+      localStorage.setItem('auth_token', 'existing-token');
+      localStorage.setItem('auth_user', JSON.stringify(mockUser));
 
       service.initialize();
+
+      // ✅ La petición /api/users/me se dispara automáticamente
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(mockAuthResponse);
 
       expect(service.isAuthenticated()).toBe(true);
       expect(service.user()).toEqual(mockUser);
@@ -384,6 +429,10 @@ describe('AuthService', () => {
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(response);
 
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(response);
+
       expect(service.emailVerified()).toBe(true);
     });
 
@@ -394,6 +443,10 @@ describe('AuthService', () => {
       service.login({ email: 'test@example.com', password: 'password' }).subscribe();
       const req = httpMock.expectOne('/api/auth/login');
       req.flush(response);
+
+      // ✅ Manejar la petición /api/users/me
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(response);
 
       expect(service.emailVerified()).toBe(false);
     });

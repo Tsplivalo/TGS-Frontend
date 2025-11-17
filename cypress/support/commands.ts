@@ -76,6 +76,13 @@ declare global {
        * @example cy.checkA11yWCAG('.form-section')
        */
       checkA11yWCAG(context?: string | Node): Chainable<void>;
+
+      /**
+       * Custom command to visit a URL and wait for Angular app to fully load
+       * @example cy.visitAndWaitForApp('/')
+       * @example cy.visitAndWaitForApp('/tienda')
+       */
+      visitAndWaitForApp(url: string): Chainable<void>;
     }
   }
 }
@@ -219,6 +226,27 @@ Cypress.Commands.add('checkA11yWCAG', (context?: string | Node) => {
       values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
     }
   });
+});
+
+/**
+ * Visit and wait for Angular app to fully load
+ * Ensures Angular has fully bootstrapped before continuing with tests
+ */
+Cypress.Commands.add('visitAndWaitForApp', (url: string) => {
+  // Visit the URL with increased timeout
+  cy.visit(url, { timeout: 30000 });
+
+  // Wait for Angular to be available on the window object
+  cy.window().should('have.property', 'ng');
+
+  // Wait for body to be visible
+  cy.get('body', { timeout: 30000 }).should('be.visible');
+
+  // Wait for app-root to be rendered
+  cy.get('app-root', { timeout: 30000 }).should('exist').should('be.visible');
+
+  // Small additional wait for stability
+  cy.wait(1000);
 });
 
 // Export empty object to satisfy TypeScript module system
