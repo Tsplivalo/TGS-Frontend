@@ -479,7 +479,6 @@ jobs:
           cmd_options: '-a -j -l WARN'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: 'zap-baseline-scan'
 
       - name: Run OWASP ZAP Full Scan (Public Routes)
         uses: zaproxy/action-full-scan@v0.10.0
@@ -490,7 +489,6 @@ jobs:
           cmd_options: '-a -j -l WARN'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: 'zap-full-scan'
 
       - name: Kill application process
         if: always()
@@ -498,10 +496,31 @@ jobs:
           pkill -f "ng serve" || true
           pkill -f "node.*angular" || true
 
-      # ℹ️ Artifact upload is handled automatically by ZAP actions
-      # Artifacts will be available as:
-      #   - zap-baseline-scan (from baseline scan)
-      #   - zap-full-scan (from full scan)
+      # Upload ZAP reports manually to avoid artifact naming conflicts
+      - name: Upload OWASP ZAP Baseline Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-zap-baseline-reports
+          path: |
+            report_json.json
+            report_md.md
+            report_html.html
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload OWASP ZAP Full Scan Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-zap-full-scan-reports
+          path: |
+            **/zap-full-scan-report.*
+            **/report_json.json
+            **/report_md.md
+            **/report_html.html
+          retention-days: 30
+          if-no-files-found: ignore
 
   # ============================================
   # Job 8: Build Verification
