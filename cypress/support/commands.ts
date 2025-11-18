@@ -64,6 +64,18 @@ declare global {
       dataCy(value: string): Chainable<JQuery<HTMLElement>>;
 
       /**
+       * Custom command to get by data-cy attribute within login form
+       * @example cy.dataCyLogin('email-input')
+       */
+      dataCyLogin(value: string): Chainable<JQuery<HTMLElement>>;
+
+      /**
+       * Custom command to get by data-cy attribute within register form
+       * @example cy.dataCyRegister('email-input')
+       */
+      dataCyRegister(value: string): Chainable<JQuery<HTMLElement>>;
+
+      /**
        * Custom command to check accessibility with detailed logging
        * @example cy.checkA11y()
        * @example cy.checkA11y('.main-content')
@@ -98,16 +110,19 @@ Cypress.Commands.add('login', (email: string, password: string) => {
     // Wait for the page to load
     cy.waitForAngular();
 
-    // Fill login form
-    cy.dataCy('email-input').should('be.visible').type(email);
-    cy.dataCy('password-input').should('be.visible').type(password);
+    // Ensure we're on login tab (not register)
+    cy.dataCy('login-tab').click();
+
+    // Fill login form using context-specific selectors
+    cy.dataCyLogin('email-input').should('be.visible').clear().type(email);
+    cy.dataCyLogin('password-input').should('be.visible').clear().type(password);
     cy.dataCy('login-button').should('be.visible').click();
 
     // Wait for login to complete
     cy.url().should('not.include', '/login');
 
     // Verify token exists in localStorage
-    cy.getLocalStorage('authToken').should('exist');
+    cy.window().its('localStorage.auth_token').should('exist');
   });
 });
 
@@ -127,12 +142,17 @@ Cypress.Commands.add('logout', () => {
  */
 Cypress.Commands.add('register', (email: string, password: string, name: string) => {
   cy.visit('/');
+  cy.waitForAngular();
+
+  // Click on register tab to ensure we're on register form
   cy.dataCy('register-tab').click();
-  cy.dataCy('name-input').type(name);
-  cy.dataCy('email-input').type(email);
-  cy.dataCy('password-input').type(password);
-  cy.dataCy('confirm-password-input').type(password);
-  cy.dataCy('register-button').click();
+
+  // Fill register form using context-specific selectors
+  cy.dataCyRegister('name-input').should('be.visible').clear().type(name);
+  cy.dataCyRegister('email-input').should('be.visible').clear().type(email);
+  cy.dataCyRegister('password-input').should('be.visible').clear().type(password);
+  // Note: confirm-password-input doesn't exist in the actual form
+  cy.dataCy('register-button').should('be.visible').click();
 });
 
 /**
@@ -148,7 +168,7 @@ Cypress.Commands.add('isAuthenticated', () => {
  * Get local storage item
  */
 Cypress.Commands.add('getLocalStorage', (key: string) => {
-  cy.window().then((window) => {
+  return cy.window().then((window) => {
     return window.localStorage.getItem(key);
   });
 });
@@ -186,12 +206,28 @@ Cypress.Commands.add('dataCy', (value: string) => {
 });
 
 /**
- * Check accessibility with detailed logging
- * Extends cypress-axe's checkA11y with detailed violation reporting
+ * Get element by data-cy attribute within login form
+ * This prevents finding duplicate elements in the register form
  */
-Cypress.Commands.add('checkA11y', (context?: string | Node, options?: any) => {
-  cy.injectAxe();
-  cy.checkA11y(context, options, (violations) => {
+Cypress.Commands.add('dataCyLogin', (value: string) => {
+  return cy.get('.auth-half.left').find(`[data-cy="${value}"]`);
+});
+
+/**
+ * Get element by data-cy attribute within register form
+ * This prevents finding duplicate elements in the login form
+ */
+Cypress.Commands.add('dataCyRegister', (value: string) => {
+  return cy.get('.auth-half.right').find(`[data-cy="${value}"]`);
+});
+
+/**
+ * Check accessibility with detailed logging
+ * Note: This overrides cypress-axe's default checkA11y with custom logging
+ */
+Cypress.Commands.overwrite('checkA11y', (originalFn, context?: string | Node, options?: any, violationCallback?: any, skipFailures?: boolean) => {
+  // Custom violation callback with detailed logging
+  const customCallback = (violations: any[]) => {
     if (violations.length) {
       cy.task('log', `\n❌ ${violations.length} accessibility violation(s) detected:`);
 
@@ -202,7 +238,7 @@ Cypress.Commands.add('checkA11y', (context?: string | Node, options?: any) => {
         cy.task('log', `   Help URL: ${violation.helpUrl}`);
         cy.task('log', `   Elements affected: ${violation.nodes.length}`);
 
-        violation.nodes.forEach((node, nodeIndex) => {
+        violation.nodes.forEach((node: any, nodeIndex: number) => {
           cy.task('log', `\n   Element ${nodeIndex + 1}:`);
           cy.task('log', `   - HTML: ${node.html}`);
           cy.task('log', `   - Target: ${node.target.join(' > ')}`);
@@ -212,7 +248,15 @@ Cypress.Commands.add('checkA11y', (context?: string | Node, options?: any) => {
     } else {
       cy.task('log', '✅ No accessibility violations detected');
     }
-  });
+
+    // Call the provided callback if any
+    if (violationCallback) {
+      violationCallback(violations);
+    }
+  };
+
+  // Call the original checkA11y with our custom callback
+  return originalFn(context, options, customCallback, skipFailures);
 });
 
 /**
