@@ -204,6 +204,10 @@ describe('AuthService', () => {
 
       const loginReq = httpMock.expectOne('/api/auth/login');
       loginReq.flush(mockAuthResponse);
+
+      // ✅ Manejar la petición /api/users/me que se dispara por forceRefresh()
+      const meReq = httpMock.expectOne('/api/users/me');
+      meReq.flush(mockAuthResponse);
     });
 
     it('should clear localStorage on logout', (done) => {

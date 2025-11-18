@@ -13,7 +13,20 @@
       "Bash(tee:*)",
       "Bash(npx artillery --version)",
       "Bash(npx tsc:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git push:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(set CI=true)",
+      "Bash(npx cross-env:*)",
+      "Bash(git mv:*)",
+      "Bash(taskkill:*)",
+      "Bash(if [ -f \"proxy.conf.json\" ])",
+      "Bash(then cat proxy.conf.json)",
+      "Bash(else echo \"File does not exist\")",
+      "Bash(fi)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
