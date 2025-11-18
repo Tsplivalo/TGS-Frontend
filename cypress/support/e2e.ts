@@ -5,14 +5,14 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import commands.js using ES2015 syntax:
-import './commands';
-
-// Import cypress-axe for accessibility testing
+// Import cypress-axe FIRST - must be loaded before commands that overwrite it
 import 'cypress-axe';
 
 // Import cypress-real-events for realistic user interactions
 import 'cypress-real-events';
+
+// Import commands.js AFTER plugins - so overwrite() works correctly
+import './commands';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
@@ -23,8 +23,8 @@ beforeEach(() => {
   cy.clearCookies();
   cy.clearLocalStorage();
 
-  // Inject axe-core for accessibility testing
-  cy.injectAxe();
+  // NOTE: cy.injectAxe() is called within the custom checkA11y command
+  // Tests that need accessibility checks should call cy.injectAxe() explicitly
 });
 
 // Handle uncaught exceptions gracefully in tests
