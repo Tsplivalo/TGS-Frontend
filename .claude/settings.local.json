@@ -26,7 +26,10 @@
       "Bash(then cat proxy.conf.json)",
       "Bash(else echo \"File does not exist\")",
       "Bash(fi)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm run start:ci:*)",
+      "Bash(curl:*)",
+      "Bash(exit 0)"
     ],
     "deny": [],
     "ask": []

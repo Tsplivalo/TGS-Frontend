@@ -12,7 +12,7 @@
       <div class="auth-body">
         <!-- LOGIN -->
         <div class="auth-half left" [class.active]="mode()==='login'" (click)="setMode('login')" role="button"
-          tabindex="0">
+          tabindex="0" data-cy="login-tab">
 
           <!-- 🔄 Banner de espera de verificación (cuando está esperando que el usuario verifique desde otra pestaña) -->
           <div class="verification-standalone" *ngIf="waitingForVerification() && mode()==='login' && !loadingLogin"
@@ -99,7 +99,7 @@
               <input type="text" formControlName="email" [attr.placeholder]="mode() === 'login' && emailAnimOn() ? animatedPlaceholder : ''"
                 [attr.data-anim]="mode() === 'login' && emailAnimOn() ? 'on' : 'off'" autocomplete="username" required
                 [class.star-wars-placeholder]="mode() === 'login' && emailAnimOn()" (focus)="onEmailFocus()"
-                (blur)="onEmailBlur()" />
+                (blur)="onEmailBlur()" data-cy="email-input" />
             </label>
 
             <label>
@@ -112,7 +112,7 @@
                   (focus)="onPasswordFocus()"
                   (blur)="onPasswordBlur()"
                   autocomplete="current-password"
-                  required />
+                  required data-cy="password-input" />
                 <button type="button" class="pwd-toggle" (click)="showLoginPwd = !showLoginPwd"
                   [attr.aria-label]="showLoginPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                   [attr.title]="showLoginPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'">
@@ -121,7 +121,7 @@
               </div>
             </label>
 
-            <button type="submit" [disabled]="loadingLogin" class="btn-main" [class.is-loading]="loadingLogin">
+            <button type="submit" [disabled]="loadingLogin" class="btn-main" [class.is-loading]="loadingLogin" data-cy="login-button">
               <span class="btn-label">{{ 'auth.login.submit' | translate }}</span>
               <span class="spinner" *ngIf="loadingLogin" aria-hidden="true"></span>
             </button>
@@ -137,7 +137,7 @@
 
         <!-- REGISTRO -->
         <div class="auth-half right" [class.active]="mode()==='register'" (click)="setMode('register')" role="button"
-          tabindex="0">
+          tabindex="0" data-cy="register-tab">
 
           <!-- 🔄 Banner de espera de verificación en REGISTRO (cuando está esperando que el usuario verifique desde otra pestaña) -->
           <div class="verification-standalone" *ngIf="waitingForVerification() && mode()==='register' && !loadingRegister"
@@ -206,7 +206,7 @@
                 [attr.placeholder]="mode() === 'register' && nameAnimOn() ? animatedNamePlaceholder : ''"
                 [attr.data-anim]="mode() === 'register' && nameAnimOn() ? 'on' : 'off'" autocomplete="off" required
                 [class.star-wars-placeholder]="mode() === 'register' && nameAnimOn()" (focus)="onNameFocus()"
-                (blur)="onNameBlur()" />
+                (blur)="onNameBlur()" data-cy="name-input" />
             </label>
 
             <label>
@@ -214,7 +214,7 @@
               <input type="email" formControlName="email" [attr.placeholder]="mode() === 'register' && emailAnimOn() ? animatedPlaceholder : ''"
                 [attr.data-anim]="mode() === 'register' && emailAnimOn() ? 'on' : 'off'" autocomplete="email" required
                 [class.star-wars-placeholder]="mode() === 'register' && emailAnimOn()" (focus)="onEmailFocus()"
-                (blur)="onEmailBlur()" />
+                (blur)="onEmailBlur()" data-cy="email-input" />
             </label>
 
             <label>
@@ -226,7 +226,7 @@
                   [class.star-wars-placeholder]="mode() === 'register' && passwordAnimOn()"
                   (focus)="onPasswordFocus()"
                   (blur)="onPasswordBlur()"
-                  autocomplete="new-password" required />
+                  autocomplete="new-password" required data-cy="password-input" />
                 <button type="button" class="pwd-toggle" (click)="showRegisterPwd = !showRegisterPwd"
                   [attr.aria-label]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
                   [attr.title]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'">
@@ -235,7 +235,7 @@
               </div>
             </label>
 
-            <button type="submit" [disabled]="loadingRegister">{{ 'auth.register.submit' | translate }}</button>
+            <button type="submit" [disabled]="loadingRegister" data-cy="register-button">{{ 'auth.register.submit' | translate }}</button>
 
             <p class="auth-error" *ngIf="errorRegister">
               {{ errorRegister | translate }}
