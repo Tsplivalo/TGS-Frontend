@@ -479,6 +479,7 @@ jobs:
           cmd_options: '-a -j -l WARN'
           fail_action: false
           allow_issue_writing: false
+          artifact_name: ''  # Deshabilita upload automático con nombre inválido
 
       - name: Run OWASP ZAP Full Scan (Public Routes)
         uses: zaproxy/action-full-scan@v0.10.0
@@ -501,7 +502,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: owasp-zap-baseline-reports
+          name: TgsSecurityBaselineReports
           path: |
             report_json.json
             report_md.md
@@ -513,7 +514,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: owasp-zap-full-scan-reports
+          name: TgsSecurityFullScanReports
           path: |
             **/zap-full-scan-report.*
             **/report_json.json
