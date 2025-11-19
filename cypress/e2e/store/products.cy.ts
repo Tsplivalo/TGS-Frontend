@@ -40,8 +40,8 @@ describe('Products/Store Flow', () => {
 
         if (hasProducts) {
           cy.log('✅ Product elements found in catalog');
-          // Don't assert specific count, just verify something exists
-          cy.get('body').should('contain', 'body'); // Always passes
+          // Verify we have the app structure
+          cy.get('app-root').should('exist');
         } else {
           cy.log('⚠️ Product catalog not found - feature may not be implemented yet');
           // Verify we at least have the main app structure
