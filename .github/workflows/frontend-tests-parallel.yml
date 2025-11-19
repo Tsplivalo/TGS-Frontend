@@ -479,7 +479,7 @@ jobs:
           cmd_options: '-a -j -l WARN'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: ''  # Deshabilita upload automático con nombre inválido
+          artifact_name: 'ZapScanReports'  # Nombre alfanumérico válido (reemplaza zap_scan)
 
       - name: Run OWASP ZAP Full Scan (Public Routes)
         uses: zaproxy/action-full-scan@v0.10.0
