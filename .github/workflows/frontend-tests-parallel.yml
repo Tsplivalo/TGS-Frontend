@@ -479,7 +479,7 @@ jobs:
           cmd_options: '-a -j -l WARN'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: 'ZapScanReports'  # Nombre alfanumérico válido
+          artifact_name: 'ZapScanReports'  # Alphanumeric name (valid)
 
       - name: Run OWASP ZAP Full Scan (Public Routes)
         uses: zaproxy/action-full-scan@v0.13.0
@@ -490,7 +490,7 @@ jobs:
           cmd_options: '-a -j -l WARN'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: 'ZapFullScanReports'  # Nombre alfanumérico válido
+          artifact_name: 'ZapFullScanReports'  # Alphanumeric name (valid)
 
       - name: Kill application process
         if: always()

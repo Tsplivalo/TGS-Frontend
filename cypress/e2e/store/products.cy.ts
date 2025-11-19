@@ -3,7 +3,7 @@
 /**
  * Products/Store Tests
  *
- * Tests E2E para funcionalidad de productos y tienda
+ * E2E tests for products and store functionality
  * Tests are designed to be resilient and skip if functionality doesn't exist
  */
 describe('Products/Store Flow', () => {
@@ -13,7 +13,7 @@ describe('Products/Store Flow', () => {
 
     // Try multiple ways to find store link
     return cy.get('body').then(($body) => {
-      const storeLink = $body.find('a[href*="store"], a[href*="tienda"], a[href*="product"], a:contains("Store"), a:contains("Tienda"), a:contains("Products"), a:contains("Productos")').first();
+      const storeLink = $body.find('a[href*="store"], a[href*="product"], a:contains("Store"), a:contains("Products")').first();
 
       if (storeLink.length > 0) {
         cy.wrap(storeLink).click({ force: true });
@@ -21,7 +21,6 @@ describe('Products/Store Flow', () => {
       } else {
         // Try navigating directly
         cy.visit('/store', { failOnStatusCode: false });
-        cy.visit('/tienda', { failOnStatusCode: false });
         cy.visit('/products', { failOnStatusCode: false });
         return cy.wrap(false);
       }
@@ -61,7 +60,7 @@ describe('Products/Store Flow', () => {
 
           // Verify we're on a detail page or modal opened
           cy.url().should('satisfy', (url: string) => {
-            return url.includes('product') || url.includes('producto') || url !== '/';
+            return url.includes('product') || url !== '/';
           });
         } else {
           cy.log('⚠️ No products found to click');
@@ -89,7 +88,7 @@ describe('Products/Store Flow', () => {
       tryNavigateToStore();
 
       cy.get('body').then(($body) => {
-        const searchInput = $body.find('input[type="search"], input[placeholder*="search"], input[placeholder*="Search"], input[placeholder*="buscar"], input[placeholder*="Buscar"], input[name*="search"]').first();
+        const searchInput = $body.find('input[type="search"], input[placeholder*="search"], input[placeholder*="Search"], input[name*="search"]').first();
 
         if (searchInput.length > 0) {
           cy.wrap(searchInput).clear().type('test product{enter}');
@@ -107,7 +106,7 @@ describe('Products/Store Flow', () => {
       tryNavigateToStore();
 
       cy.get('body').then(($body) => {
-        const addButton = $body.find('button:contains("Add"), button:contains("Añadir"), button:contains("Agregar"), [class*="add-to-cart"]').first();
+        const addButton = $body.find('button:contains("Add"), [class*="add-to-cart"]').first();
 
         if (addButton.length > 0) {
           cy.wrap(addButton).click({ force: true });
@@ -206,7 +205,7 @@ describe('Products/Store Flow', () => {
       cy.visit('/');
 
       cy.get('body').then(($body) => {
-        const checkoutBtn = $body.find('button:contains("Checkout"), button:contains("Pagar"), a[href*="checkout"]').first();
+        const checkoutBtn = $body.find('button:contains("Checkout"), a[href*="checkout"]').first();
 
         if (checkoutBtn.length > 0) {
           cy.wrap(checkoutBtn).click({ force: true });
@@ -222,7 +221,7 @@ describe('Products/Store Flow', () => {
       cy.visit('/checkout', { failOnStatusCode: false });
 
       cy.get('body').then(($body) => {
-        const checkoutBtn = $body.find('button:contains("Checkout"), button:contains("Pagar")').first();
+        const checkoutBtn = $body.find('button:contains("Checkout")').first();
 
         if (checkoutBtn.length > 0) {
           cy.wrap(checkoutBtn).should('satisfy', ($btn) => {
@@ -302,7 +301,7 @@ describe('Products/Store Flow', () => {
       tryNavigateToStore();
 
       cy.get('body').then(($body) => {
-        const outOfStockProducts = $body.find(':contains("Out of Stock"), :contains("Sin Stock"), :contains("Agotado")');
+        const outOfStockProducts = $body.find(':contains("Out of Stock")');
 
         if (outOfStockProducts.length > 0) {
           cy.log('✅ Out of stock products handled correctly');

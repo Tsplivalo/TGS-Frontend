@@ -25,16 +25,16 @@ describe('Login Flow', () => {
           const statusCode = interception.response?.statusCode;
 
           if (statusCode === 200) {
-            // Backend funcionando - verificar autenticación completa
+            // Backend working - verify complete authentication
             cy.url().should('not.include', '/login');
             cy.dataCy('user-menu').should('be.visible');
             cy.getLocalStorage('auth_token').should('exist');
           } else if (statusCode === 500) {
-            // Backend con error - verificar que UI maneja el error
+            // Backend error - verify UI handles the error
             cy.log('⚠️ Backend returned 500 - verifying error handling');
             cy.get('.auth-error, .error-message').should('be.visible');
           } else {
-            // Otro código - log para debugging
+            // Other code - log for debugging
             cy.log(`⚠️ Unexpected status code: ${statusCode}`);
           }
         });
@@ -253,7 +253,7 @@ describe('Login Flow', () => {
       cy.injectAxe();
       cy.checkA11y('.auth-half.left', {
         rules: {
-          'nested-interactive': { enabled: false }, // Temporal: tab con div clickeable
+          'nested-interactive': { enabled: false }, // Temporary: tab with clickable div
           'color-contrast': { enabled: true },
           'label': { enabled: true },
           'button-name': { enabled: true }

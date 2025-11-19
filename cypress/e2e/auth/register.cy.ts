@@ -15,15 +15,15 @@ describe('Registration Flow', () => {
 
     cy.intercept('POST', '/api/auth/register').as('registerRequest');
 
-    // ✅ Fill registration form usando selectores contextuales para evitar duplicados
+    // Fill registration form using contextual selectors to avoid duplicates
     cy.dataCyRegister('name-input').should('be.visible').clear().type(newUser.name);
     cy.dataCyRegister('email-input').should('be.visible').clear().type(newUser.email);
     cy.dataCyRegister('password-input').should('be.visible').clear().type(newUser.password);
-    // ❌ ELIMINADO: confirm-password-input - no existe en el formulario
-    // ❌ ELIMINADO: terms-checkbox - no existe en el formulario
+    // REMOVED: confirm-password-input - does not exist in the form
+    // REMOVED: terms-checkbox - does not exist in the form
     cy.dataCy('register-button').click();
 
-    // ✅ Be resilient to backend issues
+    // Be resilient to backend issues
     cy.wait('@registerRequest').then((interception) => {
       const statusCode = interception.response?.statusCode;
 
@@ -31,7 +31,7 @@ describe('Registration Flow', () => {
         // Backend working - verify success message
         cy.get('.success-message')
           .should('be.visible')
-          .and('contain.text', 'Cuenta creada exitosamente');
+          .and('contain.text', 'Account created successfully');
         cy.log('✅ User registered successfully');
       } else if (statusCode === 500) {
         // Backend error - verify error handling
@@ -43,7 +43,7 @@ describe('Registration Flow', () => {
     });
   });
 
-  // ❌ TEST ELIMINADO: No existe campo confirm-password-input en el formulario
+  // TEST REMOVED: confirm-password-input field does not exist in the form
   // it('should show error when passwords do not match', () => { ... }
 
   it('should show error for weak password', () => {
@@ -54,16 +54,16 @@ describe('Registration Flow', () => {
       .should('exist');
   });
 
-  // ❌ TEST ELIMINADO: No existe terms-checkbox en el formulario
+  // TEST REMOVED: terms-checkbox does not exist in the form
   // it('should require terms and conditions acceptance', () => { ... }
 
   it('should have no accessibility violations', () => {
     cy.injectAxe();
-    // ✅ Verificar accesibilidad del formulario de registro
-    // Permitir violación temporal de nested-interactive (button con div clickeable)
+    // Verify accessibility of registration form
+    // Allow temporary nested-interactive violation (button with clickable div)
     cy.checkA11y('.auth-half.right', {
       rules: {
-        'nested-interactive': { enabled: false }, // Temporal: diseño heredado
+        'nested-interactive': { enabled: false }, // Temporary: legacy design
         'color-contrast': { enabled: true },
         'label': { enabled: true }
       }
