@@ -38,7 +38,9 @@
       "Bash(npm run:*)",
       "Bash(npx cypress verify)",
       "Bash(npx cypress:*)",
-      "Bash(npx cypress install)"
+      "Bash(npx cypress install)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []
