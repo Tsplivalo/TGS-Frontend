@@ -84,7 +84,7 @@ describe('Products/Store Flow', () => {
       tryNavigateToStore();
 
       cy.get('body').then(($body) => {
-        const searchInput = $body.find('input[type="search"], input[placeholder*="search" i], input[placeholder*="buscar" i], input[name*="search" i]').first();
+        const searchInput = $body.find('input[type="search"], input[placeholder*="search"], input[placeholder*="Search"], input[placeholder*="buscar"], input[placeholder*="Buscar"], input[name*="search"]').first();
 
         if (searchInput.length > 0) {
           cy.wrap(searchInput).clear().type('test product{enter}');

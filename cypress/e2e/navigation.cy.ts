@@ -105,7 +105,7 @@ describe('Navigation Tests', () => {
       cy.visit('/dashboard', { failOnStatusCode: false });
 
       cy.get('body').then(($body) => {
-        const breadcrumb = $body.find('[class*="breadcrumb"], nav[aria-label*="breadcrumb" i], .breadcrumb-nav');
+        const breadcrumb = $body.find('[class*="breadcrumb"], nav[aria-label*="Breadcrumb"], nav[aria-label*="breadcrumb"], .breadcrumb-nav');
 
         if (breadcrumb.length > 0) {
           cy.log('✅ Breadcrumbs found');
@@ -167,7 +167,7 @@ describe('Navigation Tests', () => {
       cy.visit('/');
 
       cy.get('body').then(($body) => {
-        const menuButton = $body.find('[class*="menu-toggle"], [class*="hamburger"], button[aria-label*="menu" i], .mobile-menu-btn');
+        const menuButton = $body.find('[class*="menu-toggle"], [class*="hamburger"], button[aria-label*="Menu"], button[aria-label*="menu"], .mobile-menu-btn');
 
         if (menuButton.length > 0) {
           cy.log('✅ Mobile menu button found');
@@ -181,7 +181,7 @@ describe('Navigation Tests', () => {
       cy.visit('/');
 
       cy.get('body').then(($body) => {
-        const menuButton = $body.find('[class*="menu-toggle"], [class*="hamburger"], button[aria-label*="menu" i]').first();
+        const menuButton = $body.find('[class*="menu-toggle"], [class*="hamburger"], button[aria-label*="Menu"], button[aria-label*="menu"]').first();
 
         if (menuButton.length > 0) {
           cy.wrap(menuButton).click({ force: true });
@@ -275,7 +275,7 @@ describe('Navigation Tests', () => {
   describe('Language Navigation', () => {
     it('should persist selected language if language selector exists', () => {
       cy.get('body').then(($body) => {
-        const langSelector = $body.find('[class*="lang"], select[name*="lang" i], button[aria-label*="language" i]');
+        const langSelector = $body.find('[class*="lang"], select[name*="lang"], select[name*="Lang"], button[aria-label*="Language"], button[aria-label*="language"]');
 
         if (langSelector.length > 0) {
           cy.log('✅ Language selector found');
