@@ -30,6 +30,18 @@ export const routes: Routes = [
     title: 'Verificar Email - GarrSYS'
   },
 
+  // ✅ Recuperación de contraseña (PÚBLICA - sin guards)
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./components/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    title: 'Recuperar Contraseña - GarrSYS'
+  },
+  {
+    path: 'reset-password/:token',
+    loadComponent: () => import('./components/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+    title: 'Restablecer Contraseña - GarrSYS'
+  },
+
 
   // ═══════════════════════════════════════════════════════════════════════
   // RUTAS PÚBLICAS

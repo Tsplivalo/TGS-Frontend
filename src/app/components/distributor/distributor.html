@@ -80,26 +80,21 @@
           </thead>
           <tbody>
             <tr *ngFor="let d of filtered()">
-              <td>{{ d.dni }}</td>
-              <td><span class="truncate" style="max-width: 160px;">{{ d.name }}</span></td>
-              <td>{{ d.phone }}</td>
-              <td><span class="truncate" style="max-width: 200px;">{{ d.email }}</span></td>
-              <td><span class="truncate" style="max-width: 130px;">{{ d.zone?.name || ('#' + (d.zone?.id ?? d.zoneId ??
-                  ''))
-                  }}</span></td>
-              <td class="center"><strong>{{ d.products?.length || 0 }}</strong></td>
-              <td *ngIf="canEdit() || canDelete()" style="text-align: right; padding-right: 6px;">
-                <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                  <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(d)"
-                    [attr.title]="'common.edit' | translate">
-                    ✏️
-                  </button>
-
-                  <button *ngIf="canDelete()" class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
-                    [attr.title]="'common.delete' | translate">
-                    🗑️
-                  </button>
-                </div>
+              <td [attr.data-label]="'distributors.table.dni' | translate">{{ d.dni }}</td>
+              <td [attr.data-label]="'distributors.table.name' | translate">{{ d.name }}</td>
+              <td [attr.data-label]="'distributors.table.phone' | translate">{{ d.phone }}</td>
+              <td [attr.data-label]="'distributors.table.email' | translate">{{ d.email }}</td>
+              <td [attr.data-label]="'distributors.table.zone' | translate">{{ d.zone?.name || ('#' + (d.zone?.id ?? d.zoneId ?? '')) }}</td>
+              <td class="center" [attr.data-label]="'distributors.table.products' | translate"><strong>{{ d.products?.length || 0 }}</strong></td>
+              <td *ngIf="canEdit() || canDelete()" class="right" [attr.data-label]="'distributors.table.actions' | translate">
+                <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(d)"
+                  [attr.title]="'common.edit' | translate">
+                  ✏️
+                </button>
+                <button *ngIf="canDelete()" class="btn danger btn--icon" type="button" (click)="delete(d.dni)" [disabled]="loading()"
+                  [attr.title]="'common.delete' | translate">
+                  🗑️
+                </button>
               </td>
             </tr>
           </tbody>

@@ -86,6 +86,78 @@
   min-height: 0;
 }
 
+.partner-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+  z-index: 110;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--sp-6);
+  overflow-y: auto;
+}
+
+.partner-overlay.is-open {
+  display: flex;
+  opacity: 1;
+}
+
+.partner-overlay__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  border: none;
+  cursor: pointer;
+  z-index: -1;
+}
+
+.partner-overlay__panel {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: calc(100vh - var(--sp-6) * 2);
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: var(--sp-6);
+  transform: translateY(-20px) scale(.96);
+  opacity: 0;
+  transition: transform .3s cubic-bezier(.18, .84, .4, 1), opacity .3s ease;
+  pointer-events: auto;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, .82);
+  border: 1px solid rgba(195, 164, 98, .3);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(195, 164, 98, .3) transparent;
+}
+
+.partner-overlay__panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.partner-overlay__panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.partner-overlay__panel::-webkit-scrollbar-thumb {
+  background: rgba(195, 164, 98, .3);
+  border-radius: 4px;
+}
+
+.partner-overlay__panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(195, 164, 98, .5);
+}
+
+.partner-overlay.is-open .partner-overlay__panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.partner-overlay__panel.card::before,
+.partner-overlay__panel.card::after {
+  display: none;
+}
+
 /* ===== CARD BASE ===== */
 .card,
 .panel {
@@ -218,6 +290,39 @@
   gap: var(--sp-4);
   padding: 0 0 var(--sp-4);
   margin-bottom: var(--sp-2);
+}
+
+.btn-close {
+  background: transparent;
+  border: 1px solid rgba(195, 164, 98, .2);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+  transition: all .2s ease;
+  font-weight: 300;
+}
+
+.btn-close:hover {
+  background: rgba(195, 164, 98, .1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-close:active {
+  transform: scale(.95);
+}
+
+.header.compact {
+  padding-bottom: var(--sp-3);
+  margin-bottom: var(--sp-3);
 }
 
 .label {
@@ -941,6 +1046,16 @@ fieldset.group legend {
   }
 }
 
+@media (max-width: 768px) {
+  .partner-overlay {
+    padding: var(--sp-3);
+  }
+
+  .partner-overlay__panel {
+    margin-top: var(--sp-3);
+  }
+}
+
 /* ===== TEMA CLARO (OPCIONAL) ===== */
 :root[data-theme='light'] {
   --text: #1f2937;
@@ -986,235 +1101,125 @@ fieldset.group legend {
   color: var(--muted);
 }
 
-/* ===== OVERLAY CENTRADO (FORMULARIO) ===== */
-.shelby-council-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
-  padding: var(--sp-4);
-}
-
-.shelby-council-overlay.is-open {
-  opacity: 1;
-  pointer-events: auto;
-  backdrop-filter: blur(4px);
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.shelby-council-overlay__backdrop {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-
-.shelby-council-overlay__panel {
-  position: relative;
-  max-width: 800px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  transform: scale(0.95) translateY(20px);
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  opacity: 0;
-  z-index: 1;
-}
-
-.shelby-council-overlay.is-open .shelby-council-overlay__panel {
-  transform: scale(1) translateY(0);
-  opacity: 1;
-}
-
-.header.compact {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--sp-5);
-  margin: 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.header.compact .title {
-  margin: 0;
-  font-size: var(--h3);
-  font-weight: 700;
-}
-
-.btn-close {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: 32px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.btn-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-strong);
-}
-
-.badge-role {
-  background: rgba(195, 164, 98, .15);
-  border-color: rgba(195, 164, 98, .5);
-  color: #f5e6c4;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.5px;
-}
-
-/* ===== DISEÑO MÓVIL PARA SHELBY COUNCIL ===== */
+/* ===== MOBILE RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-  /* Ocultar la tabla tradicional en móvil */
-  .table-wrap .table {
-    border: none;
-  }
-
-  /* Ocultar el thead */
+  /* Ocultar encabezado de tabla */
   .table thead {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
-  /* Hacer que el tbody sea un contenedor flex */
+  /* Convertir tabla a cards verticales */
+  .table,
+  .table tbody {
+    display: block;
+    width: 100%;
+  }
+
   .table tbody {
     display: flex;
     flex-direction: column;
     gap: var(--sp-4);
   }
 
-  /* Convertir cada fila en una tarjeta glassmorphism */
   .table tbody tr {
     display: flex;
     flex-direction: column;
     background: rgba(20, 20, 20, 0.5);
     border: 1px solid rgba(195, 164, 98, 0.25);
-    border-radius: var(--radius);
+    border-radius: 12px;
     padding: var(--sp-4);
-    gap: var(--sp-3);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .3),
-                inset 0 1px 0 rgba(255, 255, 255, .08);
     backdrop-filter: blur(12px) saturate(110%);
     -webkit-backdrop-filter: blur(12px) saturate(110%);
-    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+    box-shadow:
+      inset 1px 1px 2px rgba(255, 255, 255, 0.1),
+      inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+      0 8px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+    position: relative;
   }
 
   .table tbody tr:hover {
     transform: translateY(-2px);
-    background: rgba(20, 20, 20, 0.65);
+    box-shadow:
+      inset 1px 1px 2px rgba(255, 255, 255, 0.15),
+      inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+      0 12px 28px rgba(0, 0, 0, 0.5);
     border-color: rgba(195, 164, 98, 0.4);
-    box-shadow: 0 6px 18px rgba(195, 164, 98, .25),
-                0 0 0 1px rgba(195, 164, 98, .1),
-                inset 0 1px 0 rgba(255, 255, 255, .12);
   }
 
   .table tbody tr:hover td {
     background: transparent;
   }
 
-  /* Estilizar cada celda como un campo de datos */
   .table tbody td {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 8px 0;
-    border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, .05);
-    gap: var(--sp-3);
+    align-items: center;
+    padding: var(--sp-2) 0;
+    border-bottom: 1px solid rgba(195, 164, 98, 0.15);
+    min-height: 36px;
   }
 
-  .table tbody td:last-child {
+  .table tbody tr td:last-child {
     border-bottom: none;
+    padding-top: var(--sp-3);
+    margin-top: var(--sp-2);
+    border-top: 1px solid rgba(195, 164, 98, 0.2);
+    justify-content: flex-end;
+    gap: var(--sp-2);
   }
 
-  /* Agregar etiquetas antes de cada celda usando data-label */
+  /* Mostrar etiquetas en mobile */
   .table tbody td::before {
     content: attr(data-label);
     font-weight: 700;
-    color: var(--accent);
+    color: rgba(195, 164, 98, 0.95);
     font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: .5px;
+    letter-spacing: 0.5px;
     min-width: 100px;
     flex-shrink: 0;
   }
 
-  /* Hacer que el contenido de la celda se alinee a la derecha */
-  .table tbody td > * {
-    margin-left: auto;
-  }
-
-  /* ID - hacer más prominente */
-  .table tbody tr td:first-child {
-    font-size: 16px;
-    font-weight: 700;
-    padding-bottom: var(--sp-3);
-    border-bottom: 2px solid var(--accent);
-  }
-
-  /* Partner y Decision - cell-content ya tiene buen estilo */
-  .table tbody td:nth-child(2),
-  .table tbody td:nth-child(3) {
-    align-items: flex-start;
-  }
-
-  .table tbody td:nth-child(2) .cell-content,
-  .table tbody td:nth-child(3) .cell-content {
+  /* Valor alineado a la derecha */
+  .table tbody td {
     text-align: right;
   }
 
-  /* Acciones - botones de editar y eliminar */
+  /* DNI con fuente monoespaciada destacada */
+  .table tbody td.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 14px;
+    color: rgba(195, 164, 98, 1);
+    font-weight: 600;
+  }
+
+  /* Botones de acciones en mobile */
   .table tbody td.right {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: var(--sp-4);
-    padding: var(--sp-4) 0 var(--sp-2);
-    margin-top: var(--sp-3);
-    border-top: 2px solid rgba(195, 164, 98, .2);
-    border-bottom: none;
+    gap: var(--sp-2);
+    padding-top: var(--sp-3);
+    justify-content: flex-end;
+    border-top: 1px solid rgba(195, 164, 98, 0.2);
   }
 
   .table tbody td.right::before {
-    /* El label de "Acciones" va arriba, ocupando toda la fila */
-    flex-basis: 100%;
-    text-align: center;
-    min-width: 100%;
-    margin-bottom: var(--sp-2);
-    color: var(--text-strong);
-    font-size: 13px;
-  }
-
-  .table tbody td.right button {
-    width: auto;
-    min-width: 110px;
-    padding: 0 var(--sp-5);
-    height: 44px;
-    font-size: 16px;
-    gap: var(--sp-2);
+    content: none;
   }
 
   /* Ajustar estadísticas en mobile */
-  .card > div[style*="display: grid"] {
-    grid-template-columns: repeat(2, 1fr) !important;
+  .card > div[style*="display: flex"] {
+    flex-direction: column !important;
     gap: var(--sp-2) !important;
+    align-items: flex-start !important;
   }
 
   /* Ajustar filtros en mobile */
@@ -1233,77 +1238,54 @@ fieldset.group legend {
 
   .filters > div[style*="display: flex"] {
     width: 100%;
-    flex-direction: column;
-    gap: var(--sp-2);
   }
 
   .filters button {
     flex: 1;
+  }
+
+  /* Ajustar overlay en mobile */
+  .partner-overlay {
+    padding: var(--sp-3);
+  }
+
+  .partner-overlay__panel {
     width: 100%;
+    max-height: calc(100vh - var(--sp-3) * 2);
+    margin-top: var(--sp-3);
   }
 
-  /* Override para el overlay en móvil */
-  .shelby-council-overlay {
-    padding: 0;
-    align-items: stretch;
-  }
-
-  .shelby-council-overlay__panel {
-    width: 100%;
-    height: 100vh;
-    max-height: 100vh;
-    margin: 0;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Ajustar el formulario para que no se corte */
+  /* Ajustar form grid en mobile */
   .form-grid {
     grid-template-columns: 1fr !important;
-    padding-bottom: var(--sp-8);
   }
 
   .form-grid .col-2 {
     grid-column: span 1 !important;
   }
 
-  /* Asegurar que el header no se salga del scroll */
-  .shelby-council-overlay__panel .header {
-    position: sticky;
-    top: 0;
-    background: var(--bg-elev);
-    z-index: 10;
-    margin-bottom: var(--sp-4);
-    padding-bottom: var(--sp-3);
+  /* Ajustar grid-2 en mobile */
+  .grid-2 {
+    grid-template-columns: 1fr !important;
   }
 
   /* Empty state en mobile */
-  .empty {
+  .empty-state {
     padding: var(--sp-6) var(--sp-4);
   }
-}
 
-/* Móvil pequeño - ajustes adicionales */
-@media (max-width: 480px) {
-  .table tbody td::before {
-    min-width: 80px;
-    font-size: 11px;
+  /* Header responsive */
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
   }
 
-  /* Botones más compactos en móviles pequeños */
-  .table tbody td.right button {
-    min-width: 100px;
-    padding: 0 var(--sp-4);
-    height: 40px;
-    font-size: 15px;
+  .header .right {
+    width: 100%;
   }
 
-  /* Estadísticas en una columna en pantallas muy pequeñas */
-  .card > div[style*="display: grid"] {
-    grid-template-columns: 1fr !important;
+  .header .right button {
+    width: 100%;
   }
 }

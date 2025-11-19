@@ -10,7 +10,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   standalone: true,
   imports: [CommonModule, FormsModule,TranslateModule],
   templateUrl: './user-verification-review-modal.html',
-  styleUrls: ['./user-verification.scss']
+  styleUrls: ['./role-requests.scss']
 })
 export class UserVerificationReviewModalComponent {
   @Input() verification!: UserVerification;

@@ -138,24 +138,24 @@
       </thead>
       <tbody>
         <tr *ngFor="let b of filteredBribes(); trackBy: trackById">
-          <td>#{{ b.id }}</td>
-          <td><strong>{{ b.amount | currency:'ARS':'symbol':'1.2-2' }}</strong></td>
-          <td>
+          <td [attr.data-label]="'bribes.table.id' | translate">#{{ b.id }}</td>
+          <td [attr.data-label]="'bribes.table.amount' | translate"><strong>{{ b.amount | currency:'ARS':'symbol':'1.2-2' }}</strong></td>
+          <td [attr.data-label]="'bribes.table.authority' | translate">
             <div class="cell-content">
               <strong>{{ b.authority.name || '—'}}</strong>
               <small class="muted">DNI: {{ b.authority.dni || '—' }}</small>
             </div>
           </td>
-          <td>#{{ b.sale.id || '—' }}</td>
-          <td class="center">
+          <td [attr.data-label]="'bribes.table.sale' | translate">#{{ b.sale.id || '—' }}</td>
+          <td class="center" [attr.data-label]="'bribes.table.paid' | translate">
             <span class="badge" [class.badge-success]="b.paid" [class.badge-pending]="!b.paid">
               {{ (b.paid ? 'bribes.status.paid' : 'bribes.status.pending') | translate }}
             </span>
           </td>
-          <td>{{ b.creationDate | date:'dd/MM/yyyy HH:mm' }}</td>
-  
+          <td [attr.data-label]="'bribes.table.date' | translate">{{ b.creationDate | date:'dd/MM/yyyy HH:mm' }}</td>
+
           <!-- ✅ ACCIONES CON PERMISOS -->
-          <td *ngIf="canPay() || canDelete()" style="text-align: right; padding-right: 6px;">
+          <td *ngIf="canPay() || canDelete()" style="text-align: right; padding-right: 6px;" [attr.data-label]="'bribes.table.actions' | translate">
             <div class="actions-group">
               <!-- Si NO está pagado: Botón activo (solo Admin y Socio) -->
               <button *ngIf="!b.paid && canPay()" class="btn success btn--icon" (click)="markAsPaid(b)"

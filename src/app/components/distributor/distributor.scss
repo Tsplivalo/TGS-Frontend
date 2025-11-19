@@ -89,11 +89,10 @@
 .distributor-overlay {
   position: fixed;
   inset: 0;
-  pointer-events: none;
+  display: none;
   opacity: 0;
   transition: opacity .3s ease;
   z-index: 110;
-  display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: var(--sp-6);
@@ -101,8 +100,8 @@
 }
 
 .distributor-overlay.is-open {
+  display: flex;
   opacity: 1;
-  pointer-events: auto;
 }
 
 .distributor-overlay__backdrop {
@@ -1100,4 +1099,223 @@ fieldset.group legend {
   font-size: 11px;
   opacity: 0.8;
   color: var(--muted);
+}
+
+/* ===== DISEÑO MÓVIL PARA TABLA DE DISTRIBUIDORES ===== */
+@media (max-width: 768px) {
+  /* Ocultar la tabla tradicional en móvil */
+  .table-wrap .table {
+    border: none;
+  }
+
+  /* Ocultar el thead */
+  .table thead {
+    display: none;
+  }
+
+  /* Hacer que el tbody sea un contenedor flex */
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  /* Convertir cada fila en una tarjeta */
+  .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    background: rgba(20, 20, 20, 0.5);
+    border: 1px solid rgba(195, 164, 98, 0.25);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    gap: var(--sp-3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3),
+                inset 0 1px 0 rgba(255, 255, 255, .08);
+    backdrop-filter: blur(12px) saturate(110%);
+    -webkit-backdrop-filter: blur(12px) saturate(110%);
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+  }
+
+  .table tbody tr:hover {
+    transform: translateY(-2px);
+    background: rgba(20, 20, 20, 0.65);
+    border-color: rgba(195, 164, 98, 0.4);
+    box-shadow: 0 6px 18px rgba(195, 164, 98, .25),
+                0 0 0 1px rgba(195, 164, 98, .1),
+                inset 0 1px 0 rgba(255, 255, 255, .12);
+  }
+
+  .table tbody tr:hover td {
+    background: transparent;
+  }
+
+  /* Estilizar cada celda como un campo de datos */
+  .table tbody td {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+    gap: var(--sp-3);
+    color: var(--text);
+    font-size: 14px;
+    word-wrap: break-word;
+    text-align: right;
+  }
+
+  .table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Agregar etiquetas antes de cada celda usando data-label */
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+
+  /* Hacer que el contenido de la celda se alinee a la derecha */
+  .table tbody td > * {
+    margin-left: auto;
+  }
+
+  /* Casos especiales para celdas con contenido específico */
+
+  /* DNI - hacer más prominente */
+  .table tbody tr td:first-child {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+    padding-bottom: var(--sp-3);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  /* Nombre - hacer más prominente */
+  .table tbody td:nth-child(2) {
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  /* Productos - centrar */
+  .table tbody td.center {
+    justify-content: space-between;
+  }
+
+  .table tbody td.center strong {
+    margin-left: auto;
+  }
+
+  /* Acciones - botones de editar y eliminar */
+  .table tbody td.right {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-4) 0 var(--sp-2);
+    margin-top: var(--sp-3);
+    border-top: 2px solid rgba(195, 164, 98, .2);
+    border-bottom: none;
+  }
+
+  .table tbody td.right::before {
+    /* El label de "Acciones" va arriba, ocupando toda la fila */
+    flex-basis: 100%;
+    text-align: center;
+    min-width: 100%;
+    margin-bottom: var(--sp-2);
+    color: var(--text-strong);
+    font-size: 13px;
+  }
+
+  .table tbody td.right button {
+    width: auto;
+    min-width: 110px;
+    padding: 0 var(--sp-5);
+    height: 44px;
+    font-size: 16px;
+    gap: var(--sp-2);
+  }
+
+  /* Estadísticas - hacer responsive */
+  .glass-dark > div[style*="display: flex"] {
+    flex-direction: column !important;
+    gap: var(--sp-2) !important;
+    align-items: flex-start !important;
+  }
+
+  /* Filtros - hacer responsive */
+  .filters {
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+
+  .filters .label {
+    min-width: 100% !important;
+    width: 100%;
+  }
+
+  .filters > div {
+    width: 100%;
+  }
+
+  .filters > div button {
+    width: 100%;
+  }
+
+  /* Override para el overlay en móvil */
+  .distributor-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .distributor-overlay__panel {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ajustar el formulario para que no se corte */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    padding-bottom: var(--sp-8);
+  }
+
+  .form-grid .col-2,
+  .form-grid .group {
+    grid-column: span 1 !important;
+  }
+
+  /* Empty state en mobile */
+  .empty {
+    padding: var(--sp-6) var(--sp-4);
+  }
+}
+
+/* Móvil pequeño - ajustes adicionales */
+@media (max-width: 480px) {
+  .table tbody td::before {
+    min-width: 70px;
+    font-size: 11px;
+  }
+
+  /* Botones más compactos en móviles pequeños */
+  .table tbody td.right button {
+    min-width: 100px;
+    padding: 0 var(--sp-4);
+    height: 40px;
+    font-size: 15px;
+  }
 }

@@ -4,7 +4,19 @@
     <!-- Brand -->
     <a class="brand brand--separated" routerLink="/">
       <span class="brand-text">{{ 'brand.name' | translate }}</span>
+      <img class="brand-logo" src="/logo-dark.svg" alt="GarrSYS Logo" />
     </a>
+
+    <!-- 📱 Botón Hamburguesa (solo móvil) -->
+    <button class="hamburger"
+            type="button"
+            [class.active]="mobileMenuOpen()"
+            (click)="toggleMobileMenu()"
+            aria-label="Menu">
+      <span class="hamburger__line"></span>
+      <span class="hamburger__line"></span>
+      <span class="hamburger__line"></span>
+    </button>
 
     <!-- Menú IZQUIERDO: SIEMPRE visible -->
     <ul #menu class="menu menu--left" role="menubar" aria-label="Principal">
@@ -25,8 +37,8 @@
         </li>
       </ng-container>
 
-      <!-- ✅ Mis compras (visible solo en la tienda) -->
-      <li class="menu__item menu__item--purchases" role="none" *ngIf="isAuthenticated() && isInStore()" [@slideIn]>
+      <!-- ✅ Mis compras (visible para todos los usuarios autenticados) -->
+      <li class="menu__item menu__item--purchases" role="none" *ngIf="isAuthenticated()" [@slideIn]>
         <a #mainBtn role="menuitem" routerLink="/mis-compras" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
           {{ 'nav.myPurchases' | translate }}
           <span class="underline"></span>
@@ -378,3 +390,231 @@
     <button class="toast-floating-close" (click)="closeNotificationToast()" aria-label="Cerrar notificación">×</button>
   </div>
 </nav>
+
+<!-- 📱 Overlay del menú móvil -->
+<div class="mobile-overlay"
+     *ngIf="mobileMenuOpen()"
+     (click)="closeMobileMenu()"
+     [@slideIn]></div>
+
+<!-- 📱 Menú lateral móvil -->
+<aside class="mobile-menu"
+       [class.open]="mobileMenuOpen()"
+       role="navigation"
+       aria-label="Menú móvil">
+  <div class="mobile-menu__header">
+    <span class="mobile-menu__title">{{ 'nav.menu' | translate }}</span>
+    <button class="mobile-menu__close" (click)="closeMobileMenu()" aria-label="Cerrar menú">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <div class="mobile-menu__content">
+    <!-- Usuario (si está autenticado) -->
+    <div class="mobile-menu__user" *ngIf="isAuthenticated()">
+      <div class="mobile-user-card">
+        <span class="material-symbols-outlined mobile-user-icon">account_circle</span>
+        <div class="mobile-user-info">
+          <strong class="mobile-user-name">{{ displayName() }}</strong>
+          <div class="mobile-user-progress">
+            <span class="mobile-progress-bar">
+              <span class="mobile-progress-fill" [style.width.%]="getProfileCompleteness()"></span>
+            </span>
+            <span class="mobile-progress-text">{{ getProfileCompleteness() }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notificaciones -->
+      <a routerLink="/inbox" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--highlight" (click)="closeMobileMenu()">
+        <span class="material-symbols-outlined">inbox</span>
+        <span>{{ 'nav.inbox' | translate }}</span>
+        <span *ngIf="inboxCount() > 0" class="mobile-badge">{{ inboxCount() }}</span>
+      </a>
+    </div>
+
+    <!-- Tienda (si tiene acceso) -->
+    <div class="mobile-menu__section" *ngIf="isAuthenticated() && canAccessStore()">
+      <a routerLink="/tienda" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+        <span class="material-symbols-outlined">store</span>
+        <span>{{ 'nav.store' | translate }}</span>
+      </a>
+      <a routerLink="/mis-compras" routerLinkActive="active" class="mobile-menu__link" *ngIf="isInStore()" (click)="closeMobileMenu()">
+        <span class="material-symbols-outlined">shopping_bag</span>
+        <span>{{ 'nav.myPurchases' | translate }}</span>
+      </a>
+    </div>
+
+    <!-- Gestión (si tiene rol de gestión) -->
+    <div class="mobile-menu__section" *ngIf="isAuthenticated() && (isAdmin() || isPartner() || isDistributor() || isAuthority())">
+      <div class="mobile-menu__section-title">{{ 'nav.management' | translate }}</div>
+
+      <!-- ADMIN -->
+      <ng-container *ngIf="isAdmin()">
+        <a routerLink="/producto" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span>{{ 'mgmt.product' | translate }}</span>
+        </a>
+        <a routerLink="/cliente" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">groups</span>
+          <span>{{ 'mgmt.client' | translate }}</span>
+        </a>
+        <a routerLink="/venta" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">point_of_sale</span>
+          <span>{{ 'mgmt.sale' | translate }}</span>
+        </a>
+        <a routerLink="/zona" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">map</span>
+          <span>{{ 'mgmt.zone' | translate }}</span>
+        </a>
+        <a routerLink="/autoridad" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">shield_person</span>
+          <span>{{ 'mgmt.authority' | translate }}</span>
+        </a>
+        <a routerLink="/sobornos" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">payments</span>
+          <span>{{ 'mgmt.bribe' | translate }}</span>
+        </a>
+        <a routerLink="/distribuidor" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">local_shipping</span>
+          <span>{{ 'mgmt.distributor' | translate }}</span>
+        </a>
+
+        <!-- Sociedad (submenu) -->
+        <div class="mobile-menu__subsection">
+          <div class="mobile-menu__subsection-title">{{ 'nav.society' | translate }}</div>
+          <a routerLink="/decision" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--sub" (click)="closeMobileMenu()">
+            <span>{{ 'mgmt.decision' | translate }}</span>
+          </a>
+          <a routerLink="/socio" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--sub" (click)="closeMobileMenu()">
+            <span>{{ 'mgmt.partner' | translate }}</span>
+          </a>
+          <a routerLink="/consejo-shelby" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--sub" (click)="closeMobileMenu()">
+            <span>{{ 'mgmt.shelbyCouncil' | translate }}</span>
+          </a>
+          <a routerLink="/acuerdos-clandestinos" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--sub" (click)="closeMobileMenu()">
+            <span>{{ 'mgmt.clandestineAgreement' | translate }}</span>
+          </a>
+          <a routerLink="/revisiones-mensuales" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--sub" (click)="closeMobileMenu()">
+            <span>{{ 'mgmt.monthlyReview' | translate }}</span>
+          </a>
+          <a routerLink="/tematica" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--sub" (click)="closeMobileMenu()">
+            <span>{{ 'mgmt.topic' | translate }}</span>
+          </a>
+        </div>
+
+        <a routerLink="/admin" routerLinkActive="active" class="mobile-menu__link mobile-menu__link--highlight" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          <span>{{ 'mgmt.admin' | translate }}</span>
+        </a>
+      </ng-container>
+
+      <!-- PARTNER -->
+      <ng-container *ngIf="isPartner() && !isAdmin()">
+        <a routerLink="/producto" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span>{{ 'mgmt.product' | translate }}</span>
+        </a>
+        <a routerLink="/zona" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">map</span>
+          <span>{{ 'mgmt.zone' | translate }}</span>
+        </a>
+        <a routerLink="/autoridad" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">shield_person</span>
+          <span>{{ 'mgmt.authority' | translate }}</span>
+        </a>
+        <a routerLink="/sobornos" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">payments</span>
+          <span>{{ 'mgmt.bribe' | translate }}</span>
+        </a>
+        <a routerLink="/distribuidor" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">local_shipping</span>
+          <span>{{ 'mgmt.distributor' | translate }}</span>
+        </a>
+      </ng-container>
+
+      <!-- DISTRIBUTOR -->
+      <ng-container *ngIf="isDistributor() && !isAdmin() && !isPartner()">
+        <a routerLink="/producto" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span>{{ 'mgmt.product' | translate }}</span>
+        </a>
+        <a routerLink="/cliente" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">groups</span>
+          <span>{{ 'mgmt.client' | translate }}</span>
+        </a>
+        <a routerLink="/venta" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">point_of_sale</span>
+          <span>{{ 'mgmt.sale' | translate }}</span>
+        </a>
+        <a routerLink="/zona" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">map</span>
+          <span>{{ 'mgmt.zone' | translate }}</span>
+        </a>
+      </ng-container>
+
+      <!-- AUTHORITY -->
+      <ng-container *ngIf="isAuthority() && !isAdmin() && !isPartner() && !isDistributor()">
+        <a routerLink="/venta" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">point_of_sale</span>
+          <span>{{ 'mgmt.sale' | translate }}</span>
+        </a>
+        <a routerLink="/sobornos" routerLinkActive="active" class="mobile-menu__link" (click)="closeMobileMenu()">
+          <span class="material-symbols-outlined">payments</span>
+          <span>{{ 'mgmt.myBribes' | translate }}</span>
+        </a>
+      </ng-container>
+    </div>
+
+    <!-- Páginas públicas -->
+    <div class="mobile-menu__section">
+      <div class="mobile-menu__section-title">{{ 'nav.information' | translate }}</div>
+      <a *ngFor="let p of publicItems; trackBy: trackByPath"
+         [routerLink]="p.path"
+         routerLinkActive="active"
+         class="mobile-menu__link"
+         (click)="closeMobileMenu()">
+        <span>{{ p.label | translate }}</span>
+      </a>
+    </div>
+
+    <!-- Selector de idioma -->
+    <div class="mobile-menu__section">
+      <div class="mobile-menu__section-title">{{ 'nav.language' | translate }}</div>
+      <button class="mobile-menu__link" (click)="setLang('es')">
+        <span class="flag flag-es"></span>
+        <span>Español</span>
+        <span class="material-symbols-outlined" *ngIf="lang() === 'es'">check</span>
+      </button>
+      <button class="mobile-menu__link" (click)="setLang('en')">
+        <span class="flag flag-en"></span>
+        <span>English</span>
+        <span class="material-symbols-outlined" *ngIf="lang() === 'en'">check</span>
+      </button>
+    </div>
+
+    <!-- Acciones de usuario -->
+    <div class="mobile-menu__actions" *ngIf="isAuthenticated()">
+      <a routerLink="/mi-cuenta" routerLinkActive="active" class="mobile-menu__action" (click)="closeMobileMenu()">
+        <span class="material-symbols-outlined">manage_accounts</span>
+        <span>{{ 'nav.myAccount' | translate }}</span>
+      </a>
+      <button class="mobile-menu__action mobile-menu__action--danger" (click)="logout()">
+        <span class="material-symbols-outlined">logout</span>
+        <span>{{ 'nav.logout' | translate }}</span>
+      </button>
+    </div>
+
+    <!-- Login (si no está autenticado) -->
+    <div class="mobile-menu__actions" *ngIf="!isAuthenticated()">
+      <a routerLink="/login" routerLinkActive="active" class="mobile-menu__action mobile-menu__action--primary" (click)="closeMobileMenu()">
+        <span class="material-symbols-outlined">login</span>
+        <span>{{ 'nav.login' | translate }}</span>
+      </a>
+      <a routerLink="/register" routerLinkActive="active" class="mobile-menu__action" (click)="closeMobileMenu()">
+        <span class="material-symbols-outlined">person_add</span>
+        <span>{{ 'nav.register' | translate }}</span>
+      </a>
+    </div>
+  </div>
+</aside>

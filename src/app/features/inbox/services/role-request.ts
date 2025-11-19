@@ -13,7 +13,7 @@ import {
   providedIn: 'root'
 })
 export class RoleRequestService {
-  private readonly baseUrl = 'http://localhost:3000/api/role-requests';
+  private readonly baseUrl = '/api/role-requests';
 
   constructor(private http: HttpClient) {}
 

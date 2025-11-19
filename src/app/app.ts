@@ -13,6 +13,7 @@ import { I18nService } from './services/i18n/i18n';
 import { NavbarComponent } from './components/navbar/navbar';
 import { AuthTransitionService } from './services/ui/auth-transition';
 import { FooterComponent } from './shared/footer/footer';
+import { TranslateModule } from '@ngx-translate/core';
 /**
  * Componente raíz de la aplicación
  * 
@@ -24,7 +25,7 @@ import { FooterComponent } from './shared/footer/footer';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent,FooterComponent],
+  imports: [CommonModule, RouterOutlet, NavbarComponent, FooterComponent, TranslateModule],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })

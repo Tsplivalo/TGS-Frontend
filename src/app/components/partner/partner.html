@@ -77,12 +77,12 @@
           </thead>
           <tbody>
             <tr *ngFor="let it of filteredPartners()">
-              <td class="mono">{{ it.dni }}</td>
-              <td>{{ it.name }}</td>
-              <td>{{ it.email || '—' }}</td>
-              <td>{{ it.phone || '—' }}</td>
-              <td>{{ it.address || '—' }}</td>
-              <td *ngIf="canEdit() || canDelete()" class="right">
+              <td class="mono" [attr.data-label]="'DNI'">{{ it.dni }}</td>
+              <td [attr.data-label]="'partner.fields.name' | translate">{{ it.name }}</td>
+              <td [attr.data-label]="'partner.fields.email' | translate">{{ it.email || '—' }}</td>
+              <td [attr.data-label]="'partner.fields.phone' | translate">{{ it.phone || '—' }}</td>
+              <td [attr.data-label]="'partner.fields.address' | translate">{{ it.address || '—' }}</td>
+              <td *ngIf="canEdit() || canDelete()" class="right" [attr.data-label]="'common.actions' | translate">
                 <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(it)"
                   [title]="'common.edit' | translate">
                   ✏️ <span class="sr-only">{{ 'common.edit' | translate }}</span>

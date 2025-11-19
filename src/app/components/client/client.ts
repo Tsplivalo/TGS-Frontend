@@ -168,6 +168,8 @@ export class ClientComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // 🔄 Refrescar datos del usuario si están obsoletos (por si acaba de obtener el rol de distribuidor)
+    this.authService.refreshIfStale(5000); // Refresh si pasaron más de 5 segundos desde el último sync
     this.load();
   }
 

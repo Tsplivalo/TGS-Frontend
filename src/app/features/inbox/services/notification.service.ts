@@ -12,7 +12,7 @@ import {
   providedIn: 'root'
 })
 export class NotificationService {
-  private readonly baseUrl = 'http://localhost:3000/api/notifications';
+  private readonly baseUrl = '/api/notifications';
 
   constructor(private http: HttpClient) {}
 
@@ -81,14 +81,29 @@ export class NotificationService {
 
   /**
    * Obtener el conteo de notificaciones no leídas
+   * Si el endpoint falla, calcula el conteo desde las notificaciones completas como fallback
    */
   async getUnreadCount(): Promise<number> {
-    const response = await firstValueFrom(
-      this.http.get<{ count: number }>(`${this.baseUrl}/unread-count`, {
-        withCredentials: true
-      })
-    );
-    return response.count;
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ count: number }>(`${this.baseUrl}/unread-count`, {
+          withCredentials: true
+        })
+      );
+      return response.count;
+    } catch (error: any) {
+      // Fallback: si el endpoint falla, obtener todas las notificaciones y contar
+      console.warn('[NotificationService] Error fetching unread count, using fallback method:', error?.error?.message || error?.message);
+
+      try {
+        const notifications = await this.getMyNotifications();
+        return notifications.filter(n => n.status === 'UNREAD').length;
+      } catch (fallbackError) {
+        console.error('[NotificationService] Fallback method also failed:', fallbackError);
+        // En caso de error total, retornar 0 para no romper la UI
+        return 0;
+      }
+    }
   }
 
   /**

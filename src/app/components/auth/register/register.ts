@@ -47,7 +47,7 @@ export class RegisterComponent implements OnDestroy {
   form = this.fb.group({
     username: ['', [
       Validators.required,
-      Validators.minLength(2),
+      Validators.minLength(3),
       Validators.maxLength(100)
     ]],
     email: ['', [
@@ -132,6 +132,11 @@ export class RegisterComponent implements OnDestroy {
   }
 
   submit(): void {
+    // Resetear estado de verificación antes de validar
+    this.needsEmailVerification.set(false);
+    this.waitingForVerification.set(false);
+    this.registrationSuccess.set(false);
+
     // Validar formulario
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -259,7 +264,7 @@ export class RegisterComponent implements OnDestroy {
       if (usernameControl.errors['required']) {
         this.error.set('El nombre de usuario es requerido');
       } else if (usernameControl.errors['minlength']) {
-        this.error.set('El nombre de usuario debe tener al menos 2 caracteres');
+        this.error.set('El nombre de usuario debe tener al menos 3 caracteres');
       }
       return;
     }

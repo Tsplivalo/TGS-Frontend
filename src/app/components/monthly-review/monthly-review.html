@@ -13,12 +13,22 @@
     </header>
   </div>
 
-  <!-- ✅ GRID DE 2 COLUMNAS: IZQUIERDA (STATS) | DERECHA (FILTROS + TABLA) -->
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); align-items: start;">
+  <!-- BOTÓN PARA MOSTRAR/OCULTAR GRÁFICOS EN MOBILE -->
+  <button
+    type="button"
+    class="charts-toggle-mobile"
+    [class.collapsed]="chartsCollapsed()"
+    (click)="toggleCharts()"
+    style="display: none;">
+    <span>📊 {{ chartsCollapsed()
+      ? ('monthlyReview.charts.showCharts' | translate : {} : 'Mostrar Gráficos')
+      : ('monthlyReview.charts.hideCharts' | translate : {} : 'Ocultar Gráficos') }}</span>
+    <span class="charts-toggle-icon">▼</span>
+  </button>
 
-    <!-- ========== COLUMNA IZQUIERDA: ESTADÍSTICAS Y GRÁFICOS ========== -->
-    <div class="stack-md">
-      <div class="glass-dark card stack-md monthly-shell">
+  <!-- CONTENEDOR COLAPSABLE DE GRÁFICOS (FUERA DEL GRID) -->
+  <div class="charts-container-mobile" [class.expanded]="!chartsCollapsed()">
+    <div class="glass-dark card stack-md monthly-shell">
 
         <!-- ESTADÍSTICAS RÁPIDAS 
         <div *ngIf="!loading() && items().length > 0"
@@ -152,8 +162,17 @@
         </section>
 
         <!-- ESTADÍSTICAS DEL PERÍODO -->
-        
-      </div>
+
+    </div>
+  </div>
+  <!-- FIN CONTENEDOR COLAPSABLE DE GRÁFICOS -->
+
+  <!-- ✅ GRID DE 2 COLUMNAS: IZQUIERDA (VACÍA) | DERECHA (FILTROS + TABLA) -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); align-items: start;">
+
+    <!-- ========== COLUMNA IZQUIERDA: VACÍA ========== -->
+    <div class="stack-md">
+      <!-- Espacio reservado para futuras estadísticas -->
     </div>
 
     <!-- ========== COLUMNA DERECHA: FILTROS + LISTADO ========== -->
@@ -235,15 +254,15 @@
               </thead>
               <tbody>
                 <tr *ngFor="let it of filtered(); trackBy: trackById">
-                  <td>#{{ it.id }}</td>
-                  <td>{{ it.period || (it.month + '/' + it.year) }}</td>
-                  <td>
+                  <td [attr.data-label]="('monthlyReview.table.id' | translate : {} : 'ID')">#{{ it.id }}</td>
+                  <td [attr.data-label]="('monthlyReview.table.period' | translate : {} : 'Período')">{{ it.period || (it.month + '/' + it.year) }}</td>
+                  <td [attr.data-label]="('monthlyReview.table.status' | translate : {} : 'Estado')">
                     <span class="badge {{ it.status }}">{{ it.status }}</span>
                   </td>
-                  <td>{{ it.reviewedBy?.name || '—' }}</td>
-                  <td class="right">{{ formatCurrency(it.totalSalesAmount) }}</td>
-                  <td class="right">{{ it.totalSalesCount || 0 }}</td>
-                  <td class="right">
+                  <td [attr.data-label]="('monthlyReview.table.reviewer' | translate : {} : 'Revisor')">{{ it.reviewedBy?.name || '—' }}</td>
+                  <td class="right" [attr.data-label]="('monthlyReview.table.totalAmount' | translate : {} : 'Monto')">{{ formatCurrency(it.totalSalesAmount) }}</td>
+                  <td class="right" [attr.data-label]="('monthlyReview.table.totalCount' | translate : {} : 'Ventas')">{{ it.totalSalesCount || 0 }}</td>
+                  <td class="right" [attr.data-label]="('common.actions' | translate : {} : 'Acciones')">
                     <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
                       [attr.title]="'common.edit' | translate : {} : 'Editar'">
                       ✏️

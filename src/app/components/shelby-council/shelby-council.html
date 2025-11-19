@@ -95,25 +95,25 @@
           </thead>
           <tbody>
             <tr *ngFor="let it of filtered(); trackBy: trackById">
-              <td><span class="badge badge-neutral">#{{ it.id }}</span></td>
-              <td>
+              <td [attr.data-label]="'ID'"><span class="badge badge-neutral">#{{ it.id }}</span></td>
+              <td [attr.data-label]="('shelbyCouncil.fields.partner' | translate : {} : '👤 Socio')">
                 <div class="cell-content">
                   <strong>{{ it.partner?.name || '—' }}</strong>
                   <small class="muted">DNI: {{ it.partner?.dni }}</small>
                 </div>
               </td>
-              <td>
+              <td [attr.data-label]="('shelbyCouncil.fields.decision' | translate : {} : '📊 Decisión')">
                 <div class="cell-content">
                   <strong>#{{ it.decision?.id }}</strong>
                   <small class="muted">{{ it.decision?.description || '—' }}</small>
                 </div>
               </td>
-              <td>{{ it.joinDate | date:'dd/MM/yyyy' }}</td>
-              <td>
+              <td [attr.data-label]="('shelbyCouncil.fields.joinDate' | translate : {} : '📅 Ingreso')">{{ it.joinDate | date:'dd/MM/yyyy' }}</td>
+              <td [attr.data-label]="('shelbyCouncil.fields.role' | translate : {} : '🎯 Rol')">
                 <span class="badge badge-role" *ngIf="it.role">{{ it.role }}</span>
                 <span class="muted" *ngIf="!it.role">—</span>
               </td>
-              <td *ngIf="canEdit() || canDelete()" class="right">
+              <td *ngIf="canEdit() || canDelete()" class="right" [attr.data-label]="('common.actions' | translate : {} : 'Acciones')">
                 <button *ngIf="canEdit()" class="btn ghost btn--icon" type="button" (click)="edit(it)"
                   [attr.title]="'common.edit' | translate : {} : 'Editar'">
                   ✏️

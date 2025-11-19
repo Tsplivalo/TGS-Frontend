@@ -52,24 +52,26 @@
               <th style="width: 25%; min-width: 150px;">{{ 'admin.fields.name' | translate }}</th>
               <th style="width: 30%; min-width: 180px;">{{ 'admin.fields.email' | translate }}</th>
               <th style="width: 15%; min-width: 140px;">{{ 'admin.fields.phone' | translate }}</th>
-              <th class="right" style="width: 120px; min-width: 120px;">{{ 'common.edit' | translate }}</th>
+              <th class="right" style="width: 120px; min-width: 120px;">{{ 'common.actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let it of filtered(); trackBy: trackByDni">
-              <td class="mono" style="white-space: nowrap;">{{ it.dni }}</td>
-              <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.name }}</td>
-              <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.email }}</td>
-              <td style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.phone || '—' }}</td>
-              <td class="right" style="white-space: nowrap;">
-                <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
-                  [title]="'common.edit' | translate" style="margin-right: 8px;">
-                  ✏️
-                </button>
-                <button class="btn danger btn--icon" type="button" (click)="delete(it)"
-                  [title]="'common.delete' | translate">
-                  🗑️
-                </button>
+              <td class="mono" [attr.data-label]="'admin.fields.dni' | translate" style="white-space: nowrap;">{{ it.dni }}</td>
+              <td [attr.data-label]="'admin.fields.name' | translate" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.name }}</td>
+              <td [attr.data-label]="'admin.fields.email' | translate" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.email }}</td>
+              <td [attr.data-label]="'admin.fields.phone' | translate" style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ it.phone || '—' }}</td>
+              <td class="right" [attr.data-label]="'common.actions' | translate" style="white-space: nowrap;">
+                <div>
+                  <button class="btn ghost btn--icon" type="button" (click)="edit(it)"
+                    [title]="'common.edit' | translate" style="margin-right: 8px;">
+                    ✏️
+                  </button>
+                  <button class="btn danger btn--icon" type="button" (click)="delete(it)"
+                    [title]="'common.delete' | translate">
+                    🗑️
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
