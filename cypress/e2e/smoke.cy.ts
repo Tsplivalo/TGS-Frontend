@@ -49,10 +49,16 @@ describe('Smoke Tests', () => {
         if ($body.find('[data-cy*="login"], .auth-half.left').length > 0) {
           cy.log('✅ Login form already visible');
         } else {
-          // Buscar link de login si existe
-          const loginLink = $body.find('a:contains("Login"), a:contains("login"), button:contains("Login"), button:contains("Iniciar")');
-          if (loginLink.length > 0) {
-            cy.wrap(loginLink).first().click();
+          // Buscar link de login en la navegación desktop (excluir menú móvil oculto)
+          const desktopLoginLink = $body.find('nav.nav a:contains("Login"), nav.nav a:contains("login")').not('.mobile-menu__action');
+
+          if (desktopLoginLink.length > 0) {
+            cy.wrap(desktopLoginLink).first().click();
+            cy.log('✅ Clicked desktop navigation login link');
+          } else {
+            // Si no hay link en desktop nav, navegar directamente
+            cy.visit('/login', { failOnStatusCode: false });
+            cy.log('✅ Navigated directly to /login route');
           }
         }
       });

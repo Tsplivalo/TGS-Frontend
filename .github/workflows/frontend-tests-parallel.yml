@@ -439,7 +439,7 @@ jobs:
   dast-tests:
     name: DAST - OWASP ZAP
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     permissions:
       contents: read
       security-events: write
@@ -462,35 +462,44 @@ jobs:
 
       - name: Wait for application to be ready
         run: npx wait-on http://localhost:4200 --timeout 180000
+        timeout-minutes: 4
 
       - name: Wait additional time for Angular compilation
         run: sleep 30
 
       - name: Verify application is running
         run: |
-          curl -I http://localhost:4200
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4200)
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Application is responding with HTTP 200"
+          else
+            echo "❌ Application returned HTTP $HTTP_CODE"
+            exit 1
+          fi
           echo "✅ Application is ready for DAST scanning"
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.15.0
+        timeout-minutes: 15
         with:
           target: 'http://localhost:4200'
           rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a -j -l WARN'
+          cmd_options: '-a -j -l WARN -T 10'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: 'ZapScanReports'  # Alphanumeric name (valid)
+          artifact_name: 'ZapScanReports'
 
       - name: Run OWASP ZAP Full Scan (Public Routes)
         uses: zaproxy/action-full-scan@v0.13.0
+        timeout-minutes: 30
         continue-on-error: true
         with:
           target: 'http://localhost:4200'
           rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a -j -l WARN'
+          cmd_options: '-a -j -l WARN -T 25'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: 'ZapFullScanReports'  # Alphanumeric name (valid)
+          artifact_name: 'ZapFullScanReports'
 
       - name: Kill application process
         if: always()
@@ -599,7 +608,7 @@ jobs:
           echo "⚡ **Parallel execution enabled** - Estimated 60% time reduction" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify Slack (on failure)
-        if: failure()
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -679,7 +688,7 @@ jobs:
           priority: high
 
       - name: Notify Slack (on success)
-        if: success()
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}

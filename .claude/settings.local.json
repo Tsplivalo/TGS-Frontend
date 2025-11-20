@@ -40,7 +40,10 @@
       "Bash(npx cypress:*)",
       "Bash(npx cypress install)",
       "Bash(git fetch:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(then cat .zap/rules.tsv)",
+      "Bash(python:*)",
+      "Bash(npx yaml-lint .github/workflows/frontend-tests-parallel.yml)"
     ],
     "deny": [],
     "ask": []

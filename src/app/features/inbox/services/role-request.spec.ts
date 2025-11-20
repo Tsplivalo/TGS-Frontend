@@ -14,7 +14,7 @@ import { Role } from '../../../models/user/user.model';
 describe('RoleRequestService', () => {
   let service: RoleRequestService;
   let httpMock: HttpTestingController;
-  const baseUrl = 'http://localhost:3000/api/role-requests';
+  const baseUrl = '/api/role-requests';
 
   const mockRoleRequest: RoleRequest = {
     id: '123',
