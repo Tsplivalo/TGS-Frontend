@@ -97,11 +97,26 @@ export class EmailVerificationService {
            msg.includes('ya verificado');
   }
 
+  /**
+   * Extrae el cooldown en segundos del error del backend
+   * El backend ahora devuelve cooldownSeconds en los errores de cooldown
+   */
+  getCooldownSeconds(err: any): number {
+    // Intenta extraer de múltiples ubicaciones posibles
+    const cooldownSeconds = err?.error?.errors?.[0]?.cooldownSeconds ||
+                          err?.error?.cooldownSeconds ||
+                          err?.cooldownSeconds;
+
+    // Si no hay cooldownSeconds, devuelve 120 (2 minutos) por defecto
+    return cooldownSeconds || 120;
+  }
+
   private normalizeError(err: any) {
     return {
       status: err?.status,
       code: err?.error?.errors?.[0]?.code || err?.error?.code,
-      message: err?.error?.message || err?.message || 'Error'
+      message: err?.error?.message || err?.message || 'Error',
+      cooldownSeconds: this.getCooldownSeconds(err)
     };
   }
 }
