@@ -77,18 +77,18 @@
 
         <tbody>
           <tr *ngFor="let d of filteredDecisions()">
-            <td>#{{ d.id }}</td>
-            <td>
+            <td [attr.data-label]="'decisions.table.id' | translate">#{{ d.id }}</td>
+            <td [attr.data-label]="'decisions.table.topic' | translate">
               <ng-container *ngIf="d.topic?.id != null; else noThematic">
                 <span class="truncate"> {{ d.topic?.description || ('decisions.topic' | translate)
                   }}</span>
               </ng-container>
               <ng-template #noThematic>—</ng-template>
             </td>
-            <td><span class="truncate">{{ d.description }}</span></td>
-            <td>{{ formatDateDDMMYYYY(d.startDate) }}</td>
-            <td>{{ formatDateDDMMYYYY(d.endDate) }}</td>
-            <td *ngIf="canEdit() || canDelete()" class="right">
+            <td [attr.data-label]="'decisions.table.description' | translate"><span class="truncate">{{ d.description }}</span></td>
+            <td [attr.data-label]="'decisions.table.start' | translate">{{ formatDateDDMMYYYY(d.startDate) }}</td>
+            <td [attr.data-label]="'decisions.table.end' | translate">{{ formatDateDDMMYYYY(d.endDate) }}</td>
+            <td *ngIf="canEdit() || canDelete()" class="right" [attr.data-label]="'decisions.table.actions' | translate">
               <button *ngIf="canEdit()" class="btn ghost btn--icon" (click)="edit(d); isFormOpen = true"
                 [attr.title]="'common.edit' | translate">✏️</button>
               <button *ngIf="canDelete()" class="btn danger btn--icon" (click)="delete(d.id)"

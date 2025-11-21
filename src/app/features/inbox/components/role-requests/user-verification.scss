@@ -4,7 +4,7 @@
 $primary-color: #c3a462;
 $primary-700: #9e844e;
 $success-color: #10b981;
-$danger-color: #ef4444;
+$danger-color: #ff3b3b;
 $warning-color: #f59e0b;
 $text-light: #e5e7eb;
 $text-strong: #ffffff;
@@ -77,17 +77,25 @@ $spacing-xl: 32px;
   }
 
   .error-message {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #fca5a5;
-    padding: $spacing-md;
-    border-radius: $border-radius;
-    margin-bottom: $spacing-md;
-    backdrop-filter: blur(12px);
+    display: block;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+    border: 2px solid rgba(255, 59, 59, 0.6);
+    border-radius: 8px;
+    color: #fee2e2;
     font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 0 15px rgba(255, 59, 59, 0.25),
+                0 4px 12px rgba(255, 59, 59, 0.15);
+    animation: shake 0.5s ease-out;
+    line-height: 1.5;
+
+    &::before {
+      content: '⚠️  ';
+      font-size: 1.1rem;
+      margin-right: 0.5rem;
+    }
 
     .icon {
       flex-shrink: 0;
@@ -544,17 +552,25 @@ $spacing-xl: 32px;
   }
 
   .error-message {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #fca5a5;
-    padding: $spacing-md;
-    border-radius: $border-radius;
-    margin-bottom: $spacing-md;
-    backdrop-filter: blur(12px);
+    display: block;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+    border: 2px solid rgba(255, 59, 59, 0.6);
+    border-radius: 8px;
+    color: #fee2e2;
     font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 0 15px rgba(255, 59, 59, 0.25),
+                0 4px 12px rgba(255, 59, 59, 0.15);
+    animation: shake 0.5s ease-out;
+    line-height: 1.5;
+
+    &::before {
+      content: '⚠️  ';
+      font-size: 1.1rem;
+      margin-right: 0.5rem;
+    }
 
     .btn-link {
       margin-left: auto;
@@ -716,20 +732,33 @@ $spacing-xl: 32px;
     cursor: pointer;
     padding: $spacing-xs;
     color: $text-muted;
-    font-size: 1.2rem;
-    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
 
     &:hover {
+      background: rgba(255, 255, 255, 0.08);
       color: $text-light;
     }
 
-    .icon {
-      transition: transform 0.25s cubic-bezier(0.25, 0.6, 0.3, 1);
-      display: inline-block;
+    &:active {
+      transform: scale(0.95);
+    }
+  }
 
-      &.expanded {
-        transform: rotate(180deg);
-      }
+  .toggle-icon {
+    font-size: 1.25rem;
+    color: currentColor;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    line-height: 1;
+
+    &.expanded {
+      transform: rotate(90deg);
     }
   }
 
@@ -1444,7 +1473,7 @@ verified-card {
 $primary-color: #c3a462;
 $primary-700: #9e844e;
 $success-color: #10b981;
-$danger-color: #ef4444;
+$danger-color: #ff3b3b;
 $warning-color: #f59e0b;
 $info-color: #3b82f6;
 
@@ -1629,17 +1658,25 @@ $spacing-xl: 32px;
 
 /* ====== Error Message (Igual que role-requests) ====== */
 .error-message {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
-  padding: $spacing-md;
-  border-radius: $border-radius;
-  margin-bottom: $spacing-lg;
-  backdrop-filter: blur(12px);
+  display: block;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+  border: 2px solid rgba(255, 59, 59, 0.6);
+  border-radius: 8px;
+  color: #fee2e2;
   font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 0 15px rgba(255, 59, 59, 0.25),
+              0 4px 12px rgba(255, 59, 59, 0.15);
+  animation: shake 0.5s ease-out;
+  line-height: 1.5;
+
+  &::before {
+    content: '⚠️  ';
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+  }
 
   .icon {
     flex-shrink: 0;
@@ -2072,4 +2109,22 @@ textarea {
       0 24px 48px rgba(0, 0, 0, 0.6),
       inset 0 1px rgba(255, 255, 255, 0.08);
   }
+}
+
+/* ====== Animations ====== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }

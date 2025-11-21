@@ -1,0 +1,179 @@
+// ============================================================================
+// RESPONSIVE DESIGN SYSTEM - Mobile-First Approach
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// BREAKPOINTS
+// ----------------------------------------------------------------------------
+$breakpoints: (
+  'xs': 375px,    // Mobile small
+  'sm': 640px,    // Mobile large
+  'md': 768px,    // Tablet
+  'lg': 1024px,   // Desktop
+  'xl': 1280px,   // Desktop large
+  '2xl': 1536px   // Desktop extra large
+);
+
+// ----------------------------------------------------------------------------
+// MIXINS - Mobile-First Approach
+// ----------------------------------------------------------------------------
+
+// Usage: @include min-width(md) { ... }
+@mixin min-width($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (min-width: #{map-get($breakpoints, $breakpoint)}) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint '#{$breakpoint}' no existe. Usa: #{map-keys($breakpoints)}";
+  }
+}
+
+// Usage: @include max-width(md) { ... }
+@mixin max-width($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (max-width: #{map-get($breakpoints, $breakpoint) - 1px}) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint '#{$breakpoint}' no existe. Usa: #{map-keys($breakpoints)}";
+  }
+}
+
+// Usage: @include between(sm, lg) { ... }
+@mixin between($min, $max) {
+  @if map-has-key($breakpoints, $min) and map-has-key($breakpoints, $max) {
+    @media (min-width: #{map-get($breakpoints, $min)}) and (max-width: #{map-get($breakpoints, $max) - 1px}) {
+      @content;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// UTILITY MIXINS
+// ----------------------------------------------------------------------------
+
+// Fluid typography - responsive font sizes
+@mixin fluid-type($min-size, $max-size, $min-vw: 375px, $max-vw: 1200px) {
+  font-size: clamp(
+    #{$min-size},
+    calc(#{$min-size} + (#{strip-unit($max-size)} - #{strip-unit($min-size)}) * ((100vw - #{$min-vw}) / (#{strip-unit($max-vw)} - #{strip-unit($min-vw)}))),
+    #{$max-size}
+  );
+}
+
+// Helper function to remove units
+@function strip-unit($number) {
+  @if type-of($number) == 'number' and not unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+  @return $number;
+}
+
+// Container with responsive padding
+@mixin container($max-width: 1200px) {
+  max-width: $max-width;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+
+// Responsive grid
+@mixin grid($columns: 1, $gap: 1rem) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// Stack elements on mobile, row on desktop
+@mixin stack-to-row($breakpoint: 'md', $gap: 1rem) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+
+  @include min-width($breakpoint) {
+    flex-direction: row;
+  }
+}
+
+// Hide on mobile
+@mixin hide-mobile($breakpoint: 'md') {
+  display: none;
+
+  @include min-width($breakpoint) {
+    display: block;
+  }
+}
+
+// Show only on mobile
+@mixin show-mobile($breakpoint: 'md') {
+  display: block;
+
+  @include min-width($breakpoint) {
+    display: none;
+  }
+}
+
+// Touch-friendly tap targets (minimum 44x44px)
+@mixin touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.75rem 1rem;
+}
+
+// Prevent text overflow
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Multi-line truncate
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ----------------------------------------------------------------------------
+// RESPONSIVE HELPERS (Classes)
+// ----------------------------------------------------------------------------
+
+// Hide/Show utilities
+.hide-mobile {
+  @include hide-mobile;
+}
+
+.show-mobile {
+  @include show-mobile;
+}
+
+// Responsive text alignment
+.text-center-mobile {
+  text-align: center;
+
+  @include min-width(md) {
+    text-align: left;
+  }
+}
+
+// Responsive spacing
+@each $size, $value in (1: 0.25rem, 2: 0.5rem, 3: 0.75rem, 4: 1rem, 5: 1.5rem, 6: 2rem) {
+  .mt-mobile-#{$size} {
+    @include max-width(md) {
+      margin-top: $value;
+    }
+  }
+
+  .mb-mobile-#{$size} {
+    @include max-width(md) {
+      margin-bottom: $value;
+    }
+  }
+
+  .p-mobile-#{$size} {
+    @include max-width(md) {
+      padding: $value;
+    }
+  }
+}

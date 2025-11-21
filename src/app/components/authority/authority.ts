@@ -148,6 +148,9 @@ export class AuthorityComponent implements OnInit {
     const auths = this.authorities();
     if (!auths.length) return null;
 
+    // Detectar si estamos en móvil
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
     // Agrupar por rango
     const rankCounts: { [key: number]: number } = {};
     auths.forEach(a => {
@@ -203,7 +206,28 @@ export class AuthorityComponent implements OnInit {
           `;
         }
       },
-      legend: {
+      legend: isMobile ? {
+        // Leyenda horizontal abajo en móvil
+        orient: 'horizontal',
+        bottom: '5%',
+        left: 'center',
+        textStyle: {
+          color: '#e5e7eb',
+          fontSize: 11,
+          fontWeight: 500
+        },
+        itemGap: 8,
+        itemWidth: 16,
+        itemHeight: 12,
+        icon: 'roundRect',
+        formatter: (name: string) => {
+          const item = data.find(d => d.name === name);
+          // Mostrar solo la inicial del rango en móvil
+          const shortName = name.split(' ')[0];
+          return `${shortName} (${item?.value || 0})`;
+        }
+      } : {
+        // Leyenda vertical a la izquierda en desktop
         orient: 'vertical',
         left: '5%',
         top: 'center',
@@ -225,8 +249,8 @@ export class AuthorityComponent implements OnInit {
         {
           name: this.t.instant('authorities.stats.authoritiesLabel'),
           type: 'pie',
-          radius: ['45%', '75%'],
-          center: ['65%', '50%'],
+          radius: isMobile ? ['40%', '65%'] : ['45%', '75%'],
+          center: isMobile ? ['50%', '42%'] : ['65%', '50%'],
           avoidLabelOverlap: true,
           itemStyle: {
             borderRadius: 12,
@@ -236,7 +260,7 @@ export class AuthorityComponent implements OnInit {
             shadowColor: 'rgba(0, 0, 0, 0.3)'
           },
           label: {
-            show: true,
+            show: !isMobile, // Ocultar labels en móvil para evitar sobreposición
             position: 'outside',
             formatter: '{d}%',
             color: '#e5e7eb',
@@ -245,7 +269,7 @@ export class AuthorityComponent implements OnInit {
             distanceToLabelLine: 5
           },
           labelLine: {
-            show: true,
+            show: !isMobile,
             length: 15,
             length2: 10,
             smooth: true,
@@ -258,7 +282,7 @@ export class AuthorityComponent implements OnInit {
             scaleSize: 10,
             label: {
               show: true,
-              fontSize: 16,
+              fontSize: isMobile ? 14 : 16,
               fontWeight: 800
             },
             itemStyle: {

@@ -95,6 +95,12 @@ export class SaleComponent implements OnInit {
     this.expandedSalesSet.set(set);
   }
 
+  // --- Gráficos móvil ---
+  chartsExpanded = signal(false);
+  toggleCharts() {
+    this.chartsExpanded.update(v => !v);
+  }
+
   // --- Usuario y roles ---
   currentUser = this.authService.user;
   isAdmin = computed(() => this.authService.hasRole(Role.ADMIN));

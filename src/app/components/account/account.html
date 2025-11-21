@@ -1,4 +1,4 @@
-<!-- account.html - Carnet/Credencial -->
+﻿<!-- account.html - Carnet/Credencial -->
 <section class="account stack-lg">
   <!-- Estado de carga -->
   <div class="muted" *ngIf="loading()" role="status" aria-live="polite">
@@ -35,7 +35,7 @@
     <!-- Header del carnet -->
     <div class="card-header">
       <div class="org-logo">THE GARRISON SYSTEM</div>
-      <div class="card-type">MEMBER CREDENTIAL</div>
+      <div class="card-type">{{ 'credential.member' | translate }}</div>
     </div>
 
     <!-- Contenido principal del carnet -->
@@ -88,7 +88,7 @@
           <div class="info-row">
             <span class="material-symbols-outlined icon">mail</span>
             <div class="info-content">
-              <span class="label">{{ 'account.infoSection.email' | translate }}</span>
+              <span class="label">{{ 'account.infoSection.emailVerified' | translate }}</span>
               <span class="value">{{ me()?.email }}</span>
             </div>
             <span class="status-badge" [class.verified]="me()?.emailVerified">

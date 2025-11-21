@@ -5,7 +5,12 @@
 
     <!-- COLUMNA IZQUIERDA: PANEL DE ESTADÍSTICAS (Oculto para Autoridades) -->
     <aside class="stats-panel" *ngIf="!isAuthority() || isAdmin()">
-      <div class="glass-dark card">
+      <!-- Botón para expandir/colapsar gráficos (solo móvil) -->
+      <button class="btn btn-primary mobile-charts-toggle" type="button" (click)="toggleCharts()">
+        {{ chartsExpanded() ? '📊 Ocultar Gráficos' : '📊 Ver Gráficos y Estadísticas' }}
+      </button>
+
+      <div class="glass-dark card" [class.charts-collapsed]="!chartsExpanded()">
 
         @if (loadingStats()) {
         <div class="loading">
@@ -145,26 +150,26 @@
             @for (v of filteredSales(); track v.id) {
             <!-- Fila principal (clickeable) -->
             <tr class="clickable-row" [class.expanded]="isSaleExpanded(v.id)">
-              <td (click)="toggleSaleExpanded(v.id)" style="text-align: center; vertical-align: middle;">
+              <td (click)="toggleSaleExpanded(v.id)" style="text-align: center; vertical-align: middle;" data-label="">
                 <div class="expand-arrow" [class.expanded]="isSaleExpanded(v.id)">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </div>
               </td>
-              <td (click)="toggleSaleExpanded(v.id)">#{{ v.id }}</td>
-              <td (click)="toggleSaleExpanded(v.id)">{{ formatDateTimeDDMMYYYY(v.saleDate || v.date) }}</td>
-              <td (click)="toggleSaleExpanded(v.id)">
+              <td (click)="toggleSaleExpanded(v.id)" [attr.data-label]="'sales.table.id' | translate">#{{ v.id }}</td>
+              <td (click)="toggleSaleExpanded(v.id)" [attr.data-label]="'sales.table.date' | translate">{{ formatDateTimeDDMMYYYY(v.saleDate || v.date) }}</td>
+              <td (click)="toggleSaleExpanded(v.id)" [attr.data-label]="'sales.table.client' | translate">
                 @if (getClient(v); as cli) {
                 {{ cli.dni }}
                 } @else { — }
               </td>
-              <td (click)="toggleSaleExpanded(v.id)">
+              <td (click)="toggleSaleExpanded(v.id)" [attr.data-label]="'sales.table.distributor' | translate">
                 @if (v.distributor) {
                 {{ v.distributor.dni }}
                 } @else { — }
               </td>
-              <td (click)="toggleSaleExpanded(v.id)" class="right" style="font-weight: 600; color: var(--accent);">{{ calculateTotal(v) | currency:'$' }}</td>
+              <td (click)="toggleSaleExpanded(v.id)" class="right" style="font-weight: 600; color: var(--accent);" [attr.data-label]="'sales.table.total' | translate">{{ calculateTotal(v) | currency:'$' }}</td>
             </tr>
 
             <!-- Fila expandida con detalles de productos -->

@@ -154,11 +154,11 @@
         </thead>
         <tbody>
           <tr *ngFor="let a of filteredAuthorities()">
-            <td>#{{ a.dni }}</td>
-            <td><span class="truncate">{{ a.name }}</span></td>
-            <td><span class="truncate">{{ a.rank }}</span></td>
-            <td><span class="truncate">{{ getZoneText(a) }}</span></td>
-            <td class="right" *ngIf="canEdit() || canDelete()">
+            <td [attr.data-label]="'authorities.table.dni' | translate">#{{ a.dni }}</td>
+            <td [attr.data-label]="'authorities.table.name' | translate"><span class="truncate">{{ a.name }}</span></td>
+            <td [attr.data-label]="'authorities.table.rank' | translate"><span class="truncate">{{ a.rank }}</span></td>
+            <td [attr.data-label]="'authorities.table.zone' | translate"><span class="truncate">{{ getZoneText(a) }}</span></td>
+            <td class="right" *ngIf="canEdit() || canDelete()" [attr.data-label]="'authorities.table.actions' | translate">
               <button class="btn ghost btn--icon" (click)="edit(a); isFormOpen = true" *ngIf="canEdit()"
                 [attr.title]="'common.edit' | translate">
                 ✏️

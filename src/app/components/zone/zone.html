@@ -79,10 +79,10 @@
 
         <tbody>
           <tr *ngFor="let z of filteredList()">
-            <td>#{{ z.id }}</td>
-            <td><span class="truncate">{{ z.name }}</span></td>
-            <td><span class="truncate">{{ z.description || '-' }}</span></td>
-            <td *ngIf="isAdmin()" class="right">
+            <td [attr.data-label]="'zones.table.id' | translate">#{{ z.id }}</td>
+            <td [attr.data-label]="'zones.table.name' | translate"><span class="truncate">{{ z.name }}</span></td>
+            <td [attr.data-label]="'zones.table.description' | translate"><span class="truncate">{{ z.description || '-' }}</span></td>
+            <td *ngIf="isAdmin()" class="right" [attr.data-label]="'zones.table.actions' | translate">
               <button class="btn ghost btn--icon" (click)="edit(z); isFormOpen = true"
                 [attr.title]="'common.edit' | translate">
                 ✏️

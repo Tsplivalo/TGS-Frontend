@@ -55,9 +55,9 @@
 
         <tbody>
           <tr *ngFor="let t of filtered()">
-            <td>#{{ t.id }}</td>
-            <td><span class="truncate">{{ t.description }}</span></td>
-            <td class="right">
+            <td [attr.data-label]="('topics.table.id' | translate)">#{{ t.id }}</td>
+            <td [attr.data-label]="('topics.table.description' | translate)"><span class="truncate">{{ t.description }}</span></td>
+            <td class="right" [attr.data-label]="('topics.table.actions' | translate)">
               <button class="btn ghost btn--icon" type="button" (click)="edit(t)"
                 [attr.title]="'common.edit' | translate">
                 ✏️

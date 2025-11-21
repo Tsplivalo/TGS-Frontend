@@ -2,7 +2,7 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +22,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly emailVerificationService = inject(EmailVerificationService);
   private readonly productImageService = inject(ProductImageService);
+  private readonly translate = inject(TranslateService);
   private readonly destroy$ = new Subject<void>();
 
   // Estado local
@@ -91,7 +92,7 @@ export class AccountComponent implements OnInit, OnDestroy {
         },
         error: (e: HttpErrorResponse) => {
           this.loading.set(false);
-          this.handleError(e, 'Error al cargar el perfil');
+          this.handleError(e, this.translate.instant('account.errors.loadProfile'));
         },
       });
   }
@@ -104,7 +105,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   save(formEl: HTMLFormElement): void {
     const user = this.me();
     if (!user) {
-      this.error.set('Usuario no encontrado');
+      this.error.set(this.translate.instant('account.errors.userNotFound'));
       return;
     }
 
@@ -114,7 +115,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     if (!user.hasPersonalInfo) {
       this.completeProfile(fd);
     } else {
-      this.error.set('El perfil ya está completo. Los datos personales no pueden modificarse.');
+      this.error.set(this.translate.instant('account.errors.profileAlreadyComplete'));
     }
   }
 
@@ -129,13 +130,13 @@ export class AccountComponent implements OnInit, OnDestroy {
 
     // Validar que todos los campos requeridos estén presentes
     if (!dni || !name || !phone || !address) {
-      this.error.set('Todos los campos son requeridos para completar el perfil');
+      this.error.set(this.translate.instant('account.errors.allFieldsRequired'));
       return;
     }
 
     // Validar DNI
     if (dni.length < 7 || dni.length > 10) {
-      this.error.set('El DNI debe tener entre 7 y 10 caracteres');
+      this.error.set(this.translate.instant('account.errors.dniLength'));
       return;
     }
 
@@ -153,19 +154,20 @@ export class AccountComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (user) => {
           this.saving.set(false);
-          this.ok.set('¡Perfil completado exitosamente! 🎉');
+          const successMsg = this.translate.instant('account.success.profileCompleted');
+          this.ok.set(successMsg);
           this.showCompleteProfileMessage.set(false);
 
           // Limpiar mensaje después de 3 segundos
           setTimeout(() => {
-            if (this.ok() === '¡Perfil completado exitosamente! 🎉') {
+            if (this.ok() === successMsg) {
               this.ok.set(null);
             }
           }, 3000);
         },
         error: (e: HttpErrorResponse) => {
           this.saving.set(false);
-          this.handleError(e, 'Error al completar el perfil');
+          this.handleError(e, this.translate.instant('account.errors.completeProfile'));
         }
       });
   }
@@ -189,31 +191,31 @@ export class AccountComponent implements OnInit, OnDestroy {
           this.resendingEmail.set(false);
           if (response.success) {
             this.emailSent.set(true);
-            this.ok.set('✉️ Email de verificación enviado. Revisa tu bandeja de entrada.');
+            this.ok.set(this.translate.instant('account.success.emailSent'));
             this.startCooldown();
-            
+
             // Limpiar mensaje después de 5 segundos
             setTimeout(() => {
-              if (this.ok()?.includes('Email de verificación enviado')) {
+              if (this.ok()?.includes(this.translate.instant('account.emailVerification.emailSent'))) {
                 this.ok.set(null);
               }
             }, 5000);
           } else {
-            this.error.set(response.message || 'No se pudo enviar el email.');
+            this.error.set(response.message || this.translate.instant('account.emailVerification.couldNotSend'));
           }
         },
         error: (err: HttpErrorResponse) => {
           this.resendingEmail.set(false);
-          
+
           // Usar helpers del servicio para detectar errores específicos
           if (this.emailVerificationService.isCooldownError(err)) {
-            this.error.set('Por favor espera 2 minutos antes de reenviar el email.');
+            this.error.set(this.translate.instant('account.emailVerification.cooldown'));
             this.startCooldown();
           } else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
-            this.error.set('Tu email ya está verificado.');
+            this.error.set(this.translate.instant('account.emailVerification.alreadyVerified'));
             this.emailSent.set(false);
           } else {
-            const errorMsg = err.error?.message || 'Error al enviar el email de verificación.';
+            const errorMsg = err.error?.message || this.translate.instant('account.emailVerification.sendError');
             this.error.set(errorMsg);
           }
         }
@@ -253,17 +255,17 @@ export class AccountComponent implements OnInit, OnDestroy {
    */
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
     if (error.status === 401) {
-      this.error.set('No autorizado. Por favor, inicia sesión nuevamente.');
+      this.error.set(this.translate.instant('account.errors.unauthorized'));
     } else if (error.status === 403) {
-      this.error.set('No tienes permisos para realizar esta acción.');
+      this.error.set(this.translate.instant('account.errors.noPermissions'));
     } else if (error.status === 404) {
-      this.error.set('Usuario no encontrado.');
+      this.error.set(this.translate.instant('account.errors.userNotFound'));
     } else if (error.status === 409) {
       const field = error.error?.field;
       if (field === 'dni') {
-        this.error.set('El DNI ya está registrado.');
+        this.error.set(this.translate.instant('account.errors.dniAlreadyRegistered'));
       } else {
-        this.error.set(error.error?.message ?? 'Ya existe un registro con estos datos.');
+        this.error.set(error.error?.message ?? this.translate.instant('account.errors.recordAlreadyExists'));
       }
     } else if (error.error?.message) {
       this.error.set(error.error.message);
@@ -326,14 +328,14 @@ export class AccountComponent implements OnInit, OnDestroy {
 
     // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
-      this.error.set('Por favor selecciona un archivo de imagen válido');
+      this.error.set(this.translate.instant('account.errors.selectValidImage'));
       return;
     }
 
     // Validar tamaño (máximo 5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      this.error.set('La imagen no puede superar los 5MB');
+      this.error.set(this.translate.instant('account.errors.imageSizeLimit'));
       return;
     }
 
@@ -352,13 +354,13 @@ export class AccountComponent implements OnInit, OnDestroy {
       this.productImageService.set(photoKey, base64);
       this.photoUrl.set(base64);
       this.photoUploading.set(false);
-      this.ok.set('Foto de perfil actualizada correctamente');
+      this.ok.set(this.translate.instant('account.success.photoUpdated'));
       setTimeout(() => this.ok.set(null), 3000);
     };
 
     reader.onerror = () => {
       this.photoUploading.set(false);
-      this.error.set('Error al cargar la imagen');
+      this.error.set(this.translate.instant('account.errors.loadImage'));
     };
 
     reader.readAsDataURL(file);
@@ -383,7 +385,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   savePhone(): void {
     const phone = this.editPhone.trim();
     if (!phone) {
-      this.error.set('El teléfono no puede estar vacío');
+      this.error.set(this.translate.instant('account.errors.phoneRequired'));
       return;
     }
 
@@ -399,12 +401,12 @@ export class AccountComponent implements OnInit, OnDestroy {
           this.savingEdit.set(false);
           this.editingPhone.set(false);
           this.editPhone = '';
-          this.ok.set('Teléfono actualizado correctamente');
+          this.ok.set(this.translate.instant('account.success.phoneUpdated'));
           setTimeout(() => this.ok.set(null), 3000);
         },
         error: (err: HttpErrorResponse) => {
           this.savingEdit.set(false);
-          this.handleError(err, 'Error al actualizar el teléfono');
+          this.handleError(err, this.translate.instant('account.errors.updatePhone'));
         }
       });
   }
@@ -415,7 +417,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   saveAddress(): void {
     const address = this.editAddress.trim();
     if (!address) {
-      this.error.set('La dirección no puede estar vacía');
+      this.error.set(this.translate.instant('account.errors.addressRequired'));
       return;
     }
 
@@ -431,12 +433,12 @@ export class AccountComponent implements OnInit, OnDestroy {
           this.savingEdit.set(false);
           this.editingAddress.set(false);
           this.editAddress = '';
-          this.ok.set('Dirección actualizada correctamente');
+          this.ok.set(this.translate.instant('account.success.addressUpdated'));
           setTimeout(() => this.ok.set(null), 3000);
         },
         error: (err: HttpErrorResponse) => {
           this.savingEdit.set(false);
-          this.handleError(err, 'Error al actualizar la dirección');
+          this.handleError(err, this.translate.instant('account.errors.updateAddress'));
         }
       });
   }

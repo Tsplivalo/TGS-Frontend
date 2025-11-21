@@ -14,14 +14,14 @@
           <h2>
             {{ currentStep === 1
             ? ('roleRequests.modal.title' | translate)
-            : 'Información Adicional Requerida'
+            : ('roleRequests.modal.additionalDataTitle' | translate)
             }}
           </h2>
           <p class="subtitle" *ngIf="currentStep === 1">
-            Selecciona el rol que deseas solicitar
+            {{ 'roleRequests.modal.selectRole' | translate }}
           </p>
           <p class="subtitle" *ngIf="currentStep === 2">
-            Completa los datos específicos para {{ getRoleInfo(requestedRole)?.label || 'el rol' }}
+            {{ 'roleRequests.modal.completeDataFor' | translate }} {{ getRoleInfo(requestedRole)?.label || 'el rol' }}
           </p>
         </div>
       </div>
@@ -35,7 +35,7 @@
       <div *ngIf="error" class="alert alert-error">
         <span class="alert-icon">⚠️</span>
         <div class="alert-content">
-          <strong>Error</strong>
+          <strong>{{ 'roleRequests.modal.error' | translate }}</strong>
           <p>{{ error }}</p>
         </div>
       </div>
@@ -84,8 +84,8 @@
           <span class="icon">ℹ️</span>
           <p>
             {{ isRoleChange
-              ? 'Selecciona un rol para remover primero'
-              : 'No hay roles disponibles para solicitar. Ya tienes todos los roles compatibles.'
+              ? ('roleRequests.modal.selectRoleFirst' | translate)
+              : ('roleRequests.modal.noRolesAvailable' | translate)
             }}
           </p>
         </div>
@@ -171,10 +171,10 @@
               {{ justification.length }} / 500
             </span>
             <span *ngIf="justification.length > 0 && justification.length < 20" class="validation-hint error">
-              Mínimo 20 caracteres
+              {{ 'roleRequests.modal.minCharacters' | translate }}
             </span>
             <span *ngIf="justification.length >= 20" class="validation-hint success">
-              ✓ Válido
+              {{ 'roleRequests.modal.valid' | translate }}
             </span>
           </div>
         </div>
@@ -215,7 +215,7 @@
           </span>
           <span class="spinner-small" *ngIf="isSubmitting"></span>
           {{ requiresAdditionalData
-            ? 'Continuar'
+            ? ('roleRequests.modal.continue' | translate)
             : (isSubmitting
               ? ('roleRequests.modal.actions.sending' | translate)
               : ('roleRequests.modal.actions.submit' | translate))
@@ -231,7 +231,7 @@
       <div *ngIf="error" class="alert alert-error">
         <span class="alert-icon">⚠️</span>
         <div class="alert-content">
-          <strong>Error</strong>
+          <strong>{{ 'roleRequests.modal.error' | translate }}</strong>
           <p>{{ error }}</p>
         </div>
       </div>
@@ -243,7 +243,7 @@
         <div class="form-section">
           <label class="section-label">
             <span class="icon">📍</span>
-            Zona asignada
+            {{ 'roleRequests.modal.distributor.zone' | translate }}
             <span class="required">*</span>
           </label>
 
@@ -255,18 +255,18 @@
             required
             class="select-input"
           >
-            <option [ngValue]="null">Selecciona una zona...</option>
+            <option [ngValue]="null">{{ 'roleRequests.modal.distributor.selectZone' | translate }}</option>
             <option *ngFor="let zone of zones" [ngValue]="zone.id">
               <span class="zone-id">#{{ zone.id }}</span> {{ zone.name }}
             </option>
           </select>
-          <p class="help-text">La zona donde operarás como distribuidor</p>
+          <p class="help-text">{{ 'roleRequests.modal.distributor.zoneHelp' | translate }}</p>
         </div>
 
         <div class="form-section">
           <label class="section-label">
             <span class="icon">🏠</span>
-            Dirección
+            {{ 'roleRequests.modal.distributor.address' | translate }}
             <span class="required">*</span>
           </label>
 
@@ -276,14 +276,14 @@
             [(ngModel)]="roleSpecificData.distributorAddress"
             name="distAddress"
             [disabled]="isSubmitting"
-            placeholder="Ingresa tu dirección completa..."
+            [placeholder]="'roleRequests.modal.distributor.addressPlaceholder' | translate"
             required
             class="text-input"
           />
-          <p class="help-text">Dirección donde se realizarán entregas</p>
+          <p class="help-text">{{ 'roleRequests.modal.distributor.addressHelp' | translate }}</p>
         </div>
 
-        
+
       </ng-container>
 
       <!-- ========== Datos para AUTHORITY ========== -->
@@ -291,7 +291,7 @@
         <div class="form-section">
           <label class="section-label">
             <span class="icon">⭐</span>
-            Rango
+            {{ 'roleRequests.modal.authority.rank' | translate }}
             <span class="required">*</span>
           </label>
 
@@ -303,18 +303,18 @@
             required
             class="select-input"
           >
-            <option [ngValue]="null">Selecciona tu rango...</option>
+            <option [ngValue]="null">{{ 'roleRequests.modal.authority.selectRank' | translate }}</option>
             <option *ngFor="let rank of AUTHORITY_RANKS" [ngValue]="rank.value">
               {{ rank.label }}
             </option>
           </select>
-          <p class="help-text">Tu nivel de autoridad en la organización</p>
+          <p class="help-text">{{ 'roleRequests.modal.authority.rankHelp' | translate }}</p>
         </div>
 
         <div class="form-section">
           <label class="section-label">
             <span class="icon">📍</span>
-            Zona asignada
+            {{ 'roleRequests.modal.authority.zone' | translate }}
             <span class="required">*</span>
           </label>
 
@@ -326,12 +326,12 @@
             required
             class="select-input"
           >
-            <option [ngValue]="null">Selecciona una zona...</option>
+            <option [ngValue]="null">{{ 'roleRequests.modal.authority.selectZone' | translate }}</option>
             <option *ngFor="let zone of zones" [ngValue]="zone.id">
               #{{ zone.id }} - {{ zone.name }}
             </option>
           </select>
-          <p class="help-text">La zona bajo tu jurisdicción</p>
+          <p class="help-text">{{ 'roleRequests.modal.authority.zoneHelp' | translate }}</p>
         </div>
       </ng-container>
 
@@ -344,7 +344,7 @@
           [disabled]="isSubmitting"
         >
           <span class="btn-icon">←</span>
-          Volver
+          {{ 'roleRequests.modal.actions.back' | translate }}
         </button>
 
         <button

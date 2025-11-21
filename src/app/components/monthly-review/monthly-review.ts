@@ -94,6 +94,13 @@ export class MonthlyReviewComponent implements OnInit {
     this.expandedChart.set(null);
   }
 
+  // Control de gráficos colapsados en mobile
+  chartsCollapsed = signal(true);
+
+  toggleCharts(): void {
+    this.chartsCollapsed.set(!this.chartsCollapsed());
+  }
+
   // Formulario
   form = this.fb.group({
     id: this.fb.control<number | null>(null),

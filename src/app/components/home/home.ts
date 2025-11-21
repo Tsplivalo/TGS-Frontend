@@ -8,7 +8,7 @@
 import { Component, computed, effect, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { EmailVerificationService } from '../../features/inbox/services/email.verification';
 import { EmailVerificationSyncService } from '../../services/email-verification-sync.service';
@@ -21,7 +21,7 @@ type IntroItem = { titleKey: string; detailKey: string };
 @Component({
   standalone: true,
   selector: 'app-home',
-  imports: [CommonModule, ReactiveFormsModule, TranslateModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule, RouterLink],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
@@ -82,7 +82,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     password: ['', [
       Validators.required,
       Validators.minLength(8),
-      Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/),
+      Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/),
     ]],
   });
 
@@ -349,7 +349,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   onRegisterPasswordBlur() {
     if (this.mode() !== 'register') return;
-    this.showRegisterPasswordRequirements = false;
+    // Solo ocultar las condiciones si el campo está vacío
+    const passwordValue = this.registerForm.get('password')?.value || '';
+    if (!passwordValue) {
+      this.showRegisterPasswordRequirements = false;
+    }
     this.onPasswordBlur(); // Mantener la lógica de animación existente
   }
 
@@ -1238,6 +1242,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async submitRegister() {
+    // Resetear estado de verificación ANTES de validar
+    this.needsEmailVerification.set(false);
+    this.emailSent.set(false);
+    this.waitingForVerification.set(false);
+
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
 
@@ -1263,8 +1272,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     this.errorRegister = null;
-    this.needsEmailVerification.set(false);
-    this.emailSent.set(false);
     this.loadingRegister = true;
 
     try {

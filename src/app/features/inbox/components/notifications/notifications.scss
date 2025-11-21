@@ -695,42 +695,374 @@ $spacing-xl: 32px;
 /* Responsive */
 @media (max-width: 768px) {
   .notifications-inbox {
+    padding: 0;
+
     .inbox-header {
       flex-direction: column;
       gap: $spacing-md;
+      padding-bottom: $spacing-sm;
+
+      .header-content {
+        width: 100%;
+
+        h2 {
+          font-size: 1.4rem;
+        }
+
+        .subtitle {
+          font-size: 0.85rem;
+        }
+      }
 
       .stats {
         width: 100%;
+        gap: $spacing-sm;
+
+        .stat-badge {
+          flex: 1;
+          padding: $spacing-sm;
+          justify-content: center;
+
+          .icon {
+            font-size: 1.1rem;
+          }
+
+          .label {
+            font-size: 0.8rem;
+          }
+
+          .count {
+            font-size: 1.1rem;
+          }
+        }
       }
     }
 
     .inbox-filters {
       flex-direction: column;
       align-items: stretch;
+      gap: $spacing-sm;
+      padding: $spacing-sm;
 
       .filter-buttons {
-        justify-content: center;
+        justify-content: stretch;
+        gap: $spacing-xs;
+
+        .filter-btn {
+          flex: 1;
+          padding: $spacing-sm;
+          font-size: 0.85rem;
+          justify-content: center;
+          text-align: center;
+
+          .count {
+            font-size: 0.8rem;
+          }
+        }
       }
 
       .action-buttons {
+        width: 100%;
+
+        .btn {
+          flex: 1;
+          justify-content: center;
+          padding: $spacing-sm $spacing-md;
+          font-size: 0.85rem;
+
+          .icon {
+            font-size: 0.95rem;
+          }
+        }
+
+        .btn-secondary {
+          font-size: 0.85rem;
+        }
+
+        .btn-ghost {
+          min-width: 44px;
+          padding: $spacing-sm;
+        }
+      }
+    }
+
+    .loading-state,
+    .error-state {
+      padding: $spacing-xl;
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+    }
+
+    .error-state {
+      .error-icon {
+        font-size: 2.5rem;
+      }
+
+      .btn {
+        width: 100%;
+        max-width: 280px;
         justify-content: center;
+      }
+    }
+
+    .empty-state {
+      padding: $spacing-xl;
+
+      .empty-icon {
+        font-size: 3.5rem;
+      }
+
+      h3 {
+        font-size: 1.2rem;
+      }
+
+      p {
+        font-size: 0.9rem;
       }
     }
   }
 
   .notification-card {
+    padding: $spacing-sm;
+
     .card-header {
       flex-wrap: wrap;
+      gap: $spacing-sm;
+
+      .notification-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+      }
+
+      .notification-content {
+        .notification-title {
+          font-size: 0.95rem;
+        }
+
+        .notification-message {
+          font-size: 0.85rem;
+        }
+
+        .notification-time {
+          font-size: 0.75rem;
+        }
+      }
 
       .card-actions {
         width: 100%;
         justify-content: flex-end;
+        gap: $spacing-xs;
+
+        .action-btn {
+          width: 36px;
+          height: 36px;
+          font-size: 0.95rem;
+        }
+
+        .expand-btn {
+          .icon {
+            font-size: 0.95rem;
+          }
+        }
       }
     }
 
     .card-body {
+      padding-top: $spacing-sm;
+      margin-top: $spacing-sm;
+
       .detail-grid {
         grid-template-columns: 1fr;
+        gap: $spacing-sm;
+
+        .detail-item {
+          .label {
+            font-size: 0.7rem;
+          }
+
+          .value {
+            font-size: 0.85rem;
+          }
+        }
+      }
+
+      .detail-section {
+        padding: $spacing-sm;
+
+        h4 {
+          font-size: 0.8rem;
+        }
+
+        .metadata-grid {
+          grid-template-columns: 1fr;
+          gap: $spacing-sm;
+          padding: $spacing-sm;
+
+          .metadata-item {
+            .metadata-label {
+              font-size: 0.7rem;
+            }
+
+            .metadata-value {
+              font-size: 0.85rem;
+
+              &.role-badge {
+                font-size: 0.75rem;
+              }
+            }
+          }
+
+          .role-change-item {
+            .role-change-display {
+              padding: $spacing-sm;
+              gap: $spacing-sm;
+
+              .role-arrow {
+                font-size: 1.5rem;
+              }
+
+              .role-badge-container {
+                .role-label {
+                  font-size: 0.65rem;
+                }
+              }
+
+              .role-badge {
+                font-size: 0.75rem;
+                padding: $spacing-xs $spacing-sm;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .btn {
+    padding: $spacing-sm $spacing-md;
+    font-size: 0.875rem;
+
+    .icon {
+      font-size: 0.95rem;
+    }
+  }
+}
+
+/* Responsive para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .notifications-inbox {
+    .inbox-header {
+      .header-content {
+        h2 {
+          font-size: 1.25rem;
+        }
+
+        .subtitle {
+          font-size: 0.8rem;
+        }
+      }
+
+      .stats {
+        flex-direction: column;
+
+        .stat-badge {
+          padding: $spacing-sm;
+
+          .icon {
+            font-size: 1rem;
+          }
+
+          .label {
+            font-size: 0.75rem;
+          }
+
+          .count {
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+
+    .inbox-filters {
+      padding: $spacing-xs;
+
+      .filter-buttons {
+        flex-direction: column;
+        gap: $spacing-xs;
+
+        .filter-btn {
+          width: 100%;
+          font-size: 0.8rem;
+        }
+      }
+
+      .action-buttons {
+        gap: $spacing-xs;
+
+        .btn {
+          font-size: 0.8rem;
+          padding: $spacing-xs $spacing-sm;
+        }
+      }
+    }
+  }
+
+  .notification-card {
+    padding: $spacing-xs;
+
+    .card-header {
+      .notification-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+      }
+
+      .notification-content {
+        .notification-title {
+          font-size: 0.9rem;
+        }
+
+        .notification-message {
+          font-size: 0.8rem;
+        }
+
+        .notification-time {
+          font-size: 0.7rem;
+        }
+      }
+
+      .card-actions {
+        .action-btn {
+          width: 32px;
+          height: 32px;
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    .card-body {
+      .detail-section {
+        padding: $spacing-xs;
+
+        h4 {
+          font-size: 0.75rem;
+        }
+
+        .metadata-grid {
+          padding: $spacing-xs;
+
+          .metadata-value {
+            font-size: 0.8rem;
+          }
+        }
       }
     }
   }

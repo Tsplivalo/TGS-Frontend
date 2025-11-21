@@ -109,14 +109,15 @@ export class UserVerificationService {
   /**
    * [ADMIN] Rechazar verificación de usuario
    */
-  async rejectVerification(email: string, data?: RejectUserVerificationDTO): Promise<void> {
-    await firstValueFrom(
-      this.http.post<{ message: string }>(
+  async rejectVerification(email: string, data?: RejectUserVerificationDTO): Promise<UserVerification> {
+    const response = await firstValueFrom(
+      this.http.post<{ data: UserVerification }>(
         `${this.baseUrl}/admin/reject/${email}`,
         data || {},
         { withCredentials: true }
       )
     );
+    return response.data;
   }
 
   /**

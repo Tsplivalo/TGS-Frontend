@@ -1036,3 +1036,200 @@ fieldset.group legend {
     transform: scale(1);
   }
 }
+
+/* ===== DISEÑO MÓVIL PARA TABLA DE SOBORNOS ===== */
+@media (max-width: 768px) {
+  /* Ocultar la tabla tradicional en móvil */
+  .table-wrap .table {
+    border: none;
+  }
+
+  /* Ocultar el thead */
+  .table thead {
+    display: none;
+  }
+
+  /* Hacer que el tbody sea un contenedor flex */
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  /* Convertir cada fila en una tarjeta */
+  .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    background: rgba(20, 20, 20, 0.5);
+    border: 1px solid rgba(195, 164, 98, 0.25);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    gap: var(--sp-3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3),
+                inset 0 1px 0 rgba(255, 255, 255, .08);
+    backdrop-filter: blur(12px) saturate(110%);
+    -webkit-backdrop-filter: blur(12px) saturate(110%);
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+  }
+
+  .table tbody tr:hover {
+    transform: translateY(-2px);
+    background: rgba(20, 20, 20, 0.65);
+    border-color: rgba(195, 164, 98, 0.4);
+    box-shadow: 0 6px 18px rgba(195, 164, 98, .25),
+                0 0 0 1px rgba(195, 164, 98, .1),
+                inset 0 1px 0 rgba(255, 255, 255, .12);
+  }
+
+  .table tbody tr:hover td {
+    background: transparent;
+  }
+
+  /* Estilizar cada celda como un campo de datos */
+  .table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+    gap: var(--sp-3);
+  }
+
+  .table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Agregar etiquetas antes de cada celda usando data-label */
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+
+  /* Hacer que el contenido de la celda se alinee a la derecha */
+  .table tbody td > * {
+    margin-left: auto;
+  }
+
+  /* Casos especiales para celdas con contenido específico */
+
+  /* ID - hacer más prominente */
+  .table tbody tr td:first-child {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+    padding-bottom: var(--sp-3);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  /* Monto - hacer más prominente */
+  .table tbody td:nth-child(2) {
+    font-weight: 600;
+    color: var(--text-strong);
+    font-size: 15px;
+  }
+
+  /* Autoridad - cell-content */
+  .table tbody td:nth-child(3) .cell-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  /* Estado de pago - centrar badge */
+  .table tbody td.center {
+    justify-content: space-between;
+  }
+
+  .table tbody td.center .badge {
+    margin-left: auto;
+  }
+
+  /* Acciones - alinear a la derecha */
+  .table tbody td .actions-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  /* Paid status en mobile */
+  .table tbody td .paid-status {
+    width: auto;
+    justify-content: center;
+  }
+
+  /* Fila vacía */
+  .table tbody tr:has(td[colspan]) {
+    background: transparent;
+    border: 1px dashed var(--border);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    pointer-events: none;
+  }
+
+  .table tbody tr:has(td[colspan]):hover {
+    transform: none;
+    background: transparent;
+    border-color: var(--border);
+    box-shadow: none;
+  }
+
+  .table tbody tr:has(td[colspan]) td {
+    display: block;
+    text-align: center;
+    border: none;
+    padding: var(--sp-4);
+  }
+
+  .table tbody tr:has(td[colspan]) td::before {
+    display: none;
+  }
+
+  /* Estadísticas - hacer responsive */
+  .glass-dark > div[style*="grid-template-columns"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--sp-2) !important;
+    padding: var(--sp-2) !important;
+  }
+
+  .glass-dark > div[style*="grid-template-columns"] > div {
+    padding: var(--sp-2);
+  }
+
+  .glass-dark > div[style*="grid-template-columns"] > div > div:first-child {
+    font-size: 10px !important;
+  }
+
+  .glass-dark > div[style*="grid-template-columns"] > div > div:last-child {
+    font-size: 1.2rem !important;
+  }
+
+  /* Filtros - hacer responsive */
+  .filters {
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+
+  .filters .label {
+    min-width: 100% !important;
+    width: 100%;
+  }
+
+  .filters > div {
+    width: 100%;
+  }
+
+  .filters > div button {
+    width: 100%;
+  }
+}
