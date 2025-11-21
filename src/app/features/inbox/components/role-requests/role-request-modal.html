@@ -5,7 +5,7 @@
     <!-- Header mejorado -->
     <div class="modal-header">
       <div class="header-content">
-        <div class="step-indicator">
+        <div class="step-indicator" *ngIf="requiresAdditionalData">
           <span class="step" [class.active]="currentStep === 1">1</span>
           <div class="step-divider" [class.completed]="currentStep === 2"></div>
           <span class="step" [class.active]="currentStep === 2" [class.completed]="currentStep === 2">2</span>

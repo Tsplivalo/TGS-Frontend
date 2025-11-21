@@ -88,11 +88,17 @@
           <div class="info-row">
             <span class="material-symbols-outlined icon">mail</span>
             <div class="info-content">
-              <span class="label">{{ 'account.infoSection.emailVerified' | translate }}</span>
+              <span class="label">{{ 'account.infoSection.email' | translate }}</span>
               <span class="value">{{ me()?.email }}</span>
             </div>
-            <span class="status-badge" [class.verified]="me()?.emailVerified">
-              {{ me()?.emailVerified ? '✓' : '⚠' }}
+            <span
+              class="status-badge"
+              [class.verified]="me()?.emailVerified"
+              [title]="me()?.emailVerified ? ('account.infoSection.tooltips.emailVerified' | translate) : ('account.infoSection.tooltips.emailNotVerified' | translate)"
+            >
+              <span class="material-symbols-outlined">
+                {{ me()?.emailVerified ? 'check_circle' : 'cancel' }}
+              </span>
             </span>
           </div>
 

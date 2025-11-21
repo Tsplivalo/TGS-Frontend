@@ -624,6 +624,8 @@ $spacing-xl: 32px;
   display: inline-flex;
   align-items: center;
   gap: $spacing-xs;
+  font-family: 'Google Sans Code', 'Montserrat', monospace;
+  letter-spacing: 0.2px;
 
   .icon {
     font-size: 1rem;
@@ -641,6 +643,19 @@ $spacing-xl: 32px;
   }
 
   &.btn-secondary {
+    background: linear-gradient(135deg, rgba(71, 85, 105, 0.8), rgba(51, 65, 85, 0.8));
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    color: $text-light;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(71, 85, 105, 1), rgba(51, 65, 85, 1));
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-success {
     background: linear-gradient(135deg, rgba($success-color, 0.3), rgba($success-color, 0.2));
     border: 1px solid rgba($success-color, 0.4);
     color: $success-color;
@@ -660,6 +675,11 @@ $spacing-xl: 32px;
       background: $glass-bg-hover;
       border-color: rgba(255, 255, 255, 0.3);
     }
+  }
+
+  &.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
   }
 }
 

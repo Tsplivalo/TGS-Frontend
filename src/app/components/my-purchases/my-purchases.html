@@ -20,34 +20,30 @@
   <!-- Contenido principal -->
   <div class="content" *ngIf="!loading()">
 
-    <!-- Estadísticas -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">{{ 'myPurchases.stats.totalPurchases' | translate }}</div>
-        <div class="stat-value">{{ stats().totalPurchases }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">{{ 'myPurchases.stats.totalSpent' | translate }}</div>
-        <div class="stat-value">${{ stats().totalSpent | number:'1.2-2' }}</div>
-      </div>
-    </div>
-
     <!-- Filtros -->
     <div class="filters-section">
-      <div class="search-box">
+      <label class="label" style="flex: 1;">
+        <span>{{ 'myPurchases.filters.search' | translate }}</span>
         <input
           type="text"
-          class="search-input"
+          class="input"
           [value]="searchTerm()"
           (input)="searchTerm.set($any($event.target).value)"
+          (keyup.enter)="refresh()"
           [placeholder]="'myPurchases.filters.searchPlaceholder' | translate"
         />
+      </label>
+
+      <div style="display: flex; gap: var(--sp-2); align-items: flex-end;">
+        <button class="btn btn-primary" type="button" (click)="refresh()">
+          🔍 {{ 'common.search' | translate }}
+        </button>
         <button
-          class="btn-clear-search"
+          class="btn ghost"
+          type="button"
           *ngIf="searchTerm()"
-          (click)="clearSearch()"
-          [title]="'common.clear' | translate">
-          ✕
+          (click)="clearSearch()">
+          🗑️ {{ 'common.clear' | translate }}
         </button>
       </div>
     </div>
