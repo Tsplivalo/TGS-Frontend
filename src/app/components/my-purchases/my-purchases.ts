@@ -62,19 +62,6 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
     });
   });
 
-  stats = computed(() => {
-    const purchases = this.purchases();
-    const totalPurchases = purchases.length;
-    const totalSpent = purchases.reduce((sum, p) => {
-      return sum + this.getTotal(p);
-    }, 0);
-
-    return {
-      totalPurchases,
-      totalSpent
-    };
-  });
-
   ngOnInit(): void {
     this.loadPurchases();
   }
@@ -152,21 +139,25 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
     if (error.status === 401) {
       this.error.set('No autorizado. Por favor, inicia sesión nuevamente.');
-    } else if (error.status === 403) {
-      // Si recibe 403, mostrar lista vacía en lugar de error
-      // Esto puede pasar si el usuario no tiene el rol adecuado o el endpoint no existe
-      console.log('[MyPurchases] ⚠️ Acceso denegado (403). Mostrando lista vacía.');
+    } else if (error.status === 403 || error.status === 404 || error.status === 400) {
+      // Si recibe 403, 404 o 400, mostrar lista vacía sin error
+      // Esto puede pasar si:
+      // - El usuario no tiene compras aún
+      // - El usuario no tiene el rol adecuado
+      // - El endpoint no existe o está en desarrollo
+      console.log('[MyPurchases] ⚠️ Error del servidor:', error.status, error.error?.message || error.message);
+      console.log('[MyPurchases] Mostrando lista vacía sin notificación de error.');
       this.purchases.set([]);
       this.products.set([]);
-    } else if (error.status === 404) {
-      // El endpoint no existe en el backend
-      console.warn('[MyPurchases] ⚠️ Endpoint /api/sales/my-purchases no encontrado (404). Mostrando lista vacía.');
-      this.purchases.set([]);
-      this.products.set([]);
-    } else if (error.error?.message) {
-      this.error.set(error.error.message);
+      // NO establecer error.set() para evitar mostrar notificaciones innecesarias
+    } else if (error.status >= 500) {
+      // Solo mostrar errores de servidor (5xx)
+      this.error.set('Error del servidor. Por favor, intenta más tarde.');
     } else {
-      this.error.set(fallbackMessage);
+      // Para otros errores no comunes, mostrar lista vacía sin notificación
+      console.warn('[MyPurchases] ⚠️ Error no manejado:', error.status, error.error?.message || error.message);
+      this.purchases.set([]);
+      this.products.set([]);
     }
   }
 

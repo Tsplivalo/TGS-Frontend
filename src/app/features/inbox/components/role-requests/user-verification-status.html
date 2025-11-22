@@ -176,7 +176,38 @@
       <h3>{{ 'userVerification.status.rejected.title' | translate }}</h3>
       <p>{{ 'userVerification.status.rejected.desc' | translate }}</p>
 
-      <button class="btn btn-primary" (click)="requestVerification()" [disabled]="requesting || !hasCompleteProfile">
+      <!-- Advertencia de último intento -->
+      <div *ngIf="isLastAttempt && !hasNoAttemptsLeft" class="alert alert-danger">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>¡ATENCIÓN! Este es tu último intento</strong>
+          <p>Si tu solicitud es rechazada nuevamente, no podrás solicitar verificación otra vez. Por favor, revisa cuidadosamente tu información personal antes de continuar.</p>
+          <ul class="warning-list">
+            <li>Verifica que tu DNI sea correcto y coincida con tu documento</li>
+            <li>Asegúrate de que tu nombre completo esté escrito correctamente</li>
+            <li>Confirma que tu dirección y teléfono sean válidos</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Información de intentos -->
+      <div *ngIf="verificationStatus" class="info-box" [class.warning]="isLastAttempt">
+        <span class="icon">{{ isLastAttempt ? '⚠️' : 'ℹ️' }}</span>
+        <p>
+          <strong>Intentos restantes:</strong> {{ attemptsLeft }} de {{ verificationStatus.maxAttempts }}
+        </p>
+      </div>
+
+      <!-- Mensaje si ya no tiene intentos -->
+      <div *ngIf="hasNoAttemptsLeft" class="alert alert-danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>Has alcanzado el límite de intentos</strong>
+          <p>Has agotado todos los intentos disponibles para solicitar la verificación. Si crees que esto es un error, por favor contacta al soporte técnico.</p>
+        </div>
+      </div>
+
+      <button *ngIf="!hasNoAttemptsLeft" class="btn btn-primary" (click)="requestVerification()" [disabled]="requesting || !hasCompleteProfile">
         <span class="icon">🔄</span>
         {{ requesting ? ('userVerification.status.buttons.sending' | translate)
         : ('userVerification.status.buttons.requestAgain' | translate) }}

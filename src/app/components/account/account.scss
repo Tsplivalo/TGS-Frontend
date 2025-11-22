@@ -778,18 +778,37 @@ form.profile-form {
     }
 
     .status-badge {
-      padding: 0.35rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       background: rgba(255, 193, 7, 0.2);
       color: #ffc107;
       border: 1px solid rgba(255, 193, 7, 0.3);
+      cursor: default;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      .material-symbols-outlined {
+        font-size: 1.4rem;
+      }
+
+      &:hover {
+        background: rgba(255, 193, 7, 0.3);
+        border-color: rgba(255, 193, 7, 0.5);
+        transform: scale(1.1);
+      }
 
       &.verified {
         background: rgba(76, 175, 80, 0.2);
         color: #4caf50;
         border: 1px solid rgba(76, 175, 80, 0.3);
+
+        &:hover {
+          background: rgba(76, 175, 80, 0.3);
+          border-color: rgba(76, 175, 80, 0.5);
+        }
       }
     }
   }

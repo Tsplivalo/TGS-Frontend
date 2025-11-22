@@ -50,17 +50,18 @@
     <div class="action-buttons">
       <button
         *ngIf="unreadCount > 0"
-        class="btn btn-secondary"
+        class="btn btn-success"
         (click)="markAllAsRead()"
         [title]="'notifications.actions.markAllRead' | translate : {} : 'Marcar todas como leídas'">
         <span class="icon">✅</span>
         {{ 'notifications.actions.markAllRead' | translate : {} : 'Marcar todas como leídas' }}
       </button>
       <button
-        class="btn btn-ghost"
+        class="btn btn-secondary btn-sm"
         (click)="loadNotifications()"
         [title]="'common.refresh' | translate : {} : 'Actualizar'">
         <span class="icon">🔄</span>
+        {{ 'common.refresh' | translate : {} : 'Actualizar' }}
       </button>
     </div>
   </div>

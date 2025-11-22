@@ -330,9 +330,22 @@ export class LoginComponent implements OnDestroy {
           // Usar helpers del servicio para detectar errores específicos
           if (this.emailVerificationService.isCooldownError(err)) {
             console.log('[Login] Error de cooldown detectado');
-            this.error.set('Ya enviamos un email recientemente. Por favor espera unos minutos antes de reenviar.');
-            // Aún así, reiniciar el temporizador para que el usuario pueda intentar después
-            this.startResendCooldown();
+            const cooldownSeconds = this.emailVerificationService.getCooldownSeconds(err);
+            const minutes = Math.floor(cooldownSeconds / 60);
+            const seconds = cooldownSeconds % 60;
+
+            let timeMessage = '';
+            if (minutes > 0 && seconds > 0) {
+              timeMessage = `${minutes} minuto${minutes > 1 ? 's' : ''} y ${seconds} segundo${seconds > 1 ? 's' : ''}`;
+            } else if (minutes > 0) {
+              timeMessage = `${minutes} minuto${minutes > 1 ? 's' : ''}`;
+            } else {
+              timeMessage = `${seconds} segundo${seconds > 1 ? 's' : ''}`;
+            }
+
+            this.error.set(`Ya enviamos un email recientemente. Por favor espera ${timeMessage} antes de reenviar.`);
+            // Iniciar cooldown con el tiempo exacto del backend
+            this.startResendCooldown(cooldownSeconds);
           } else if (this.emailVerificationService.isAlreadyVerifiedError(err)) {
             console.log('[Login] Email ya verificado');
             this.error.set('Tu email ya está verificado. Intenta iniciar sesión.');
@@ -431,10 +444,11 @@ export class LoginComponent implements OnDestroy {
   }
 
   /**
-   * Inicia el temporizador de 30 segundos para poder reenviar el email
+   * Inicia el temporizador de cooldown para poder reenviar el email
+   * @param seconds Segundos de cooldown (por defecto 120 = 2 minutos)
    */
-  private startResendCooldown(): void {
-    this.resendCooldown.set(30);
+  private startResendCooldown(seconds: number = 120): void {
+    this.resendCooldown.set(seconds);
     this.canResend.set(false);
 
     // Limpiar intervalo anterior si existe

@@ -153,4 +153,28 @@ async requestVerification(): Promise<void> {
       minute: '2-digit',
     });
   }
+
+  /**
+   * Verifica si el usuario está en su último intento de verificación
+   */
+  get isLastAttempt(): boolean {
+    if (!this.verificationStatus) return false;
+    return this.verificationStatus.attempts === this.verificationStatus.maxAttempts - 1;
+  }
+
+  /**
+   * Verifica si el usuario ya no tiene más intentos disponibles
+   */
+  get hasNoAttemptsLeft(): boolean {
+    if (!this.verificationStatus) return false;
+    return this.verificationStatus.attempts >= this.verificationStatus.maxAttempts;
+  }
+
+  /**
+   * Obtiene el número de intentos restantes
+   */
+  get attemptsLeft(): number {
+    if (!this.verificationStatus) return 0;
+    return this.verificationStatus.maxAttempts - this.verificationStatus.attempts;
+  }
 }
