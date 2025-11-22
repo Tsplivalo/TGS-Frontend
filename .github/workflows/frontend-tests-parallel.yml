@@ -608,8 +608,10 @@ jobs:
           echo "⚡ **Parallel execution enabled** - Estimated 60% time reduction" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify Slack (on failure)
-        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        if: failure()
         uses: slackapi/slack-github-action@v2.0.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
@@ -688,8 +690,10 @@ jobs:
           priority: high
 
       - name: Notify Slack (on success)
-        if: success() && secrets.SLACK_WEBHOOK_URL != ''
+        if: success()
         uses: slackapi/slack-github-action@v2.0.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
