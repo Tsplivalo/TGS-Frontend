@@ -11,6 +11,9 @@ import 'cypress-axe';
 // Import cypress-real-events for realistic user interactions
 import 'cypress-real-events';
 
+// Import cypress-plugin-tab for keyboard navigation testing
+import 'cypress-plugin-tab';
+
 // Import commands.js AFTER plugins - so overwrite() works correctly
 import './commands';
 

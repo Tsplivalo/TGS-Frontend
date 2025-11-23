@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 /// <reference types="cypress-axe" />
 /// <reference types="cypress-real-events" />
+/// <reference types="cypress-plugin-tab" />
 
 // ***********************************************
 // This file contains custom Cypress commands
