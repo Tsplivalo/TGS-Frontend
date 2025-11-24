@@ -43,20 +43,20 @@
             <div class="waiting-verification-large" role="status">
               <div class="spinner-large"></div>
               <div class="waiting-content-large">
-                <strong>Esperando verificación de email...</strong>
-                <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+                <strong>{{ 'home.verification.waiting.title' | translate }}</strong>
+                <p>{{ 'home.verification.waiting.message' | translate }}</p>
 
                 <!-- Botón de reenvío con temporizador -->
                 <button type="button" class="btn-resend-large" (click)="resendVerificationEmailFromHome()"
                   [disabled]="resendingEmail() || !canResend()">
                   <span *ngIf="resendingEmail()">
-                    ⏳ Enviando<span class="dots">...</span>
+                    ⏳ {{ 'home.verification.resend.sending' | translate }}<span class="dots">...</span>
                   </span>
                   <span *ngIf="!resendingEmail() && !canResend()">
-                    📧 Reenviar email ({{ resendCooldown() }}s)
+                    📧 {{ 'home.verification.resend.buttonWithTimer' | translate:{ seconds: resendCooldown() } }}
                   </span>
                   <span *ngIf="!resendingEmail() && canResend()">
-                    📧 Reenviar email
+                    📧 {{ 'home.verification.resend.button' | translate }}
                   </span>
                 </button>
               </div>
@@ -70,42 +70,43 @@
               <div class="banner-icon-large">⚠️</div>
               <div class="banner-content-large">
                 <div class="banner-header-large">
-                  <strong>Email no verificado</strong>
+                  <strong>{{ 'home.verification.unverified.title' | translate }}</strong>
                   <button type="button" class="banner-close" (click)="needsEmailVerification.set(false)"
-                    aria-label="Cerrar" title="Cerrar mensaje">
+                    [attr.aria-label]="'home.verification.unverified.close' | translate"
+                    [attr.title]="'home.verification.unverified.close' | translate">
                     ✕
                   </button>
                 </div>
                 <p class="banner-text-large">
-                  Debes verificar tu email antes de poder acceder.
+                  {{ 'home.verification.unverified.message' | translate }}
                 </p>
 
                 <!-- Mensaje de email enviado -->
                 <div class="banner-success-large" *ngIf="emailSent()">
                   <span class="success-icon">✓</span>
-                  <strong>Email de verificación enviado</strong>
-                  <p>Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.</p>
+                  <strong>{{ 'home.verification.sent.title' | translate }}</strong>
+                  <p>{{ 'home.verification.sent.message' | translate }}</p>
                 </div>
 
                 <!-- Mensaje cuando NO se ha enviado aún -->
                 <div class="banner-info-large" *ngIf="!emailSent()">
-                  <p><strong>¿No recibiste el email?</strong> Haz clic en el botón de abajo para reenviarlo.</p>
+                  <p><strong>{{ 'home.verification.notReceived.question' | translate }}</strong> {{ 'home.verification.notReceived.instruction' | translate }}</p>
                 </div>
 
                 <!-- Botón de reenvío con temporizador -->
                 <button type="button" class="btn-resend-large" (click)="resendVerificationEmailFromHome()"
                   [disabled]="resendingEmail() || !canResend()">
                   <span *ngIf="resendingEmail()">
-                    ⏳ Enviando<span class="dots">...</span>
+                    ⏳ {{ 'home.verification.resend.sending' | translate }}<span class="dots">...</span>
                   </span>
                   <span *ngIf="!resendingEmail() && !canResend()">
-                    📧 Reenviar email ({{ resendCooldown() }}s)
+                    📧 {{ 'home.verification.resend.buttonWithTimer' | translate:{ seconds: resendCooldown() } }}
                   </span>
                   <span *ngIf="!resendingEmail() && canResend() && emailSent()">
-                    📧 Reenviar nuevamente
+                    📧 {{ 'home.verification.resend.buttonAgain' | translate }}
                   </span>
                   <span *ngIf="!resendingEmail() && canResend() && !emailSent()">
-                    📧 Enviar email de verificación
+                    📧 {{ 'home.verification.resend.buttonSend' | translate }}
                   </span>
                 </button>
               </div>
@@ -137,8 +138,8 @@
                   autocomplete="current-password"
                   required />
                 <button type="button" class="pwd-toggle" (click)="showLoginPwd = !showLoginPwd"
-                  [attr.aria-label]="showLoginPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-                  [attr.title]="showLoginPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  [attr.aria-label]="showLoginPwd ? ('home.password.hide' | translate) : ('home.password.show' | translate)"
+                  [attr.title]="showLoginPwd ? ('home.password.hide' | translate) : ('home.password.show' | translate)">
                   <span class="material-symbols-outlined">{{ showLoginPwd ? 'visibility' : 'visibility_off' }}</span>
                 </button>
               </div>
@@ -172,20 +173,20 @@
             <div class="waiting-verification-large" role="status">
               <div class="spinner-large"></div>
               <div class="waiting-content-large">
-                <strong>Esperando verificación de email...</strong>
-                <p>Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente.</p>
+                <strong>{{ 'home.verification.waiting.title' | translate }}</strong>
+                <p>{{ 'home.verification.waiting.message' | translate }}</p>
 
                 <!-- Botón de reenvío con temporizador -->
                 <button type="button" class="btn-resend-large" (click)="resendVerificationEmailFromHome()"
                   [disabled]="resendingEmail() || !canResend()">
                   <span *ngIf="resendingEmail()">
-                    ⏳ Enviando<span class="dots">...</span>
+                    ⏳ {{ 'home.verification.resend.sending' | translate }}<span class="dots">...</span>
                   </span>
                   <span *ngIf="!resendingEmail() && !canResend()">
-                    📧 Reenviar email ({{ resendCooldown() }}s)
+                    📧 {{ 'home.verification.resend.buttonWithTimer' | translate:{ seconds: resendCooldown() } }}
                   </span>
                   <span *ngIf="!resendingEmail() && canResend()">
-                    📧 Reenviar email
+                    📧 {{ 'home.verification.resend.button' | translate }}
                   </span>
                 </button>
               </div>
@@ -199,24 +200,24 @@
               <div class="banner-icon-large">✅</div>
               <div class="banner-content-large">
                 <div class="banner-header-large">
-                  <strong>¡Registro exitoso!</strong>
+                  <strong>{{ 'home.verification.success.title' | translate }}</strong>
                   <button type="button" class="banner-close" (click)="needsEmailVerification.set(false)"
-                    aria-label="Cerrar" title="Cerrar mensaje">
+                    [attr.aria-label]="'home.verification.unverified.close' | translate"
+                    [attr.title]="'home.verification.unverified.close' | translate">
                     ✕
                   </button>
                 </div>
                 <p class="banner-text-large">
-                  Te enviamos un correo con el enlace de verificación. Revisá tu bandeja de entrada para activar tu
-                  cuenta.
+                  {{ 'home.verification.success.message' | translate }}
                 </p>
 
                 <div class="banner-success-large" *ngIf="emailSent()">
                   <span class="success-icon">✓</span>
-                  Email de verificación enviado correctamente
+                  {{ 'home.verification.success.sent' | translate }}
                 </div>
 
                 <div class="banner-info-large">
-                  <p>Una vez que verifiques tu email, podrás iniciar sesión.</p>
+                  <p>{{ 'home.verification.success.info' | translate }}</p>
                 </div>
               </div>
             </div>
@@ -255,8 +256,8 @@
                   (blur)="onRegisterPasswordBlur()"
                   autocomplete="new-password" required />
                 <button type="button" class="pwd-toggle" (click)="showRegisterPwd = !showRegisterPwd"
-                  [attr.aria-label]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-                  [attr.title]="showRegisterPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  [attr.aria-label]="showRegisterPwd ? ('home.password.hide' | translate) : ('home.password.show' | translate)"
+                  [attr.title]="showRegisterPwd ? ('home.password.hide' | translate) : ('home.password.show' | translate)">
                   <span class="material-symbols-outlined">{{ showRegisterPwd ? 'visibility' : 'visibility_off' }}</span>
                 </button>
               </div>
