@@ -48,11 +48,16 @@ export class SaleService {
     );
   }
 
-  /** GET /api/sales/my-purchases - Obtiene las compras del usuario actual */
+  /**
+   * GET /api/sales - Obtiene las compras del usuario actual
+   * NOTA: El backend no tiene endpoint /my-purchases, por lo que obtenemos todas las ventas
+   * y filtramos en el componente por el DNI del usuario actual
+   */
   getMyPurchases(): Observable<SaleDTO[]> {
-    console.log('[SaleService] 📦 Fetching my purchases from:', `${this.base}/my-purchases`);
+    console.log('[SaleService] 📦 Fetching all sales from:', this.base);
+    console.log('[SaleService] ⚠️ Nota: Filtrando compras del usuario en el componente');
 
-    return this.http.get<ApiResponse<SaleDTO[]>>(`${this.base}/my-purchases`, {
+    return this.http.get<ApiResponse<SaleDTO[]>>(this.base, {
       withCredentials: true
     }).pipe(
       map((res: any) => {

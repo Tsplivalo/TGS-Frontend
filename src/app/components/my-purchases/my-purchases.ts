@@ -79,8 +79,24 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
+    // Obtener el DNI del usuario actual
+    const currentUser = this.me();
+    const userDni = currentUser?.person?.dni;
+
+    console.log('[MyPurchases] 👤 Usuario actual:', {
+      username: currentUser?.username,
+      dni: userDni,
+      hasPersonInfo: !!currentUser?.person
+    });
+
+    if (!userDni) {
+      console.warn('[MyPurchases] ⚠️ Usuario no tiene DNI registrado');
+      this.loading.set(false);
+      this.error.set('⚠️ Para ver tus compras, primero debes completar tu información personal (DNI).');
+      return;
+    }
+
     // Cargar ventas y productos en paralelo
-    // Usamos getMyPurchases() que ya filtra las compras del usuario en el backend
     forkJoin({
       sales: this.saleService.getMyPurchases(),
       products: this.productService.getAllProducts()
@@ -89,19 +105,37 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ({ sales, products }) => {
           console.log('[MyPurchases] ✅ Datos recibidos exitosamente');
-          console.log('[MyPurchases] 📦 Compras del usuario:', sales.length);
+          console.log('[MyPurchases] 📦 Total de ventas:', sales.length);
           console.log('[MyPurchases] 🛍️ Productos cargados:', products.length);
-          console.log('[MyPurchases] 📋 Detalle de compras:', sales);
 
           // Guardar productos
           this.products.set(products);
 
-          // Las compras ya vienen filtradas del backend
-          this.purchases.set(sales);
+          // ✅ FILTRAR ventas por DNI del cliente
+          const myPurchases = sales.filter(sale => {
+            const clientDni = sale.client?.dni;
+            const matches = clientDni === userDni;
+
+            if (matches) {
+              console.log('[MyPurchases] ✅ Compra encontrada:', {
+                saleId: sale.id,
+                clientDni,
+                date: sale.date || sale.saleDate,
+                total: sale.total || sale.amount || sale.saleAmount
+              });
+            }
+
+            return matches;
+          });
+
+          console.log('[MyPurchases] 🔍 Compras filtradas del usuario:', myPurchases.length);
+          console.log('[MyPurchases] 📋 Detalle de compras:', myPurchases);
+
+          this.purchases.set(myPurchases);
           this.loading.set(false);
 
           // Validar si hay compras sin detalles
-          const purchasesWithoutDetails = sales.filter(s => !s.details || s.details.length === 0);
+          const purchasesWithoutDetails = myPurchases.filter(s => !s.details || s.details.length === 0);
           if (purchasesWithoutDetails.length > 0) {
             console.warn('[MyPurchases] ⚠️ Encontradas compras sin detalles:', purchasesWithoutDetails.length);
             console.warn('[MyPurchases] 📋 Compras sin detalles:', purchasesWithoutDetails);
