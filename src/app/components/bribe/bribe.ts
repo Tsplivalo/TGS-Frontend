@@ -39,7 +39,7 @@ export class BribeComponent implements OnInit {
   isAuthority = computed(() => this.authService.hasRole(Role.AUTHORITY));
 
   // Permisos específicos por rol
-  canPay = computed(() => this.isAdmin() || this.isPartner());      // Admin y Socio pueden pagar
+  canPay = computed(() => (this.isAdmin() || this.isPartner()) && !this.isAuthority());      // Admin y Socio pueden pagar, pero NUNCA Authority
   canDelete = computed(() => this.isAdmin());                       // Solo Admin puede eliminar
   // Los sobornos se crean automáticamente, no manualmente
 
