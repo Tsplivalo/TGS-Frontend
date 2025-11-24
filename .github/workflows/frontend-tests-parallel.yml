@@ -419,7 +419,7 @@ jobs:
 
       - name: Upload Snyk SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
           category: snyk-security
@@ -610,10 +610,8 @@ jobs:
       - name: Notify Slack (on failure)
         if: failure()
         uses: slackapi/slack-github-action@v2.0.0
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
               "text": "❌ Frontend tests failed in ${{ github.repository }}",
@@ -692,10 +690,8 @@ jobs:
       - name: Notify Slack (on success)
         if: success()
         uses: slackapi/slack-github-action@v2.0.0
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
               "text": "✅ All frontend tests passed in ${{ github.repository }}",

@@ -225,13 +225,17 @@ describe('NotificationService', () => {
     });
 
     it('should fallback to counting unread from notifications on error', async () => {
+      // Start the request
       const promise = service.getUnreadCount();
 
-      // First request fails
+      // First request fails - this triggers the catch block
       const countReq = httpMock.expectOne(`${baseUrl}/unread-count`);
       countReq.flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
 
-      // Fallback request to get all notifications
+      // Wait a tick for the async catch block to execute and make the fallback request
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Now the fallback request should be pending
       const notifReq = httpMock.expectOne(`${baseUrl}/me`);
       notifReq.flush({
         data: [
@@ -246,13 +250,17 @@ describe('NotificationService', () => {
     });
 
     it('should return 0 when both endpoints fail', async () => {
+      // Start the request
       const promise = service.getUnreadCount();
 
       // First request fails
       const countReq = httpMock.expectOne(`${baseUrl}/unread-count`);
       countReq.flush({ message: 'Error' }, { status: 500, statusText: 'Internal Server Error' });
 
-      // Fallback also fails
+      // Wait a tick for the async catch block to execute and make the fallback request
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Fallback request also fails
       const notifReq = httpMock.expectOne(`${baseUrl}/me`);
       notifReq.flush({ message: 'Error' }, { status: 500, statusText: 'Internal Server Error' });
 
