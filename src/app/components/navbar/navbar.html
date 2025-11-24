@@ -46,9 +46,17 @@
       </li>
 
       <!-- Selector de idioma -->
-      <li class="menu__item menu__item--dropdown" role="none" tabindex="0">
-        <button class="dropdown__toggle has-underline lang-toggle" type="button" aria-haspopup="true"
-          aria-expanded="false">
+      <li class="menu__item menu__item--dropdown"
+          [class.open]="langDropdownOpen()"
+          role="none"
+          tabindex="0"
+          (mouseenter)="openLangDropdown()"
+          (mouseleave)="closeLangDropdown()">
+        <button class="dropdown__toggle has-underline lang-toggle"
+                type="button"
+                aria-haspopup="true"
+                [attr.aria-expanded]="langDropdownOpen()"
+                (click)="toggleLangDropdown()">
           <span [class]="flagClass()" aria-hidden="true"></span>
           <span class="lang-code">{{ lang() | uppercase }}</span>
           <span class="chevron">▾</span>

@@ -80,6 +80,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   // 📱 Menú móvil
   mobileMenuOpen = signal<boolean>(false);
 
+  // 🌐 Dropdown de idioma
+  langDropdownOpen = signal<boolean>(false);
+
   // ✅ Señales reactivas del AuthService
   readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
   readonly user = computed(() => this.auth.user());
@@ -129,8 +132,24 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   readonly brand = 'GarrSYS';
 
   lang(): 'en' | 'es' { return (this.i18n.current as 'en' | 'es') || 'en'; }
-  setLang(l: 'en' | 'es') { this.i18n.use(l); }
+  setLang(l: 'en' | 'es') {
+    this.i18n.use(l);
+    this.langDropdownOpen.set(false); // Cerrar dropdown después de seleccionar
+  }
   flagClass(): string { return this.lang() === 'es' ? 'flag flag-es' : 'flag flag-en'; }
+
+  // Métodos para controlar el dropdown de idioma
+  toggleLangDropdown() {
+    this.langDropdownOpen.update(v => !v);
+  }
+
+  openLangDropdown() {
+    this.langDropdownOpen.set(true);
+  }
+
+  closeLangDropdown() {
+    this.langDropdownOpen.set(false);
+  }
 
   // ✅ Items de gestión completos (para ADMIN, PARTNER, DISTRIBUTOR)
   readonly gestionItems: MenuItem[] = [
