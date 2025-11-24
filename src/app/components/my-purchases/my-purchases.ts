@@ -75,6 +75,7 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
    * Carga las compras del usuario actual y la lista de productos
    */
   private loadPurchases(): void {
+    console.log('[MyPurchases] 🔄 Iniciando carga de compras...');
     this.loading.set(true);
     this.error.set(null);
 
@@ -87,17 +88,27 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ sales, products }) => {
-          // Guardar productos
-          this.products.set(products);
-
+          console.log('[MyPurchases] ✅ Datos recibidos exitosamente');
           console.log('[MyPurchases] 📦 Compras del usuario:', sales.length);
           console.log('[MyPurchases] 🛍️ Productos cargados:', products.length);
+          console.log('[MyPurchases] 📋 Detalle de compras:', sales);
+
+          // Guardar productos
+          this.products.set(products);
 
           // Las compras ya vienen filtradas del backend
           this.purchases.set(sales);
           this.loading.set(false);
+
+          // Validar si hay compras sin detalles
+          const purchasesWithoutDetails = sales.filter(s => !s.details || s.details.length === 0);
+          if (purchasesWithoutDetails.length > 0) {
+            console.warn('[MyPurchases] ⚠️ Encontradas compras sin detalles:', purchasesWithoutDetails.length);
+            console.warn('[MyPurchases] 📋 Compras sin detalles:', purchasesWithoutDetails);
+          }
         },
         error: (err: HttpErrorResponse) => {
+          console.error('[MyPurchases] ❌ Error al cargar datos');
           this.loading.set(false);
           this.handleError(err, 'Error al cargar las compras');
         }
@@ -137,27 +148,43 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
    * Maneja errores HTTP
    */
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
+    console.error('[MyPurchases] ❌ Error HTTP detectado:', {
+      status: error.status,
+      statusText: error.statusText,
+      message: error.message,
+      error: error.error,
+      url: error.url
+    });
+
     if (error.status === 401) {
       this.error.set('No autorizado. Por favor, inicia sesión nuevamente.');
     } else if (error.status === 403 || error.status === 404 || error.status === 400) {
-      // Si recibe 403, 404 o 400, mostrar lista vacía sin error
+      // Si recibe 403, 404 o 400, mostrar lista vacía CON mensaje informativo
       // Esto puede pasar si:
-      // - El usuario no tiene compras aún
-      // - El usuario no tiene el rol adecuado
-      // - El endpoint no existe o está en desarrollo
+      // - El usuario no tiene compras aún (404)
+      // - El usuario no tiene el rol adecuado (403)
+      // - El endpoint no existe o está en desarrollo (404)
+      // - Datos inválidos (400)
       console.log('[MyPurchases] ⚠️ Error del servidor:', error.status, error.error?.message || error.message);
-      console.log('[MyPurchases] Mostrando lista vacía sin notificación de error.');
+      console.log('[MyPurchases] 📋 Detalle del error:', error.error);
+      console.log('[MyPurchases] Mostrando lista vacía.');
+
       this.purchases.set([]);
       this.products.set([]);
-      // NO establecer error.set() para evitar mostrar notificaciones innecesarias
+
+      // Mostrar mensaje informativo en desarrollo
+      const errorMsg = error.error?.message || error.message || 'Error desconocido';
+      this.error.set(`⚠️ Estado ${error.status}: ${errorMsg} (Revisa la consola para más detalles)`);
     } else if (error.status >= 500) {
       // Solo mostrar errores de servidor (5xx)
       this.error.set('Error del servidor. Por favor, intenta más tarde.');
     } else {
-      // Para otros errores no comunes, mostrar lista vacía sin notificación
+      // Para otros errores no comunes, mostrar mensaje informativo
       console.warn('[MyPurchases] ⚠️ Error no manejado:', error.status, error.error?.message || error.message);
+      console.warn('[MyPurchases] 📋 Detalle completo del error:', error);
       this.purchases.set([]);
       this.products.set([]);
+      this.error.set(`⚠️ Error ${error.status}: ${error.error?.message || error.message || 'Error desconocido'} (Revisa la consola)`);
     }
   }
 
