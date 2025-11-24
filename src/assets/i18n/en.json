@@ -131,7 +131,7 @@
       "phone": "Phone",
       "address": "Address",
       "status": "Account status:",
-      "active": "âœ" Active",
+      "active": "✓ Active",
       "inactive": "Inactive",
       "emailVerified": "Email verified:",
       "adminVerified": "Admin verified",
@@ -382,6 +382,42 @@
       "one": "Create your account or log in.",
       "two": "Load products and customers.",
       "three": "Activate your sales and management flows."
+    },
+    "verification": {
+      "waiting": {
+        "title": "Waiting for email verification...",
+        "message": "We have sent an email to your address. Click the link to verify your account and access automatically."
+      },
+      "unverified": {
+        "title": "Email not verified",
+        "message": "You must verify your email before you can access.",
+        "close": "Close"
+      },
+      "sent": {
+        "title": "Verification email sent",
+        "message": "Check your inbox and click the link to verify your account."
+      },
+      "notReceived": {
+        "question": "Didn't receive the email?",
+        "instruction": "Click the button below to resend it."
+      },
+      "resend": {
+        "sending": "Sending",
+        "button": "Resend email",
+        "buttonWithTimer": "Resend email ({{seconds}}s)",
+        "buttonAgain": "Resend again",
+        "buttonSend": "Send verification email"
+      },
+      "success": {
+        "title": "Registration successful!",
+        "message": "We sent you an email with the verification link. Check your inbox to activate your account.",
+        "sent": "Verification email sent successfully",
+        "info": "Once you verify your email, you can log in."
+      }
+    },
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
     }
   },
   "common": {

@@ -397,6 +397,42 @@
       "one": "Creá tu cuenta o iniciá sesión.",
       "two": "Cargá productos y clientes.",
       "three": "Activá tus flujos de venta y gestión."
+    },
+    "verification": {
+      "waiting": {
+        "title": "Esperando verificación de email...",
+        "message": "Hemos enviado un email a tu dirección. Haz clic en el enlace para verificar tu cuenta y acceder automáticamente."
+      },
+      "unverified": {
+        "title": "Email no verificado",
+        "message": "Debes verificar tu email antes de poder acceder.",
+        "close": "Cerrar"
+      },
+      "sent": {
+        "title": "Email de verificación enviado",
+        "message": "Revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta."
+      },
+      "notReceived": {
+        "question": "¿No recibiste el email?",
+        "instruction": "Haz clic en el botón de abajo para reenviarlo."
+      },
+      "resend": {
+        "sending": "Enviando",
+        "button": "Reenviar email",
+        "buttonWithTimer": "Reenviar email ({{seconds}}s)",
+        "buttonAgain": "Reenviar nuevamente",
+        "buttonSend": "Enviar email de verificación"
+      },
+      "success": {
+        "title": "¡Registro exitoso!",
+        "message": "Te enviamos un correo con el enlace de verificación. Revisá tu bandeja de entrada para activar tu cuenta.",
+        "sent": "Email de verificación enviado correctamente",
+        "info": "Una vez que verifiques tu email, podrás iniciar sesión."
+      }
+    },
+    "password": {
+      "show": "Mostrar contraseña",
+      "hide": "Ocultar contraseña"
     }
   },
   "common": {
