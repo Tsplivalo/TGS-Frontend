@@ -50,29 +50,34 @@ export class SaleService {
   }
 
   /**
-   * GET /api/sales/search?by=client&q=dni - Obtiene las compras del usuario actual
-   * Usa el endpoint de búsqueda para filtrar por DNI del cliente
-   *
-   * @param clientDni - DNI del cliente para filtrar sus compras
+   * GET /api/sales/my-purchases - Obtiene las compras del usuario actual
+   * El backend automáticamente filtra por el DNI del usuario autenticado
    */
-  getMyPurchases(clientDni?: string): Observable<SaleDTO[]> {
-    console.log('[SaleService] 📦 Fetching purchases for client:', clientDni);
+  getMyPurchases(): Observable<SaleDTO[]> {
+    console.log('[SaleService] 📦 Fetching my purchases from:', `${this.base}/my-purchases`);
 
-    // Si no se proporciona DNI, devolver array vacío
-    if (!clientDni) {
-      console.warn('[SaleService] ⚠️ No client DNI provided, returning empty array');
-      return of([]);
-    }
-
-    // Usar endpoint de búsqueda con filtro por cliente
-    return this.searchSales({
-      by: 'client',
-      q: clientDni
+    return this.http.get<ApiResponse<SaleDTO[]>>(`${this.base}/my-purchases`, {
+      withCredentials: true
     }).pipe(
-      map((sales: SaleDTO[]) => {
-        console.log('[SaleService] ✅ Purchases fetched successfully:', sales.length);
-        console.log('[SaleService] 📋 Sales details:', sales);
-        return sales;
+      map((res: any) => {
+        console.log('[SaleService] 📥 Raw response received:', res);
+        console.log('[SaleService] 📊 Response type:', typeof res);
+        console.log('[SaleService] 🔍 Is array?', Array.isArray(res));
+        console.log('[SaleService] 🔍 Has data property?', res?.data !== undefined);
+        console.log('[SaleService] 🔍 Is data array?', Array.isArray(res?.data));
+
+        if (Array.isArray(res)) {
+          console.log('[SaleService] ✅ Using response as direct array. Length:', res.length);
+          return res;
+        }
+        if (res?.data && Array.isArray(res.data)) {
+          console.log('[SaleService] ✅ Using response.data as array. Length:', res.data.length);
+          return res.data;
+        }
+
+        console.warn('[SaleService] ⚠️ Response format not recognized. Returning empty array.');
+        console.warn('[SaleService] 📋 Response structure:', JSON.stringify(res, null, 2));
+        return [];
       })
     );
   }

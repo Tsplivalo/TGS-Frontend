@@ -79,27 +79,17 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    // Obtener el DNI del usuario actual
     const currentUser = this.me();
-    const userDni = currentUser?.person?.dni;
-
     console.log('[MyPurchases] 👤 Usuario actual:', {
       username: currentUser?.username,
-      dni: userDni,
+      email: currentUser?.email,
       hasPersonInfo: !!currentUser?.person
     });
 
-    if (!userDni) {
-      console.warn('[MyPurchases] ⚠️ Usuario no tiene DNI registrado');
-      this.loading.set(false);
-      this.error.set('⚠️ Para ver tus compras, primero debes completar tu información personal (DNI).');
-      return;
-    }
-
     // Cargar ventas y productos en paralelo
-    // Usar endpoint de búsqueda que filtra por DNI del cliente en el backend
+    // El backend automáticamente filtra por el DNI del usuario autenticado
     forkJoin({
-      sales: this.saleService.getMyPurchases(userDni),
+      sales: this.saleService.getMyPurchases(),
       products: this.productService.getAllProducts()
     })
       .pipe(takeUntil(this.destroy$))
