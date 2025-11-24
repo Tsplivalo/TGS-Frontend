@@ -60,7 +60,7 @@ export class NotificationsInboxComponent implements OnInit {
       }
     } catch (err: any) {
       console.error('❌ [NotificationsInbox] Error loading notifications:', err);
-      this.error = err.error?.message || this.t.instant('notifications.errorLoad') || 'Error al cargar las notificaciones';
+      this.error = this.t.instant('notifications.errorLoad') || 'Error al cargar las notificaciones';
     } finally {
       this.loading = false;
     }
