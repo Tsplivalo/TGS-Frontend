@@ -97,45 +97,26 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
     }
 
     // Cargar ventas y productos en paralelo
+    // Usar endpoint de búsqueda que filtra por DNI del cliente en el backend
     forkJoin({
-      sales: this.saleService.getMyPurchases(),
+      sales: this.saleService.getMyPurchases(userDni),
       products: this.productService.getAllProducts()
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ sales, products }) => {
           console.log('[MyPurchases] ✅ Datos recibidos exitosamente');
-          console.log('[MyPurchases] 📦 Total de ventas:', sales.length);
+          console.log('[MyPurchases] 📦 Compras del usuario:', sales.length);
           console.log('[MyPurchases] 🛍️ Productos cargados:', products.length);
+          console.log('[MyPurchases] 📋 Detalle de compras:', sales);
 
-          // Guardar productos
+          // Guardar productos y compras
           this.products.set(products);
-
-          // ✅ FILTRAR ventas por DNI del cliente
-          const myPurchases = sales.filter(sale => {
-            const clientDni = sale.client?.dni;
-            const matches = clientDni === userDni;
-
-            if (matches) {
-              console.log('[MyPurchases] ✅ Compra encontrada:', {
-                saleId: sale.id,
-                clientDni,
-                date: sale.date || sale.saleDate,
-                total: sale.total || sale.amount || sale.saleAmount
-              });
-            }
-
-            return matches;
-          });
-
-          console.log('[MyPurchases] 🔍 Compras filtradas del usuario:', myPurchases.length);
-          console.log('[MyPurchases] 📋 Detalle de compras:', myPurchases);
-
-          this.purchases.set(myPurchases);
+          this.purchases.set(sales);
           this.loading.set(false);
 
           // Validar si hay compras sin detalles
-          const purchasesWithoutDetails = myPurchases.filter(s => !s.details || s.details.length === 0);
+          const purchasesWithoutDetails = sales.filter(s => !s.details || s.details.length === 0);
           if (purchasesWithoutDetails.length > 0) {
             console.warn('[MyPurchases] ⚠️ Encontradas compras sin detalles:', purchasesWithoutDetails.length);
             console.warn('[MyPurchases] 📋 Compras sin detalles:', purchasesWithoutDetails);
@@ -191,34 +172,40 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
     });
 
     if (error.status === 401) {
-      this.error.set('No autorizado. Por favor, inicia sesión nuevamente.');
-    } else if (error.status === 403 || error.status === 404 || error.status === 400) {
-      // Si recibe 403, 404 o 400, mostrar lista vacía CON mensaje informativo
-      // Esto puede pasar si:
-      // - El usuario no tiene compras aún (404)
-      // - El usuario no tiene el rol adecuado (403)
-      // - El endpoint no existe o está en desarrollo (404)
-      // - Datos inválidos (400)
-      console.log('[MyPurchases] ⚠️ Error del servidor:', error.status, error.error?.message || error.message);
+      this.error.set('⚠️ No autorizado. Por favor, inicia sesión nuevamente.');
+    } else if (error.status === 403) {
+      // Error de permisos - probablemente el usuario no tiene acceso al endpoint
+      console.log('[MyPurchases] ⚠️ Error 403 - Sin permisos para acceder al endpoint');
       console.log('[MyPurchases] 📋 Detalle del error:', error.error);
-      console.log('[MyPurchases] Mostrando lista vacía.');
 
       this.purchases.set([]);
       this.products.set([]);
 
-      // Mostrar mensaje informativo en desarrollo
-      const errorMsg = error.error?.message || error.message || 'Error desconocido';
-      this.error.set(`⚠️ Estado ${error.status}: ${errorMsg} (Revisa la consola para más detalles)`);
+      const errorMsg = error.error?.message || error.message || 'No tienes permisos para ver las compras';
+      this.error.set(`⚠️ ${errorMsg}. Si eres cliente, contacta al administrador.`);
+    } else if (error.status === 404) {
+      // No se encontraron compras o el endpoint no existe
+      console.log('[MyPurchases] ℹ️ Error 404 - No se encontraron compras');
+      this.purchases.set([]);
+      this.products.set([]);
+      // No mostrar error para 404 - simplemente mostrar lista vacía
+    } else if (error.status === 400) {
+      // Datos inválidos
+      console.log('[MyPurchases] ⚠️ Error 400 - Datos inválidos');
+      this.purchases.set([]);
+      this.products.set([]);
+
+      const errorMsg = error.error?.message || error.message || 'Datos inválidos';
+      this.error.set(`⚠️ ${errorMsg}. Verifica que tu perfil esté completo.`);
     } else if (error.status >= 500) {
-      // Solo mostrar errores de servidor (5xx)
-      this.error.set('Error del servidor. Por favor, intenta más tarde.');
+      // Errores de servidor
+      this.error.set('⚠️ Error del servidor. Por favor, intenta más tarde.');
     } else {
-      // Para otros errores no comunes, mostrar mensaje informativo
+      // Otros errores
       console.warn('[MyPurchases] ⚠️ Error no manejado:', error.status, error.error?.message || error.message);
-      console.warn('[MyPurchases] 📋 Detalle completo del error:', error);
       this.purchases.set([]);
       this.products.set([]);
-      this.error.set(`⚠️ Error ${error.status}: ${error.error?.message || error.message || 'Error desconocido'} (Revisa la consola)`);
+      this.error.set(`⚠️ Error ${error.status}: ${error.error?.message || error.message || fallbackMessage}`);
     }
   }
 
