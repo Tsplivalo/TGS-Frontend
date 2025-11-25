@@ -32,7 +32,9 @@ export class ProductService {
    * @returns Observable con array de productos
    */
   getAllProducts(): Observable<ProductDTO[]> {
-    return this.http.get<ApiResponse<ProductDTO[]>>(this.base, {
+    // Add timestamp to prevent browser caching
+    const timestamp = new Date().getTime();
+    return this.http.get<ApiResponse<ProductDTO[]>>(`${this.base}?_t=${timestamp}`, {
       withCredentials: true
     }).pipe(
       map((res: any) => ('data' in res ? res.data : res) as ProductDTO[])
