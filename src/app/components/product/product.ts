@@ -244,36 +244,6 @@ export class ProductComponent implements OnInit {
     this.srv.getAllProducts().subscribe({
       next: (r: ApiResponse<ProductDTO[]> | ProductDTO[]) => {
         const data = Array.isArray(r) ? r : (r as any).data;
-        console.log('[ProductComponent] 📥 Products loaded from backend:', data);
-
-        // Log detallado de cada producto
-        if (data && data.length > 0) {
-          data.forEach((p: ProductDTO) => {
-            console.log(`[ProductComponent] Product ${p.id}:`, {
-              description: p.description,
-              distributors: p.distributors,
-              distributorsCount: p.distributors?.length || 0
-            });
-          });
-        }
-
-        // ⚠️ PROTECCIÓN: Si el backend retorna MENOS productos que los que tenemos,
-        // probablemente es caché de Vercel. NO sobrescribir.
-        const currentProducts = this.products();
-        const newProductsCount = data?.length || 0;
-        const currentProductsCount = currentProducts.length;
-
-        if (newProductsCount < currentProductsCount) {
-          console.warn('[ProductComponent] ⚠️ Backend returned LESS products than current state:', {
-            current: currentProductsCount,
-            received: newProductsCount,
-            difference: currentProductsCount - newProductsCount
-          });
-          console.warn('[ProductComponent] ⚠️ Keeping current state to prevent losing recently created products');
-          this.loading.set(false);
-          return; // NO sobrescribir el state
-        }
-
         this.products.set(this.imgSvc.overlay(data ?? []));
         this.loading.set(false);
       },
@@ -382,25 +352,7 @@ export class ProductComponent implements OnInit {
 
       this.srv.createProduct(dtoCreate).subscribe({
         next: (res: any) => {
-          console.log('[ProductComponent] 📥 Response from backend:', res);
-          console.log('[ProductComponent] 📥 Full response object:', JSON.stringify(res, null, 2));
-
           const created = ('data' in res ? res.data : res) as ProductDTO | null;
-
-          console.log('[ProductComponent] 🔍 Created product:', {
-            id: created?.id,
-            description: created?.description,
-            distributors: created?.distributors,
-            distributorsCount: created?.distributors?.length || 0,
-            fullProduct: created
-          });
-
-          // ⚠️ ADVERTENCIA: Si distributors está vacío, el backend NO está retornando la relación
-          if (!created?.distributors || created.distributors.length === 0) {
-            console.error('[ProductComponent] ❌ BACKEND ERROR: Product created WITHOUT distributors!');
-            console.error('[ProductComponent] ❌ The backend should return the product with distributors populated');
-            console.error('[ProductComponent] ❌ Sent distributorsIds:', dtoCreate.distributorsIds);
-          }
 
           if (created?.id) this.imgSvc.set(created.id, img);
           this.loading.set(false);
@@ -408,38 +360,14 @@ export class ProductComponent implements OnInit {
           this.success.set(`Producto "${raw.description}" creado correctamente`);
           this.resetAndClose();
 
-          // ✅ SOLUCIÓN INMEDIATA: Agregar el producto manualmente al state
-          // En lugar de esperar a que Vercel actualice el caché, lo agregamos directamente
-          if (created) {
-            console.log('[ProductComponent] ➕ Adding created product to state manually');
-            const currentProducts = this.products();
-            const productWithImage = this.imgSvc.overlay([created])[0];
-            this.products.set([...currentProducts, productWithImage]);
-          }
-
-          // ⚠️ WORKAROUND para Vercel: Hacer refreshes para sincronizar con backend
-          // Esto asegura que eventualmente tengamos la versión del servidor
-          setTimeout(() => {
-            console.log('[ProductComponent] 🔄 Second refresh after creation (2s)...');
-            this.load();
-          }, 2000);
-
-          setTimeout(() => {
-            console.log('[ProductComponent] 🔄 Third refresh after creation (4s)...');
-            this.load();
-          }, 4000);
-
-          setTimeout(() => {
-            console.log('[ProductComponent] 🔄 Fourth refresh after creation (6s)...');
-            this.load();
-          }, 6000);
+          // Refresh the product list to show the newly created product
+          this.load();
 
           setTimeout(() => this.success.set(null), 5000);
         },
         error: err => {
           this.loading.set(false);
           this.error.set(this.parseErrorMessage(err, 'crear'));
-          console.error('[ProductComponent] ❌ Error creating product:', err);
         }
       });
     } else {
