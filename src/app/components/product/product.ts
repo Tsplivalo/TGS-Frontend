@@ -257,6 +257,23 @@ export class ProductComponent implements OnInit {
           });
         }
 
+        // ⚠️ PROTECCIÓN: Si el backend retorna MENOS productos que los que tenemos,
+        // probablemente es caché de Vercel. NO sobrescribir.
+        const currentProducts = this.products();
+        const newProductsCount = data?.length || 0;
+        const currentProductsCount = currentProducts.length;
+
+        if (newProductsCount < currentProductsCount) {
+          console.warn('[ProductComponent] ⚠️ Backend returned LESS products than current state:', {
+            current: currentProductsCount,
+            received: newProductsCount,
+            difference: currentProductsCount - newProductsCount
+          });
+          console.warn('[ProductComponent] ⚠️ Keeping current state to prevent losing recently created products');
+          this.loading.set(false);
+          return; // NO sobrescribir el state
+        }
+
         this.products.set(this.imgSvc.overlay(data ?? []));
         this.loading.set(false);
       },
