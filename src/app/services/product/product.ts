@@ -32,10 +32,16 @@ export class ProductService {
    * @returns Observable con array de productos
    */
   getAllProducts(): Observable<ProductDTO[]> {
-    // Add timestamp to prevent browser caching
+    // Add timestamp to prevent browser and Vercel caching
     const timestamp = new Date().getTime();
-    return this.http.get<ApiResponse<ProductDTO[]>>(`${this.base}?_t=${timestamp}`, {
-      withCredentials: true
+    const random = Math.random().toString(36).substring(7);
+    return this.http.get<ApiResponse<ProductDTO[]>>(`${this.base}?_t=${timestamp}&_r=${random}`, {
+      withCredentials: true,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     }).pipe(
       map((res: any) => ('data' in res ? res.data : res) as ProductDTO[])
     );

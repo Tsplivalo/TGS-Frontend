@@ -366,6 +366,7 @@ export class ProductComponent implements OnInit {
       this.srv.createProduct(dtoCreate).subscribe({
         next: (res: any) => {
           console.log('[ProductComponent] 📥 Response from backend:', res);
+          console.log('[ProductComponent] 📥 Full response object:', JSON.stringify(res, null, 2));
 
           const created = ('data' in res ? res.data : res) as ProductDTO | null;
 
@@ -373,8 +374,16 @@ export class ProductComponent implements OnInit {
             id: created?.id,
             description: created?.description,
             distributors: created?.distributors,
-            distributorsCount: created?.distributors?.length || 0
+            distributorsCount: created?.distributors?.length || 0,
+            fullProduct: created
           });
+
+          // ⚠️ ADVERTENCIA: Si distributors está vacío, el backend NO está retornando la relación
+          if (!created?.distributors || created.distributors.length === 0) {
+            console.error('[ProductComponent] ❌ BACKEND ERROR: Product created WITHOUT distributors!');
+            console.error('[ProductComponent] ❌ The backend should return the product with distributors populated');
+            console.error('[ProductComponent] ❌ Sent distributorsIds:', dtoCreate.distributorsIds);
+          }
 
           if (created?.id) this.imgSvc.set(created.id, img);
           this.loading.set(false);
@@ -382,6 +391,18 @@ export class ProductComponent implements OnInit {
           this.success.set(`Producto "${raw.description}" creado correctamente`);
           this.resetAndClose();
           this.load();
+
+          // ⚠️ WORKAROUND para Vercel: Hacer múltiples refreshes para romper el caché
+          // Vercel puede cachear las respuestas de la API
+          setTimeout(() => {
+            console.log('[ProductComponent] 🔄 Second refresh after creation (1s)...');
+            this.load();
+          }, 1000);
+
+          setTimeout(() => {
+            console.log('[ProductComponent] 🔄 Third refresh after creation (2s)...');
+            this.load();
+          }, 2000);
 
           setTimeout(() => this.success.set(null), 5000);
         },
