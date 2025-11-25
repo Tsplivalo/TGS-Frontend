@@ -16,7 +16,7 @@ describe('BribeService', () => {
 
   const mockBribe: BribeDTO = {
     id: 1,
-    amount: 5000,
+    totalAmount: 5000,
     paid: false,
     creationDate: '2024-01-15T00:00:00.000Z',
     authority: {
@@ -30,7 +30,7 @@ describe('BribeService', () => {
 
   const mockBribe2: BribeDTO = {
     id: 2,
-    amount: 10000,
+    totalAmount: 10000,
     paid: true,
     creationDate: '2024-01-20T00:00:00.000Z',
     authority: {
@@ -294,7 +294,7 @@ describe('BribeService', () => {
       service.getBribeById(1).subscribe(response => {
         expect(response.success).toBe(true);
         expect(response.data.id).toBe(1);
-        expect(response.data.amount).toBe(5000);
+        expect(response.data.totalAmount).toBe(5000);
       });
 
       const req = httpMock.expectOne(`${apiUrl}/1`);
@@ -354,7 +354,7 @@ describe('BribeService', () => {
 
   describe('createBribe()', () => {
     const createData: CreateBribeDTO = {
-      amount: 7500,
+      totalAmount: 7500,
       authorityId: '11111111',
       saleId: 103
     };
@@ -365,7 +365,7 @@ describe('BribeService', () => {
         message: 'Bribe created successfully',
         data: {
           id: 3,
-          amount: 7500,
+          totalAmount: 7500,
           paid: false,
           creationDate: '2024-03-01T00:00:00.000Z',
           authority: {
@@ -380,7 +380,7 @@ describe('BribeService', () => {
 
       service.createBribe(createData).subscribe(response => {
         expect(response.success).toBe(true);
-        expect(response.data.amount).toBe(7500);
+        expect(response.data.totalAmount).toBe(7500);
       });
 
       const req = httpMock.expectOne(apiUrl);
@@ -392,7 +392,7 @@ describe('BribeService', () => {
 
     it('should handle validation errors on create', () => {
       const invalidData: CreateBribeDTO = {
-        amount: -1000,
+        totalAmount: -1000,
         authorityId: '',
         saleId: 0
       };
@@ -444,7 +444,7 @@ describe('BribeService', () => {
 
   describe('updateBribe()', () => {
     const updateData: UpdateBribeDTO = {
-      amount: 8000
+      totalAmount: 8000
     };
 
     it('should update an existing bribe', () => {
@@ -453,13 +453,13 @@ describe('BribeService', () => {
         message: 'Bribe updated successfully',
         data: {
           ...mockBribe,
-          amount: 8000
+          totalAmount: 8000
         }
       };
 
       service.updateBribe(1, updateData).subscribe(response => {
         expect(response.success).toBe(true);
-        expect(response.data.amount).toBe(8000);
+        expect(response.data.totalAmount).toBe(8000);
       });
 
       const req = httpMock.expectOne(`${apiUrl}/1`);
@@ -494,7 +494,7 @@ describe('BribeService', () => {
         data: mockBribe
       };
 
-      service.updateBribe(1, { amount: 6000 }).subscribe();
+      service.updateBribe(1, { totalAmount: 6000 }).subscribe();
 
       const req = httpMock.expectOne(`${apiUrl}/1`);
       expect(req.request.method).toBe('PATCH');
@@ -503,7 +503,7 @@ describe('BribeService', () => {
 
     it('should handle validation error on update', () => {
       const invalidUpdate: UpdateBribeDTO = {
-        amount: -5000
+        totalAmount: -5000
       };
 
       service.updateBribe(1, invalidUpdate).subscribe(
@@ -514,7 +514,7 @@ describe('BribeService', () => {
       );
 
       const req = httpMock.expectOne(`${apiUrl}/1`);
-      req.flush('Invalid amount', { status: 400, statusText: 'Bad Request' });
+      req.flush('Invalid totalAmount', { status: 400, statusText: 'Bad Request' });
     });
 
     it('should include withCredentials in update request', () => {
