@@ -287,7 +287,7 @@ export class StoreComponent implements OnInit {
 
         // Log products with their distributors
         if (data && data.length > 0) {
-          const productsWithDistributors = data.filter(p => p.distributors && p.distributors.length > 0);
+          const productsWithDistributors = data.filter((p: ProductDTO) => p.distributors && p.distributors.length > 0);
           console.log('[StoreComponent] 📊 Products with distributors:', productsWithDistributors.length, '/', data.length);
 
           if (productsWithDistributors.length < data.length) {
