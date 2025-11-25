@@ -139,7 +139,7 @@
       <tbody>
         <tr *ngFor="let b of filteredBribes(); trackBy: trackById">
           <td [attr.data-label]="'bribes.table.id' | translate">#{{ b.id }}</td>
-          <td [attr.data-label]="'bribes.table.amount' | translate"><strong>{{ b.amount | currency:'ARS':'symbol':'1.2-2' }}</strong></td>
+          <td [attr.data-label]="'bribes.table.amount' | translate"><strong>{{ b.totalAmount | currency:'ARS':'symbol':'1.2-2' }}</strong></td>
           <td [attr.data-label]="'bribes.table.authority' | translate">
             <div class="cell-content">
               <strong>{{ b.authority.name || '—'}}</strong>
