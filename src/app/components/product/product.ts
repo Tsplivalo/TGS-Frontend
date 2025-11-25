@@ -390,19 +390,32 @@ export class ProductComponent implements OnInit {
 
           this.success.set(`Producto "${raw.description}" creado correctamente`);
           this.resetAndClose();
-          this.load();
 
-          // ⚠️ WORKAROUND para Vercel: Hacer múltiples refreshes para romper el caché
-          // Vercel puede cachear las respuestas de la API
-          setTimeout(() => {
-            console.log('[ProductComponent] 🔄 Second refresh after creation (1s)...');
-            this.load();
-          }, 1000);
+          // ✅ SOLUCIÓN INMEDIATA: Agregar el producto manualmente al state
+          // En lugar de esperar a que Vercel actualice el caché, lo agregamos directamente
+          if (created) {
+            console.log('[ProductComponent] ➕ Adding created product to state manually');
+            const currentProducts = this.products();
+            const productWithImage = this.imgSvc.overlay([created])[0];
+            this.products.set([...currentProducts, productWithImage]);
+          }
 
+          // ⚠️ WORKAROUND para Vercel: Hacer refreshes para sincronizar con backend
+          // Esto asegura que eventualmente tengamos la versión del servidor
           setTimeout(() => {
-            console.log('[ProductComponent] 🔄 Third refresh after creation (2s)...');
+            console.log('[ProductComponent] 🔄 Second refresh after creation (2s)...');
             this.load();
           }, 2000);
+
+          setTimeout(() => {
+            console.log('[ProductComponent] 🔄 Third refresh after creation (4s)...');
+            this.load();
+          }, 4000);
+
+          setTimeout(() => {
+            console.log('[ProductComponent] 🔄 Fourth refresh after creation (6s)...');
+            this.load();
+          }, 6000);
 
           setTimeout(() => this.success.set(null), 5000);
         },
