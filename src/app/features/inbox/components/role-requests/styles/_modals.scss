@@ -1,0 +1,348 @@
+@use 'variables' as *;
+
+/* ====== Modal Overlay ====== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: $spacing-md;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+/* ====== Modal Base ====== */
+.modal {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95));
+  border: 1px solid $border-glass;
+  border-radius: $border-radius;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 1px rgba(255, 255, 255, 0.08);
+  animation: slideUp 0.3s ease;
+  backdrop-filter: blur(20px);
+
+  /* Custom Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(195, 164, 98, 0.5) rgba(255, 255, 255, 0.1);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(195, 164, 98, 0.5);
+    border-radius: 10px;
+
+    &:hover {
+      background: rgba(195, 164, 98, 0.7);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-lg;
+    border-bottom: 1px solid $border-glass;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: $text-strong;
+      font-family: 'Google Sans Code', monospace;
+      letter-spacing: 0.3px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: $text-muted;
+      cursor: pointer;
+      transition: color 0.2s, transform 0.2s;
+      line-height: 1;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: $text-strong;
+        transform: rotate(90deg);
+      }
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: $spacing-lg;
+      flex: 1;
+
+      .subtitle {
+        margin: 4px 0 0;
+        color: $text-muted;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .step-indicator {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+
+        .step {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.05);
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          color: $text-muted;
+          font-weight: 700;
+          font-size: 0.875rem;
+          transition: all 0.3s ease;
+
+          &.active {
+            background: linear-gradient(135deg, rgba($primary-color, 0.3), rgba($primary-color, 0.15));
+            border-color: $primary-color;
+            color: $primary-color;
+            box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+          }
+
+          &.completed {
+            background: linear-gradient(135deg, rgba($success-color, 0.3), rgba($success-color, 0.15));
+            border-color: $success-color;
+            color: $success-color;
+          }
+        }
+
+        .step-divider {
+          width: 32px;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.1);
+          transition: background 0.3s ease;
+
+          &.completed {
+            background: $success-color;
+          }
+        }
+      }
+
+      > div {
+        flex: 1;
+      }
+    }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+  }
+
+  .modal-body {
+    padding: $spacing-lg;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+    padding: $spacing-lg;
+    border-top: 1px solid $border-glass;
+  }
+}
+
+/* Glass Modal - Diseño mejorado */
+.glass-modal {
+  background: rgba(14, 15, 17, 0.95) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+  border: 1px solid rgba(195, 164, 98, 0.25) !important;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Review Modal */
+.review-modal {
+  .modal-header {
+    background: linear-gradient(135deg, rgba($primary-color, 0.08), rgba($primary-color, 0.03));
+    border-bottom: 1px solid rgba($primary-color, 0.2);
+
+    .header-content {
+      flex: 1;
+
+      .subtitle {
+        margin: 4px 0 0;
+        color: $text-muted;
+        font-size: 0.875rem;
+        font-weight: 600;
+        font-family: inherit;
+      }
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-md;
+    padding: $spacing-lg;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.15);
+    margin: 0 (-$spacing-lg) (-$spacing-lg);
+    border-radius: 0 0 $border-radius $border-radius;
+  }
+}
+
+/* Action Selector (Admin Review Modal) */
+.action-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  .action-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-lg;
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid $border-glass;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+    backdrop-filter: blur(8px);
+
+    .action-icon {
+      font-size: 3rem;
+      margin-bottom: $spacing-sm;
+    }
+
+    .action-label {
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.3px;
+    }
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    &.approve {
+      &:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1));
+        border-color: rgba(16, 185, 129, 0.4);
+      }
+
+      &.selected {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
+        border-color: rgba(16, 185, 129, 0.6);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+
+        .action-label {
+          color: #6ee7b7;
+        }
+      }
+    }
+
+    &.reject {
+      &:hover {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+        border-color: rgba(239, 68, 68, 0.4);
+      }
+
+      &.selected {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.15));
+        border-color: rgba(239, 68, 68, 0.6);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+
+        .action-label {
+          color: #fca5a5;
+        }
+      }
+    }
+  }
+}
+
+/* Step Indicator (Modal) */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md 0;
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    color: $text-muted;
+    font-weight: 700;
+    font-size: 0.85rem;
+
+    .step-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid $border-glass;
+    }
+
+    &.active {
+      color: $primary-color;
+
+      .step-number {
+        background: linear-gradient(180deg, rgba(195, 164, 98, 0.3), rgba(195, 164, 98, 0.2));
+        border-color: $primary-color;
+      }
+    }
+
+    &.completed {
+      color: $success-color;
+
+      .step-number {
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.2));
+        border-color: $success-color;
+      }
+    }
+  }
+
+  .step-divider {
+    width: 40px;
+    height: 2px;
+    background: $border-glass;
+    transition: background 0.3s ease;
+
+    &.completed {
+      background: $success-color;
+    }
+  }
+}

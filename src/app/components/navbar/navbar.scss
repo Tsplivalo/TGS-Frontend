@@ -218,8 +218,9 @@
   pointer-events: auto;
 }
 
-/* ✅ MEJORA: Activar dropdown al hacer hover sobre el item padre */
-.menu__item--dropdown:hover>.dropdown {
+/* ✅ MEJORA: Activar dropdown al hacer hover sobre el item padre o cuando tiene clase .open */
+.menu__item--dropdown:hover>.dropdown,
+.menu__item--dropdown.open>.dropdown {
   visibility: visible;
   opacity: 1;
   transform: translateY(0);
@@ -367,7 +368,8 @@
 }
 
 /* ✅ MEJORA: Chevron rota cuando el dropdown está visible */
-.menu__item--dropdown:hover .dropdown__toggle .chevron {
+.menu__item--dropdown:hover .dropdown__toggle .chevron,
+.menu__item--dropdown.open .dropdown__toggle .chevron {
   transform: rotate(180deg);
 }
 

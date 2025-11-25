@@ -1,0 +1,700 @@
+@use 'variables' as *;
+
+// ============================================================================
+// TABLET AND BELOW (max-width: 768px)
+// ============================================================================
+
+@media (max-width: 768px) {
+  // Headers
+  .user-role-requests-inbox,
+  .admin-role-requests-inbox {
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  }
+
+  // Info Button and Tooltip
+  .info-button-wrapper {
+    position: relative;
+
+    .info-tooltip {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 1001;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+      &::before {
+        display: none;
+      }
+    }
+  }
+
+  // Filters Bar
+  .filters-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .filter-group {
+      width: 100%;
+
+      label {
+        width: 100px;
+      }
+
+      select {
+        flex: 1;
+      }
+    }
+
+    .search-box {
+      width: 100%;
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+
+  // Role Request Cards
+  .role-request-card,
+  .user-verification-card {
+    padding: 1rem;
+
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+
+      .user-info {
+        width: 100%;
+
+        .user-name {
+          font-size: 1rem;
+        }
+
+        .user-email {
+          font-size: 0.875rem;
+        }
+      }
+
+      .status-badge {
+        align-self: flex-start;
+      }
+    }
+
+    .card-content {
+      .info-section {
+        .info-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.25rem;
+
+          .info-label {
+            font-weight: 600;
+          }
+        }
+      }
+
+      .role-info {
+        flex-direction: column;
+        gap: 0.5rem;
+
+        .info-item {
+          width: 100%;
+        }
+      }
+    }
+
+    .card-actions {
+      flex-direction: column;
+      gap: 0.5rem;
+      padding-top: 1rem;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  // Action Selector
+  .action-selector {
+    flex-direction: column;
+    gap: 0.75rem;
+
+    button {
+      width: 100%;
+      padding: 1rem;
+    }
+  }
+
+  // Modal Components
+  .modal {
+    .modal-content {
+      width: 95%;
+      max-width: 95%;
+      max-height: 90vh;
+      margin: 1rem;
+      padding: 1.5rem;
+    }
+
+    .modal-header {
+      h2 {
+        font-size: 1.25rem;
+      }
+    }
+
+    .modal-body {
+      padding: 1rem 0;
+      max-height: calc(90vh - 180px);
+    }
+
+    .modal-actions {
+      flex-direction: column;
+      gap: 0.75rem;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  // Roles Grid
+  .roles-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  // Role Card
+  .role-card {
+    padding: 1rem;
+
+    .role-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+
+      .role-name {
+        font-size: 1rem;
+      }
+    }
+
+    .role-description {
+      font-size: 0.875rem;
+    }
+  }
+
+  // Toggle Label
+  .toggle-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+
+    .toggle-text {
+      text-align: left;
+    }
+  }
+
+  // Textarea Wrapper
+  .textarea-wrapper {
+    textarea {
+      min-height: 120px;
+      font-size: 0.875rem;
+    }
+
+    .char-counter {
+      font-size: 0.75rem;
+    }
+  }
+
+  // Summary Card
+  .summary-card {
+    padding: 1rem;
+
+    .summary-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+
+      .summary-label {
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Role Change Display
+  .role-change-display {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+
+    .arrow-icon {
+      transform: rotate(90deg);
+    }
+
+    .role-item {
+      width: 100%;
+    }
+  }
+
+  // Decision Options
+  .decision-options {
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .decision-button {
+      width: 100%;
+      padding: 1rem;
+    }
+  }
+
+  // Additional Data Components
+  .additional-data-card {
+    padding: 1rem;
+
+    .data-header {
+      h3 {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .additional-data-box {
+    padding: 1rem;
+
+    .data-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+
+      .data-label {
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Products Grid
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+
+    .product-item {
+      padding: 0.75rem;
+
+      .product-name {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Info Box and Alerts
+  .info-box,
+  .alert {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+
+    .icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  // Review Modal
+  .review-modal {
+    .review-section {
+      padding: 1rem;
+
+      h3 {
+        font-size: 1rem;
+      }
+    }
+
+    .review-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+
+      .item-label {
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Notification Toast
+  .notification-toast {
+    width: calc(100% - 2rem);
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+}
+
+// ============================================================================
+// MOBILE (max-width: 480px)
+// ============================================================================
+
+@media (max-width: 480px) {
+  // Headers
+  .user-role-requests-inbox,
+  .admin-role-requests-inbox {
+    .header {
+      padding: 0.75rem;
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      .header-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  // Info Tooltip
+  .info-button-wrapper {
+    .info-tooltip {
+      width: 95%;
+      padding: 1rem;
+      font-size: 0.875rem;
+
+      h3 {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  // Filters Bar
+  .filters-bar {
+    gap: 0.5rem;
+
+    .filter-group {
+      flex-direction: column;
+      align-items: flex-start;
+
+      label {
+        width: 100%;
+        margin-bottom: 0.25rem;
+      }
+
+      select {
+        width: 100%;
+      }
+    }
+  }
+
+  // Role Request Cards
+  .role-request-card,
+  .user-verification-card {
+    padding: 0.75rem;
+
+    .card-header {
+      .user-info {
+        .user-name {
+          font-size: 0.9375rem;
+        }
+
+        .user-email {
+          font-size: 0.8125rem;
+        }
+      }
+
+      .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+      }
+    }
+
+    .card-content {
+      font-size: 0.875rem;
+
+      .info-section {
+        gap: 0.5rem;
+      }
+    }
+
+    .card-actions {
+      gap: 0.5rem;
+
+      button {
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Action Selector
+  .action-selector {
+    gap: 0.5rem;
+
+    button {
+      padding: 0.75rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  // Modal Components
+  .modal {
+    .modal-content {
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      margin: 0;
+      padding: 1rem;
+      border-radius: 0;
+    }
+
+    .modal-header {
+      padding: 0 0 1rem 0;
+
+      h2 {
+        font-size: 1.125rem;
+      }
+
+      .close-button {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .modal-body {
+      font-size: 0.875rem;
+      max-height: calc(100vh - 160px);
+    }
+
+    .modal-actions {
+      gap: 0.5rem;
+      padding-top: 1rem;
+
+      button {
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Role Card
+  .role-card {
+    padding: 0.75rem;
+
+    .role-header {
+      .role-name {
+        font-size: 0.9375rem;
+      }
+
+      .role-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+      }
+    }
+
+    .role-description {
+      font-size: 0.8125rem;
+    }
+
+    .role-permissions {
+      font-size: 0.8125rem;
+
+      li {
+        padding-left: 0.25rem;
+      }
+    }
+  }
+
+  // Toggle Label
+  .toggle-label {
+    .toggle-text {
+      font-size: 0.875rem;
+    }
+
+    .toggle-switch {
+      transform: scale(0.9);
+    }
+  }
+
+  // Textarea Wrapper
+  .textarea-wrapper {
+    textarea {
+      min-height: 100px;
+      font-size: 0.8125rem;
+      padding: 0.625rem;
+    }
+
+    .char-counter {
+      font-size: 0.6875rem;
+    }
+  }
+
+  // Summary Card
+  .summary-card {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+
+    .summary-row {
+      gap: 0.25rem;
+    }
+  }
+
+  // Role Change Display
+  .role-change-display {
+    padding: 0.75rem;
+
+    .role-item {
+      padding: 0.75rem;
+      font-size: 0.875rem;
+
+      .role-label {
+        font-size: 0.75rem;
+      }
+
+      .role-name {
+        font-size: 0.9375rem;
+      }
+    }
+
+    .arrow-icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  // Decision Options
+  .decision-options {
+    gap: 0.5rem;
+
+    .decision-button {
+      padding: 0.75rem;
+      font-size: 0.875rem;
+
+      .icon {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  // Additional Data Components
+  .additional-data-card {
+    padding: 0.75rem;
+
+    .data-header {
+      h3 {
+        font-size: 0.9375rem;
+      }
+    }
+  }
+
+  .additional-data-box {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+
+    .data-row {
+      .data-label {
+        font-size: 0.8125rem;
+      }
+
+      .data-value {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Products Grid
+  .products-grid {
+    gap: 0.5rem;
+
+    .product-item {
+      padding: 0.625rem;
+
+      .product-name {
+        font-size: 0.8125rem;
+      }
+
+      .product-price {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Info Box and Alerts
+  .info-box,
+  .alert {
+    padding: 0.625rem;
+    font-size: 0.8125rem;
+
+    .icon {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  // Review Modal
+  .review-modal {
+    .review-section {
+      padding: 0.75rem;
+
+      h3 {
+        font-size: 0.9375rem;
+      }
+    }
+
+    .review-item {
+      font-size: 0.875rem;
+
+      .item-label {
+        font-size: 0.8125rem;
+      }
+    }
+
+    .review-actions {
+      flex-direction: column;
+      gap: 0.5rem;
+
+      button {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  // Notification Toast
+  .notification-toast {
+    width: calc(100% - 1rem);
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+
+    .toast-message {
+      font-size: 0.8125rem;
+    }
+
+    .toast-close {
+      width: 28px;
+      height: 28px;
+    }
+  }
+}

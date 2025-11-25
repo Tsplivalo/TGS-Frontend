@@ -62,19 +62,6 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
     });
   });
 
-  stats = computed(() => {
-    const purchases = this.purchases();
-    const totalPurchases = purchases.length;
-    const totalSpent = purchases.reduce((sum, p) => {
-      return sum + this.getTotal(p);
-    }, 0);
-
-    return {
-      totalPurchases,
-      totalSpent
-    };
-  });
-
   ngOnInit(): void {
     this.loadPurchases();
   }
@@ -88,11 +75,19 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
    * Carga las compras del usuario actual y la lista de productos
    */
   private loadPurchases(): void {
+    console.log('[MyPurchases] 🔄 Iniciando carga de compras...');
     this.loading.set(true);
     this.error.set(null);
 
+    const currentUser = this.me();
+    console.log('[MyPurchases] 👤 Usuario actual:', {
+      username: currentUser?.username,
+      email: currentUser?.email,
+      hasPersonInfo: !!currentUser?.person
+    });
+
     // Cargar ventas y productos en paralelo
-    // Usamos getMyPurchases() que ya filtra las compras del usuario en el backend
+    // El backend automáticamente filtra por el DNI del usuario autenticado
     forkJoin({
       sales: this.saleService.getMyPurchases(),
       products: this.productService.getAllProducts()
@@ -100,17 +95,25 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ sales, products }) => {
-          // Guardar productos
-          this.products.set(products);
-
+          console.log('[MyPurchases] ✅ Datos recibidos exitosamente');
           console.log('[MyPurchases] 📦 Compras del usuario:', sales.length);
           console.log('[MyPurchases] 🛍️ Productos cargados:', products.length);
+          console.log('[MyPurchases] 📋 Detalle de compras:', sales);
 
-          // Las compras ya vienen filtradas del backend
+          // Guardar productos y compras
+          this.products.set(products);
           this.purchases.set(sales);
           this.loading.set(false);
+
+          // Validar si hay compras sin detalles
+          const purchasesWithoutDetails = sales.filter(s => !s.details || s.details.length === 0);
+          if (purchasesWithoutDetails.length > 0) {
+            console.warn('[MyPurchases] ⚠️ Encontradas compras sin detalles:', purchasesWithoutDetails.length);
+            console.warn('[MyPurchases] 📋 Compras sin detalles:', purchasesWithoutDetails);
+          }
         },
         error: (err: HttpErrorResponse) => {
+          console.error('[MyPurchases] ❌ Error al cargar datos');
           this.loading.set(false);
           this.handleError(err, 'Error al cargar las compras');
         }
@@ -150,23 +153,49 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
    * Maneja errores HTTP
    */
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
+    console.error('[MyPurchases] ❌ Error HTTP detectado:', {
+      status: error.status,
+      statusText: error.statusText,
+      message: error.message,
+      error: error.error,
+      url: error.url
+    });
+
     if (error.status === 401) {
-      this.error.set('No autorizado. Por favor, inicia sesión nuevamente.');
+      this.error.set('⚠️ No autorizado. Por favor, inicia sesión nuevamente.');
     } else if (error.status === 403) {
-      // Si recibe 403, mostrar lista vacía en lugar de error
-      // Esto puede pasar si el usuario no tiene el rol adecuado o el endpoint no existe
-      console.log('[MyPurchases] ⚠️ Acceso denegado (403). Mostrando lista vacía.');
+      // Error de permisos - probablemente el usuario no tiene acceso al endpoint
+      console.log('[MyPurchases] ⚠️ Error 403 - Sin permisos para acceder al endpoint');
+      console.log('[MyPurchases] 📋 Detalle del error:', error.error);
+
       this.purchases.set([]);
       this.products.set([]);
+
+      const errorMsg = error.error?.message || error.message || 'No tienes permisos para ver las compras';
+      this.error.set(`⚠️ ${errorMsg}. Si eres cliente, contacta al administrador.`);
     } else if (error.status === 404) {
-      // El endpoint no existe en el backend
-      console.warn('[MyPurchases] ⚠️ Endpoint /api/sales/my-purchases no encontrado (404). Mostrando lista vacía.');
+      // No se encontraron compras o el endpoint no existe
+      console.log('[MyPurchases] ℹ️ Error 404 - No se encontraron compras');
       this.purchases.set([]);
       this.products.set([]);
-    } else if (error.error?.message) {
-      this.error.set(error.error.message);
+      // No mostrar error para 404 - simplemente mostrar lista vacía
+    } else if (error.status === 400) {
+      // Datos inválidos
+      console.log('[MyPurchases] ⚠️ Error 400 - Datos inválidos');
+      this.purchases.set([]);
+      this.products.set([]);
+
+      const errorMsg = error.error?.message || error.message || 'Datos inválidos';
+      this.error.set(`⚠️ ${errorMsg}. Verifica que tu perfil esté completo.`);
+    } else if (error.status >= 500) {
+      // Errores de servidor
+      this.error.set('⚠️ Error del servidor. Por favor, intenta más tarde.');
     } else {
-      this.error.set(fallbackMessage);
+      // Otros errores
+      console.warn('[MyPurchases] ⚠️ Error no manejado:', error.status, error.error?.message || error.message);
+      this.purchases.set([]);
+      this.products.set([]);
+      this.error.set(`⚠️ Error ${error.status}: ${error.error?.message || error.message || fallbackMessage}`);
     }
   }
 

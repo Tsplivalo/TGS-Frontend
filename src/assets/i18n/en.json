@@ -71,6 +71,7 @@
       "avgSpent": "Average per purchase"
     },
     "filters": {
+      "search": "Search purchases",
       "searchPlaceholder": "Search by product, date, distributor or amount..."
     },
     "empty": {
@@ -126,15 +127,22 @@
     },
     "infoSection": {
       "title": "Account information",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
       "status": "Account status:",
-      "active": "âœ“ Active",
+      "active": "✓ Active",
       "inactive": "Inactive",
       "emailVerified": "Email verified:",
       "adminVerified": "Admin verified",
       "emailVerifiedYes": "Yes",
       "emailVerifiedNo": "No",
       "roles": "Roles:",
-      "memberSince": "Member since:"
+      "memberSince": "Member since:",
+      "tooltips": {
+        "emailVerified": "Email verified",
+        "emailNotVerified": "Email not verified"
+      }
     },
     "readonlyNote": "ℹ️ Personal data cannot be modified once completed."
   },
@@ -266,11 +274,11 @@
       "title": "Reset password",
       "subtitle": "Enter your new password",
       "newPasswordLabel": "New password",
-      "passwordPlaceholder": "Minimum 12 characters",
+      "passwordPlaceholder": "Minimum 8 characters",
       "confirmPasswordLabel": "Confirm password",
       "confirmPlaceholder": "Re-enter your password",
       "requirementsTitle": "Password requirements:",
-      "minLength": "Minimum 12 characters",
+      "minLength": "Minimum 8 characters",
       "uppercase": "At least one uppercase letter (A-Z)",
       "lowercase": "At least one lowercase letter (a-z)",
       "number": "At least one number (0-9)",
@@ -289,7 +297,7 @@
         "linkInvalid": "This link is invalid",
         "validationFailed": "Error validating link",
         "passwordsMismatch": "Passwords do not match",
-        "minLengthError": "Password must be at least 12 characters",
+        "minLengthError": "Password must be at least 8 characters",
         "uppercaseError": "Password must contain at least one uppercase letter",
         "lowercaseError": "Password must contain at least one lowercase letter",
         "numberError": "Password must contain at least one number",
@@ -374,6 +382,42 @@
       "one": "Create your account or log in.",
       "two": "Load products and customers.",
       "three": "Activate your sales and management flows."
+    },
+    "verification": {
+      "waiting": {
+        "title": "Waiting for email verification...",
+        "message": "We have sent an email to your address. Click the link to verify your account and access automatically."
+      },
+      "unverified": {
+        "title": "Email not verified",
+        "message": "You must verify your email before you can access.",
+        "close": "Close"
+      },
+      "sent": {
+        "title": "Verification email sent",
+        "message": "Check your inbox and click the link to verify your account."
+      },
+      "notReceived": {
+        "question": "Didn't receive the email?",
+        "instruction": "Click the button below to resend it."
+      },
+      "resend": {
+        "sending": "Sending",
+        "button": "Resend email",
+        "buttonWithTimer": "Resend email ({{seconds}}s)",
+        "buttonAgain": "Resend again",
+        "buttonSend": "Send verification email"
+      },
+      "success": {
+        "title": "Registration successful!",
+        "message": "We sent you an email with the verification link. Check your inbox to activate your account.",
+        "sent": "Verification email sent successfully",
+        "info": "Once you verify your email, you can log in."
+      }
+    },
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
     }
   },
   "common": {

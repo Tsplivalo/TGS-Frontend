@@ -86,8 +86,8 @@ export class ResetPasswordComponent implements OnInit {
       return;
     }
 
-    // Validate password requirements (12 chars, uppercase, lowercase, number, special)
-    if (this.newPassword.length < 12) {
+    // Validate password requirements (8 chars, uppercase, lowercase, number, special)
+    if (this.newPassword.length < 8) {
       this.error.set(this.translate.instant('auth.resetPassword.errors.minLengthError'));
       return;
     }

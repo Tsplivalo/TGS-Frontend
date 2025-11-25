@@ -1,0 +1,432 @@
+@use 'sass:color';
+@use 'variables' as *;
+
+/* ====== Forms and Inputs ====== */
+
+/* FIX GLOBAL - Opciones de select visibles */
+select {
+  option {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    padding: 8px !important;
+    font-weight: 600 !important;
+
+    &:hover,
+    &:focus,
+    &:checked {
+      background: #334155 !important;
+      color: $primary-color !important;
+    }
+  }
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: $spacing-lg;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-sm;
+    font-weight: 700;
+    color: $text-light;
+    font-size: 0.9rem;
+    letter-spacing: 0.2px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: $spacing-md;
+    border: 1px solid $border-glass;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: $text-strong;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(195, 164, 98, 0.6);
+      box-shadow: 0 0 0 3px rgba(195, 164, 98, 0.15);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &::placeholder {
+      color: $text-muted;
+    }
+  }
+
+  textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+
+  .helper-text {
+    margin-top: $spacing-xs;
+    font-size: 0.8rem;
+    color: $text-muted;
+    font-weight: 600;
+  }
+}
+
+/* Section Label */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: $text-strong;
+  font-family: 'Google Sans Code', monospace;
+
+  .icon {
+    font-size: 1.25rem;
+  }
+
+  .required {
+    color: $danger-color;
+    margin-left: 2px;
+  }
+
+  .optional {
+    color: $text-muted;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    margin-left: 4px;
+  }
+}
+
+/* Select Input */
+.select-input,
+.filter-select {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: $border-radius;
+  color: $text-strong;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba($primary-color, 0.3);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.filter-select {
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $border-glass;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.875rem;
+}
+
+/* Text Input */
+.text-input {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: $border-radius;
+  color: $text-strong;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Textarea Wrapper */
+.textarea-wrapper {
+  position: relative;
+
+  .textarea-input {
+    width: 100%;
+    min-height: 100px;
+    padding: $spacing-md;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: $border-radius;
+    color: $text-strong;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    resize: vertical;
+    transition: all 0.2s ease;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .textarea-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: $spacing-sm;
+    font-size: 0.8125rem;
+  }
+
+  .character-count {
+    color: $text-muted;
+    font-weight: 600;
+  }
+
+  .validation-hint {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &.error {
+      color: $danger-color;
+    }
+
+    &.success {
+      color: $success-color;
+    }
+  }
+}
+
+/* Toggle Label */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba($primary-color, 0.3);
+  }
+
+  .toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .toggle-slider {
+      background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
+
+      &::before {
+        transform: translateX(20px);
+      }
+    }
+  }
+
+  .toggle-slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .toggle-text {
+    flex: 1;
+
+    strong {
+      display: block;
+      color: $text-strong;
+      margin-bottom: 2px;
+    }
+
+    .help-text {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: $text-muted;
+      line-height: 1.4;
+    }
+  }
+}
+
+/* Checkbox */
+.product-checkbox {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba($primary-color, 0.3);
+  }
+
+  .checkbox-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .checkbox-custom {
+      background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
+      border-color: $primary-color;
+
+      &::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  }
+
+  .checkbox-custom {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+  }
+
+  .product-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: $text-light;
+    font-weight: 500;
+  }
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: $primary-color;
+  }
+
+  input[type='checkbox']:checked+span {
+    color: $primary-color;
+  }
+}
+
+/* Products Grid */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $border-radius;
+  max-height: 300px;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba($primary-color, 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba($primary-color, 0.3);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba($primary-color, 0.5);
+    }
+  }
+}
+
+/* Help Text */
+.help-text {
+  margin-top: $spacing-xs;
+  font-size: 0.8125rem;
+  color: $text-muted;
+  line-height: 1.4;
+}
+
+/* Required asterisk */
+.required {
+  color: $danger-color;
+  font-weight: 700;
+  margin-left: 2px;
+}

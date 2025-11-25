@@ -39,7 +39,7 @@ export class BribeComponent implements OnInit {
   isAuthority = computed(() => this.authService.hasRole(Role.AUTHORITY));
 
   // Permisos específicos por rol
-  canPay = computed(() => this.isAdmin() || this.isPartner());      // Admin y Socio pueden pagar
+  canPay = computed(() => (this.isAdmin() || this.isPartner()) && !this.isAuthority());      // Admin y Socio pueden pagar, pero NUNCA Authority
   canDelete = computed(() => this.isAdmin());                       // Solo Admin puede eliminar
   // Los sobornos se crean automáticamente, no manualmente
 
@@ -76,7 +76,7 @@ export class BribeComponent implements OnInit {
       const matchId = !idTxt || String(b.id).includes(idTxt);
 
       // Filtro por monto
-      const matchAmount = !amountTxt || String(b.amount).includes(amountTxt);
+      const matchAmount = !amountTxt || String(b.totalAmount).includes(amountTxt);
 
       // Filtro por autoridad (DNI o nombre)
       let matchAuthority = true;
@@ -137,7 +137,7 @@ export class BribeComponent implements OnInit {
           } else {
             console.log('[BribeComponent] ✅ Authority bribes:', allBribes.map(b => ({
               id: b.id,
-              amount: b.amount,
+              totalAmount: b.totalAmount,
               authority: b.authority,
               saleId: b.sale?.id
             })));
@@ -199,8 +199,8 @@ clearFilters() {
   }
 
   totalBribes = computed(() => this.bribes().length);
-  totalAmount = computed(() => 
-    this.bribes().reduce((sum, b) => sum + (b.amount || 0), 0)
+  totalAmount = computed(() =>
+    this.bribes().reduce((sum, b) => sum + (b.totalAmount || 0), 0)
   );
   paidBribes = computed(() => 
     this.bribes().filter(b => b.paid).length
@@ -209,7 +209,7 @@ clearFilters() {
     this.bribes().filter(b => !b.paid).length
   );
   pendingAmount = computed(() =>
-    this.bribes().filter(b => !b.paid).reduce((sum, b) => sum + (b.amount || 0), 0)
+    this.bribes().filter(b => !b.paid).reduce((sum, b) => sum + (b.totalAmount || 0), 0)
   );
 
   /**

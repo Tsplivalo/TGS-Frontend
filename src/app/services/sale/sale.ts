@@ -2,7 +2,8 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   ApiResponse,
   SaleDTO,
@@ -48,14 +49,34 @@ export class SaleService {
     );
   }
 
-  /** GET /api/sales/my-purchases - Obtiene las compras del usuario actual */
+  /**
+   * GET /api/sales/my-purchases - Obtiene las compras del usuario actual
+   * El backend automáticamente filtra por el DNI del usuario autenticado
+   */
   getMyPurchases(): Observable<SaleDTO[]> {
+    console.log('[SaleService] 📦 Fetching my purchases from:', `${this.base}/my-purchases`);
+
     return this.http.get<ApiResponse<SaleDTO[]>>(`${this.base}/my-purchases`, {
       withCredentials: true
     }).pipe(
       map((res: any) => {
-        if (Array.isArray(res)) return res;
-        if (res?.data && Array.isArray(res.data)) return res.data;
+        console.log('[SaleService] 📥 Raw response received:', res);
+        console.log('[SaleService] 📊 Response type:', typeof res);
+        console.log('[SaleService] 🔍 Is array?', Array.isArray(res));
+        console.log('[SaleService] 🔍 Has data property?', res?.data !== undefined);
+        console.log('[SaleService] 🔍 Is data array?', Array.isArray(res?.data));
+
+        if (Array.isArray(res)) {
+          console.log('[SaleService] ✅ Using response as direct array. Length:', res.length);
+          return res;
+        }
+        if (res?.data && Array.isArray(res.data)) {
+          console.log('[SaleService] ✅ Using response.data as array. Length:', res.data.length);
+          return res.data;
+        }
+
+        console.warn('[SaleService] ⚠️ Response format not recognized. Returning empty array.');
+        console.warn('[SaleService] 📋 Response structure:', JSON.stringify(res, null, 2));
         return [];
       })
     );

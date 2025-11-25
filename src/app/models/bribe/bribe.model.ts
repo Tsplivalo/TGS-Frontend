@@ -12,7 +12,9 @@
  */
 export interface BribeDTO {
   id: number;        // Identificador único del soborno
-  amount: number;    // Monto del soborno
+  totalAmount: number;    // Monto total del soborno (backend devuelve totalAmount)
+  paidAmount?: number;    // Monto pagado (opcional)
+  pendingAmount?: number; // Monto pendiente (opcional)
   paid: boolean;     // Estado de pago del soborno
   creationDate: string; // Fecha de creación del soborno
   authority: {       // Información de la autoridad involucrada
@@ -30,7 +32,7 @@ export interface BribeDTO {
  * ✅ authorityId debe ser string (DNI), no number
  */
 export interface CreateBribeDTO {
-  amount: number;     // Monto del soborno
+  totalAmount: number;     // Monto del soborno
   authorityId: string; // DNI de la autoridad (DNI es string)
   saleId: number;     // ID de la venta asociada
 }
@@ -41,7 +43,7 @@ export interface CreateBribeDTO {
  * Permite modificar el monto del soborno.
  */
 export interface UpdateBribeDTO {
-  amount?: number;    // Nuevo monto (opcional)
+  totalAmount?: number;    // Nuevo monto (opcional)
 }
 
 /**

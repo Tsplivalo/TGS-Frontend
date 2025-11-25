@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TGS Placeholder - Vintage Stamp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a1410 0%, #2d2419 50%, #1a1410 100%);
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .main-title {
+            color: #d4af37;
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .subtitle {
+            color: #b8956a;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Diseño Vintage Stamp - Mejorado */
+        .placeholder-vintage {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 3/4;
+            background: #f4e8d0;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(26, 20, 16, 0.03) 2px,
+                    rgba(26, 20, 16, 0.03) 4px
+                );
+            border: 15px solid #1a1410;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            box-shadow: 
+                inset 0 0 50px rgba(26, 20, 16, 0.15),
+                0 15px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Borde de sello postal */
+        .stamp-border {
+            position: absolute;
+            inset: 20px;
+            border: 3px dashed #8b4513;
+            opacity: 0.5;
+            border-radius: 2px;
+        }
+
+        /* Círculo central del sello */
+        .stamp-circle {
+            width: 160px;
+            height: 160px;
+            border: 5px solid #8b4513;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            background: radial-gradient(
+                circle,
+                rgba(139, 69, 19, 0.08) 0%,
+                transparent 70%
+            );
+            position: relative;
+            z-index: 2;
+            box-shadow: 
+                0 4px 12px rgba(139, 69, 19, 0.2),
+                inset 0 0 20px rgba(139, 69, 19, 0.05);
+        }
+
+        /* Anillo decorativo interno */
+        .stamp-circle::before {
+            content: '';
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border: 2px solid #8b4513;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        /* Texto dentro del sello */
+        .stamp-text {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 900;
+            color: #8b4513;
+            text-align: center;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            line-height: 1.4;
+            max-width: 110px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Líneas decorativas en el sello */
+        .stamp-circle::after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 2px;
+            background: #8b4513;
+            bottom: 35px;
+            opacity: 0.4;
+        }
+
+        /* Contenedor de contenido */
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Título principal */
+        .title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1a1410;
+            text-align: center;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(26, 20, 16, 0.1);
+        }
+
+        /* Línea divisoria */
+        .divider {
+            width: 140px;
+            height: 2px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                #8b4513 20%,
+                #8b4513 80%,
+                transparent 100%
+            );
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+
+        /* Subtítulo */
+        .description {
+            font-size: 1.1rem;
+            color: #5d4a37;
+            text-align: center;
+            max-width: 280px;
+            line-height: 1.7;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        /* Badge del año - mejorado */
+        .year-badge {
+            position: absolute;
+            bottom: 35px;
+            right: 35px;
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #8b4513;
+            opacity: 0.15;
+            letter-spacing: 0.05em;
+            transform: rotate(-15deg);
+            user-select: none;
+        }
+
+        /* Marca de agua "Birmingham" */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-family: 'Cinzel', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #8b4513;
+            opacity: 0.03;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            user-select: none;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Ornamentos en las esquinas */
+        .corner-stamp {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border: 3px solid #8b4513;
+            opacity: 0.4;
+        }
+
+        .corner-stamp:nth-of-type(1) {
+            top: 32px;
+            left: 32px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-stamp:nth-of-type(2) {
+            top: 32px;
+            right: 32px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-stamp:nth-of-type(3) {
+            bottom: 32px;
+            left: 32px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-stamp:nth-of-type(4) {
+            bottom: 32px;
+            right: 32px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Efecto de papel envejecido */
+        .paper-texture {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(
+                    circle at 20% 30%,
+                    rgba(139, 69, 19, 0.05) 0%,
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 80% 70%,
+                    rgba(139, 69, 19, 0.04) 0%,
+                    transparent 50%
+                );
+            pointer-events: none;
+        }
+
+        /* Manchas de edad */
+        .age-spot {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(139, 69, 19, 0.08);
+            pointer-events: none;
+        }
+
+        .age-spot:nth-of-type(1) {
+            width: 30px;
+            height: 30px;
+            top: 15%;
+            left: 10%;
+        }
+
+        .age-spot:nth-of-type(2) {
+            width: 20px;
+            height: 20px;
+            top: 70%;
+            right: 15%;
+        }
+
+        .age-spot:nth-of-type(3) {
+            width: 15px;
+            height: 15px;
+            bottom: 20%;
+            left: 75%;
+        }
+
+        /* Efecto de ruido vintage - más sutil */
+        .grain {
+            position: absolute;
+            inset: 0;
+            background-image: url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+            opacity: 0.035;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+        }
+
+        /* Animación sutil de respiración para el sello */
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .stamp-circle {
+            animation: breathe 6s ease-in-out infinite;
+        }
+
+        /* Información adicional */
+        .info-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(26, 20, 16, 0.05);
+            border: 1px solid rgba(139, 69, 19, 0.2);
+            border-radius: 8px;
+            max-width: 500px;
+        }
+
+        .info-title {
+            font-family: 'Cinzel', serif;
+            color: #d4af37;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .info-text {
+            color: #b8956a;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 1.8rem;
+            }
+
+            .placeholder-vintage {
+                max-width: 90vw;
+                padding: 2rem 1.5rem;
+            }
+
+            .stamp-circle {
+                width: 140px;
+                height: 140px;
+            }
+
+            .stamp-circle::before {
+                width: 120px;
+                height: 120px;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .year-badge {
+                font-size: 2rem;
+                bottom: 25px;
+                right: 25px;
+            }
+
+            .watermark {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Botón de descarga */
+        .download-btn {
+            margin-top: 2rem;
+            padding: 1rem 2rem;
+            background: #d4af37;
+            color: #1a1410;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .download-btn:hover {
+            background: #e5c158;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="main-title">THE GARRISON</h1>
+        <p class="subtitle">Diseño Vintage Stamp - Birmingham, 1920</p>
+    </div>
+
+    <div class="container">
+        <div class="placeholder-vintage">
+            <!-- Textura de papel -->
+            <div class="paper-texture"></div>
+            <div class="grain"></div>
+            
+            <!-- Manchas de edad -->
+            <div class="age-spot"></div>
+            <div class="age-spot"></div>
+            <div class="age-spot"></div>
+            
+            <!-- Marca de agua -->
+            <div class="watermark">BIRMINGHAM</div>
+            
+            <!-- Borde de sello postal -->
+            <div class="stamp-border"></div>
+            
+            <!-- Ornamentos de esquina -->
+            <div class="corner-stamp"></div>
+            <div class="corner-stamp"></div>
+            <div class="corner-stamp"></div>
+            <div class="corner-stamp"></div>
+            
+            <!-- Sello circular central -->
+            <div class="stamp-circle">
+                <span class="stamp-text">CONTENT<br>RESTRICTED</span>
+            </div>
+            
+            <!-- Contenido principal -->
+            <div class="content">
+                <h2 class="title">PROHIBIDO</h2>
+                <div class="divider"></div>
+                <p class="description">
+                    Producto de control histórico<br>
+                    Birmingham, Inglaterra
+                </p>
+            </div>
+            
+            <!-- Badge del año -->
+            <span class="year-badge">1920</span>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h3 class="info-title">Diseño Vintage Stamp</h3>
+        <p class="info-text">
+            Placeholder con estética de sello postal antiguo, ideal para productos de época. 
+            Dimensiones: 600x800px (3:4) • Formato: PNG con fondo • Estilo: Sepia/Vintage
+        </p>
+    </div>
+
+    <button class="download-btn" onclick="downloadPlaceholder()">
+        Descargar como PNG
+    </button>
+
+    <script>
+        // Función para descargar la imagen
+        async function downloadPlaceholder() {
+            const placeholder = document.querySelector('.placeholder-vintage');
+            
+            try {
+                // Usar html2canvas si está disponible
+                if (typeof html2canvas !== 'undefined') {
+                    const canvas = await html2canvas(placeholder, {
+                        scale: 2,
+                        backgroundColor: '#f4e8d0',
+                        logging: false
+                    });
+                    
+                    const link = document.createElement('a');
+                    link.download = 'tgs-placeholder-vintage-stamp.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } else {
+                    alert('Para descargar:\n\n1. Click derecho en el diseño\n2. "Guardar imagen como..."\n3. Guarda como PNG');
+                }
+            } catch (error) {
+                alert('Para descargar:\n\n1. Click derecho en el diseño\n2. "Guardar imagen como..."\n3. Guarda como PNG');
+            }
+        }
+
+        // Añadir variación al efecto de grano
+        const grain = document.querySelector('.grain');
+        setInterval(() => {
+            grain.style.opacity = Math.random() * 0.015 + 0.025;
+        }, 150);
+
+        // Log de instrucciones
+        console.log(`
+╔═══════════════════════════════════════════════════════════╗
+║         TGS PLACEHOLDER - VINTAGE STAMP DESIGN            ║
+╠═══════════════════════════════════════════════════════════╣
+║                                                           ║
+║  Para guardar la imagen:                                  ║
+║  1. Click derecho en el diseño                            ║
+║  2. "Guardar imagen como..."                              ║
+║  3. Guarda como: tgs-placeholder-vintage-stamp.png        ║
+║                                                           ║
+║  Dimensiones recomendadas: 600x800px                      ║
+║  Formato: PNG                                             ║
+║  Uso: Productos restringidos 11-20                        ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+        `);
+    </script>
+</body>
+</html>
