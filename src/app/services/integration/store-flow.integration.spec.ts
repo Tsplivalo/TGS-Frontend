@@ -82,7 +82,7 @@ describe('Store Flow Integration Tests', () => {
         expect(cartService.total()).toBe(13000); // (5000*2) + 3000
       });
 
-      const req = httpMock.expectOne('/api/products');
+      const req = httpMock.expectOne(req => req.url === '/api/products');
       req.flush({
         success: true,
         message: 'Products retrieved',
@@ -300,7 +300,7 @@ describe('Store Flow Integration Tests', () => {
         expect(cartItem!.qty).toBeLessThanOrEqual(products[0].stock);
       });
 
-      const req = httpMock.expectOne('/api/products');
+      const req = httpMock.expectOne(req => req.url === '/api/products');
       req.flush({
         success: true,
         message: 'Products retrieved',
@@ -409,7 +409,7 @@ describe('Store Flow Integration Tests', () => {
         }
       });
 
-      const req = httpMock.expectOne('/api/products');
+      const req = httpMock.expectOne(req => req.url === '/api/products');
       req.flush(
         { success: false, message: 'Server error' },
         { status: 500, statusText: 'Internal Server Error' }

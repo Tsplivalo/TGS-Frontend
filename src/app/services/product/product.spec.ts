@@ -46,7 +46,7 @@ describe('ProductService', () => {
         expect(products.length).toBe(2);
       });
 
-      const req = httpMock.expectOne('/api/products');
+      const req = httpMock.expectOne(req => req.url === '/api/products');
       expect(req.request.method).toBe('GET');
       expect(req.request.withCredentials).toBe(true);
       req.flush({ data: mockProductsArray });
@@ -57,7 +57,7 @@ describe('ProductService', () => {
         expect(products).toEqual(mockProductsArray);
       });
 
-      const req = httpMock.expectOne('/api/products');
+      const req = httpMock.expectOne(req => req.url === '/api/products');
       req.flush(mockProductsArray);
     });
   });
@@ -68,7 +68,7 @@ describe('ProductService', () => {
         expect(products).toEqual(mockProductsArray);
       });
 
-      const req = httpMock.expectOne('/api/products');
+      const req = httpMock.expectOne(req => req.url === '/api/products');
       expect(req.request.method).toBe('GET');
       req.flush({ data: mockProductsArray });
     });
@@ -78,7 +78,7 @@ describe('ProductService', () => {
         expect(products).toEqual(mockProductsArray);
       });
 
-      const req = httpMock.expectOne('/api/products');
+      const req = httpMock.expectOne(req => req.url === '/api/products');
       req.flush(mockProductsArray);
     });
   });

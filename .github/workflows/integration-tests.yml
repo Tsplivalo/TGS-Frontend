@@ -48,11 +48,20 @@ jobs:
           path: frontend
 
       - name: Checkout Backend
+        id: checkout_backend
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/TGS-Backend-main
+          repository: lautaro-peralta/TGS-Backend
           path: backend
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Backend Checkout
+        run: |
+          if [ ! -d "backend" ]; then
+            echo "❌ Backend directory not found after checkout"
+            exit 1
+          fi
+          echo "✅ Backend repository checked out successfully"
+          ls -la backend/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
