@@ -46,7 +46,11 @@ describe('ProductService', () => {
         expect(products.length).toBe(2);
       });
 
-      const req = httpMock.expectOne(req => req.url === '/api/products');
+      // Use URL matcher to ignore cache-busting query parameters (_t, _r)
+      const req = httpMock.expectOne((request) => {
+        const url = new URL(request.url, 'http://localhost');
+        return url.pathname === '/api/products' && request.method === 'GET';
+      });
       expect(req.request.method).toBe('GET');
       expect(req.request.withCredentials).toBe(true);
       req.flush({ data: mockProductsArray });
@@ -57,7 +61,11 @@ describe('ProductService', () => {
         expect(products).toEqual(mockProductsArray);
       });
 
-      const req = httpMock.expectOne(req => req.url === '/api/products');
+      // Use URL matcher to ignore cache-busting query parameters (_t, _r)
+      const req = httpMock.expectOne((request) => {
+        const url = new URL(request.url, 'http://localhost');
+        return url.pathname === '/api/products' && request.method === 'GET';
+      });
       req.flush(mockProductsArray);
     });
   });
@@ -68,7 +76,11 @@ describe('ProductService', () => {
         expect(products).toEqual(mockProductsArray);
       });
 
-      const req = httpMock.expectOne(req => req.url === '/api/products');
+      // Use URL matcher to ignore cache-busting query parameters (_t, _r)
+      const req = httpMock.expectOne((request) => {
+        const url = new URL(request.url, 'http://localhost');
+        return url.pathname === '/api/products' && request.method === 'GET';
+      });
       expect(req.request.method).toBe('GET');
       req.flush({ data: mockProductsArray });
     });
@@ -78,7 +90,11 @@ describe('ProductService', () => {
         expect(products).toEqual(mockProductsArray);
       });
 
-      const req = httpMock.expectOne(req => req.url === '/api/products');
+      // Use URL matcher to ignore cache-busting query parameters (_t, _r)
+      const req = httpMock.expectOne((request) => {
+        const url = new URL(request.url, 'http://localhost');
+        return url.pathname === '/api/products' && request.method === 'GET';
+      });
       req.flush(mockProductsArray);
     });
   });

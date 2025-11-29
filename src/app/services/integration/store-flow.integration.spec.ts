@@ -82,7 +82,11 @@ describe('Store Flow Integration Tests', () => {
         expect(cartService.total()).toBe(13000); // (5000*2) + 3000
       });
 
-      const req = httpMock.expectOne(req => req.url === '/api/products');
+      // Use URL matcher to ignore cache-busting query parameters (_t, _r)
+      const req = httpMock.expectOne((request) => {
+        const url = new URL(request.url, 'http://localhost');
+        return url.pathname === '/api/products' && request.method === 'GET';
+      });
       req.flush({
         success: true,
         message: 'Products retrieved',
@@ -300,7 +304,11 @@ describe('Store Flow Integration Tests', () => {
         expect(cartItem!.qty).toBeLessThanOrEqual(products[0].stock);
       });
 
-      const req = httpMock.expectOne(req => req.url === '/api/products');
+      // Use URL matcher to ignore cache-busting query parameters (_t, _r)
+      const req = httpMock.expectOne((request) => {
+        const url = new URL(request.url, 'http://localhost');
+        return url.pathname === '/api/products' && request.method === 'GET';
+      });
       req.flush({
         success: true,
         message: 'Products retrieved',
@@ -409,7 +417,11 @@ describe('Store Flow Integration Tests', () => {
         }
       });
 
-      const req = httpMock.expectOne(req => req.url === '/api/products');
+      // Use URL matcher to ignore cache-busting query parameters (_t, _r)
+      const req = httpMock.expectOne((request) => {
+        const url = new URL(request.url, 'http://localhost');
+        return url.pathname === '/api/products' && request.method === 'GET';
+      });
       req.flush(
         { success: false, message: 'Server error' },
         { status: 500, statusText: 'Internal Server Error' }

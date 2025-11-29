@@ -157,18 +157,20 @@ jobs:
 
       - name: Notify on Failure
         if: failure()
+        continue-on-error: true
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
-              "text": "❌ Integration tests failed",
+              "text": "❌ Integration tests failed in ${{ github.repository }}",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Integration Tests Failed*\n\nFrontend + Backend E2E tests failed.\n\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+                    "text": "*Integration Tests Failed* ❌\n\n*Repository:* ${{ github.repository }}\n*Branch:* `${{ github.ref_name }}`\n*Commit:* `${{ github.sha }}`\n*Workflow:* ${{ github.workflow }}\n*Triggered by:* ${{ github.actor }}\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Run Details>"
                   }
                 }
               ]
