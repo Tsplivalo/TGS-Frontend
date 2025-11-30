@@ -200,13 +200,34 @@ export class AuthService {
    */
   public initialize(): void {
     console.log('[AuthService] 🔄 Initializing auth state...');
+
+    // ✅ Intentar restaurar token desde localStorage
+    const storedToken = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('auth_user');
+
+    if (storedToken && storedUser) {
+      console.log('[AuthService] 💾 Found stored token and user in localStorage');
+      try {
+        const user = JSON.parse(storedUser);
+        this.setUser(user);
+        console.log('[AuthService] ✅ Session restored from localStorage:', user);
+      } catch (err) {
+        console.warn('[AuthService] ⚠️ Failed to parse stored user:', err);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+      }
+    }
+
     this.me().subscribe({
       next: (user) => {
-        console.log('[AuthService] ✅ Session restored:', user);
+        console.log('[AuthService] ✅ Session verified with backend:', user);
         this.scheduleTokenRefresh();
       },
       error: (err) => {
         console.log('[AuthService] ℹ️ No active session:', err?.message || err);
+        // Limpiar localStorage si la sesión no es válida
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
       }
     });
   }
@@ -226,10 +247,20 @@ export class AuthService {
       credentials,
       { withCredentials: true }
     ).pipe(
-      map(response => {
+      tap(response => {
         console.log('[AuthService] 📥 Login response:', response);
-        return response.data;
+
+        // ✅ Guardar token en localStorage si está presente en la respuesta
+        if (response.meta && (response.meta as any).token) {
+          localStorage.setItem('auth_token', (response.meta as any).token);
+          console.log('[AuthService] 💾 Token saved to localStorage');
+        }
+
+        // ✅ Guardar usuario en localStorage
+        localStorage.setItem('auth_user', JSON.stringify(response.data));
+        console.log('[AuthService] 💾 User saved to localStorage');
       }),
+      map(response => response.data),
       tap(user => {
         console.log('[AuthService] ✅ Login successful, setting user:', user);
         this.setUser(user);
@@ -271,6 +302,11 @@ export class AuthService {
 
     // ✅ OPTIMIZACIÓN 2: Limpiar estado local INMEDIATAMENTE (sin esperar backend)
     this.clearUser();
+
+    // ✅ LIMPIEZA DE LOCALSTORAGE
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    console.log('[AuthService] 🗑️ localStorage cleared');
 
     // ✅ OPTIMIZACIÓN 3: Redirigir inmediatamente
     this.router.navigate(['/']);
