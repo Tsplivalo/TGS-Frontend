@@ -7,6 +7,13 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+# Permissions required for coverage PR comments
+permissions:
+  contents: read        # Read repository code
+  issues: write         # Write comments on issues
+  pull-requests: write  # Write comments on PRs
+  checks: write         # Update check status
+
 env:
   NODE_VERSION: '20'
   CACHE_VERSION: v1
@@ -122,6 +129,7 @@ jobs:
 
       - name: Comment coverage on PR
         if: github.event_name == 'pull_request'
+        continue-on-error: true  # Don't fail if commenting fails (e.g., external forks)
         uses: romeovs/lcov-reporter-action@v0.3.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
