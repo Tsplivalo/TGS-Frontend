@@ -75,7 +75,13 @@ jobs:
 
       - name: Install Backend Dependencies
         working-directory: backend
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Create pnpm-workspace.yaml if it doesn't exist to prevent workspace errors
+          if [ ! -f "pnpm-workspace.yaml" ]; then
+            echo "packages:" > pnpm-workspace.yaml
+            echo "  - '.'" >> pnpm-workspace.yaml
+          fi
+          pnpm install --frozen-lockfile
 
       - name: Install Frontend Dependencies
         working-directory: frontend
