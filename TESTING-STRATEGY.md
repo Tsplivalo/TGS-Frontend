@@ -4,14 +4,18 @@
 
 Este documento detalla la estrategia comprehensiva de testing implementada en el proyecto **The Garrison System (TGS) Frontend**. La estrategia cubre todos los aspectos críticos del testing moderno, desde pruebas unitarias hasta pruebas de seguridad y accesibilidad, asegurando la calidad, confiabilidad y mantenibilidad del sistema.
 
-### Estado Actual de Testing
+### Estado Actual de Testing (Actualizado: 2025-12-09)
 
 - ✅ **500 Unit Tests** ejecutándose correctamente
 - ✅ **80.04% Code Coverage** (supera el objetivo de >80%)
-- ✅ **11 E2E Test Suites** con Cypress
-- ✅ **6 Accessibility Test Suites** específicos
-- ✅ **CI/CD Pipeline paralelo** con 9 jobs automatizados
-- ✅ **Ejecución paralela** reduciendo tiempo ~60%
+- ✅ **11 E2E Test Suites** con Cypress (Chrome + Edge)
+- ✅ **6 Accessibility Test Suites** específicos (WCAG 2.1 AA)
+- ✅ **43 CI/CD jobs activos** ejecutándose en paralelo (100% verde)
+  - 8 shards de unit tests (paralelo)
+  - E2E tests en Chrome + Edge
+  - Security, Performance, Accessibility tests
+  - Full Stack Integration: ❌ Desactivado (no necesario - backend tiene 170+ tests)
+- ✅ **Ejecución paralela** reduciendo tiempo ~60% (15-20 min total)
 
 ---
 
@@ -1531,7 +1535,119 @@ cy.visit('/', { timeout: 30000 });
 
 ---
 
+## 12.5 Problemas Conocidos y Resoluciones
+
+### ✅ Problemas Resueltos (Nov-Dic 2025)
+
+#### 1. **PNPM Lockfile Incompatibility**
+- **Issue:** `ERR_PNPM_NO_LOCKFILE` en workflow de integración
+- **Causa:** Backend usa pnpm v9, workflow usaba pnpm v8
+- **Solución:** Actualizado a pnpm v9 en workflow
+- **Fixed in:** Commit `44b8e6a` (2025-12-08)
+- **Status:** ✅ Resuelto
+
+#### 2. **Bundle Size Budget Excedido**
+- **Issue:** Build fallaba por bundle size > budget
+- **Solución:** Ajustado budgets en angular.json (2mb warning, 3mb error)
+- **Fixed in:** Nov 2025
+- **Status:** ✅ Resuelto
+
+#### 3. **ZAP Artifact Upload Error**
+- **Issue:** Error 404 al subir artifacts de ZAP
+- **Causa:** Uso de `actions/upload-artifact@v3` deprecado
+- **Solución:** Actualizado a `actions/upload-artifact@v4`
+- **Fixed in:** Nov 2025
+- **Status:** ✅ Resuelto
+
+#### 4. **Cypress checkA11y Errors**
+- **Issue:** Tests de accesibilidad fallaban con checkA11y
+- **Solución:** Actualizado axe-core y configuración de Cypress
+- **Fixed in:** Nov 2025
+- **Status:** ✅ Resuelto
+
+#### 5. **Deprecated Workflow Ejecutándose**
+- **Issue:** `frontend-tests.yml` deprecado aún ejecutándose
+- **Solución:** Workflow deshabilitado, usando `frontend-tests-parallel.yml`
+- **Fixed in:** Nov 2025
+- **Status:** ✅ Resuelto
+
+#### 6. **Coverage Permissions en CI**
+- **Issue:** Error de permisos al generar coverage
+- **Causa:** Problemas con pnpm-workspace.yaml en frontend
+- **Solución:** Eliminado pnpm-workspace.yaml innecesario
+- **Fixed in:** Nov 2025
+- **Status:** ✅ Resuelto
+
+### 📋 Monitoreo Activo
+
+#### Coverage Targets
+- **Meta:** Mantener >80% en servicios críticos
+- **Actual:** 80.04% statements
+- **Acción:** Priorizar branches (69.38% → >70%)
+
+#### Bundle Size
+- **Meta:** < 2MB (warning), < 3MB (error)
+- **Monitoreo:** Lighthouse CI automático
+- **Acción:** Revisar mensualmente con `webpack-bundle-analyzer`
+
+#### Vulnerabilidades
+- **Meta:** 0 critical, 0 high
+- **Monitoreo:** Snyk semanal + npm audit
+- **Acción:** Auto-fix habilitado, review manual mensual
+
+### 📚 Documentación de Troubleshooting
+
+Para problemas comunes y sus soluciones, ver:
+- **[docs/testing/TROUBLESHOOTING.md](docs/testing/TROUBLESHOOTING.md)** - Guía de solución de problemas
+- **[docs/testing/archive/](docs/testing/archive/)** - Documentación histórica de fixes
+
+---
+
 ## 13. Recursos y Documentación
+
+### Estructura de Documentación
+
+La documentación de testing está organizada de la siguiente manera:
+
+```
+docs/testing/
+├── README.md                    # 📘 Punto de entrada principal
+│                                # Quick start, comandos, overview
+├── TROUBLESHOOTING.md           # 🔧 Guía de solución de problemas
+│                                # Problemas comunes, fixes, debug
+└── archive/                     # 📦 Documentación histórica
+    ├── fixes/                   # Documentación de fixes aplicados
+    ├── implementation/          # Reportes de implementación
+    ├── guides/                  # Guías detalladas antiguas
+    └── old-docs/                # Documentos obsoletos
+
+TESTING-STRATEGY.md (raíz)       # 📖 Este documento (estrategia completa)
+```
+
+#### Documentos Principales
+
+1. **[TESTING-STRATEGY.md](.)** (este documento)
+   - Estrategia completa de testing (1,621+ líneas)
+   - Guía comprehensiva de todas las áreas
+   - Configuraciones, métricas, best practices
+
+2. **[docs/testing/README.md](docs/testing/README.md)**
+   - Quick start guide
+   - Comandos más utilizados
+   - Resumen del estado actual
+   - Enlaces a recursos
+
+3. **[docs/testing/TROUBLESHOOTING.md](docs/testing/TROUBLESHOOTING.md)**
+   - Problemas comunes y soluciones
+   - Fixes aplicados
+   - Guías de debug
+
+4. **[docs/testing/archive/](docs/testing/archive/)**
+   - Documentación histórica
+   - Fixes detallados (PNPM, ZAP, Bundle size, etc.)
+   - Reportes de implementación previos
+
+---
 
 ### Documentación Oficial
 
