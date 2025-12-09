@@ -69,19 +69,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
 
       - name: Install Backend Dependencies
         working-directory: backend
-        run: |
-          # Overwrite malformed pnpm-workspace.yaml with valid content
-          echo "packages:" > pnpm-workspace.yaml
-          echo "  - ." >> pnpm-workspace.yaml
-          echo "✓ Created valid pnpm-workspace.yaml:"
-          cat pnpm-workspace.yaml
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Install Frontend Dependencies
         working-directory: frontend
