@@ -180,13 +180,19 @@ export class MyPurchasesComponent implements OnInit, OnDestroy {
       this.products.set([]);
       // No mostrar error para 404 - simplemente mostrar lista vacía
     } else if (error.status === 400) {
-      // Datos inválidos
+      // Datos inválidos - probablemente perfil incompleto
       console.log('[MyPurchases] ⚠️ Error 400 - Datos inválidos');
       this.purchases.set([]);
       this.products.set([]);
 
       const errorMsg = error.error?.message || error.message || 'Datos inválidos';
-      this.error.set(`⚠️ ${errorMsg}. Verifica que tu perfil esté completo.`);
+
+      // Mensaje más claro para perfil incompleto
+      if (errorMsg.includes('profile') || errorMsg.includes('DNI') || errorMsg.includes('personal information')) {
+        this.error.set(`⚠️ Para ver tus compras, necesitas completar tu perfil con tu DNI. Ve a "Mi Cuenta" → "Editar perfil" y completa tu información personal.`);
+      } else {
+        this.error.set(`⚠️ ${errorMsg}. Verifica que tu perfil esté completo.`);
+      }
     } else if (error.status >= 500) {
       // Errores de servidor
       this.error.set('⚠️ Error del servidor. Por favor, intenta más tarde.');

@@ -244,19 +244,6 @@ export class ProductComponent implements OnInit {
     this.srv.getAllProducts().subscribe({
       next: (r: ApiResponse<ProductDTO[]> | ProductDTO[]) => {
         const data = Array.isArray(r) ? r : (r as any).data;
-        console.log('[ProductComponent] 📥 Products loaded from backend:', data);
-
-        // Log detallado de cada producto
-        if (data && data.length > 0) {
-          data.forEach((p: ProductDTO) => {
-            console.log(`[ProductComponent] Product ${p.id}:`, {
-              description: p.description,
-              distributors: p.distributors,
-              distributorsCount: p.distributors?.length || 0
-            });
-          });
-        }
-
         this.products.set(this.imgSvc.overlay(data ?? []));
         this.loading.set(false);
       },
@@ -365,22 +352,15 @@ export class ProductComponent implements OnInit {
 
       this.srv.createProduct(dtoCreate).subscribe({
         next: (res: any) => {
-          console.log('[ProductComponent] 📥 Response from backend:', res);
-
           const created = ('data' in res ? res.data : res) as ProductDTO | null;
-
-          console.log('[ProductComponent] 🔍 Created product:', {
-            id: created?.id,
-            description: created?.description,
-            distributors: created?.distributors,
-            distributorsCount: created?.distributors?.length || 0
-          });
 
           if (created?.id) this.imgSvc.set(created.id, img);
           this.loading.set(false);
 
           this.success.set(`Producto "${raw.description}" creado correctamente`);
           this.resetAndClose();
+
+          // Refresh the product list to show the newly created product
           this.load();
 
           setTimeout(() => this.success.set(null), 5000);
@@ -388,7 +368,6 @@ export class ProductComponent implements OnInit {
         error: err => {
           this.loading.set(false);
           this.error.set(this.parseErrorMessage(err, 'crear'));
-          console.error('[ProductComponent] ❌ Error creating product:', err);
         }
       });
     } else {

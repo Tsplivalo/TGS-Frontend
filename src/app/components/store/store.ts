@@ -277,15 +277,30 @@ export class StoreComponent implements OnInit {
   refresh() {
     this.loading.set(true);
     this.error.set(null);
-    
+
+    console.log('[StoreComponent] 🔄 Refreshing products from backend...');
+
     this.productsSrv.getAllProducts().subscribe({
       next: (r: ApiResponse<ProductDTO[]> | ProductDTO[]) => {
         const data = Array.isArray(r) ? r : (r as any).data;
+        console.log('[StoreComponent] 📥 Received products:', data?.length || 0);
+
+        // Log products with their distributors
+        if (data && data.length > 0) {
+          const productsWithDistributors = data.filter((p: ProductDTO) => p.distributors && p.distributors.length > 0);
+          console.log('[StoreComponent] 📊 Products with distributors:', productsWithDistributors.length, '/', data.length);
+
+          if (productsWithDistributors.length < data.length) {
+            console.warn('[StoreComponent] ⚠️ Some products have NO distributors and will not appear in store');
+          }
+        }
+
         const overlay = this.imgSvc?.overlay?.bind(this.imgSvc) ?? ((arr: ProductDTO[]) => arr);
         this.products.set(overlay(data ?? []));
         this.loading.set(false);
       },
       error: (err) => {
+        console.error('[StoreComponent] ❌ Error loading products:', err);
         this.error.set(err?.error?.message ?? 'Error al cargar productos');
         this.loading.set(false);
       },
