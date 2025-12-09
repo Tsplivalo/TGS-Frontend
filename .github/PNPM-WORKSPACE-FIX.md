@@ -35,16 +35,30 @@ El workflow de Integration Tests realiza los siguientes pasos:
 
 ### ¿Por qué fallaba?
 
-Cuando PNPM ejecuta `pnpm install` en el directorio `backend/`, busca un archivo `pnpm-workspace.yaml` siguiendo esta jerarquía:
+El repositorio **backend SÍ tiene** un archivo `pnpm-workspace.yaml`, pero está **MALFORMADO**:
 
-1. `./backend/pnpm-workspace.yaml` (directorio actual)
-2. `../pnpm-workspace.yaml` (directorio padre)
-3. `../../pnpm-workspace.yaml` (directorio abuelo)
-4. etc.
+```yaml
+# Contenido actual en TGS-Backend (INCORRECTO):
+onlyBuiltDependencies:
+  - '@scarf/scarf'
+  - argon2
+  - esbuild
+```
 
-**El problema**:
-- El repositorio **backend** NO tiene `pnpm-workspace.yaml` (no es un monorepo)
-- PNPM no encuentra el archivo y falla con error de configuración
+**Problemas con este archivo**:
+
+1. **Falta el campo `packages:` (OBLIGATORIO)**:
+   - `pnpm-workspace.yaml` SIEMPRE debe tener este campo
+   - Sin él, PNPM lanza: `ERR_PNPM_INVALID_WORKSPACE_CONFIGURATION packages field missing or empty`
+
+2. **`onlyBuiltDependencies` NO es válido aquí**:
+   - Esta configuración pertenece a `.npmrc` o `package.json`
+   - Está en el archivo equivocado
+
+3. **El fix condicional inicial NO funcionó**:
+   - Mi primer código verificaba `if [ ! -f "pnpm-workspace.yaml" ]`
+   - Como el archivo EXISTE, nunca se ejecutaba la creación
+   - El archivo malformado permanecía sin cambios
 
 **Nota**: Anteriormente, el frontend tenía un `pnpm-workspace.yaml` malformado que causaba problemas similares. Ese archivo fue eliminado en el commit `007a9e0`.
 
@@ -64,34 +78,36 @@ Cuando PNPM ejecuta `pnpm install` en el directorio `backend/`, busca un archivo
   run: pnpm install --frozen-lockfile
 ```
 
-**DESPUÉS**:
+**DESPUÉS (VERSIÓN FINAL - CORRECTA)**:
 ```yaml
 - name: Install Backend Dependencies
   working-directory: backend
   run: |
-    # Create pnpm-workspace.yaml if it doesn't exist to prevent workspace errors
-    if [ ! -f "pnpm-workspace.yaml" ]; then
-      echo "packages:" > pnpm-workspace.yaml
-      echo "  - '.'" >> pnpm-workspace.yaml
-    fi
+    # Overwrite malformed pnpm-workspace.yaml with valid content
+    echo "packages:" > pnpm-workspace.yaml
+    echo "  - ." >> pnpm-workspace.yaml
+    echo "✓ Created valid pnpm-workspace.yaml:"
+    cat pnpm-workspace.yaml
     pnpm install --frozen-lockfile
 ```
 
 ### ¿Qué hace la solución?
 
-1. **Verifica si existe `pnpm-workspace.yaml`** en el directorio backend
-2. **Si NO existe, lo crea** con la configuración mínima válida:
+1. **SOBRESCRIBE el archivo `pnpm-workspace.yaml`** existente (no verifica si existe)
+2. **Crea el archivo con configuración mínima válida**:
    ```yaml
    packages:
-     - '.'
+     - .
    ```
-3. **Ejecuta `pnpm install`** normalmente
+3. **Muestra el contenido** del archivo creado (para debugging en logs)
+4. **Ejecuta `pnpm install`** normalmente
 
 ### ¿Por qué funciona?
 
 - El archivo `pnpm-workspace.yaml` define que el paquete actual (`.`) es el único workspace
 - PNPM ya no falla porque encuentra un archivo de workspace válido
 - La configuración `packages: ['.']` indica "este directorio es el único paquete"
+- **Sobrescribimos el archivo malformado** en lugar de solo crearlo si no existe
 
 ---
 
@@ -165,21 +181,23 @@ run: pnpm install --frozen-lockfile --ignore-workspace
 - La flag `--ignore-workspace` no evita la validación del archivo
 - PNPM sigue buscando y validando `pnpm-workspace.yaml`
 
-### Opción 3: Crear archivo temporal en el workflow (SELECCIONADA) ✅
+### Opción 3: Sobrescribir archivo en el workflow (SELECCIONADA) ✅
 ```yaml
 run: |
-  if [ ! -f "pnpm-workspace.yaml" ]; then
-    echo "packages:" > pnpm-workspace.yaml
-    echo "  - '.'" >> pnpm-workspace.yaml
-  fi
+  # Overwrite malformed pnpm-workspace.yaml with valid content
+  echo "packages:" > pnpm-workspace.yaml
+  echo "  - ." >> pnpm-workspace.yaml
+  echo "✓ Created valid pnpm-workspace.yaml:"
+  cat pnpm-workspace.yaml
   pnpm install --frozen-lockfile
 ```
 
 **Ventajas**:
-- ✅ No requiere modificar el backend
+- ✅ No requiere modificar permanentemente el backend
 - ✅ El archivo es temporal (solo existe durante el workflow)
-- ✅ Si el backend ya tiene el archivo, no se sobrescribe
+- ✅ **Sobrescribe el archivo malformado existente**
 - ✅ Solución aislada al workflow del frontend
+- ✅ Muestra contenido del archivo en logs (debugging)
 
 ---
 
