@@ -1,349 +1,390 @@
-# The Garrison System (GarrSYS)
+# TGS Frontend - The Garrison System
 
-> Frontend Angular 20 + Backend Node.js (Express + MikroORM + PostgreSQL) con Docker.
-> RBAC completo (ADMIN, CLIENTE, SOCIO, DISTRIBUIDOR), gestión, tienda, bandeja/inbox y verificación de email.
-
----
-
-## 📌 Tabla de contenidos
-- [Visión general](#-visión-general)
-- [Arquitectura](#-arquitectura)
-- [Tecnologías](#-tecnologías)
-- [Módulos y funcionalidades](#-módulos-y-funcionalidades)
-- [Requisitos](#-requisitos)
-- [Configuración rápida](#-configuración-rápida)
-- [Ejecución con Docker Compose](#-ejecución-con-docker-compose)
-- [Ejecución local (sin Docker)](#-ejecución-local-sin-docker)
-- [Estructura de carpetas](#-estructura-de-carpetas)
-- [i18n](#-i18n)
-- [Autenticación y roles](#-autenticación-y-roles)
-- [Modelo de datos (resumen)](#-modelo-de-datos-resumen)
-- [Contratos API](#-contratos-api)
-- [Pruebas, Lint y Estilo](#-pruebas-lint-y-estilo)
-- [Flujo de desarrollo](#-flujo-de-desarrollo)
-- [Preguntas frecuentes](#-preguntas-frecuentes)
-
+Este repositorio contiene el **frontend** del sistema **The Garrison System**, desarrollado con **Angular 20** (standalone components) utilizando **signals**, **reactive forms**, **guards** y **ngx-translate** para internacionalización.
 
 ---
 
-## 🛰️ Visión general
+## ⚡ Inicio Rápido
 
-**GarrSYS** (The Garrison System) es una plataforma full‑stack para gestionar productos, ventas y operaciones de un sistema de distribución inspirado en *Peaky Blinders*.  
-Incluye tienda, panel de gestión, bandeja de entrada, verificación de email y control de acceso por **roles**:
-
-- **ADMIN**
-- **CLIENTE**
-- **SOCIO**
-- **DISTRIBUIDOR**
-- **AUTORIDAD**
-
-El **frontend** (Angular 20, standalone) emplea **signals**, **Reactive Forms**, **guards**, y **ngx‑translate**.
-El **backend** (Node.js + Express) usa **MikroORM** con **PostgreSQL**, **JWT** para autenticación, y soporte de correo (p. ej. **Mailtrap**) para verificación de email.
-
----
-
-## 🧱 Arquitectura
-
-```
-apps/
-  backend/         API REST (Node.js, Express, MikroORM, PostgreSQL, JWT)
-  frontend/        SPA Angular 20 (standalone components, signals, i18n)
-docker/            Archivos de soporte (p. ej. PostgreSQL init, conf)
-postgres-data/     Volumen de datos (persistencia local)
-docker-compose.yml Orquestación de servicios (api + db + web opcional)
-```
-
-**Servicios típicos en `docker-compose.yml`:**
-- **db**: PostgreSQL (con volumen `postgres-data/`)
-- **api**: backend Node.js (ESM), expuesto en `http://localhost:3000`
-- **web**: frontend Angular servido (dev o build estático), p. ej. `http://localhost:4200`
-
----
-
-## 🧰 Tecnologías
-
-**Frontend**
-- Angular **20** (standalone, signals, reactive forms)
-- **@ngx-translate/core** (i18n)
-- Tailwind / SCSS (glass‑dark, cards, etc.)
-- Guards, interceptors y routing con reglas por rol
-
-**Backend**
-- Node.js (ES Modules) + **Express**
-- **MikroORM** (PostgreSQL)
-- **JWT** Auth (Access/Refresh opcional)
-- **Mailer** (p. ej. Mailtrap) para verificación de email
-
-**Infra**
-- **Docker** + **Docker Compose**
-- **pnpm**/**npm** workspaces (según repo)
-- Volúmenes para persistencia PostgreSQL
-
----
-
-## 🧩 Módulos y funcionalidades
-
-- **Tienda / Store**: catálogo, detalle, compra/venta (contra API).
-- **Gestión**:
-  - **Productos**
-  - **Clientes**
-  - **Socios (Partners)**
-  - **Distribuidores**
-  - **Zonas**
-  - **Autoridades**
-  - **Sobornos**
-  - **Consejo Shelby** (Decisiones, Temáticas)
-  - **Ventas** (estadísticas por `product | distributor | client | day | zone`)
-- **Bandeja/Inbox**: solicitudes de rol (aprobación/rechazo), notificaciones.
-- **Autenticación**: login/registro, **verificación de email** con ruta pública `/verify-email/:token`.
-- **Menú dinámico por rol**: visibilidad de secciones según permisos.
-- **i18n** completo (ES/EN), con **pipe `translate`** en plantillas.
-- **Accesibilidad y UX**: animaciones suaves, placeholders controlados (sin “glitches”).
-
----
-
-## ✅ Requisitos
-
-- Node.js **>= 18**
-- pnpm **>= 9** (o npm/yarn)
-- Docker **>= 24** y Docker Compose **>= 2**
-- PostgreSQL **>= 14** (si corres sin Docker)
-
----
-
-## ⚡ Configuración rápida
+### Instalación
 
 ```bash
-# Clonar
-git clone https://github.com/<tu-org>/<tu-repo>.git
-cd <tu-repo>
-
-# Variables de entorno
-cp apps/backend/.env.example apps/backend/.env
-cp apps/frontend/.env.example apps/frontend/.env   # si aplica
+# Clonar el repositorio
+git clone https://github.com/Tsplivalo/TGS-Frontend.git
+cd TGS-Frontend
 
 # Instalar dependencias
-pnpm install  # o npm install
-```
-
----
-
-## 🐳 Ejecución con Docker Compose
-
-### Comandos básicos
-```bash
-# Levantar todo (foreground)
-docker compose up
-
-# Levantar en background (detached)
-docker compose up -d
-
-# Ver logs
-docker compose logs -f
-
-# Reiniciar servicios
-docker compose restart
-
-# Apagar
-docker compose down
-
-# Apagar y borrar volúmenes (¡borra datos de PostgreSQL!)
-docker compose down -v
-```
-
-### Primer inicio
-1. Crea los `.env` (ver sección Variables de entorno).
-2. `docker compose up -d`
-3. Ejecuta migraciones de MikroORM si no se corren automáticamente (ver más abajo).
-4. Accede a:
-   - Frontend: `http://localhost:4200`
-   - API: `http://localhost:3000/health` (según implementación)
-
----
-
-## 💻 Ejecución local (sin Docker)
-
-### Backend
-```bash
-cd apps/backend
+npm install
+# o con pnpm
 pnpm install
-
-# Generar/actualizar esquema o correr migraciones
-pnpm mikro-orm migration:up     # o pnpm mikro-orm schema:update -f
-
-# Desarrollo
-pnpm dev
-
-# Producción (ejemplo)
-pnpm build && pnpm start
 ```
 
-### Frontend
-```bash
-cd apps/frontend
-pnpm install
-
-# Desarrollo
-pnpm start    # o ng serve
-
-# Producción
-pnpm build    # genera dist/
-```
-
----
-
-
-## 🗂️ Estructura de carpetas
-
-> La estructura exacta puede variar, pero en general:
-
-```
-apps/
-  backend/
-    src/
-      entities/          # MikroORM entities
-      migrations/        # migraciones
-      modules/           # controladores/servicios (productos, ventas, etc.)
-      middleware/        # auth, profile completeness, etc.
-      routes/            # rutas express
-      utils/             # helpers
-    .env
-    package.json
-  frontend/
-    src/
-      app/
-        modules/
-          auth/
-          store/
-          management/
-            product/
-            client/
-            sale/
-            zone/
-            authority/
-            distributor/
-            partner/
-            bribe/
-            shelby-council/
-          inbox/
-        services/
-        models/
-        guards/
-        interceptors/
-        i18n/
-      assets/
-      styles/
-    .env
-    package.json
-docker-compose.yml
-```
-
----
-
-## 🌍 i18n
-
-- Implementado con **@ngx-translate/core**.
-- Archivos JSON de traducciones en `apps/frontend/src/app/i18n/` (p. ej. `es.json`, `en.json`).
-- Uso en plantillas:
-  ```html
-  <h2>{{ 'nav.management' | translate }}</h2>
-  ```
-- Asegúrate de **importar `TranslateModule`** en los componentes/páginas que lo usan.
-
----
-
-## 🔐 Autenticación y roles
-
-- **JWT** en backend, con **interceptor** en frontend para manejar `401`.
-- Ruta pública para verificación: **`/verify-email/:token`** (no debe redirigir al login).
-- **Guards** y **canMatch / canActivate** para proteger rutas.
-- **Menú dinámico**: la visibilidad de secciones depende de `roles` actuales del usuario.
-- Flujo “solicitud de cambio de rol” → **ADMIN** aprueba/rechaza → UI se actualiza (Navbar, Gestión, etc.).
-
----
-
-## 🧾 Modelo de datos (resumen)
-
-Entidades principales (nombres orientativos, pueden variar):
-- **Product**, **Sale**, **Client**, **Partner (Socio)**, **Distributor**, **Zone**
-- **Authority**, **Bribe**, **Decision**, **Topic** (Consejo Shelby)
-- **User**, **RoleRequest** (estado: `PENDING | APPROVED | REJECTED`)
-
-> **Nota**: en algunas pantallas se referencian campos derivados (p. ej. estadísticas de ventas agrupadas por `product | distributor | client | day | zone`). Asegúrate de alinear **DTOs** frontend con **entities/DTOs** backend para evitar errores de tipo (TS).
-
----
-
-## 🔌 Contratos API
-
-> La API sigue un estilo REST. Rutas orientativas:
-
-- `POST /auth/login` — login
-- `POST /auth/register` — registro
-- `POST /auth/verify-email` — envía correo con token
-- `GET  /auth/verify-email/:token` — verifica token
-
-- `GET  /products` / `POST /products` / `PATCH /products/:id` / `DELETE /products/:id`
-- `GET  /sales` / `POST /sales` / `GET /sales/stats?groupBy=product|distributor|client|day|zone`
-- `GET  /clients` / `POST /clients` / ...
-- `GET  /distributors` / `POST /distributors` / ...
-- `GET  /zones` / `POST /zones` / ...
-- `GET  /authorities` / `POST /authorities` / ...
-- `GET  /bribes` / `POST /bribes` / ...
-- `GET  /shelby-council/decisions` / `POST /shelby-council/decisions` / ...
-- `POST /roles/request` — solicita cambio de rol
-- `POST /roles/:requestId/approve` — **ADMIN**
-- `POST /roles/:requestId/reject` — **ADMIN**
-
-> **Importante**: Mantener sincronía **DTO frontend ↔ DTO backend**. Si el backend **no** expone un campo (p. ej. `sale.client`), la plantilla **no** debe usarlo.
-
----
-
-## 🧪 Pruebas, Lint y Estilo
+### Ejecución en modo desarrollo
 
 ```bash
-# Frontend
-pnpm -w lint
-pnpm -w test
-
-# Backend
-pnpm -w lint
-pnpm -w test
+npm start
+# o
+pnpm start
 ```
 
-- Estilo recomendado: **ESLint** + **Prettier**.  
-- Convenciones de commits: **Conventional Commits** (opcional).
+La aplicación se abrirá en `http://localhost:4200` con proxy automático hacia el backend en Render.
+
+### Build de producción
+
+```bash
+npm run build
+# o
+pnpm build
+```
+
+Los archivos estáticos se generan en `dist/The-Garrison-System/browser/`.
 
 ---
 
-## 🔁 Flujo de desarrollo
+## 📖 Sobre el Proyecto
 
-1. Crear rama feature: `feat/<módulo>-<breve>`
-2. Implementar en **backend** (entities, service, controller, rutas).
-3. Ajustar **DTOs** en frontend para calzar con API (no al revés).
-4. Integrar vistas/components (Reactive Forms + signals).
-5. Añadir traducciones a `i18n/*.json`.
-6. Agregar pruebas si aplica.
-7. PR + Code Review → Merge.
+Este es el frontend de **The Garrison System** (GarrSYS), una aplicación Angular 20 que se conecta a un backend REST API desplegado en Render.
 
 ---
 
+## 🧰 Tecnologías Frontend
 
+- **Angular 20** con standalone components
+- **TypeScript 5.8**
+- **RxJS 7.8** para programación reactiva
+- **Signals** para estado reactivo
+- **@ngx-translate/core** para i18n (ES/EN)
+- **Reactive Forms** para formularios complejos
+- **Guards** para protección de rutas
+- **Interceptors** para manejo de tokens JWT
+- **Chart.js** y **ECharts** para visualizaciones
+- **GSAP** para animaciones
+- **SCSS** con diseño glass-dark personalizado
+- **Karma + Jasmine** para testing
 
-## ❓ Preguntas frecuentes
+---
 
-**¿Cómo reseteo la base en Docker?**
-```bash
-docker compose down -v   # ¡destruye datos! quita el volumen postgres
-docker compose up -d
+## 🗂️ Estructura del Proyecto
+
+```
+TGS-Frontend/
+├── src/
+│   ├── app/
+│   │   ├── components/           # Componentes de la aplicación
+│   │   │   ├── auth/            # Login, registro, verificación
+│   │   │   ├── store/           # Tienda y catálogo
+│   │   │   ├── product/         # Gestión de productos
+│   │   │   ├── client/          # Gestión de clientes
+│   │   │   ├── partner/         # Gestión de socios
+│   │   │   ├── distributor/     # Gestión de distribuidores
+│   │   │   ├── zone/            # Gestión de zonas
+│   │   │   ├── authority/       # Gestión de autoridades
+│   │   │   ├── bribe/           # Gestión de sobornos
+│   │   │   ├── sale/            # Gestión de ventas
+│   │   │   ├── shelby-council/  # Consejo Shelby
+│   │   │   ├── decision/        # Decisiones del consejo
+│   │   │   ├── topic/           # Temáticas
+│   │   │   ├── clandestine-agreement/ # Acuerdos clandestinos
+│   │   │   ├── monthly-review/  # Revisiones mensuales
+│   │   │   ├── navbar/          # Navegación principal
+│   │   │   ├── home/            # Página de inicio
+│   │   │   ├── account/         # Gestión de cuenta
+│   │   │   ├── admin/           # Panel de administración
+│   │   │   ├── my-purchases/    # Historial de compras
+│   │   │   ├── checkout/        # Proceso de compra
+│   │   │   ├── chart/           # Componentes de gráficos
+│   │   │   ├── legal/           # Páginas legales
+│   │   │   └── errors/          # Páginas de error
+│   │   │
+│   │   ├── features/             # Módulos de features
+│   │   │   └── inbox/           # Bandeja de entrada (solicitudes de rol)
+│   │   │
+│   │   ├── services/             # Servicios de la aplicación
+│   │   │   ├── auth/            # Autenticación
+│   │   │   ├── product/         # API de productos
+│   │   │   ├── client/          # API de clientes
+│   │   │   ├── partner/         # API de socios
+│   │   │   ├── distributor/     # API de distribuidores
+│   │   │   ├── zone/            # API de zonas
+│   │   │   ├── authority/       # API de autoridades
+│   │   │   ├── bribe/           # API de sobornos
+│   │   │   ├── sale/            # API de ventas
+│   │   │   ├── decision/        # API de decisiones
+│   │   │   ├── topic/           # API de temáticas
+│   │   │   ├── cart/            # Carrito de compras
+│   │   │   ├── user/            # Gestión de usuarios
+│   │   │   ├── stats/           # Estadísticas
+│   │   │   ├── i18n/            # Internacionalización
+│   │   │   ├── ui/              # Servicios de UI
+│   │   │   └── password-reset/  # Recuperación de contraseña
+│   │   │
+│   │   ├── models/               # Modelos TypeScript
+│   │   │   ├── auth/
+│   │   │   ├── product/
+│   │   │   ├── client/
+│   │   │   ├── user/
+│   │   │   └── ...              # Uno por cada entidad
+│   │   │
+│   │   ├── guards/               # Guards de rutas
+│   │   │   ├── auth.guard.ts
+│   │   │   └── role.guard.ts
+│   │   │
+│   │   ├── interceptors/         # Interceptors HTTP
+│   │   │   └── auth.interceptor.ts
+│   │   │
+│   │   ├── i18n/                 # Archivos de traducción
+│   │   │   ├── es.json          # Español
+│   │   │   └── en.json          # Inglés
+│   │   │
+│   │   ├── shared/               # Componentes compartidos
+│   │   │   ├── footer/
+│   │   │   └── ui/
+│   │   │
+│   │   ├── app.routes.ts         # Configuración de rutas
+│   │   ├── app.config.ts         # Configuración de la app
+│   │   └── app.ts                # Componente raíz
+│   │
+│   ├── assets/                   # Recursos estáticos
+│   ├── styles.scss               # Estilos globales
+│   ├── index.html                # HTML principal
+│   └── main.ts                   # Punto de entrada
+│
+├── proxy.conf.json               # Configuración del proxy
+├── vercel.json                   # Configuración de Vercel
+├── angular.json                  # Configuración de Angular
+├── tsconfig.json                 # Configuración de TypeScript
+└── package.json                  # Dependencias y scripts
 ```
 
-**¿Comandos Docker Compose comunes?**  
-```bash
-docker compose up -d
-docker compose down
-docker compose logs -f
-docker compose restart
+
+## 🌍 Internacionalización (i18n)
+
+La aplicación soporta **español** e **inglés** mediante **@ngx-translate**.
+
+### Archivos de traducción
+
+- [src/app/i18n/es.json](src/app/i18n/es.json) - Español
+- [src/app/i18n/en.json](src/app/i18n/en.json) - Inglés
+
+### Uso en componentes
+
+```typescript
+// En el template
+<h2>{{ 'nav.management' | translate }}</h2>
+<p>{{ 'store.product_added' | translate }}</p>
+
+// En el código TypeScript
+constructor(private translate: TranslateService) {}
+
+this.translate.get('messages.success').subscribe(text => {
+  console.log(text);
+});
 ```
 
+### Cambiar idioma
+
+El idioma se puede cambiar desde la UI o programáticamente:
+
+```typescript
+this.translate.use('en'); // Cambiar a inglés
+this.translate.use('es'); // Cambiar a español
+```
+
+---
+
+## 🔐 Autenticación
+
+- **JWT tokens** en `localStorage`
+- **Auth interceptor** añade token a cada petición HTTP
+- **Guards** protegen rutas según autenticación y roles
+- Ruta pública para verificación de email: `/verify-email/:token`
+
+---
+
+## 🧩 Características Principales
+
+- **Autenticación JWT** con guards y roles
+- **Internacionalización** (ES/EN) con @ngx-translate
+- **Routing** con lazy loading y guards de autorización
+- **Reactive Forms** con validaciones
+- **Estado reactivo** con signals
+- **Visualizaciones** con Chart.js y ECharts
+- **Diseño responsivo** con SCSS personalizado
+- **Proxy configurado** para desarrollo local
+
+---
+
+## 🧪 Testing
+
+### Ejecutar tests
+
+```bash
+npm test
+# o
+pnpm test
+```
+
+Esto ejecuta los tests con **Karma** y **Jasmine**.
+
+### Estructura de tests
+
+Los archivos de test tienen extensión `.spec.ts` y están junto a sus componentes:
+
+```
+component.ts
+component.html
+component.scss
+component.spec.ts
+```
+
+---
+
+## 🚀 Deployment
+
+### Vercel (Actual)
+
+El proyecto está configurado para desplegarse en **Vercel**:
+
+```bash
+# Build automático en cada push a main
+# Configuración en vercel.json
+```
+
+Variables de entorno en Vercel (si aplica):
+- `BACKEND_URL` (opcional, ya configurado en vercel.json)
+
+### Build manual para otros servicios
+
+```bash
+npm run build
+
+# Los archivos están en:
+# dist/The-Garrison-System/browser/
+```
+
+Puedes servir estos archivos con cualquier servidor estático (nginx, Apache, etc.).
+
+---
+
+## 🛠️ Troubleshooting
+
+### ❌ Error: CORS / Blocked by CORS policy
+
+**Problema**: El navegador bloquea las peticiones al backend.
+
+**Solución**:
+1. Verifica que el backend tenga configurado CORS correctamente
+2. En desarrollo local, usa el proxy: `npm start` (ya incluye `--proxy-config`)
+3. Verifica que `proxy.conf.json` apunte al backend correcto
+
+### ❌ Error: 401 Unauthorized en todas las peticiones
+
+**Problema**: El token JWT no se está enviando o es inválido.
+
+**Solución**:
+1. Verifica que el token esté en `localStorage`: `localStorage.getItem('token')`
+2. Cierra sesión y vuelve a iniciar sesión
+3. Verifica que el interceptor esté configurado en `app.config.ts`
+4. Revisa la consola del navegador para ver el header `Authorization`
+
+### ❌ Error: No se ven los cambios después de hacer build
+
+**Problema**: El navegador está cacheando la versión anterior.
+
+**Solución**:
+1. Limpia el cache del navegador (Ctrl + Shift + Delete)
+2. Prueba en modo incógnito
+3. Verifica que `outputHashing: 'all'` esté en `angular.json` (producción)
+
+### ❌ Error: Cannot find module '@ngx-translate/core'
+
+**Problema**: Dependencias no instaladas.
+
+**Solución**:
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### ❌ Error: El menú no muestra las opciones según mi rol
+
+**Problema**: El frontend no está recibiendo los roles correctos del backend.
+
+**Solución**:
+1. Verifica el token JWT: `jwt.io` y pega tu token para ver el payload
+2. Asegúrate de que el backend incluya `roles` en el payload del JWT
+3. Revisa el `AuthService` para ver cómo se extraen los roles
+4. Cierra sesión y vuelve a iniciar sesión
+
+### ❌ Error: Las traducciones no funcionan / texto aparece como claves
+
+**Problema**: Archivos de traducción no cargados o `TranslateModule` mal configurado.
+
+**Solución**:
+1. Verifica que existan `src/app/i18n/es.json` y `src/app/i18n/en.json`
+2. Verifica que `TranslateModule` esté importado en `app.config.ts`
+3. Revisa la configuración de `TranslateHttpLoader`
+4. Abre la consola y busca errores 404 en `/assets/i18n/`
+
+### ❌ Error: Proxy no funciona en desarrollo
+
+**Problema**: Las peticiones `/api/*` no se redirigen al backend.
+
+**Solución**:
+1. Verifica que estés usando `npm start` (no `ng serve` solo)
+2. Revisa `proxy.conf.json` - debe apuntar al backend correcto
+3. Si el backend está en HTTPS, ajusta `"secure": true`
+4. Revisa logs del terminal para errores de proxy
+
+### ❌ Error: Cannot read property 'xxx' of undefined
+
+**Problema**: Datos llegando con estructura diferente a la esperada.
+
+**Solución**:
+1. Verifica los DTOs en el backend
+2. Usa optional chaining: `data?.property`
+3. Revisa la respuesta en Network tab (DevTools)
+4. Asegúrate de que los modelos TypeScript coincidan con la API
+
+---
+
+## 📋 Scripts Disponibles
+
+```bash
+# Desarrollo con proxy
+npm start
+
+# Build de producción
+npm run build
+
+# Build en modo watch
+npm run watch
+
+# Tests
+npm test
+
+# Angular CLI
+npm run ng -- <comando>
+```
+
+---
+
+## 🔁 Flujo de Desarrollo
+
+1. **Crear rama feature**: `git checkout -b feat/<modulo>-<descripcion>`
+2. **Desarrollar** el componente/servicio/feature
+3. **Ajustar traducciones** en `i18n/*.json`
+4. **Agregar tests** si aplica
+5. **Commit** siguiendo Conventional Commits:
+   ```
+   feat: Add product filter by category
+   fix: Resolve auth token expiration issue
+   ```
+6. **Push** y crear **Pull Request**
+7. **Code Review** → Merge a `main`
 
 
+
+## 📄 Licencia
+
+Este proyecto es parte de un trabajo académico para la materia **Desarrollo de Software**.
