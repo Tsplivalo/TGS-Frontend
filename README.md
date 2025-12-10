@@ -35,6 +35,7 @@ Incluye tienda, panel de gestión, bandeja de entrada, verificación de email y 
 - **CLIENTE**
 - **SOCIO**
 - **DISTRIBUIDOR**
+- **AUTORIDAD**
 
 El **frontend** (Angular 20, standalone) emplea **signals**, **Reactive Forms**, **guards**, y **ngx‑translate**.
 El **backend** (Node.js + Express) usa **MikroORM** con **PostgreSQL**, **JWT** para autenticación, y soporte de correo (p. ej. **Mailtrap**) para verificación de email.
