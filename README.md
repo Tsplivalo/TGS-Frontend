@@ -1,6 +1,6 @@
 # The Garrison System (GarrSYS)
 
-> Frontend Angular 20 + Backend Node.js (Express + MikroORM + MySQL) con Docker.  
+> Frontend Angular 20 + Backend Node.js (Express + MikroORM + PostgreSQL) con Docker.
 > RBAC completo (ADMIN, CLIENTE, SOCIO, DISTRIBUIDOR), gestión, tienda, bandeja/inbox y verificación de email.
 
 ---
@@ -36,8 +36,8 @@ Incluye tienda, panel de gestión, bandeja de entrada, verificación de email y 
 - **SOCIO**
 - **DISTRIBUIDOR**
 
-El **frontend** (Angular 20, standalone) emplea **signals**, **Reactive Forms**, **guards**, y **ngx‑translate**.  
-El **backend** (Node.js + Express) usa **MikroORM** con **MySQL**, **JWT** para autenticación, y soporte de correo (p. ej. **Mailtrap**) para verificación de email.
+El **frontend** (Angular 20, standalone) emplea **signals**, **Reactive Forms**, **guards**, y **ngx‑translate**.
+El **backend** (Node.js + Express) usa **MikroORM** con **PostgreSQL**, **JWT** para autenticación, y soporte de correo (p. ej. **Mailtrap**) para verificación de email.
 
 ---
 
@@ -45,15 +45,15 @@ El **backend** (Node.js + Express) usa **MikroORM** con **MySQL**, **JWT** para 
 
 ```
 apps/
-  backend/         API REST (Node.js, Express, MikroORM, MySQL, JWT)
+  backend/         API REST (Node.js, Express, MikroORM, PostgreSQL, JWT)
   frontend/        SPA Angular 20 (standalone components, signals, i18n)
-docker/            Archivos de soporte (p. ej. MySQL init, conf)
-mysql-data/        Volumen de datos (persistencia local)
+docker/            Archivos de soporte (p. ej. PostgreSQL init, conf)
+postgres-data/     Volumen de datos (persistencia local)
 docker-compose.yml Orquestación de servicios (api + db + web opcional)
 ```
 
 **Servicios típicos en `docker-compose.yml`:**
-- **db**: MySQL (con volumen `mysql-data/`)
+- **db**: PostgreSQL (con volumen `postgres-data/`)
 - **api**: backend Node.js (ESM), expuesto en `http://localhost:3000`
 - **web**: frontend Angular servido (dev o build estático), p. ej. `http://localhost:4200`
 
@@ -69,14 +69,14 @@ docker-compose.yml Orquestación de servicios (api + db + web opcional)
 
 **Backend**
 - Node.js (ES Modules) + **Express**
-- **MikroORM** (MySQL)
+- **MikroORM** (PostgreSQL)
 - **JWT** Auth (Access/Refresh opcional)
 - **Mailer** (p. ej. Mailtrap) para verificación de email
 
 **Infra**
 - **Docker** + **Docker Compose**
 - **pnpm**/**npm** workspaces (según repo)
-- Volúmenes para persistencia MySQL
+- Volúmenes para persistencia PostgreSQL
 
 ---
 
@@ -106,7 +106,7 @@ docker-compose.yml Orquestación de servicios (api + db + web opcional)
 - Node.js **>= 18**
 - pnpm **>= 9** (o npm/yarn)
 - Docker **>= 24** y Docker Compose **>= 2**
-- MySQL **8.x** (si corres sin Docker)
+- PostgreSQL **>= 14** (si corres sin Docker)
 
 ---
 
@@ -146,7 +146,7 @@ docker compose restart
 # Apagar
 docker compose down
 
-# Apagar y borrar volúmenes (¡borra datos de MySQL!)
+# Apagar y borrar volúmenes (¡borra datos de PostgreSQL!)
 docker compose down -v
 ```
 
@@ -330,9 +330,9 @@ pnpm -w test
 
 ## ❓ Preguntas frecuentes
 
-**¿Cómo reseteo la base en Docker?**  
+**¿Cómo reseteo la base en Docker?**
 ```bash
-docker compose down -v   # ¡destruye datos! quita el volumen mysql
+docker compose down -v   # ¡destruye datos! quita el volumen postgres
 docker compose up -d
 ```
 
