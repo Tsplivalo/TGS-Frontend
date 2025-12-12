@@ -19,6 +19,54 @@ Este documento detalla la estrategia comprehensiva de testing implementada en el
 
 ---
 
+## 🚀 Quick Start
+
+### Comandos Esenciales
+
+```bash
+# Unit tests
+npm test              # Watch mode
+npm run test:ci       # CI mode (no watch + coverage)
+npm run test:coverage # Generate coverage report
+
+# E2E tests
+npm run e2e           # Cypress GUI
+npm run e2e:headless  # Headless mode
+npm run e2e:chrome    # Chrome browser
+npm run e2e:edge      # Edge browser
+
+# Performance, Security, Accessibility
+npm run test:performance  # Lighthouse CI
+npm run test:security     # npm audit + Snyk
+npm run test:a11y         # Pa11y
+
+# All tests
+npm run test:all      # Complete test suite
+```
+
+### Troubleshooting Rápido
+
+**Tests fallan?**
+```bash
+rm -rf node_modules .angular coverage
+npm ci
+```
+
+**Cypress no encuentra elementos?**
+```html
+<!-- Add data-cy attributes -->
+<button data-cy="login-button">Login</button>
+```
+
+**Coverage bajo threshold?**
+```bash
+npm run coverage:report  # Ver reporte detallado
+```
+
+**Para más problemas:** Ver sección [12.5 Problemas Conocidos y Resoluciones](#125-problemas-conocidos-y-resoluciones)
+
+---
+
 ## 1. Tests Unitarios
 
 ### Objetivo
@@ -1597,9 +1645,9 @@ cy.visit('/', { timeout: 30000 });
 
 ### 📚 Documentación de Troubleshooting
 
-Para problemas comunes y sus soluciones, ver:
-- **[docs/testing/TROUBLESHOOTING.md](docs/testing/TROUBLESHOOTING.md)** - Guía de solución de problemas
-- **[docs/testing/archive/](docs/testing/archive/)** - Documentación histórica de fixes
+Para problemas comunes y sus soluciones, consultar:
+- La sección [12.5 Problemas Conocidos y Resoluciones](#125-problemas-conocidos-y-resoluciones) en este documento
+- Issues resueltos en el repositorio de GitHub
 
 ---
 
@@ -1607,45 +1655,25 @@ Para problemas comunes y sus soluciones, ver:
 
 ### Estructura de Documentación
 
-La documentación de testing está organizada de la siguiente manera:
+La documentación de testing está centralizada en este documento:
 
 ```
-docs/testing/
-├── README.md                    # 📘 Punto de entrada principal
-│                                # Quick start, comandos, overview
-├── TROUBLESHOOTING.md           # 🔧 Guía de solución de problemas
-│                                # Problemas comunes, fixes, debug
-└── archive/                     # 📦 Documentación histórica
-    ├── fixes/                   # Documentación de fixes aplicados
-    ├── implementation/          # Reportes de implementación
-    ├── guides/                  # Guías detalladas antiguas
-    └── old-docs/                # Documentos obsoletos
-
-TESTING-STRATEGY.md (raíz)       # 📖 Este documento (estrategia completa)
+TGS-Frontend/
+├── README.md                    # 📘 Documentación general del proyecto
+└── TESTING-STRATEGY.md          # 📖 Este documento (estrategia completa)
+                                 # Incluye: configuración, comandos, troubleshooting,
+                                 # métricas, CI/CD, problemas resueltos
 ```
 
-#### Documentos Principales
+#### Documento Principal
 
-1. **[TESTING-STRATEGY.md](.)** (este documento)
-   - Estrategia completa de testing (1,621+ líneas)
-   - Guía comprehensiva de todas las áreas
-   - Configuraciones, métricas, best practices
-
-2. **[docs/testing/README.md](docs/testing/README.md)**
-   - Quick start guide
-   - Comandos más utilizados
-   - Resumen del estado actual
-   - Enlaces a recursos
-
-3. **[docs/testing/TROUBLESHOOTING.md](docs/testing/TROUBLESHOOTING.md)**
-   - Problemas comunes y soluciones
-   - Fixes aplicados
-   - Guías de debug
-
-4. **[docs/testing/archive/](docs/testing/archive/)**
-   - Documentación histórica
-   - Fixes detallados (PNPM, ZAP, Bundle size, etc.)
-   - Reportes de implementación previos
+**[TESTING-STRATEGY.md](.)** (este documento)
+- Estrategia completa de testing (1,700+ líneas)
+- Quick start y comandos principales
+- Configuraciones de todas las herramientas
+- Métricas y KPIs actuales
+- Problemas conocidos y resoluciones (sección 12.5)
+- Best practices y guías de troubleshooting
 
 ---
 
