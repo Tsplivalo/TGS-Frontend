@@ -46,7 +46,7 @@ Esta documentación cubre la arquitectura, patrones de diseño y decisiones téc
 | Estado | Angular Signals + computed | — |
 | HTTP | Angular HttpClient + Interceptores funcionales | — |
 | Gráficos | ECharts (ngx-echarts) + Chart.js | 6 / 4 |
-| Animaciones | GSAP | 3.13 |
+| Animaciones | SCSS puro | - |
 | i18n | @ngx-translate/core | 17 |
 | Deploy | Vercel → Render | — |
 
@@ -58,6 +58,4 @@ Esta documentación cubre la arquitectura, patrones de diseño y decisiones téc
 - **Backend (producción)**: `https://tgs-backend-u5xz.onrender.com`
 - **Documentación del Backend**: ver carpeta `/docs` del backend
 
----
 
-*Última actualización: 2025-11-25*
