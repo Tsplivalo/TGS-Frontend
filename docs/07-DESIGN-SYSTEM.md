@@ -208,4 +208,32 @@ La scrollbar del sistema está estilizada para mantener coherencia con el tema o
 
 ## Animaciones
 
-Las animaciones de transición de la interfaz (entrada/salida del panel de autenticación, efectos de página) usan **GSAP** (`gsap ^3.13.0`). La lógica de animación está encapsulada en `AuthTransitionService` para que los componentes no tengan dependencia directa de la librería.
+Todas las animaciones de la aplicación están implementadas en **SCSS puro**, mediante `@keyframes` definidos en los archivos de estilos de cada componente y el partial dedicado `src/app/features/inbox/components/role-requests/styles/_animations.scss`.
+
+### Keyframes Globales Más Utilizados
+
+| Keyframe | Efecto | Uso típico |
+|----------|--------|-----------|
+| `fadeIn` | Aparición con desplazamiento vertical sutil | Entrada de cards y paneles |
+| `slideDown` | Expansión de `max-height` con fade | Acordeones y secciones colapsables |
+| `slideUp` | Entrada desde abajo con fade | Modales y overlays |
+| `slideInDown` / `slideOutUp` | Entrada/salida con escala y traslación vertical | Navbar, notificaciones |
+| `fall` | Caída continua con rotación | Partículas decorativas del fondo de la home |
+| `layoutFadeIn` | Aparición suave de la vista completa | Transición entre rutas |
+| `shake` | Vibración horizontal | Feedback de error en formularios |
+| `spin` | Rotación continua | Indicadores de carga (spinner) |
+| `progressBar` | Reducción de ancho de 100% a 0% | Barras de progreso temporizadas |
+
+### `AuthTransitionService`
+
+**Archivo**: `src/app/services/ui/auth-transition.ts`
+
+Este servicio no realiza animaciones por sí mismo. Su responsabilidad es gestionar el **estado de la transición de autenticación** mediante Angular Signals, exponiendo fases (`loading` / `success`) y modos (`login` / `logout`) que los componentes leen para aplicar las clases SCSS correctas en cada momento:
+
+```typescript
+readonly transitioning = signal(false);
+readonly phase         = signal<'loading' | 'success'>('loading');
+readonly mode          = signal<'login' | 'logout'>('login');
+```
+
+Los componentes consumen estas señales y añaden o quitan clases CSS que activan los `@keyframes` correspondientes, manteniendo la lógica de coordinación separada de la definición visual de las animaciones.
