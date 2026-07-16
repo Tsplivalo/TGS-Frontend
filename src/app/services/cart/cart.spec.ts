@@ -1,430 +1,217 @@
 import { TestBed } from '@angular/core/testing';
-import { CartService, CartItem } from './cart';
-import { ProductDTO } from '../../models/product/product.model';
+import { CartService, CartItem, CartOfferInput } from './cart';
+
+const STORAGE_KEY = 'cart.marketplace.v1';
+
+/** Oferta del distribuidor A (producto 1). */
+const offerA1 = (): CartOfferInput => ({
+  offerId: '1-A',
+  productId: 1,
+  distributorDni: 'A',
+  distributorName: 'Dist A',
+  description: 'Producto 1',
+  price: 100,
+  imageUrl: 'img1.jpg',
+  zone: { id: 1, name: 'Zona A' },
+});
+
+/** Otra oferta del distribuidor A (producto 2). */
+const offerA2 = (): CartOfferInput => ({
+  offerId: '2-A',
+  productId: 2,
+  distributorDni: 'A',
+  distributorName: 'Dist A',
+  description: 'Producto 2',
+  price: 50,
+  imageUrl: null,
+  zone: { id: 1, name: 'Zona A' },
+});
+
+/** Oferta del distribuidor B (producto 3). */
+const offerB3 = (): CartOfferInput => ({
+  offerId: '3-B',
+  productId: 3,
+  distributorDni: 'B',
+  distributorName: 'Dist B',
+  description: 'Producto 3',
+  price: 200,
+  imageUrl: null,
+  zone: { id: 2, name: 'Zona B' },
+});
 
 describe('CartService', () => {
   let service: CartService;
 
-  const mockProduct: ProductDTO = {
-    id: 1,
-    description: 'Test Product',
-    price: 100,
-    stock: 10,
-    imageUrl: 'test-image.jpg',
-    detail: 'Test details',
-    isIllegal: false
-  };
-
-  const mockProduct2: ProductDTO = {
-    id: 2,
-    description: 'Another Product',
-    price: 200,
-    stock: 20,
-    imageUrl: 'test-image2.jpg',
-    detail: 'Test details 2',
-    isIllegal: false
-  };
-
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [CartService]
-    });
+    localStorage.clear();
+    TestBed.configureTestingModule({ providers: [CartService] });
     service = TestBed.inject(CartService);
-
-    // Clear localStorage before each test
-    localStorage.clear();
   });
 
-  afterEach(() => {
-    localStorage.clear();
-  });
+  afterEach(() => localStorage.clear());
 
-  describe('Service Initialization', () => {
-    it('should be created', () => {
-      expect(service).toBeTruthy();
-    });
-
-    it('should initialize with empty cart', () => {
-      expect(service.items()).toEqual([]);
-    });
-
-    it('should initialize with count 0', () => {
+  describe('Inicialización', () => {
+    it('should be created', () => expect(service).toBeTruthy());
+    it('empieza vacío', () => expect(service.items()).toEqual([]));
+    it('count y total en 0', () => {
       expect(service.count()).toBe(0);
-    });
-
-    it('should initialize with total 0', () => {
       expect(service.total()).toBe(0);
     });
 
-    it('should load cart from localStorage if exists', () => {
-      const savedCart: CartItem[] = [
-        { id: 1, description: 'Product 1', price: 100, qty: 2, imageUrl: null }
-      ];
-      localStorage.setItem('cart.v1', JSON.stringify(savedCart));
-
-      // Create new service instance to test loading
-      const newService = new CartService();
-
-      expect(newService.items()).toEqual(savedCart);
-      expect(newService.count()).toBe(2);
-      expect(newService.total()).toBe(200);
+    it('carga el carrito desde localStorage si existe', () => {
+      const saved: CartItem[] = [{ ...offerA1(), qty: 2 }];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      const fresh = new CartService();
+      expect(fresh.items()).toEqual(saved);
+      expect(fresh.count()).toBe(2);
+      expect(fresh.total()).toBe(200);
     });
 
-    it('should handle corrupted localStorage data', () => {
-      localStorage.setItem('cart.v1', 'invalid json data');
-
-      // Create new service instance
-      const newService = new CartService();
-
-      expect(newService.items()).toEqual([]);
+    it('tolera datos corruptos en localStorage', () => {
+      localStorage.setItem(STORAGE_KEY, 'no-json');
+      expect(new CartService().items()).toEqual([]);
     });
   });
 
   describe('add()', () => {
-    it('should add new product to cart', () => {
-      service.add(mockProduct);
-
+    it('agrega una oferta nueva con qty 1', () => {
+      service.add(offerA1());
       expect(service.items().length).toBe(1);
-      expect(service.items()[0]).toEqual({
-        id: 1,
-        description: 'Test Product',
-        price: 100,
-        imageUrl: 'test-image.jpg',
-        qty: 1
-      });
+      expect(service.items()[0]).toEqual({ ...offerA1(), qty: 1 });
     });
 
-    it('should increment quantity if product already exists', () => {
-      service.add(mockProduct);
-      service.add(mockProduct);
-
+    it('incrementa la cantidad si la oferta ya existe', () => {
+      service.add(offerA1());
+      service.add(offerA1());
       expect(service.items().length).toBe(1);
       expect(service.items()[0].qty).toBe(2);
     });
 
-    it('should add multiple different products', () => {
-      service.add(mockProduct);
-      service.add(mockProduct2);
-
+    it('agrega ofertas distintas por separado', () => {
+      service.add(offerA1());
+      service.add(offerA2());
       expect(service.items().length).toBe(2);
     });
 
-    it('should persist cart to localStorage when adding', () => {
-      service.add(mockProduct);
-
-      const stored = localStorage.getItem('cart.v1');
-      expect(stored).toBeTruthy();
-
-      const parsed = JSON.parse(stored!);
+    it('persiste en localStorage', () => {
+      service.add(offerA1());
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
       expect(parsed.length).toBe(1);
-      expect(parsed[0].id).toBe(1);
+      expect(parsed[0].offerId).toBe('1-A');
     });
 
-    it('should update count when adding products', () => {
-      expect(service.count()).toBe(0);
-
-      service.add(mockProduct);
-      expect(service.count()).toBe(1);
-
-      service.add(mockProduct);
-      expect(service.count()).toBe(2);
-    });
-
-    it('should update total when adding products', () => {
-      expect(service.total()).toBe(0);
-
-      service.add(mockProduct); // 100
-      expect(service.total()).toBe(100);
-
-      service.add(mockProduct); // +100
-      expect(service.total()).toBe(200);
-
-      service.add(mockProduct2); // +200
+    it('actualiza count y total', () => {
+      service.add(offerA1()); // 100
+      service.add(offerA1()); // +100
+      service.add(offerB3()); // +200
+      expect(service.count()).toBe(3);
       expect(service.total()).toBe(400);
     });
-
-    it('should handle product with null description', () => {
-      const productNoDesc: ProductDTO = {
-        ...mockProduct,
-        description: null as any
-      };
-
-      service.add(productNoDesc);
-
-      expect(service.items()[0].description).toBe('Producto 1');
-    });
-
-    it('should handle product with undefined imageUrl', () => {
-      const productNoImage: ProductDTO = {
-        ...mockProduct,
-        imageUrl: undefined
-      };
-
-      service.add(productNoImage);
-
-      expect(service.items()[0].imageUrl).toBeNull();
-    });
   });
 
-  describe('remove()', () => {
-    beforeEach(() => {
-      service.add(mockProduct);
-      service.add(mockProduct2);
-    });
+  describe('inc() / dec() / remove()', () => {
+    beforeEach(() => service.add(offerA1()));
 
-    it('should remove product from cart by id', () => {
-      expect(service.items().length).toBe(2);
-
-      service.remove(1);
-
-      expect(service.items().length).toBe(1);
-      expect(service.items()[0].id).toBe(2);
-    });
-
-    it('should persist cart to localStorage when removing', () => {
-      service.remove(1);
-
-      const stored = localStorage.getItem('cart.v1');
-      const parsed = JSON.parse(stored!);
-
-      expect(parsed.length).toBe(1);
-      expect(parsed[0].id).toBe(2);
-    });
-
-    it('should update count when removing products', () => {
-      expect(service.count()).toBe(2);
-
-      service.remove(1);
-
-      expect(service.count()).toBe(1);
-    });
-
-    it('should update total when removing products', () => {
-      expect(service.total()).toBe(300); // 100 + 200
-
-      service.remove(1); // Remove first product (100)
-
-      expect(service.total()).toBe(200);
-    });
-
-    it('should do nothing if removing non-existent product', () => {
-      const initialLength = service.items().length;
-
-      service.remove(999);
-
-      expect(service.items().length).toBe(initialLength);
-    });
-  });
-
-  describe('dec()', () => {
-    it('should decrement product quantity', () => {
-      service.add(mockProduct);
-      service.add(mockProduct); // qty = 2
-
-      expect(service.items()[0].qty).toBe(2);
-
-      service.dec(1);
-
-      expect(service.items()[0].qty).toBe(1);
-    });
-
-    it('should remove product if quantity reaches 0', () => {
-      service.add(mockProduct); // qty = 1
-
-      service.dec(1);
-
-      expect(service.items().length).toBe(0);
-    });
-
-    it('should not allow negative quantities', () => {
-      service.add(mockProduct); // qty = 1
-
-      service.dec(1);
-      service.dec(1); // Try to go below 0
-
-      expect(service.items().length).toBe(0);
-    });
-
-    it('should persist cart when decrementing', () => {
-      service.add(mockProduct);
-      service.add(mockProduct);
-
-      service.dec(1);
-
-      const stored = localStorage.getItem('cart.v1');
-      const parsed = JSON.parse(stored!);
-
-      expect(parsed[0].qty).toBe(1);
-    });
-
-    it('should update count when decrementing', () => {
-      service.add(mockProduct);
-      service.add(mockProduct); // count = 2
-
-      service.dec(1);
-
-      expect(service.count()).toBe(1);
-    });
-
-    it('should update total when decrementing', () => {
-      service.add(mockProduct);
-      service.add(mockProduct); // total = 200
-
-      service.dec(1);
-
-      expect(service.total()).toBe(100);
-    });
-  });
-
-  describe('inc()', () => {
-    beforeEach(() => {
-      service.add(mockProduct);
-    });
-
-    it('should increment product quantity', () => {
-      expect(service.items()[0].qty).toBe(1);
-
-      service.inc(1);
-
+    it('inc incrementa la cantidad', () => {
+      service.inc('1-A');
       expect(service.items()[0].qty).toBe(2);
     });
 
-    it('should persist cart when incrementing', () => {
-      service.inc(1);
-
-      const stored = localStorage.getItem('cart.v1');
-      const parsed = JSON.parse(stored!);
-
-      expect(parsed[0].qty).toBe(2);
+    it('dec decrementa la cantidad', () => {
+      service.inc('1-A');
+      service.dec('1-A');
+      expect(service.items()[0].qty).toBe(1);
     });
 
-    it('should update count when incrementing', () => {
+    it('dec elimina la oferta al llegar a 0 (sin cantidades negativas)', () => {
+      service.dec('1-A');
+      expect(service.items().length).toBe(0);
+      service.dec('1-A'); // no rompe
+      expect(service.items().length).toBe(0);
+    });
+
+    it('remove elimina la oferta', () => {
+      service.add(offerB3());
+      service.remove('1-A');
+      expect(service.items().map(i => i.offerId)).toEqual(['3-B']);
+    });
+
+    it('inc/remove sobre offerId inexistente no hace nada', () => {
+      service.inc('nope');
+      service.remove('nope');
       expect(service.count()).toBe(1);
-
-      service.inc(1);
-
-      expect(service.count()).toBe(2);
     });
 
-    it('should update total when incrementing', () => {
-      expect(service.total()).toBe(100);
-
-      service.inc(1);
-
-      expect(service.total()).toBe(200);
-    });
-
-    it('should do nothing if incrementing non-existent product', () => {
-      const initialCount = service.count();
-
-      service.inc(999);
-
-      expect(service.count()).toBe(initialCount);
+    it('persisten los cambios', () => {
+      service.inc('1-A');
+      expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)[0].qty).toBe(2);
     });
   });
 
   describe('clear()', () => {
-    beforeEach(() => {
-      service.add(mockProduct);
-      service.add(mockProduct2);
-    });
-
-    it('should clear all items from cart', () => {
-      expect(service.items().length).toBe(2);
-
+    it('vacía el carrito y persiste', () => {
+      service.add(offerA1());
+      service.add(offerB3());
       service.clear();
-
-      expect(service.items().length).toBe(0);
-    });
-
-    it('should reset count to 0', () => {
-      expect(service.count()).toBeGreaterThan(0);
-
-      service.clear();
-
+      expect(service.items()).toEqual([]);
       expect(service.count()).toBe(0);
-    });
-
-    it('should reset total to 0', () => {
-      expect(service.total()).toBeGreaterThan(0);
-
-      service.clear();
-
       expect(service.total()).toBe(0);
-    });
-
-    it('should persist empty cart to localStorage', () => {
-      service.clear();
-
-      const stored = localStorage.getItem('cart.v1');
-      const parsed = JSON.parse(stored!);
-
-      expect(parsed).toEqual([]);
+      expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual([]);
     });
   });
 
-  describe('Computed Properties', () => {
-    it('should calculate correct count for multiple items', () => {
-      service.add(mockProduct); // qty 1
-      service.add(mockProduct); // qty 2
-      service.add(mockProduct2); // qty 1
-
-      expect(service.count()).toBe(3);
+  describe('Agrupación por distribuidor (#11)', () => {
+    beforeEach(() => {
+      service.add(offerA1()); // A
+      service.add(offerA1()); // A (qty 2)
+      service.add(offerA2()); // A
+      service.add(offerB3()); // B
     });
 
-    it('should calculate correct total for multiple items', () => {
-      service.add(mockProduct); // 100
-      service.add(mockProduct); // 200
-      service.add(mockProduct2); // 400
-
-      expect(service.total()).toBe(400);
+    it('agrupa por distribuidor con subtotales correctos', () => {
+      const groups = service.distributorGroups();
+      expect(groups.length).toBe(2);
+      const a = groups.find(g => g.dni === 'A')!;
+      const b = groups.find(g => g.dni === 'B')!;
+      expect(a.subtotal).toBe(250); // 100*2 + 50
+      expect(a.items.length).toBe(2);
+      expect(b.subtotal).toBe(200);
     });
 
-    it('should react to changes in items', () => {
-      service.add(mockProduct);
-      const initialCount = service.count();
-      const initialTotal = service.total();
+    it('hasMultipleDistributors true con dos distribuidores', () => {
+      expect(service.hasMultipleDistributors()).toBeTrue();
+    });
 
-      service.inc(1);
-
-      expect(service.count()).toBe(initialCount + 1);
-      expect(service.total()).toBe(initialTotal + 100);
+    it('hasMultipleDistributors false con un solo distribuidor', () => {
+      service.clear();
+      service.add(offerA1());
+      expect(service.hasMultipleDistributors()).toBeFalse();
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle large quantities', () => {
-      service.add(mockProduct);
+  describe('buildSalePayloads() (#9: distribuidor real, no "el primero")', () => {
+    it('arma un payload por distribuidor con sus productos', () => {
+      service.add(offerA1()); // A, qty 2
+      service.add(offerA1());
+      service.add(offerA2()); // A
+      service.add(offerB3()); // B
 
-      for (let i = 0; i < 100; i++) {
-        service.inc(1);
-      }
+      const payloads = service.buildSalePayloads('CLI-123');
+      expect(payloads.map(p => p.distributorDni).sort()).toEqual(['A', 'B']);
 
-      expect(service.items()[0].qty).toBe(101);
-      expect(service.total()).toBe(10100);
+      const a = payloads.find(p => p.distributorDni === 'A')!;
+      expect(a.clientDni).toBe('CLI-123');
+      expect(a.details).toEqual([
+        { productId: 1, quantity: 2 },
+        { productId: 2, quantity: 1 },
+      ]);
+
+      const b = payloads.find(p => p.distributorDni === 'B')!;
+      expect(b.details).toEqual([{ productId: 3, quantity: 1 }]);
     });
 
-    it('should handle products with price 0', () => {
-      const freeProduct: ProductDTO = {
-        ...mockProduct,
-        price: 0
-      };
-
-      service.add(freeProduct);
-
-      expect(service.total()).toBe(0);
-    });
-
-    it('should handle empty product description', () => {
-      const productEmptyDesc: ProductDTO = {
-        ...mockProduct,
-        description: ''
-      };
-
-      service.add(productEmptyDesc);
-
-      // Empty string is truthy, so it keeps the empty description
-      expect(service.items()[0].description).toBe('');
+    it('carrito vacío => sin payloads', () => {
+      expect(service.buildSalePayloads('CLI')).toEqual([]);
     });
   });
 });

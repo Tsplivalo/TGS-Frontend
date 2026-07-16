@@ -64,15 +64,15 @@ describe('Auth Guards', () => {
       expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/']);
     });
 
-    it('should allow access with authBypass in localStorage', () => {
+    it('should NOT allow access with authBypass in localStorage (bypass removed)', () => {
       localStorage.setItem('authBypass', 'true');
       mockAuthService.isAuthenticated.and.returnValue(false);
+      mockRouter.createUrlTree.and.returnValue({} as UrlTree);
 
-      const result = TestBed.runInInjectionContext(() =>
-        authGuard(mockRoute, mockState)
-      );
+      TestBed.runInInjectionContext(() => authGuard(mockRoute, mockState));
 
-      expect(result).toBe(true);
+      // El bypass por localStorage fue eliminado: debe redirigir igual.
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/']);
     });
 
     it('should allow public verification URLs without authentication', () => {
@@ -205,17 +205,17 @@ describe('Auth Guards', () => {
       expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/']);
     });
 
-    it('should allow access with authBypass regardless of role', () => {
+    it('should NOT allow access with authBypass regardless of role (bypass removed)', () => {
       localStorage.setItem('authBypass', 'true');
       mockAuthService.isAuthenticated.and.returnValue(false);
+      mockRouter.createUrlTree.and.returnValue({} as UrlTree);
 
       const guard = roleGuard([Role.ADMIN]);
 
-      const result = TestBed.runInInjectionContext(() =>
-        guard(mockRoute, mockState)
-      );
+      TestBed.runInInjectionContext(() => guard(mockRoute, mockState));
 
-      expect(result).toBe(true);
+      // El bypass por localStorage fue eliminado: sin auth real, redirige.
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/']);
     });
 
     it('should allow verification URLs without role check', () => {
@@ -282,15 +282,15 @@ describe('Auth Guards', () => {
       expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/login']);
     });
 
-    it('should allow access with authBypass', () => {
+    it('should NOT allow access with authBypass (bypass removed)', () => {
       localStorage.setItem('authBypass', 'true');
       mockAuthService.isAuthenticated.and.returnValue(false);
+      mockRouter.createUrlTree.and.returnValue({} as UrlTree);
 
-      const result = TestBed.runInInjectionContext(() =>
-        inboxGuard(mockRoute, mockState)
-      );
+      TestBed.runInInjectionContext(() => inboxGuard(mockRoute, mockState));
 
-      expect(result).toBe(true);
+      // El bypass por localStorage fue eliminado: redirige a /login.
+      expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/login']);
     });
 
     it('should allow verification URLs', () => {

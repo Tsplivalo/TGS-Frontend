@@ -7,6 +7,7 @@ import {
   CreateDistributorDTO, 
   PatchDistributorDTO 
 } from '../../models/distributor/distributor.model';
+import { logger } from '../../core/logger';
 
 @Injectable({ providedIn: 'root' })
 export class DistributorService {
@@ -131,7 +132,7 @@ export class DistributorService {
         .filter(n => !isNaN(n) && n != null && n > 0 && Number.isInteger(n));
     }
 
-    console.log('📤 Service sending UPDATE:', payload);
+    logger.debug('📤 Service sending UPDATE:', payload);
 
     return this.http.patch<ApiResponse<DistributorDTO>>(
       `${this.base}/${encodeURIComponent(dni)}`, 

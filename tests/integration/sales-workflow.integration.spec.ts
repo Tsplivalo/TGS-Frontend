@@ -9,10 +9,22 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { SaleService } from '../../src/app/services/sale/sale';
-import { CartService, CartItem } from '../../src/app/services/cart/cart';
+import { CartService, CartOfferInput } from '../../src/app/services/cart/cart';
 import { ProductService } from '../../src/app/services/product/product';
 import { ProductDTO } from '../../src/app/models/product/product.model';
 import { SaleDTO, CreateSaleDTO } from '../../src/app/models/sale/sale.model';
+
+/** Convierte un producto en una oferta (producto + distribuidor) para el carrito. */
+const asOffer = (p: ProductDTO): CartOfferInput => ({
+  offerId: `${p.id}-D1`,
+  productId: p.id,
+  distributorDni: 'D1',
+  distributorName: 'Dist 1',
+  description: p.description,
+  price: p.price,
+  imageUrl: p.imageUrl ?? null,
+  zone: null,
+});
 
 describe('Integration: Sales Workflow', () => {
   let saleService: SaleService;
@@ -88,17 +100,17 @@ describe('Integration: Sales Workflow', () => {
     expect(cartService.count()).toBe(0);
 
     // Add first product
-    cartService.add(mockProduct1);
+    cartService.add(asOffer(mockProduct1));
 
     expect(cartService.items().length).toBe(1);
-    expect(cartService.items()[0].id).toBe(1);
+    expect(cartService.items()[0].productId).toBe(1);
     expect(cartService.items()[0].qty).toBe(1);
     expect(cartService.items()[0].price).toBe(45.99);
     expect(cartService.count()).toBe(1);
     expect(cartService.total()).toBeCloseTo(45.99, 2);
 
     // Add same product again (should increment quantity)
-    cartService.add(mockProduct1);
+    cartService.add(asOffer(mockProduct1));
 
     expect(cartService.items().length).toBe(1); // Still 1 item
     expect(cartService.items()[0].qty).toBe(2); // Quantity increased
@@ -106,7 +118,7 @@ describe('Integration: Sales Workflow', () => {
     expect(cartService.total()).toBeCloseTo(91.98, 2);
 
     // Add different product
-    cartService.add(mockProduct2);
+    cartService.add(asOffer(mockProduct2));
 
     expect(cartService.items().length).toBe(2);
     expect(cartService.count()).toBe(3); // 2 whiskey + 1 gin
@@ -119,9 +131,9 @@ describe('Integration: Sales Workflow', () => {
    */
   it('should calculate total with discount correctly', () => {
     // Add products to cart
-    cartService.add(mockProduct1); // 45.99
-    cartService.add(mockProduct1); // 91.98 total
-    cartService.add(mockProduct2); // 124.48 total
+    cartService.add(asOffer(mockProduct1)); // 45.99
+    cartService.add(asOffer(mockProduct1)); // 91.98 total
+    cartService.add(asOffer(mockProduct2)); // 124.48 total
 
     const subtotal = cartService.total();
     expect(subtotal).toBeCloseTo(124.48, 2);
@@ -147,9 +159,9 @@ describe('Integration: Sales Workflow', () => {
    */
   it('should create sale from cart and persist to backend', (done) => {
     // Setup cart
-    cartService.add(mockProduct1);
-    cartService.add(mockProduct1);
-    cartService.add(mockProduct2);
+    cartService.add(asOffer(mockProduct1));
+    cartService.add(asOffer(mockProduct1));
+    cartService.add(asOffer(mockProduct2));
 
     const saleData: CreateSaleDTO = {
       clientDni: '12345678A',
@@ -296,31 +308,31 @@ describe('Integration: Sales Workflow', () => {
    * Integration Test: Cart increment/decrement functionality
    */
   it('should handle cart item quantity changes correctly', () => {
-    cartService.add(mockProduct1); // qty: 1
+    cartService.add(asOffer(mockProduct1)); // qty: 1
 
     expect(cartService.items()[0].qty).toBe(1);
 
     // Increment
-    cartService.inc(mockProduct1.id);
+    cartService.inc('1-D1');
     expect(cartService.items()[0].qty).toBe(2);
     expect(cartService.total()).toBeCloseTo(91.98, 2);
 
     // Increment again
-    cartService.inc(mockProduct1.id);
+    cartService.inc('1-D1');
     expect(cartService.items()[0].qty).toBe(3);
     expect(cartService.total()).toBeCloseTo(137.97, 2);
 
     // Decrement
-    cartService.dec(mockProduct1.id);
+    cartService.dec('1-D1');
     expect(cartService.items()[0].qty).toBe(2);
     expect(cartService.total()).toBeCloseTo(91.98, 2);
 
     // Decrement to 1
-    cartService.dec(mockProduct1.id);
+    cartService.dec('1-D1');
     expect(cartService.items()[0].qty).toBe(1);
 
     // Decrement to 0 (should remove from cart)
-    cartService.dec(mockProduct1.id);
+    cartService.dec('1-D1');
     expect(cartService.items().length).toBe(0);
     expect(cartService.total()).toBe(0);
   });
@@ -329,16 +341,16 @@ describe('Integration: Sales Workflow', () => {
    * Integration Test: Remove item from cart
    */
   it('should remove item from cart completely', () => {
-    cartService.add(mockProduct1);
-    cartService.add(mockProduct2);
+    cartService.add(asOffer(mockProduct1));
+    cartService.add(asOffer(mockProduct2));
 
     expect(cartService.items().length).toBe(2);
 
     // Remove first product
-    cartService.remove(mockProduct1.id);
+    cartService.remove('1-D1');
 
     expect(cartService.items().length).toBe(1);
-    expect(cartService.items()[0].id).toBe(mockProduct2.id);
+    expect(cartService.items()[0].productId).toBe(mockProduct2.id);
     expect(cartService.total()).toBeCloseTo(32.50, 2);
   });
 
@@ -346,8 +358,8 @@ describe('Integration: Sales Workflow', () => {
    * Integration Test: Clear entire cart
    */
   it('should clear entire cart', () => {
-    cartService.add(mockProduct1);
-    cartService.add(mockProduct2);
+    cartService.add(asOffer(mockProduct1));
+    cartService.add(asOffer(mockProduct2));
 
     expect(cartService.items().length).toBe(2);
 
@@ -411,16 +423,16 @@ describe('Integration: Sales Workflow', () => {
    * Edge Case: Cart persistence in localStorage
    */
   it('should persist cart to localStorage', () => {
-    cartService.add(mockProduct1);
-    cartService.add(mockProduct2);
+    cartService.add(asOffer(mockProduct1));
+    cartService.add(asOffer(mockProduct2));
 
     // Verify localStorage has cart data
-    const cartData = localStorage.getItem('cart.v1');
+    const cartData = localStorage.getItem('cart.marketplace.v1');
     expect(cartData).toBeDefined();
 
     const parsedCart = JSON.parse(cartData!);
     expect(parsedCart.length).toBe(2);
-    expect(parsedCart[0].id).toBe(mockProduct1.id);
+    expect(parsedCart[0].productId).toBe(mockProduct1.id);
   });
 });
 
