@@ -11,6 +11,8 @@ import { AuthService, User, Role } from '../../services/user/user';
 import { ZoneDTO } from '../../models/zone/zona.model';
 import { ProductDTO } from '../../models/product/product.model';
 import { DistributorDTO, CreateDistributorDTO, PatchDistributorDTO } from '../../models/distributor/distributor.model';
+import { DialogDirective } from '../../shared/a11y/dialog.directive';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 
 /**
  * DistributorComponent
@@ -41,13 +43,16 @@ type DistForm = {
 
 @Component({
   selector: 'app-distributor',
+  // Activa los estilos compartidos de pantalla de gestión (styles/_crud.scss)
+  host: { class: 'crud-page' },
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DialogDirective],
   templateUrl: './distributor.html',
   styleUrls: ['./distributor.scss'],
 })
 export class DistributorComponent implements OnInit {
   // --- Inyección ---
+  private confirmDialog = inject(ConfirmService);
   private fb = inject(FormBuilder);
   private srv = inject(DistributorService);
   private zoneSrv = inject(ZoneService);
@@ -544,8 +549,8 @@ export class DistributorComponent implements OnInit {
   }
 
   // --- Borrado ---
-  delete(dni: string | number) {
-    if (!confirm(this.t.instant('distributors.confirmDelete'))) {
+  async delete(dni: string | number) {
+    if (!(await this.confirmDialog.ask({ title: this.t.instant('distributors.confirmDelete'), danger: true }))) {
       return;
     }
 

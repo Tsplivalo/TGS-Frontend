@@ -11,6 +11,7 @@ import { AuthService, Role } from '../../services/user/user';
 import { BribeDTO } from '../../models/bribe/bribe.model';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 
 /**
  * BribeComponent
@@ -22,6 +23,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-bribe',
+  // Activa los estilos compartidos de pantalla de gestión (styles/_crud.scss)
+  host: { class: 'crud-page' },
   standalone: true,
   imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './bribe.html',
@@ -29,6 +32,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 })
 export class BribeComponent implements OnInit {
   // --- Inyección ---
+  private confirmDialog = inject(ConfirmService);
   private srv = inject(BribeService);
   private t = inject(TranslateService);
   private authService = inject(AuthService);
@@ -220,10 +224,10 @@ clearFilters() {
   }
 
   // --- Pago ---
-  markAsPaid(bribe: BribeDTO) {
+  async markAsPaid(bribe: BribeDTO) {
     if (!bribe.id || bribe.paid) return;
 
-    if (!confirm(this.t.instant('bribes.confirmPay'))) return;
+    if (!(await this.confirmDialog.ask({ title: this.t.instant('bribes.confirmPay') }))) return;
 
     this.loading.set(true);
     this.error.set(null);
@@ -241,8 +245,8 @@ clearFilters() {
   }
 
   // --- Borrado ---
-  delete(id: number) {
-    if (!confirm(this.t.instant('bribes.confirmDelete'))) return;
+  async delete(id: number) {
+    if (!(await this.confirmDialog.ask({ title: this.t.instant('bribes.confirmDelete'), danger: true }))) return;
 
     this.loading.set(true);
     this.error.set(null);

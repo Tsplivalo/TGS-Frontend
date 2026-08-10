@@ -6,6 +6,8 @@ import { AdminService } from '../../services/admin/admin';
 import { AdminDTO, CreateAdminDTO, PatchAdminDTO } from '../../models/admin/admin.model';
 import { AuthService } from '../../services/user/user';
 import { User } from '../../models/user/user.model';
+import { DialogDirective } from '../../shared/a11y/dialog.directive';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 
 /**
  * Componente: Admin
@@ -18,12 +20,13 @@ import { User } from '../../models/user/user.model';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DialogDirective],
   templateUrl: './admin.html',
   styleUrls: ['./admin.scss'],
 })
 export class AdminComponent implements OnInit {
   // Inyección
+  private confirmDialog = inject(ConfirmService);
   private fb  = inject(FormBuilder);
   private srv = inject(AdminService);
   private authSrv = inject(AuthService);
@@ -42,6 +45,14 @@ export class AdminComponent implements OnInit {
   users = signal<User[]>([]);
   userSearch = signal('');
   fromUser = signal(false);
+  /**
+   * Id del usuario elegido en la lista de usuarios verificados.
+   *
+   * `fromUser` sólo dice si el formulario se llenó desde un usuario, no cuál:
+   * usarlo para resaltar pintaba TODA la lista como seleccionada en cuanto se
+   * elegía uno. Distribuidor y socio ya llevaban su equivalente.
+   */
+  selectedUserId = signal<string | null>(null);
 
   // Filtro
   fTextInput = signal('');
@@ -121,6 +132,7 @@ export class AdminComponent implements OnInit {
   new(): void {
     this.isEdit.set(false);
     this.fromUser.set(false);
+    this.selectedUserId.set(null);
     this.userSearch.set('');
     this.form.reset({ dni: '', name: '', email: '', phone: null });
   }
@@ -129,6 +141,7 @@ export class AdminComponent implements OnInit {
   edit(it: AdminDTO): void {
     this.isEdit.set(true);
     this.fromUser.set(false);
+    this.selectedUserId.set(null);
     this.form.patchValue({ dni: it.dni, name: it.name, email: it.email, phone: it.phone ?? null });
     this.isNewOpen = true;
   }
@@ -146,6 +159,7 @@ export class AdminComponent implements OnInit {
       phone: person.phone ?? null
     });
     this.fromUser.set(true);
+    this.selectedUserId.set(userId);
   }
 
   /** Crea/actualiza y refresca listado. */
@@ -169,10 +183,10 @@ export class AdminComponent implements OnInit {
   }
 
   /** Elimina tras confirmar y recarga. */
-  delete(it: AdminDTO): void {
+  async delete(it: AdminDTO): Promise<void> {
     const msg = this.tr.instant('common.delete') || 'Eliminar';
     const noun = this.tr.instant('admin.title') || 'Administrador';
-    if (!confirm(`${msg} ${noun}?`)) return;
+    if (!(await this.confirmDialog.ask({ title: `${msg} ${noun}?`, danger: true }))) return;
     this.srv.delete(it.dni).subscribe({ next: () => this.load() });
   }
 

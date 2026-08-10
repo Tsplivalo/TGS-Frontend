@@ -6,6 +6,7 @@ import { RoleRequestService } from '../../services/role-request';
 import { ZoneService } from '../../../../services/zone/zone';
 import { ProductService } from '../../../../services/product/product';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DialogDirective } from '../../../../shared/a11y/dialog.directive';
 
 interface RoleOption {
   value: Role;
@@ -35,7 +36,7 @@ interface RoleSpecificData {
 @Component({
   selector: 'app-role-request-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, DialogDirective],
   templateUrl: './role-request-modal.html',
   styleUrls: ['./role-requests.scss']
 })
