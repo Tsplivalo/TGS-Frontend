@@ -24,6 +24,8 @@ import { SaleDTO } from '../../models/sale/sale.model';
 
 // ✅ IMPORTAR COMPONENTE DE CHART
 import { ChartComponent } from '../chart/chart';
+import { DialogDirective } from '../../shared/a11y/dialog.directive';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 
 @Component({
   selector: 'app-monthly-review',
@@ -34,12 +36,12 @@ import { ChartComponent } from '../chart/chart';
     ReactiveFormsModule,
     TranslateModule,
     ChartComponent,
-    NgxEchartsModule
-  ],
+    NgxEchartsModule, DialogDirective],
   templateUrl: './monthly-review.html',
   styleUrls: ['./monthly-review.scss'],
 })
 export class MonthlyReviewComponent implements OnInit {
+  private confirmDialog = inject(ConfirmService);
   private fb  = inject(FormBuilder);
   private srv = inject(MonthlyReviewService);
   private partnerSrv = inject(PartnerService);
@@ -250,9 +252,9 @@ export class MonthlyReviewComponent implements OnInit {
     }
   }
 
-  delete(it: MonthlyReviewDTO): void {
+  async delete(it: MonthlyReviewDTO): Promise<void> {
     const msg = this.tr.instant('monthlyReview.confirmDelete') || '¿Eliminar revisión?';
-    if (!confirm(msg)) return;
+    if (!(await this.confirmDialog.ask({ title: msg, danger: true }))) return;
 
     this.loading.set(true);
     this.srv.delete(it.id).subscribe({

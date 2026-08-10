@@ -6,6 +6,8 @@ import { AdminService } from '../../services/admin/admin';
 import { AdminDTO, CreateAdminDTO, PatchAdminDTO } from '../../models/admin/admin.model';
 import { AuthService } from '../../services/user/user';
 import { User } from '../../models/user/user.model';
+import { DialogDirective } from '../../shared/a11y/dialog.directive';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 
 /**
  * Componente: Admin
@@ -18,12 +20,13 @@ import { User } from '../../models/user/user.model';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, DialogDirective],
   templateUrl: './admin.html',
   styleUrls: ['./admin.scss'],
 })
 export class AdminComponent implements OnInit {
   // Inyección
+  private confirmDialog = inject(ConfirmService);
   private fb  = inject(FormBuilder);
   private srv = inject(AdminService);
   private authSrv = inject(AuthService);
@@ -169,10 +172,10 @@ export class AdminComponent implements OnInit {
   }
 
   /** Elimina tras confirmar y recarga. */
-  delete(it: AdminDTO): void {
+  async delete(it: AdminDTO): Promise<void> {
     const msg = this.tr.instant('common.delete') || 'Eliminar';
     const noun = this.tr.instant('admin.title') || 'Administrador';
-    if (!confirm(`${msg} ${noun}?`)) return;
+    if (!(await this.confirmDialog.ask({ title: `${msg} ${noun}?`, danger: true }))) return;
     this.srv.delete(it.dni).subscribe({ next: () => this.load() });
   }
 

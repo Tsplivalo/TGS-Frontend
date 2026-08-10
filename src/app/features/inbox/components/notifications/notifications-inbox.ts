@@ -5,6 +5,7 @@ import { Notification, NotificationStatus, NotificationType } from '../../models
 import { NotificationCardComponent } from './notification-card';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../../services/auth/auth';
+import { ConfirmService } from '../../../../shared/confirm/confirm.service';
 
 @Component({
   selector: 'app-notifications-inbox',
@@ -14,6 +15,7 @@ import { AuthService } from '../../../../services/auth/auth';
   styleUrls: ['./notifications.scss']
 })
 export class NotificationsInboxComponent implements OnInit {
+  private confirmDialog = inject(ConfirmService);
   private t = inject(TranslateService);
   private notificationService = inject(NotificationService);
   private auth = inject(AuthService);
@@ -103,7 +105,7 @@ export class NotificationsInboxComponent implements OnInit {
   }
 
   async onDeleteNotification(notification: Notification): Promise<void> {
-    if (!confirm(this.t.instant('notifications.confirmDelete') || '¿Eliminar esta notificación?')) {
+    if (!(await this.confirmDialog.ask({ title: this.t.instant('notifications.confirmDelete') || '¿Eliminar esta notificación?', danger: true }))) {
       return;
     }
 
